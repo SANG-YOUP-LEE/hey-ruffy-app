@@ -1,3 +1,4 @@
+사인업뷰 전체 코드 보여줄게.  반영해서 전체 코드 줘.
 <template>
   <div class="signup-wrapper">
     <div class="signup-card">
