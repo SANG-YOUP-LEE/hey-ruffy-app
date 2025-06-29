@@ -2,7 +2,7 @@
   <div class="welcome-container">
     <h2>🎉 로그인 완료!</h2>
     <p>헤이 러피와 함께 시작해볼까요?</p>
-    <button @click="goToAddCommitment">다짐하러 가기 ➡️</button>
+    <button @click="goToAddCommitment">다짐하러 가기</button>
   </div>
 </template>
 

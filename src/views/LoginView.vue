@@ -1,35 +1,23 @@
 <template>
-  <div class="login-wrapper">
-    <div class="login-card">
-      <h2>Hi! 다시 만나서 반가워</h2>
-
-      <input
-        v-model="email"
-        type="email"
-        placeholder="이메일을 입력해 주세요."
-        class="input email"
-        :class="{ error: errorField === 'email' }"
-      />
-
-      <input
-        v-model="password"
-        type="password"
-        placeholder="비밀번호를 입력해 주세요."
-        class="input password"
-        :class="{ error: errorField === 'password' }"
-      />
-
-      <p class="reset-text">
-        혹시 비밀번호를 잊었다면 이메일 입력 후
-        <span @click="resetPassword" class="link">여기</span>를 눌러주세요.
-      </p>
-
-      <button class="login-button" @click="login">러피 만나러가기</button>
-
-      <p v-if="message" class="message">✅ {{ message }}</p>
-      <p v-if="error" class="error">❌ {{ error }}</p>
-    </div>
+  <div class="container">
+		<div class="join_wrap">
+	    <h2>안녕!<br />다시 만나서 반가워요.</h2>
+			<div class="form">
+				<input type="email" placeholder="이메일을 입력해 주세요." v-model="email" :class="{ error: errorField === 'email' }">
+				<input type="password" placeholder="비밀번호를 입력해 주세요." v-model="password":class="{ error: errorField === 'password' }">
+			</div>
+			<div class="radio">
+				<div class="agree">혹시 비밀번호를 잊었다면 <a href="#" @click.prevent="resetPassword">여기</a>를 눌러주세요.</div>
+			</div>
+	
+			<div class="button">
+	     <a href="#" @click.prevent="login" class="login-button">러피 만나러가기</a>
+			</div>
+		</div>
   </div>
+
+
+
 </template>
 
 <script setup>
@@ -101,90 +89,3 @@ const resetPassword = async () => {
   }
 }
 </script>
-
-<style scoped>
-.login-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #fff7f0;
-}
-
-.login-card {
-  background: white;
-  border-radius: 16px;
-  padding: 32px 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  max-width: 360px;
-  width: 90%;
-  text-align: center;
-}
-
-h2 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #4a90e2;
-  margin-bottom: 24px;
-}
-
-.input {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 14px;
-  font-size: 15px;
-  border-radius: 8px;
-  border: 1.5px solid #ccc;
-  margin-bottom: 14px;
-}
-
-.email {
-  border-color: #a75a2d;
-}
-
-.password {
-  border-color: #ccc;
-}
-
-.input.error {
-  border-color: #e74c3c;
-}
-
-.reset-text {
-  font-size: 13px;
-  color: #444;
-  margin-bottom: 18px;
-}
-
-.link {
-  color: #4a90e2;
-  cursor: pointer;
-  font-weight: 500;
-  text-decoration: underline;
-}
-
-.login-button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 999px;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.message {
-  color: green;
-  font-size: 14px;
-  margin-top: 12px;
-}
-
-.error {
-  color: red;
-  font-size: 14px;
-  margin-top: 12px;
-}
-</style>
