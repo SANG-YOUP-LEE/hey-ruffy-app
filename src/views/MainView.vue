@@ -3,7 +3,7 @@
     <div class="main_wrap">
       <h2>
         다짐내용
-        <div>{{ lastCommitment }}</div> <!-- aaaa → 다짐 내용으로 변경 -->
+        <div>{{ lastCommitment }}</div>
       </h2>
       <a href="#none" class="add_rout" @click="showPopup = true">+<span>다짐추가</span></a>
     </div>
@@ -18,23 +18,36 @@
       />
     </div>
   </div>
-  <!-- //팝업 -->
 </template>
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
+import { db } from '../firebase'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import CommitmentForm from '@/components/CommitmentForm.vue'
 
 const showPopup = ref(false)
 const lastCommitment = ref('')
-const handleCommitmentSubmit = (data) => {
-  lastCommitment.value = data.title // 다짐 내용을 저장
+
+const handleCommitmentSubmit = async (data) => {
+  try {
+    await addDoc(collection(db, 'commitments'), {
+      ...data,
+      createdAt: serverTimestamp()
+    })
+
+    lastCommitment.value = data.title
+    showPopup.value = false
+    alert('다짐이 저장되었어요!')
+  } catch (error) {
+    console.error('❌ 다짐 저장 실패:', error)
+    alert('다짐 저장 중 오류가 발생했어요.')
+  }
 }
 
 watch(showPopup, async (newVal) => {
   if (newVal) {
     await nextTick()
-    // 필요 시 탭 초기화 등 추가 작업 가능
   }
 })
 </script>

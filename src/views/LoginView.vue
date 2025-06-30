@@ -85,7 +85,7 @@ const login = async () => {
     if (userCredential.user.emailVerified) {
       message.value = '로그인 성공! 잠시만 기다려 주세요...'
       setTimeout(() => {
-        router.push('/welcome')
+        router.push('/main')
       }, 1000)
     } else {
       await signOut(auth)
