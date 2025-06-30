@@ -5,45 +5,28 @@
       <button
         :class="['tab', selected === 'daily' ? 'active' : '']"
         @click="select('daily')"
+        type="button"
       >
         일별
       </button>
       <button
         :class="['tab', selected === 'weekly' ? 'active' : '']"
         @click="select('weekly')"
+        type="button"
       >
         주별
       </button>
       <button
         :class="['tab', selected === 'monthly' ? 'active' : '']"
         @click="select('monthly')"
+        type="button"
       >
         월별
       </button>
     </div>
 
-    <!-- 일별: 시간 선택 -->
-    <div v-if="selected === 'daily'" class="time-select">
-      <div class="time-row">
-        <label>시작 시간</label>
-        <input type="time" v-model="startTime" />
-      </div>
-      <div class="time-row">
-        <label>종료 시간</label>
-        <input type="time" v-model="endTime" />
-      </div>
-    </div>
-
-    <!-- 주별: 요일 선택 -->
+    <!-- 주별 요일 선택 -->
     <div v-if="selected === 'weekly'" class="day-buttons">
-      <button
-        class="day-btn"
-        :class="{ selected: isAllDaysSelected }"
-        @click="toggleAllDays"
-        type="button"
-      >
-        매일
-      </button>
       <button
         v-for="day in days"
         :key="day"
@@ -55,32 +38,56 @@
       </button>
     </div>
 
-    <!-- 월별: 추후 구현 -->
-    <div v-if="selected === 'monthly'" class="monthly-placeholder">
-      <p>월별 기능은 곧 추가될 예정이에요.</p>
+    <!-- 일별 시간 선택 -->
+    <div v-if="selected === 'daily'" class="time-range">
+      <div class="time-section">
+        <label>시작 시간</label>
+        <select v-model="startPeriod">
+          <option value="오전">오전</option>
+          <option value="오후">오후</option>
+        </select>
+        <select v-model="startHour">
+          <option v-for="h in 12" :key="'sh' + h" :value="h">{{ h }}시</option>
+        </select>
+        <select v-model="startMinute">
+          <option v-for="m in 60" :key="'sm' + m" :value="m">{{ String(m).padStart(2, '0') }}분</option>
+        </select>
+      </div>
+      <div class="time-section">
+        <label>종료 시간</label>
+        <select v-model="endPeriod">
+          <option value="오전">오전</option>
+          <option value="오후">오후</option>
+        </select>
+        <select v-model="endHour">
+          <option v-for="h in 12" :key="'eh' + h" :value="h">{{ h }}시</option>
+        </select>
+        <select v-model="endMinute">
+          <option v-for="m in 60" :key="'em' + m" :value="m">{{ String(m).padStart(2, '0') }}분</option>
+        </select>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, defineExpose } from 'vue'
+import { ref, defineExpose } from 'vue'
 
-const selected = ref('daily') // 기본값: 일별
+const selected = ref('daily')
 const days = ['월', '화', '수', '목', '금', '토', '일']
 const selectedDays = ref([])
-const startTime = ref('')
-const endTime = ref('')
+
+const startPeriod = ref('오전')
+const startHour = ref(1)
+const startMinute = ref(0)
+
+const endPeriod = ref('오전')
+const endHour = ref(1)
+const endMinute = ref(0)
 
 function select(mode) {
   selected.value = mode
-  // 탭 바뀔 때 값 초기화
-  if (mode !== 'weekly') {
-    selectedDays.value = []
-  }
-  if (mode !== 'daily') {
-    startTime.value = ''
-    endTime.value = ''
-  }
+  if (mode !== 'weekly') selectedDays.value = []
 }
 
 function toggleDay(day) {
@@ -91,24 +98,18 @@ function toggleDay(day) {
   }
 }
 
-function toggleAllDays() {
-  if (isAllDaysSelected.value) {
-    selectedDays.value = []
-  } else {
-    selectedDays.value = [...days]
-  }
-}
-
-const isAllDaysSelected = computed(() => {
-  return days.every(d => selectedDays.value.includes(d))
-})
-
 defineExpose({
   getSelectedData: () => ({
     mode: selected.value,
-    days: selected.value === 'weekly' ? selectedDays.value : [],
-    startTime: selected.value === 'daily' ? startTime.value : '',
-    endTime: selected.value === 'daily' ? endTime.value : ''
+    days: selectedDays.value,
+    timeRange: {
+      startPeriod: startPeriod.value,
+      startHour: startHour.value,
+      startMinute: startMinute.value,
+      endPeriod: endPeriod.value,
+      endHour: endHour.value,
+      endMinute: endMinute.value
+    }
   })
 })
 </script>
@@ -134,7 +135,6 @@ defineExpose({
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .tab {
@@ -146,6 +146,7 @@ defineExpose({
   font-weight: 600;
   font-size: 1.3rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .tab.active {
@@ -154,11 +155,11 @@ defineExpose({
 }
 
 .day-buttons {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
   gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .day-btn {
@@ -170,6 +171,7 @@ defineExpose({
   font-weight: 600;
   font-size: 1.2rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .day-btn.selected {
@@ -177,25 +179,28 @@ defineExpose({
   color: #fff;
 }
 
-.time-select {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
+.time-range {
+  margin-top: 2rem;
+  text-align: center;
 }
 
-.time-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 1.2rem;
-  color: #2d80cc;
+.time-section {
+  margin-bottom: 1.5rem;
 }
-.time-row input[type="time"] {
-  margin-top: 0.5rem;
-  padding: 0.4rem 1rem;
+
+.time-section label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.time-section select {
+  margin: 0 0.3rem;
+  padding: 0.5rem 0.8rem;
+  font-size: 1.2rem;
   border: 1px solid #ccc;
   border-radius: 0.6rem;
-  font-size: 1.2rem;
+  cursor: pointer;
 }
 </style>
+

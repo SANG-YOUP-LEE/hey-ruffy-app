@@ -8,7 +8,7 @@
           <input
             v-model="title"
             type="text"
-            placeholder="ex) 외로워도 슬퍼도 탄수화물 끊기"
+            placeholder="ex)외로워도 슬퍼도 탄수화물 끊기"
             required
           />
         </div>
@@ -31,7 +31,6 @@
 <script setup>
 import { ref } from 'vue'
 import FrequencySelector from './FrequencySelector.vue'
-
 const emit = defineEmits(['submit', 'close'])
 
 const title = ref('')
@@ -49,10 +48,15 @@ const handleSubmit = () => {
     description: description.value,
     frequencyMode: freqData.mode || '',
     selectedDays: freqData.days || [],
-    timeRange: freqData.timeRange || {},  // ✅ 일별 시간도 포함
+    startPeriod: freqData.timeRange?.startPeriod || '',
+    startHour: freqData.timeRange?.startHour || '',
+    startMinute: freqData.timeRange?.startMinute || '',
+    endPeriod: freqData.timeRange?.endPeriod || '',
+    endHour: freqData.timeRange?.endHour || '',
+    endMinute: freqData.timeRange?.endMinute || '',
     reminder: reminder.value,
     importance: importance.value,
-    note: note.value,
+    note: note.value
   })
 
   // 초기화
@@ -61,8 +65,6 @@ const handleSubmit = () => {
   importance.value = '⭐️'
   note.value = ''
   description.value = ''
-  // freqSelector는 내부적으로 상태 유지 or 초기화 필요 시 expose 추가
-
   emit('close')
 }
 
@@ -70,3 +72,57 @@ const handleClose = () => {
   emit('close')
 }
 </script>
+
+<style scoped>
+.paper {
+  padding: 2rem;
+  background: #fff;
+  border-radius: 1.2rem;
+}
+
+.p_title h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2d80cc;
+  margin-bottom: 1rem;
+}
+
+.input_set input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1.2rem;
+  border: 1px solid #ccc;
+  border-radius: 0.8rem;
+}
+
+.save_btn {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.save_btn button {
+  background: #2d80cc;
+  color: #fff;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 999rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.save_btn button:hover {
+  background: #1d6db3;
+}
+
+.close_btn {
+  margin-top: 1rem;
+  display: block;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 1rem;
+}
+</style>
