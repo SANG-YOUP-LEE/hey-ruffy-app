@@ -3,10 +3,10 @@
     <div class="question">얼마나 자주 반복해야 하나요?</div>
     <div class="tabs">
       <button
-        :class="['tab', selected === 'weekday' ? 'active' : '']"
-        @click="select('weekday')"
+        :class="['tab', selected === 'daily' ? 'active' : '']"
+        @click="select('daily')"
       >
-        요일별
+        일별
       </button>
       <button
         :class="['tab', selected === 'weekly' ? 'active' : '']"
@@ -22,58 +22,63 @@
       </button>
     </div>
 
-    <!-- 요일 선택 버튼 -->
-    <div v-if="selected === 'weekday'" class="day-buttons">
+    <!-- 시간 선택 (일별일 경우에만) -->
+    <div v-if="selected === 'daily'" class="hour-buttons">
       <button
-        class="day-btn special"
-        @click="selectAllDays"
+        :class="['hour-btn', isAllHoursSelected ? 'selected' : '']"
+        @click="toggleAllHours"
         type="button"
       >
         매일
       </button>
       <button
-        v-for="day in days"
-        :key="day"
-        :class="['day-btn', selectedDays.includes(day) ? 'selected' : '']"
-        @click="toggleDay(day)"
+        v-for="hour in 24"
+        :key="hour"
+        :class="['hour-btn', selectedHours.includes(hour) ? 'selected' : '']"
+        @click="toggleHour(hour)"
         type="button"
       >
-        {{ day }}
+        {{ hour }}시
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, defineExpose } from 'vue'
+import { ref, computed, defineExpose } from 'vue'
 
-const selected = ref('weekday')
-const days = ['월', '화', '수', '목', '금', '토', '일']
-const selectedDays = ref([])
+const selected = ref('daily')
+const selectedHours = ref([])
 
 function select(mode) {
   selected.value = mode
-  if (mode !== 'weekday') {
-    selectedDays.value = []
+  if (mode !== 'daily') {
+    selectedHours.value = []
   }
 }
 
-function toggleDay(day) {
-  if (selectedDays.value.includes(day)) {
-    selectedDays.value = selectedDays.value.filter(d => d !== day)
+function toggleHour(hour) {
+  if (selectedHours.value.includes(hour)) {
+    selectedHours.value = selectedHours.value.filter(h => h !== hour)
   } else {
-    selectedDays.value.push(day)
+    selectedHours.value.push(hour)
   }
 }
 
-function selectAllDays() {
-  selectedDays.value = [...days]
+function toggleAllHours() {
+  if (isAllHoursSelected.value) {
+    selectedHours.value = []
+  } else {
+    selectedHours.value = Array.from({ length: 24 }, (_, i) => i)
+  }
 }
+
+const isAllHoursSelected = computed(() => selectedHours.value.length === 24)
 
 defineExpose({
   getSelectedData: () => ({
     mode: selected.value,
-    days: selectedDays.value,
+    hours: selectedHours.value
   })
 })
 </script>
@@ -99,6 +104,7 @@ defineExpose({
   display: flex;
   justify-content: center;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .tab {
@@ -117,33 +123,26 @@ defineExpose({
   color: #fff;
 }
 
-.day-buttons {
+.hour-buttons {
   margin-top: 1.5rem;
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 0.6rem;
+  justify-content: center;
 }
 
-.day-btn {
-  padding: 0.5rem 1rem;
+.hour-btn {
+  padding: 0.5rem 0.8rem;
   border-radius: 999rem;
   border: 1px solid #2d80cc;
   background-color: #fff;
   color: #2d80cc;
-  font-weight: 600;
   font-size: 1.2rem;
   transition: all 0.2s ease;
 }
 
-.day-btn.selected {
+.hour-btn.selected {
   background-color: #2d80cc;
   color: #fff;
-}
-
-.day-btn.special {
-  background-color: #f0f8ff;
-  color: #2d80cc;
-  font-weight: 700;
 }
 </style>
