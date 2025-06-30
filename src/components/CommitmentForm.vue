@@ -8,6 +8,7 @@
         <div class="input_set">
            <input v-model="title" type="text" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기" required />
         </div>
+        <FrequencySelector />
       </div>
       <!-- //다짐명 입력 -->
     
@@ -58,6 +59,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import FrequencySelector from './FrequencySelector.vue'
 const emit = defineEmits(['submit', 'close'])
 
 const title = ref('')
