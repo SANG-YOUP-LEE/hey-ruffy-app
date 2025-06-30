@@ -6,6 +6,10 @@
         <div>{{ lastCommitment }}</div>
       </h2>
       <a href="#none" class="add_rout" @click="showPopup = true">+<span>다짐추가</span></a>
+
+      <div class="edit_btn">
+        <button type="submit">다짐 수정하기</button>
+      </div>
     </div>
   </div>
 
