@@ -1,206 +1,224 @@
 <template>
-  <div class="frequency-selector">
-    <div class="question">얼마나 자주 반복해야 하나요?</div>
-    <div class="tabs">
-      <button
-        :class="['tab', selected === 'daily' ? 'active' : '']"
-        @click="select('daily')"
-        type="button"
-      >
-        일별
-      </button>
-      <button
-        :class="['tab', selected === 'weekly' ? 'active' : '']"
-        @click="select('weekly')"
-        type="button"
-      >
-        주별
-      </button>
-      <button
-        :class="['tab', selected === 'monthly' ? 'active' : '']"
-        @click="select('monthly')"
-        type="button"
-      >
-        월별
-      </button>
-    </div>
-
-    <!-- 주별 요일 선택 -->
-    <div v-if="selected === 'weekly'" class="day-buttons">
-      <button
-        v-for="day in days"
-        :key="day"
-        :class="['day-btn', selectedDays.includes(day) ? 'selected' : '']"
-        @click="toggleDay(day)"
-        type="button"
-      >
-        {{ day }}
-      </button>
-    </div>
-
-    <!-- 일별 시간 선택 -->
-    <div v-if="selected === 'daily'" class="time-range">
-      <div class="time-section">
-        <label>시작 시간</label>
-        <select v-model="startPeriod">
-          <option value="오전">오전</option>
-          <option value="오후">오후</option>
-        </select>
-        <select v-model="startHour">
-          <option v-for="h in 12" :key="'sh' + h" :value="h">{{ h }}시</option>
-        </select>
-        <select v-model="startMinute">
-          <option v-for="m in 60" :key="'sm' + m" :value="m">{{ String(m).padStart(2, '0') }}분</option>
-        </select>
+  <div class="p_group">
+    <h3>얼마나 자주 반복해야 하나요?</h3>
+    <div class="input_set">
+      <!-- 주기 설정 탭 -->
+      <div class="button" id="repeatTab">
+        <a
+          href="#none"
+          class="tab_button"
+          :class="{ on: selectedType === 'daily' }"
+          @click.prevent="selectTab('daily')"
+          data-type="daily"
+          >요일별</a
+        >
+        <a
+          href="#none"
+          class="tab_button"
+          :class="{ on: selectedType === 'weekly' }"
+          @click.prevent="selectTab('weekly')"
+          data-type="weekly"
+          >주별</a
+        >
+        <a
+          href="#none"
+          class="tab_button"
+          :class="{ on: selectedType === 'monthly' }"
+          @click.prevent="selectTab('monthly')"
+          data-type="monthly"
+          >월별</a
+        >
       </div>
-      <div class="time-section">
-        <label>종료 시간</label>
-        <select v-model="endPeriod">
-          <option value="오전">오전</option>
-          <option value="오후">오후</option>
-        </select>
-        <select v-model="endHour">
-          <option v-for="h in 12" :key="'eh' + h" :value="h">{{ h }}시</option>
-        </select>
-        <select v-model="endMinute">
-          <option v-for="m in 60" :key="'em' + m" :value="m">{{ String(m).padStart(2, '0') }}분</option>
-        </select>
+
+      <div class="repeat_content" id="repeatContent">
+        <!-- 요일 별 -->
+        <div class="repeat_section daily" v-show="selectedType === 'daily'">
+          <div class="inner_set" style="margin-bottom: 1rem;">
+            <NativeWheel
+              :items="dailyRepeatOptions"
+              :initialSelectedIndex="dailyRepeatSelectedIndex"
+              @update:selectedIndex="dailyRepeatSelectedIndex = $event"
+              style="max-width: 100%;"
+            />
+          </div>
+          <!-- 멀티셀렉트 삭제 -->
+        </div>
+
+        <!-- 주간 별 -->
+        <div class="repeat_section weekly" v-show="selectedType === 'weekly'">
+          <div class="inner_set" style="margin-bottom: 1rem; max-width: 100%;">
+            <NativeWheel
+              :items="weeklyItems"
+              :initialSelectedIndex="weeklyWheelSelectedIndex"
+              @update:selectedIndex="weeklyWheelSelectedIndex = $event"
+              style="max-width: 100%;"
+            />
+          </div>
+          <div class="inner_set" style="margin-top: 1rem; max-width: 100%;">
+            <span
+              class="all"
+              :class="{ on: isWeeklyAllSelected }"
+              @click="toggleWeeklyAll"
+              ><strong>매일</strong></span
+            >
+            <span
+              v-for="day in dailyDays"
+              :key="'weekly-' + day"
+              :class="{ on: weeklySelected.includes(day) }"
+              @click="toggleWeekly(day)"
+              >{{ day }}</span
+            >
+          </div>
+        </div>
+
+        <!-- 월 별 -->
+        <div class="repeat_section monthly" v-show="selectedType === 'monthly'">
+          <div class="inner_set" style="margin-bottom: 1rem;">
+            <NativeWheel
+              :items="monthlyItems"
+              :initialSelectedIndex="monthlyWheelSelectedIndex"
+              @update:selectedIndex="onMonthlyWheelChange"
+              style="max-width: 100%;"
+            />
+          </div>
+          <div class="inner_set">
+            <span
+              v-for="day in monthlyDays"
+              :key="'monthly-' + day"
+              :class="{ on: monthlySelected.includes(day) }"
+              @click="toggleMonthly(day)"
+              >{{ day }}</span
+            >
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, defineExpose } from 'vue'
+import { ref, computed } from 'vue'
+import NativeWheel from './NativeWheel.vue'
 
-const selected = ref('daily')
-const days = ['월', '화', '수', '목', '금', '토', '일']
-const selectedDays = ref([])
+// 탭 선택 상태
+const selectedType = ref('daily')
 
-const startPeriod = ref('오전')
-const startHour = ref(1)
-const startMinute = ref(0)
+// --- daily (요일별) 상태 관리 ---
+const dailyRepeatOptions = ['매일', '2일마다', '3일마다', '4일마다', '5일마다', '6일마다']
+const dailyRepeatSelectedIndex = ref(0)
 
-const endPeriod = ref('오전')
-const endHour = ref(1)
-const endMinute = ref(0)
+// --- weekly (주별) 상태 관리 ---
+const dailyDays = ['월', '화', '수', '목', '금', '토', '일']
+const weeklySelected = ref([])
+const weeklyItems = ['2주차', '3주차', '4주차', '5주차']
+const weeklyWheelSelectedIndex = ref(1) // 기본 3주차 선택
+const isWeeklyAllSelected = computed(() => weeklySelected.value.length === dailyDays.length)
 
-function select(mode) {
-  selected.value = mode
-  if (mode !== 'weekly') selectedDays.value = []
+function toggleWeekly(day) {
+  const idx = weeklySelected.value.indexOf(day)
+  if (idx > -1) weeklySelected.value.splice(idx, 1)
+  else weeklySelected.value.push(day)
 }
 
-function toggleDay(day) {
-  if (selectedDays.value.includes(day)) {
-    selectedDays.value = selectedDays.value.filter(d => d !== day)
+function toggleWeeklyAll() {
+  if (isWeeklyAllSelected.value) weeklySelected.value = []
+  else weeklySelected.value = [...dailyDays]
+}
+
+// --- monthly (월별) 상태 관리 ---
+const monthlyItems = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+const monthlyWheelSelectedIndex = ref(0) // 기본 "매월" 선택
+
+const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+const monthlyDays = ref(Array.from({ length: daysInMonth[0] }, (_, i) => `${i + 1}일`))
+const monthlySelected = ref([])
+
+function toggleMonthly(day) {
+  const idx = monthlySelected.value.indexOf(day)
+  if (idx > -1) monthlySelected.value.splice(idx, 1)
+  else monthlySelected.value.push(day)
+}
+
+function onMonthlyWheelChange(index) {
+  monthlyWheelSelectedIndex.value = index
+  if (index === 0) {
+    monthlyDays.value = Array.from({ length: 31 }, (_, i) => `${i + 1}일`)
   } else {
-    selectedDays.value.push(day)
+    const monthIdx = index - 1 // 1월이 인덱스 1
+    monthlyDays.value = Array.from({ length: daysInMonth[monthIdx] }, (_, i) => `${i + 1}일`)
+    monthlySelected.value = monthlySelected.value.filter(
+      (d) => parseInt(d) <= daysInMonth[monthIdx]
+    )
   }
 }
 
-defineExpose({
-  getSelectedData: () => ({
-    mode: selected.value,
-    days: selectedDays.value,
-    timeRange: {
-      startPeriod: startPeriod.value,
-      startHour: startHour.value,
-      startMinute: startMinute.value,
-      endPeriod: endPeriod.value,
-      endHour: endHour.value,
-      endMinute: endMinute.value
-    }
-  })
-})
+// 탭 선택 함수
+function selectTab(type) {
+  selectedType.value = type
+}
+
+// 선택 데이터 외부 노출
+function getSelectedData() {
+  return {
+    mode: selectedType.value,
+    dailyRepeatOption: dailyRepeatOptions[dailyRepeatSelectedIndex.value],
+    weeklySelected: weeklySelected.value,
+    weeklyWheelSelectedIndex: weeklyWheelSelectedIndex.value,
+    monthlySelected: monthlySelected.value,
+    monthlyWheelSelectedIndex: monthlyWheelSelectedIndex.value,
+  }
+}
+
+defineExpose({ getSelectedData })
 </script>
 
 <style scoped>
-.frequency-selector {
-  background: #fff;
-  border: 1px solid #f0f0f0;
-  border-radius: 1.2rem;
-  padding: 2rem 1.5rem;
-  margin-top: 2rem;
+.button {
+  width: 100%;
   text-align: center;
 }
 
-.question {
-  font-weight: 700;
-  color: #2d80cc;
-  margin-bottom: 1.5rem;
-  font-size: 1.4rem;
-}
-
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.tab {
-  padding: 0.6rem 1.2rem;
-  border-radius: 999rem;
-  border: 1px solid #2d80cc;
-  background-color: #fff;
-  color: #2d80cc;
+.tab_button {
+  width: 33.33%;
+  display: inline-block;
+  padding: 0.8rem 0;
+  font-size: 1rem;
   font-weight: 600;
-  font-size: 1.3rem;
-  transition: all 0.2s ease;
+  color: #438edb;
+  text-decoration: none;
+  border: 1px solid #438edb;
+  box-sizing: border-box;
   cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
 }
 
-.tab.active {
-  background-color: #2d80cc;
+.tab_button.on {
+  background-color: #438edb;
   color: #fff;
 }
 
-.day-buttons {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+.repeat_section.weekly > * {
+  margin: 0 auto;
+  max-width: 100%; /* 넓게 */
 }
 
-.day-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 999rem;
-  border: 1px solid #2d80cc;
-  background-color: #fff;
-  color: #2d80cc;
-  font-weight: 600;
-  font-size: 1.2rem;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.day-btn.selected {
-  background-color: #2d80cc;
-  color: #fff;
-}
-
-.time-range {
-  margin-top: 2rem;
+.repeat_section.monthly .inner_set span {
+  display: inline-block;
+  width: 2.2rem;
+  height: 2.2rem;
+  line-height: 2.2rem;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  border: 0.1rem solid #eee;
+  margin: 0 0.2rem 0.2rem 0;
   text-align: center;
-}
-
-.time-section {
-  margin-bottom: 1.5rem;
-}
-
-.time-section label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.6rem;
-}
-
-.time-section select {
-  margin: 0 0.3rem;
-  padding: 0.5rem 0.8rem;
-  font-size: 1.2rem;
-  border: 1px solid #ccc;
-  border-radius: 0.6rem;
   cursor: pointer;
+}
+
+.repeat_section.monthly .inner_set span.on {
+  background-color: #fa606f;
+  color: #fff;
+  border-color: #fa606f;
 }
 </style>
-

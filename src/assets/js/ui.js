@@ -1,5 +1,4 @@
 function bindPopupEvents() {
-  // 팝업 열기/닫기
   const addBtn = document.querySelector(".add_rout");
   const popup = document.getElementById("popup");
   const closeBtn = document.querySelector(".close_btn");
@@ -20,21 +19,24 @@ function bindTabEvents() {
   const repeatTab = document.getElementById("repeatTab");
   const repeatSections = document.querySelectorAll(".repeat_section");
 
-  if (repeatTab) {
-    repeatTab.addEventListener("click", (e) => {
-      const target = e.target;
-      if (target.classList.contains("tab_button")) {
-        repeatTab.querySelectorAll(".tab_button").forEach(btn => btn.classList.remove("on"));
-        target.classList.add("on");
+  if (!repeatTab) return;
 
-        const type = target.dataset.type;
+  repeatTab.addEventListener("click", (e) => {
+    const target = e.target;
+    if (target.classList.contains("tab_button")) {
+      // 탭 버튼 on 클래스 토글
+      repeatTab.querySelectorAll(".tab_button").forEach(btn => btn.classList.remove("on"));
+      target.classList.add("on");
 
-        repeatSections.forEach(section => {
-          section.style.display = section.dataset.type === type ? "block" : "none";
-        });
-      }
-    });
-  }
+      // 선택한 탭 타입
+      const selectedType = target.dataset.type;
+
+      // 하단 섹션 표시/숨김 처리
+      repeatSections.forEach(section => {
+        section.style.display = section.dataset.type === selectedType ? "block" : "none";
+      });
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

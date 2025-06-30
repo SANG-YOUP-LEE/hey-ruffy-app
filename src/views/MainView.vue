@@ -1,10 +1,17 @@
 <template>
   <div class="v_container">
     <div class="main_wrap">
-      <h2>
+      <h3>
         다짐내용
         <div>{{ lastCommitment }}</div>
-      </h2>
+      </h3>
+
+       <h3>
+        다짐주기
+        <div>다짐 주기 여기다 넣으시오</div>
+      </h3>
+
+
       <a href="#none" class="add_rout" @click="showPopup = true">+<span>다짐추가</span></a>
 
       <div class="edit_btn">
