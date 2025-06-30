@@ -249,8 +249,7 @@ td {
 .popup_inner_wide {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-font-size:0.8rem;
+  overflow-y:auto
 }
 
 .popup_inner_wide h3:first-child {
