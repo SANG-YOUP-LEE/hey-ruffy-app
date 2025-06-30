@@ -22,52 +22,60 @@
       </button>
     </div>
 
-    <!-- 하위 버튼 표시 영역 -->
-    <div class="sub-options" v-if="selected === 'weekday'">
+    <!-- 요일 선택 버튼 -->
+    <div v-if="selected === 'weekday'" class="day-buttons">
       <button
-        v-for="(day, index) in weekdays"
-        :key="index"
-        :class="['day-button', selectedWeekdays.includes(day) ? 'selected' : '']"
-        @click="toggleWeekday(day)"
+        class="day-btn special"
+        @click="selectAllDays"
+        type="button"
+      >
+        매일
+      </button>
+      <button
+        v-for="day in days"
+        :key="day"
+        :class="['day-btn', selectedDays.includes(day) ? 'selected' : '']"
+        @click="toggleDay(day)"
+        type="button"
       >
         {{ day }}
       </button>
-    </div>
-    <div class="sub-options" v-else-if="selected === 'weekly'">
-      <select v-model="selectedWeek">
-        <option v-for="week in 5" :key="week" :value="week">
-          매월 {{ week }}주차
-        </option>
-      </select>
-    </div>
-    <div class="sub-options" v-else-if="selected === 'monthly'">
-      <select v-model="selectedDay">
-        <option v-for="d in 31" :key="d" :value="d">{{ d }}일</option>
-      </select>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, defineExpose } from 'vue'
 
 const selected = ref('weekday')
-const weekdays = ['월', '화', '수', '목', '금', '토', '일']
-const selectedWeekdays = ref([])
-const selectedWeek = ref(1)
-const selectedDay = ref(1)
+const days = ['월', '화', '수', '목', '금', '토', '일']
+const selectedDays = ref([])
 
 function select(mode) {
   selected.value = mode
-}
-
-function toggleWeekday(day) {
-  if (selectedWeekdays.value.includes(day)) {
-    selectedWeekdays.value = selectedWeekdays.value.filter(d => d !== day)
-  } else {
-    selectedWeekdays.value.push(day)
+  if (mode !== 'weekday') {
+    selectedDays.value = []
   }
 }
+
+function toggleDay(day) {
+  if (selectedDays.value.includes(day)) {
+    selectedDays.value = selectedDays.value.filter(d => d !== day)
+  } else {
+    selectedDays.value.push(day)
+  }
+}
+
+function selectAllDays() {
+  selectedDays.value = [...days]
+}
+
+defineExpose({
+  getSelectedData: () => ({
+    mode: selected.value,
+    days: selectedDays.value,
+  })
+})
 </script>
 
 <style scoped>
@@ -91,7 +99,6 @@ function toggleWeekday(day) {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .tab {
@@ -110,24 +117,33 @@ function toggleWeekday(day) {
   color: #fff;
 }
 
-.sub-options {
-  margin-top: 1.2rem;
+.day-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
-.day-button {
-  padding: 0.4rem 0.9rem;
-  margin: 0.2rem;
-  border-radius: 0.8rem;
-  border: 1px solid #aaa;
-  background: #f9f9f9;
-  font-size: 1rem;
-  cursor: pointer;
+.day-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 999rem;
+  border: 1px solid #2d80cc;
+  background-color: #fff;
+  color: #2d80cc;
+  font-weight: 600;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
 }
 
-.day-button.selected {
+.day-btn.selected {
   background-color: #2d80cc;
-  color: white;
-  border-color: #2d80cc;
+  color: #fff;
+}
+
+.day-btn.special {
+  background-color: #f0f8ff;
+  color: #2d80cc;
+  font-weight: 700;
 }
 </style>
-
