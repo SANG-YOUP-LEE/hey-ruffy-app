@@ -29,3 +29,5 @@ npm run dev
 ```sh
 npm run build
 ```
+
+echo "# 테스트 커밋" >> test.md
