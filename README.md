@@ -14,9 +14,7 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ```sh
 npm install
-```
-
-echo "// 테스트용 주석 추가" >> README.md
+``
 
 
 
