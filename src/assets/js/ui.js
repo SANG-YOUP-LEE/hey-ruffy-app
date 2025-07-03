@@ -25,15 +25,18 @@ function bindTabEvents() {
     const target = e.target;
     if (target.classList.contains("tab_button")) {
       // 탭 버튼 on 클래스 토글
-      repeatTab.querySelectorAll(".tab_button").forEach(btn => btn.classList.remove("on"));
+      repeatTab
+        .querySelectorAll(".tab_button")
+        .forEach((btn) => btn.classList.remove("on"));
       target.classList.add("on");
 
       // 선택한 탭 타입
       const selectedType = target.dataset.type;
 
       // 하단 섹션 표시/숨김 처리
-      repeatSections.forEach(section => {
-        section.style.display = section.dataset.type === selectedType ? "block" : "none";
+      repeatSections.forEach((section) => {
+        section.style.display =
+          section.dataset.type === selectedType ? "block" : "none";
       });
     }
   });

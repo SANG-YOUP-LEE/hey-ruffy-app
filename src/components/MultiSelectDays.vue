@@ -1,6 +1,8 @@
 <template>
   <div class="multi-select-days">
-    <span class="all" :class="{ on: isAllSelected }" @click="toggleAll"><strong>매일</strong></span>
+    <span class="all" :class="{ on: isAllSelected }" @click="toggleAll"
+      ><strong>매일</strong></span
+    >
     <span
       v-for="day in items"
       :key="day"
@@ -13,46 +15,51 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch } from "vue";
 
 const props = defineProps({
   items: {
     type: Array,
-    required: true
+    required: true,
   },
   modelValue: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(["update:modelValue"]);
 
-const selected = ref([...props.modelValue])
+const selected = ref([...props.modelValue]);
 
-watch(() => props.modelValue, val => {
-  selected.value = [...val]
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    selected.value = [...val];
+  },
+);
 
-const isAllSelected = computed(() => selected.value.length === props.items.length)
+const isAllSelected = computed(
+  () => selected.value.length === props.items.length,
+);
 
 function toggle(item) {
-  const idx = selected.value.indexOf(item)
+  const idx = selected.value.indexOf(item);
   if (idx > -1) {
-    selected.value.splice(idx, 1)
+    selected.value.splice(idx, 1);
   } else {
-    selected.value.push(item)
+    selected.value.push(item);
   }
-  emit('update:modelValue', selected.value)
+  emit("update:modelValue", selected.value);
 }
 
 function toggleAll() {
   if (isAllSelected.value) {
-    selected.value = []
+    selected.value = [];
   } else {
-    selected.value = [...props.items]
+    selected.value = [...props.items];
   }
-  emit('update:modelValue', selected.value)
+  emit("update:modelValue", selected.value);
 }
 </script>
 

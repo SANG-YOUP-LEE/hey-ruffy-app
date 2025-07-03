@@ -33,12 +33,12 @@
       <div class="repeat_content" id="repeatContent">
         <!-- 요일 별 -->
         <div class="repeat_section daily" v-show="selectedType === 'daily'">
-          <div class="inner_set" style="margin-bottom: 1rem;">
+          <div class="inner_set" style="margin-bottom: 1rem">
             <NativeWheel
               :items="dailyRepeatOptions"
               :initialSelectedIndex="dailyRepeatSelectedIndex"
               @update:selectedIndex="dailyRepeatSelectedIndex = $event"
-              style="max-width: 100%;"
+              style="max-width: 100%"
             />
           </div>
           <!-- 멀티셀렉트 삭제 -->
@@ -46,15 +46,15 @@
 
         <!-- 주간 별 -->
         <div class="repeat_section weekly" v-show="selectedType === 'weekly'">
-          <div class="inner_set" style="margin-bottom: 1rem; max-width: 100%;">
+          <div class="inner_set" style="margin-bottom: 1rem; max-width: 100%">
             <NativeWheel
               :items="weeklyItems"
               :initialSelectedIndex="weeklyWheelSelectedIndex"
               @update:selectedIndex="weeklyWheelSelectedIndex = $event"
-              style="max-width: 100%;"
+              style="max-width: 100%"
             />
           </div>
-          <div class="inner_set" style="margin-top: 1rem; max-width: 100%;">
+          <div class="inner_set" style="margin-top: 1rem; max-width: 100%">
             <span
               class="all"
               :class="{ on: isWeeklyAllSelected }"
@@ -73,12 +73,12 @@
 
         <!-- 월 별 -->
         <div class="repeat_section monthly" v-show="selectedType === 'monthly'">
-          <div class="inner_set" style="margin-bottom: 1rem;">
+          <div class="inner_set" style="margin-bottom: 1rem">
             <NativeWheel
               :items="monthlyItems"
               :initialSelectedIndex="monthlyWheelSelectedIndex"
               @update:selectedIndex="onMonthlyWheelChange"
-              style="max-width: 100%;"
+              style="max-width: 100%"
             />
           </div>
           <div class="inner_set">
@@ -97,64 +97,92 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import NativeWheel from './NativeWheel.vue'
+import { ref, computed } from "vue";
+import NativeWheel from "./NativeWheel.vue";
 
 // 탭 선택 상태
-const selectedType = ref('daily')
+const selectedType = ref("daily");
 
 // --- daily (요일별) 상태 관리 ---
-const dailyRepeatOptions = ['매일', '2일마다', '3일마다', '4일마다', '5일마다', '6일마다']
-const dailyRepeatSelectedIndex = ref(0)
+const dailyRepeatOptions = [
+  "매일",
+  "2일마다",
+  "3일마다",
+  "4일마다",
+  "5일마다",
+  "6일마다",
+];
+const dailyRepeatSelectedIndex = ref(0);
 
 // --- weekly (주별) 상태 관리 ---
-const dailyDays = ['월', '화', '수', '목', '금', '토', '일']
-const weeklySelected = ref([])
-const weeklyItems = ['2주차', '3주차', '4주차', '5주차']
-const weeklyWheelSelectedIndex = ref(1) // 기본 3주차 선택
-const isWeeklyAllSelected = computed(() => weeklySelected.value.length === dailyDays.length)
+const dailyDays = ["월", "화", "수", "목", "금", "토", "일"];
+const weeklySelected = ref([]);
+const weeklyItems = ["2주차", "3주차", "4주차", "5주차"];
+const weeklyWheelSelectedIndex = ref(1); // 기본 3주차 선택
+const isWeeklyAllSelected = computed(
+  () => weeklySelected.value.length === dailyDays.length,
+);
 
 function toggleWeekly(day) {
-  const idx = weeklySelected.value.indexOf(day)
-  if (idx > -1) weeklySelected.value.splice(idx, 1)
-  else weeklySelected.value.push(day)
+  const idx = weeklySelected.value.indexOf(day);
+  if (idx > -1) weeklySelected.value.splice(idx, 1);
+  else weeklySelected.value.push(day);
 }
 
 function toggleWeeklyAll() {
-  if (isWeeklyAllSelected.value) weeklySelected.value = []
-  else weeklySelected.value = [...dailyDays]
+  if (isWeeklyAllSelected.value) weeklySelected.value = [];
+  else weeklySelected.value = [...dailyDays];
 }
 
 // --- monthly (월별) 상태 관리 ---
-const monthlyItems = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-const monthlyWheelSelectedIndex = ref(0) // 기본 "매월" 선택
+const monthlyItems = [
+  "매월",
+  "1월",
+  "2월",
+  "3월",
+  "4월",
+  "5월",
+  "6월",
+  "7월",
+  "8월",
+  "9월",
+  "10월",
+  "11월",
+  "12월",
+];
+const monthlyWheelSelectedIndex = ref(0); // 기본 "매월" 선택
 
-const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-const monthlyDays = ref(Array.from({ length: daysInMonth[0] }, (_, i) => `${i + 1}일`))
-const monthlySelected = ref([])
+const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const monthlyDays = ref(
+  Array.from({ length: daysInMonth[0] }, (_, i) => `${i + 1}일`),
+);
+const monthlySelected = ref([]);
 
 function toggleMonthly(day) {
-  const idx = monthlySelected.value.indexOf(day)
-  if (idx > -1) monthlySelected.value.splice(idx, 1)
-  else monthlySelected.value.push(day)
+  const idx = monthlySelected.value.indexOf(day);
+  if (idx > -1) monthlySelected.value.splice(idx, 1);
+  else monthlySelected.value.push(day);
 }
 
 function onMonthlyWheelChange(index) {
-  monthlyWheelSelectedIndex.value = index
+  monthlyWheelSelectedIndex.value = index;
   if (index === 0) {
-    monthlyDays.value = Array.from({ length: 31 }, (_, i) => `${i + 1}일`)
+    monthlyDays.value = Array.from({ length: 31 }, (_, i) => `${i + 1}일`);
   } else {
-    const monthIdx = index - 1 // 1월이 인덱스 1
-    monthlyDays.value = Array.from({ length: daysInMonth[monthIdx] }, (_, i) => `${i + 1}일`)
+    const monthIdx = index - 1; // 1월이 인덱스 1
+    monthlyDays.value = Array.from(
+      { length: daysInMonth[monthIdx] },
+      (_, i) => `${i + 1}일`,
+    );
     monthlySelected.value = monthlySelected.value.filter(
-      (d) => parseInt(d) <= daysInMonth[monthIdx]
-    )
+      (d) => parseInt(d) <= daysInMonth[monthIdx],
+    );
   }
 }
 
 // 탭 선택 함수
 function selectTab(type) {
-  selectedType.value = type
+  selectedType.value = type;
 }
 
 // 선택 데이터 외부 노출
@@ -166,10 +194,10 @@ function getSelectedData() {
     weeklyWheelSelectedIndex: weeklyWheelSelectedIndex.value,
     monthlySelected: monthlySelected.value,
     monthlyWheelSelectedIndex: monthlyWheelSelectedIndex.value,
-  }
+  };
 }
 
-defineExpose({ getSelectedData })
+defineExpose({ getSelectedData });
 </script>
 
 <style scoped>

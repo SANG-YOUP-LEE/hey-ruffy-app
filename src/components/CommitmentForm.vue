@@ -29,47 +29,46 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import FrequencySelector from './FrequencySelector.vue'
-const emit = defineEmits(['submit', 'close'])
+import { ref } from "vue";
+import FrequencySelector from "./FrequencySelector.vue";
+const emit = defineEmits(["submit", "close"]);
 
-const title = ref('')
-const reminder = ref('')
-const importance = ref('⭐️')
-const note = ref('')
-const description = ref('')
-const freqRef = ref(null)
+const title = ref("");
+const reminder = ref("");
+const importance = ref("⭐️");
+const note = ref("");
+const description = ref("");
+const freqRef = ref(null);
 
 const handleSubmit = () => {
-  const freqData = freqRef.value?.getSelectedData?.() || {}
+  const freqData = freqRef.value?.getSelectedData?.() || {};
 
-  emit('submit', {
+  emit("submit", {
     title: title.value,
     description: description.value,
-    frequencyMode: freqData.mode || '',
+    frequencyMode: freqData.mode || "",
     selectedDays: freqData.days || [],
-    startPeriod: freqData.timeRange?.startPeriod || '',
-    startHour: freqData.timeRange?.startHour || '',
-    startMinute: freqData.timeRange?.startMinute || '',
-    endPeriod: freqData.timeRange?.endPeriod || '',
-    endHour: freqData.timeRange?.endHour || '',
-    endMinute: freqData.timeRange?.endMinute || '',
+    startPeriod: freqData.timeRange?.startPeriod || "",
+    startHour: freqData.timeRange?.startHour || "",
+    startMinute: freqData.timeRange?.startMinute || "",
+    endPeriod: freqData.timeRange?.endPeriod || "",
+    endHour: freqData.timeRange?.endHour || "",
+    endMinute: freqData.timeRange?.endMinute || "",
     reminder: reminder.value,
     importance: importance.value,
-    note: note.value
-  })
+    note: note.value,
+  });
 
   // 초기화
-  title.value = ''
-  reminder.value = ''
-  importance.value = '⭐️'
-  note.value = ''
-  description.value = ''
-  emit('close')
-}
+  title.value = "";
+  reminder.value = "";
+  importance.value = "⭐️";
+  note.value = "";
+  description.value = "";
+  emit("close");
+};
 
 const handleClose = () => {
-  emit('close')
-}
+  emit("close");
+};
 </script>
-

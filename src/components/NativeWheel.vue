@@ -1,5 +1,10 @@
 <template>
-  <div class="wheel-container" ref="container" @wheel.prevent="onWheel" :style="{ height: containerHeight + 'px' }">
+  <div
+    class="wheel-container"
+    ref="container"
+    @wheel.prevent="onWheel"
+    :style="{ height: containerHeight + 'px' }"
+  >
     <div
       class="wheel-list"
       :style="{ transform: `translateY(${translateY}px)` }"
@@ -19,65 +24,65 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from "vue";
 
 const props = defineProps({
   items: {
     type: Array,
-    required: true
+    required: true,
   },
   initialSelectedIndex: {
     type: Number,
-    default: 0
+    default: 0,
   },
   itemHeight: {
     type: Number,
-    default: 40
+    default: 40,
   },
   visibleCount: {
     type: Number,
-    default: 3
-  }
-})
+    default: 3,
+  },
+});
 
-const emit = defineEmits(['update:selectedIndex'])
+const emit = defineEmits(["update:selectedIndex"]);
 
-const container = ref(null)
-const list = ref(null)
+const container = ref(null);
+const list = ref(null);
 
-const selectedIndex = ref(props.initialSelectedIndex)
-const translateY = ref(0)
+const selectedIndex = ref(props.initialSelectedIndex);
+const translateY = ref(0);
 
-const containerHeight = computed(() => props.itemHeight * props.visibleCount)
+const containerHeight = computed(() => props.itemHeight * props.visibleCount);
 
 // 초기 위치 설정
 onMounted(() => {
-  updateTranslateY()
-})
+  updateTranslateY();
+});
 
 watch(selectedIndex, () => {
-  updateTranslateY()
-  emit('update:selectedIndex', selectedIndex.value)
-})
+  updateTranslateY();
+  emit("update:selectedIndex", selectedIndex.value);
+});
 
 function updateTranslateY() {
-  const centerIndex = Math.floor(props.visibleCount / 2)
-  translateY.value = (centerIndex - selectedIndex.value) * props.itemHeight
+  const centerIndex = Math.floor(props.visibleCount / 2);
+  translateY.value = (centerIndex - selectedIndex.value) * props.itemHeight;
 }
 
 function onWheel(e) {
-  e.preventDefault()
-  const delta = e.deltaY
+  e.preventDefault();
+  const delta = e.deltaY;
   if (delta > 0 && selectedIndex.value < props.items.length - 1) {
-    selectedIndex.value++
+    selectedIndex.value++;
   } else if (delta < 0 && selectedIndex.value > 0) {
-    selectedIndex.value--
+    selectedIndex.value--;
   }
 }
 
 function selectIndex(index) {
   if (index >= 0 && index < props.items.length) {
-    selectedIndex.value = index
+    selectedIndex.value = index;
   }
 }
 </script>

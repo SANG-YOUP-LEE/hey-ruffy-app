@@ -1,187 +1,210 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hey, Ruffy!</title>
-  <link rel="stylesheet" href="../css/style.css">
-
-</head>
-<body>
-	<!-- 달력 팝업 -->
-			<div class="calendar-popup" id="calendarPopup">
-			  <div class="calendar-header">
-			    <span id="prevMonth">&lt;</span>
-			    <strong id="monthYear"></strong>
-			    <span id="nextMonth">&gt;</span>
-			  </div>
-			  <div class="calendar-body" id="calendarBody"></div>
-			</div>
-			<!-- //달력 팝업 -->
-	
-  <div class="v_container">
-		<div class="main_wrap">
-	    <h2>앗!<br />러피방은 아직 공사중이예요.</h2>
-			<a href="#none" class="add_rout">+<span>다짐추가</span></a>
-		</div>
-  </div>
-	
-	
-	
-	
-	<!-- 다짐 추가 레이어 팝업 시작 -->
-  <div class="popup_layer" id="popup">
-    <div class="popup_inner_wide">
-			<div class="paper">
-				<!-- 다짐명 입력 -->
-				<div class="p_title">
-					<h3>당신의 다짐을 말해주세요.</h3>
-					<div class="input_set">
-						<input type="text" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기">
-					</div>
-				</div>
-				<!-- //다짐명 입력 -->
-				
-				<!-- 다짐 주기 설정 -->
-				<div class="p_group">					
-					<h3>얼마나 자주 반복해야 하나요?</h3>
-					<div class="input_set">
-						<!-- 주기 설정 탭-->
-					  <div class="button" id="repeatTab">
-					    <a href="#none" class="tab_button on" data-type="daily">요일별</a>
-					    <a href="#none" class="tab_button" data-type="weekly">주별</a>
-					    <a href="#none" class="tab_button" data-type="monthly">월별</a>
-					  </div>
-						<!-- //주기 설정 탭-->
-					
-						
-					  <div class="repeat_content" id="repeatContent">
-							<!-- 요일 별-->
-					    <div class="repeat_section daily" data-type="daily">
-					    	<div class="inner_set">
-						    	<span class="all"><strong>매일</strong></span>
-						    	<span>월</span>
-						    	<span>화</span>
-						    	<span>수</span>
-						    	<span>목</span>
-						    	<span>금</span>
-						    	<span>토</span>
-						    	<span>일</span>
-								</div>
-					    </div>
-							<!-- //요일 별-->
-							
-							<!-- 주간 별-->
-					    <div class="repeat_section weekly" data-type="weekly" style="display:none;">
-								<div class="inner_set">
-									<!-- 선택 상단-->
-									<div class="rs_top">
-										<a href="#none" class="weekly_a">주선택</a>
-										<span class="weekly_r" style="display:none"></span>
-										<a href="#none" class="daily_a">요일선택</a>
-										<span class="daily_r" style="display:none"></span>
-									</div>							
-									<!-- //선택 상단-->
-									<!-- 선택 하단-->
-									<div class="rs_btm">
-										<!-- 주 고르기-->
-										<div class="weekly_s" style="display:none">
-								    	<span>2주마다</span>
-								    	<span>3주마다</span>
-								    	<span>4주마다</span>
-								    	<span>5주마다</span>
-										</div>
-										<!--//주 고르기-->
-										<!-- 요일 고르기-->
-										<div class="daily_s" style="display:none">
-											<span class="all"><strong>매일</strong></span>
-								    	<span>월</span>
-								    	<span>화</span>
-								    	<span>수</span>
-								    	<span>목</span>
-								    	<span>금</span>
-								    	<span>토</span>
-								    	<span>일</span>
-											<button>선택완료</button>
-										</div>
-										<!--//요일 고르기-->
-									</div>							
-									<!-- //선택 하단-->
-								</div>
-							</div>
-							<!-- //주간 별-->
-							
-							<!-- 월 별-->
-					    <div class="repeat_section monthly" data-type="monthly" style="display:none;">
-								<div class="inner_set">
-						    	<!-- 선택 상단-->
-									<div class="rs_top">
-										<a href="#none" class="monthly_a">달선택</a>
-										<span class="monthly_r" style="display:none"></span>
-										<a href="#none" class="monthly_d_a">일선택</a>
-										<span class="monthly_d_r" style="display:none"></span>
-									</div>							
-									<!-- //선택 상단-->
-									<!-- 선택 하단-->
-									<div class="rs_btm">
-										<!-- 달 고르기-->
-										<div class="monthly_s" style="display:none">
-											<span class="all"><strong>매달</strong></span>
-								    	<span>1월</span>
-								    	<span>2월</span>
-								    	<span>3월</span>
-								    	<span>4월</span>
-								    	<span>5월</span>
-								    	<span>6월</span>
-								    	<span>7월</span>
-								    	<span>8월</span>
-								    	<span>8월</span>
-								    	<span>10월</span>
-								    	<span>11월</span>
-								    	<span>12월</span>
-											<button>선택완료</button>
-										</div>
-										<!--//달 고르기-->
-										<!-- 일 고르기-->
-										<div class="monthly_d_s" style="display:none">			<span>1</span>			<span>2</span>			<span>3</span>			<span>4</span>			<span>5</span>			<span>6</span>			<span>7</span>			<span>8</span>			<span>9</span>			<span>10</span>			<span>11</span>			<span>12</span>			<span>13</span>			<span>14</span>			<span>15</span>			<span>16</span>			<span>17</span>			<span>18</span>			<span>19</span>			<span>20</span>			<span>21</span>			<span>22</span>			<span>23</span>			<span>24</span>			<span>25</span>			<span>26</span>			<span>27</span>			<span>28</span>			<span>29</span>			<span>30</span>			<span>31</span>
-											<button>선택완료</button>
-										</div>
-										<!--//일 고르기-->
-									</div>							
-									<!-- //선택 하단-->
-								</div>
-					    </div>
-							<!-- //월 별-->
-					  </div>
-					</div>
-				</div>
-				<!-- //다짐 주기 설정 -->
-				
-				<!-- 다짐 시작일 설정 -->
-				<div class="p_group">			
-					<h3>언제부터 시작할 거예요?</h3>
-					<div class="input_set">
-					  <div class="button">
-						  <a href="#none" class="tab_button on" id="todayBtn">오늘부터</a>
-						  <a href="#none" class="tab_button" id="pickDateBtn">시작 날짜 지정</a>
-						</div>
-						<input type="text" class="custom-date-picker" id="dateInput" value="2025-06-26" readonly>
-						<div id="calendarContainer"></div>
-					</div>
-				</div>
-				<!-- //다짐 시작일 설정 -->
-			</div>
-			
-			
-			
-			
-
-      <button class="close_btn"></button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hey, Ruffy!</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- 달력 팝업 -->
+    <div class="calendar-popup" id="calendarPopup">
+      <div class="calendar-header">
+        <span id="prevMonth">&lt;</span>
+        <strong id="monthYear"></strong>
+        <span id="nextMonth">&gt;</span>
+      </div>
+      <div class="calendar-body" id="calendarBody"></div>
     </div>
-  </div>
-	<!-- 다짐 추가 레이어 팝업 끝 -->
+    <!-- //달력 팝업 -->
 
- 
-	<script src="../js/ui.js"></script>
-</body>
-</html>ㄴ
+    <div class="v_container">
+      <div class="main_wrap">
+        <h2>앗!<br />러피방은 아직 공사중이예요.</h2>
+        <a href="#none" class="add_rout">+<span>다짐추가</span></a>
+      </div>
+    </div>
+
+    <!-- 다짐 추가 레이어 팝업 시작 -->
+    <div class="popup_layer" id="popup">
+      <div class="popup_inner_wide">
+        <div class="paper">
+          <!-- 다짐명 입력 -->
+          <div class="p_title">
+            <h3>당신의 다짐을 말해주세요.</h3>
+            <div class="input_set">
+              <input
+                type="text"
+                placeholder="ex)외로워도 슬퍼도 탄수화물 끊기"
+              />
+            </div>
+          </div>
+          <!-- //다짐명 입력 -->
+
+          <!-- 다짐 주기 설정 -->
+          <div class="p_group">
+            <h3>얼마나 자주 반복해야 하나요?</h3>
+            <div class="input_set">
+              <!-- 주기 설정 탭-->
+              <div class="button" id="repeatTab">
+                <a href="#none" class="tab_button on" data-type="daily"
+                  >요일별</a
+                >
+                <a href="#none" class="tab_button" data-type="weekly">주별</a>
+                <a href="#none" class="tab_button" data-type="monthly">월별</a>
+              </div>
+              <!-- //주기 설정 탭-->
+
+              <div class="repeat_content" id="repeatContent">
+                <!-- 요일 별-->
+                <div class="repeat_section daily" data-type="daily">
+                  <div class="inner_set">
+                    <span class="all"><strong>매일</strong></span>
+                    <span>월</span>
+                    <span>화</span>
+                    <span>수</span>
+                    <span>목</span>
+                    <span>금</span>
+                    <span>토</span>
+                    <span>일</span>
+                  </div>
+                </div>
+                <!-- //요일 별-->
+
+                <!-- 주간 별-->
+                <div
+                  class="repeat_section weekly"
+                  data-type="weekly"
+                  style="display: none"
+                >
+                  <div class="inner_set">
+                    <!-- 선택 상단-->
+                    <div class="rs_top">
+                      <a href="#none" class="weekly_a">주선택</a>
+                      <span class="weekly_r" style="display: none"></span>
+                      <a href="#none" class="daily_a">요일선택</a>
+                      <span class="daily_r" style="display: none"></span>
+                    </div>
+                    <!-- //선택 상단-->
+                    <!-- 선택 하단-->
+                    <div class="rs_btm">
+                      <!-- 주 고르기-->
+                      <div class="weekly_s" style="display: none">
+                        <span>2주마다</span>
+                        <span>3주마다</span>
+                        <span>4주마다</span>
+                        <span>5주마다</span>
+                      </div>
+                      <!--//주 고르기-->
+                      <!-- 요일 고르기-->
+                      <div class="daily_s" style="display: none">
+                        <span class="all"><strong>매일</strong></span>
+                        <span>월</span>
+                        <span>화</span>
+                        <span>수</span>
+                        <span>목</span>
+                        <span>금</span>
+                        <span>토</span>
+                        <span>일</span>
+                        <button>선택완료</button>
+                      </div>
+                      <!--//요일 고르기-->
+                    </div>
+                    <!-- //선택 하단-->
+                  </div>
+                </div>
+                <!-- //주간 별-->
+
+                <!-- 월 별-->
+                <div
+                  class="repeat_section monthly"
+                  data-type="monthly"
+                  style="display: none"
+                >
+                  <div class="inner_set">
+                    <!-- 선택 상단-->
+                    <div class="rs_top">
+                      <a href="#none" class="monthly_a">달선택</a>
+                      <span class="monthly_r" style="display: none"></span>
+                      <a href="#none" class="monthly_d_a">일선택</a>
+                      <span class="monthly_d_r" style="display: none"></span>
+                    </div>
+                    <!-- //선택 상단-->
+                    <!-- 선택 하단-->
+                    <div class="rs_btm">
+                      <!-- 달 고르기-->
+                      <div class="monthly_s" style="display: none">
+                        <span class="all"><strong>매달</strong></span>
+                        <span>1월</span>
+                        <span>2월</span>
+                        <span>3월</span>
+                        <span>4월</span>
+                        <span>5월</span>
+                        <span>6월</span>
+                        <span>7월</span>
+                        <span>8월</span>
+                        <span>8월</span>
+                        <span>10월</span>
+                        <span>11월</span>
+                        <span>12월</span>
+                        <button>선택완료</button>
+                      </div>
+                      <!--//달 고르기-->
+                      <!-- 일 고르기-->
+                      <div class="monthly_d_s" style="display: none">
+                        <span>1</span> <span>2</span> <span>3</span>
+                        <span>4</span> <span>5</span> <span>6</span>
+                        <span>7</span> <span>8</span> <span>9</span>
+                        <span>10</span> <span>11</span> <span>12</span>
+                        <span>13</span> <span>14</span> <span>15</span>
+                        <span>16</span> <span>17</span> <span>18</span>
+                        <span>19</span> <span>20</span> <span>21</span>
+                        <span>22</span> <span>23</span> <span>24</span>
+                        <span>25</span> <span>26</span> <span>27</span>
+                        <span>28</span> <span>29</span> <span>30</span>
+                        <span>31</span>
+                        <button>선택완료</button>
+                      </div>
+                      <!--//일 고르기-->
+                    </div>
+                    <!-- //선택 하단-->
+                  </div>
+                </div>
+                <!-- //월 별-->
+              </div>
+            </div>
+          </div>
+          <!-- //다짐 주기 설정 -->
+
+          <!-- 다짐 시작일 설정 -->
+          <div class="p_group">
+            <h3>언제부터 시작할 거예요?</h3>
+            <div class="input_set">
+              <div class="button">
+                <a href="#none" class="tab_button on" id="todayBtn">오늘부터</a>
+                <a href="#none" class="tab_button" id="pickDateBtn"
+                  >시작 날짜 지정</a
+                >
+              </div>
+              <input
+                type="text"
+                class="custom-date-picker"
+                id="dateInput"
+                value="2025-06-26"
+                readonly
+              />
+              <div id="calendarContainer"></div>
+            </div>
+          </div>
+          <!-- //다짐 시작일 설정 -->
+        </div>
+
+        <button class="close_btn"></button>
+      </div>
+    </div>
+    <!-- 다짐 추가 레이어 팝업 끝 -->
+
+    <script src="../js/ui.js"></script>
+  </body>
+</html>
+ㄴ
