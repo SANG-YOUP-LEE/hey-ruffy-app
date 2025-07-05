@@ -29,7 +29,7 @@
 
 .m_header h1 {
 	display:inline-block;
-	font-family: Freesentation-9Black;	
+	font-family: Freesentation-9Black;
 	font-size:1.5rem;
 }
 
@@ -38,12 +38,12 @@
 }
 
 
-.m_bottom {	
+.m_bottom {
 	width:100%;
   position: fixed;
 	left:0;
 	bottom:0;
-	
+
 }
 
 .m_bottom .goto {
@@ -85,7 +85,7 @@
 	background-color:#333;
 	text-align:center;
 	color:#fff
-	
+
 }
 
 .ad_box .ad_inner {
@@ -125,7 +125,7 @@
 	border-radius: 1rem;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
-	
+
 }
 
 .ad_box .right span {
@@ -144,17 +144,16 @@
 .main_wrap {
   position: absolute;
   top: 2rem;
-  bottom: 15rem;
   left: 0;
   right: 0;
   overflow-y: auto;
 }
 
 .main_inner {
-  width: 100%;
-  margin: 0 auto;
-  padding: 1.5rem;
-	margin-bottom:8rem;
+	width: 100%;
+	margin: 0 auto;
+	padding: 1.5rem;
+	margin-bottom:20em;
 }
 
 
@@ -165,7 +164,7 @@
 	border:none;
 	background-color:#fff;
 	position:relative;
-	
+
 }
 
 .form_box_g.main .setting {
@@ -187,7 +186,7 @@
 	color:#333;
 	display: flex;
   align-items: center;
-  gap: 0.5rem;     
+  gap: 0.5rem;
 }
 
 .form_box_g.main .setting a img {
@@ -265,7 +264,7 @@
 
 .form_box_g.main .rut_inner .left {
 	min-height:9rem;
-	flex: 1;	
+	flex: 1;
 	margin-top:-1.5rem;
 }
 
@@ -389,9 +388,9 @@
 	top:0.8rem;
 	right:1.2rem;
 	display:inline-block;
-	word-wrap: break-word;    
+	word-wrap: break-word;
   overflow-wrap: break-word;
-  white-space: normal;   
+  white-space: normal;
 	margin:0;
 }
 
@@ -401,7 +400,7 @@
 	margin-top:1rem;
 	font-size:2rem;
 	text-align:left;
-	line-height:2rem;	
+	line-height:2rem;
 	padding-top:1rem;
 	border-top:0.1rem dotted #eee
 }

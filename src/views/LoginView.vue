@@ -9,13 +9,13 @@
           placeholder="이메일을 입력해 주세요."
           v-model="email"
           :class="{ error: errorField === 'email' }"
-        />
+          />
         <input
           type="password"
           placeholder="비밀번호를 입력해 주세요."
           v-model="password"
           :class="{ error: errorField === 'password' }"
-        />
+          />
       </div>
 
       <div v-if="error" class="warn-message">{{ error }}</div>
