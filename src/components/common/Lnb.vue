@@ -2,8 +2,9 @@
     <div class="popup_overlay">
         <!-- lnb -->
         <div class="lnb_wrap">
-            aaaa
-            <a href="#none" class="close-btn" @click.prevent="$emit('close')">닫기</a>
+            LNB Area
+
+            <button class="close_btn"  @click.prevent="$emit('close')"><span>팝업 닫기</span></button>
         </div>
         <!--// lnb -->
     </div>

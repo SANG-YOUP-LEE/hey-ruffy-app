@@ -119,7 +119,8 @@ span.icon.temp {
   text-align: center;
 }
 
-.button a {
+.button a,
+.button button {
   width: 100%;
   display: inline-block;
   padding: 1rem 0;
@@ -185,35 +186,38 @@ span.icon.temp {
 }
 
 /* 옐로우 라디오 버튼 */
-.pretty-radio {
-  width: 2rem;
-  height: 2rem;
+.pretty-radio-block {
+  display: block;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1.4rem;
+  text-align: left;
   position: relative;
-  display: inline-block;
-  vertical-align: middle;
 }
 
-.pretty-radio input[type="radio"] {
+.pretty-radio-block input[type="radio"] {
   display: none;
 }
 
-.pretty-radio .radio-style {
+.pretty-radio-block .radio-style {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
   background-color: #fff;
-  position: relative;
   box-shadow: inset 0 0 0 0.1rem #ccc;
-  display: block;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
-.pretty-radio input[type="radio"]:checked + .radio-style::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
+.pretty-radio-block input[type="radio"]:checked + .radio-style::after {
   width: 0.8rem;
   height: 0.8rem;
+  content: "";
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
   background-color: #ffc000;
   border-radius: 50%;
   transform: translate(-50%, -50%);
@@ -233,11 +237,14 @@ span.icon.temp {
 /* 오늘의 달성 현황 */
 .done_check_pop {
 	width:100%;
+  max-width:20rem;
+  min-width:20rem;
 	height:100%;
 	margin-top:1rem;
 }
 
 .done_check_pop .check_wrap {
+  width:100%;
 	font-size:1.2rem;
 	line-height:1.2rem;
 	text-align:left;
@@ -313,7 +320,8 @@ span.icon.temp {
 	border-radius:1rem;
   padding:3rem 2rem 3rem 2rem;
 	background-color:#fff;
-	margin-bottom:1rem
+	margin-bottom:1rem;
+  font-family: 'Freesentation-9Black';
 }
 
 .calendar-header {
@@ -321,6 +329,18 @@ span.icon.temp {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.calendar-header button {
+}
+
+.calendar-header button img {
+  width:1.5rem;
+  height:1.5rem
+}
+
+.calendar-header button span {
+  display:none
 }
 
 .prev-btn,
@@ -340,10 +360,33 @@ span.icon.temp {
   font-weight: bold;
 }
 
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin: 2rem 0 1rem 0;
+  font-size: 1.2rem;
+
+}
+.calendar-weekdays .sunday,
+.calendar-grid .day.sunday {
+  color: #ec6862; /* 빨강 */
+}
+
+.calendar-weekdays .saturday,
+.calendar-grid .day.saturday {
+  color: #438EDB; /* 파랑 */
+}
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0rem;
+}
+
+.day.today {
+  background-color: #cdfadf;
+  font-weight: bold;
+  text-decoration:underline;
+  border-radius:1rem;
 }
 
 .day {
@@ -356,4 +399,184 @@ span.icon.temp {
 
 .h {
 	display:none
+}
+
+/* 화면 중앙 정렬시 */
+.container {
+	width:100%;
+	position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.container input[type="text"],
+.container input[type="password"],
+.container input[type="email"] {
+  width:100%;
+  height:3rem;
+  border:0.1rem solid #ccc;
+  margin-bottom:0.5rem;
+  border-radius:0.8rem;
+  padding:0.3rem 1rem 0.3rem 1rem;
+  line-height:2rem;
+  font-size:1.2rem;
+}
+
+.intro_wrap h2,
+.join_wrap h2 {
+  font-family: 'Paperlogy-8ExtraBold';
+  line-height:2rem;
+}
+.intro_wrap .agree a,
+.join_wrap .agree a {
+  text-decoration: underline;
+
+}
+
+
+
+/* 인트로 */
+.intro_wrap {
+	width:80%;margin:0 auto
+}
+
+.intro_wrap h1 {
+	font-family: 'Paperlogy-8ExtraBold';
+  font-size:3rem;
+  line-height:3.5rem;
+}
+
+.intro_wrap .subtext {
+  font-size: 1.3rem;
+  line-height: 1.8rem;
+	margin:0.8rem 0 0.8rem 0
+}
+
+.intro_wrap .ruffy-img {
+  width: 8rem;
+	margin:0.5rem 0 0 0;
+	margin:0 auto;
+}
+
+.intro_wrap .button {
+	margin-top:1rem
+}
+
+.intro_wrap .button a{
+	margin-bottom:0.8rem
+}
+
+/* 회원가입 */
+.join_wrap {
+	width:70%;
+	margin:0 auto;
+	text-align:center
+}
+
+.join_wrap h1 {
+	font-size: 2rem;
+	line-height:2.5rem;
+}
+
+.join_wrap .form {
+	margin:1rem 0 0.5rem 0;
+}
+
+.join_wrap .form input {
+	width:100%;
+}
+
+.join_wrap .join_inner {
+	height:5.5rem;
+	font-size:0.9rem;
+	line-height:1.2rem
+}
+
+.join_wrap .radio {
+	width:100%;
+	margin-bottom:1rem;
+}
+
+.join_wrap .radio em {
+	color:#ec6862
+}
+
+.join_wrap .agree {
+	width:100%;
+	margin-top:0.5rem;
+}
+
+.full_popup {
+  z-index: 99999; /* 다른 팝업보다 높게 */
+}
+
+
+/* 휠피커 */
+
+.wheel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wheel-popup {
+  width: 80%;
+  max-width: 20rem;
+  text-align: center;
+}
+
+.wheel-title {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.wheel-list-container {
+  height: 200px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.wheel-list {
+  transition: transform 0.2s;
+}
+
+.wheel-item {
+  height: 40px;
+  line-height: 40px;
+  font-size: 1.1rem;
+  color: #999;
+}
+
+.wheel-item.selected {
+  font-weight: bold;
+  color: #000;
+  background-color: #ffeeba;
+}
+
+.wheel-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.wheel-actions button {
+  flex: 1;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #438edb;
+  color: white;
 }

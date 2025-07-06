@@ -2,72 +2,14 @@
   <div class="v_container">
     <Header @toggle-lnb="isLnbOpen = !isLnbOpen" @toggle-calendar="showCalendar = !showCalendar" />
     <Lnb v-if="isLnbOpen" @close="isLnbOpen = false" />
+
     <!-- main_wrap -->
     <div class="main_wrap">
       <div class="main_inner">
-
-
-        <!-- 다짐 달력 그룹-->
-				<div class="calendar-container" v-if="showCalendar">
-          <!-- 상단: 년/월 및 이전/다음 버튼 -->
-          <div class="calendar-header">
-            <button class="prev-btn">&lt;</button>
-
-            <div class="month-year">
-              <span class="year">2025</span>
-              <button class="edit-btn">✏️</button>
-              <span class="month">7월</span>
-              <button class="edit-btn">✏️</button>
-            </div>
-
-            <button class="next-btn">&gt;</button>
-          </div>
-          <!-- 달력 날짜: 7 x 5 = 35칸 -->
-          <div class="calendar-grid">
-            <!-- 예: 7월 1일이 월요일이라고 가정하면 앞 빈칸 0개 -->
-            <div class="day">1</div>
-            <div class="day">2</div>
-            <div class="day">3</div>
-            <div class="day">4</div>
-            <div class="day">5</div>
-            <div class="day">6</div>
-            <div class="day">7</div>
-            <div class="day">8</div>
-            <div class="day">9</div>
-            <div class="day">10</div>
-            <div class="day">11</div>
-            <div class="day">12</div>
-            <div class="day">13</div>
-            <div class="day">14</div>
-            <div class="day">15</div>
-            <div class="day">16</div>
-            <div class="day">17</div>
-            <div class="day">18</div>
-            <div class="day">19</div>
-            <div class="day">20</div>
-            <div class="day">21</div>
-            <div class="day">22</div>
-            <div class="day">23</div>
-            <div class="day">24</div>
-            <div class="day">25</div>
-            <div class="day">26</div>
-            <div class="day">27</div>
-            <div class="day">28</div>
-            <div class="day">29</div>
-            <div class="day">30</div>
-            <div class="day">31</div>
-            <div class="day empty"></div>
-            <div class="day empty"></div>
-            <div class="day empty"></div>
-            <div class="day empty"></div>
-          </div>
-        </div>
-				<!-- //다짐 달력 그룹-->
-
-
+        <Calendar :visible="showCalendar" />
         <!-- 다짐 내역 그룹 -->
 				<div class="form_box_g main">
-					<div class="rut_inner">
+					<div class="rout_inner">
 						<!-- 공통 버튼 -->
 						<div class="com_btn">
 							<a href="#none" @click.prevent="isSettingOpen = !isSettingOpen">
@@ -84,7 +26,7 @@
 							<!--// 간단 코멘트 -->
 							<div class="detail_box">
 								<!-- 달성 체크 전 -->
-								<p class="done_icon">
+								<p class="done_icon" v-if="!selectedStatus">
 									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=37896&format=png&color=000000"></span> <a href="#none" @click.prevent="openPopup('rut_status')">오늘의 다짐은 어땠나요?</a>
 								</p>
 								<!-- // 달성 체크전 -->
@@ -203,32 +145,35 @@
         <div class="done_check_pop">
           <h2>오늘의 다짐은 어땠나요?</h2>
           <div class="check_wrap">
-            <p class="rut_status01">
-              <label class="pretty-radio">
-                <input type="radio" name="rut_status" value="1" v-model="selectedStatus" />
-                <span class="radio-style"></span>
-              </label>
+            <label class="pretty-radio-block">
+              <input type="radio" name="rut_status" value="1" v-model="selectedStatus" />
+              <span class="radio-style"></span>
               달성
-              <p class="comment"  v-if="selectedStatus === '1'"><img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000"> WOW! 오늘도 갓생 달성! 정말 어디까지 대단할래?</p>
-            </p>
+              <p class="comment" v-if="selectedStatus === '1'">
+                <img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000">
+                WOW! 오늘도 갓생 달성! 정말 어디까지 대단할래?
+              </p>
+            </label>
 
-            <p class="rut_status02">
-              <label class="pretty-radio">
-                <input type="radio" name="rut_status" value="2" v-model="selectedStatus" />
-                <span class="radio-style"></span>
-              </label>
+            <label class="pretty-radio-block">
+              <input type="radio" name="rut_status" value="2" v-model="selectedStatus" />
+              <span class="radio-style"></span>
               미달성
-              <p class="comment"  v-if="selectedStatus === '2'"><img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000"> 괜찮아! 다이어트와 다짐은 원래 내일부터가 국룰!</p>
-            </p>
+              <p class="comment" v-if="selectedStatus === '2'">
+                <img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000">
+                괜찮아! 다이어트와 다짐은 원래 내일부터가 국룰!
+              </p>
+            </label>
 
-            <p class="rut_status03">
-              <label class="pretty-radio">
-                <input type="radio" name="rut_status" value="3" v-model="selectedStatus" />
-                <span class="radio-style"></span>
-              </label>
+            <label class="pretty-radio-block">
+              <input type="radio" name="rut_status" value="3" v-model="selectedStatus" />
+              <span class="radio-style"></span>
               흐린 눈
-              <p class="comment"  v-if="selectedStatus === '3'"><img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000"> 걱정마! 오늘은 정말 어쩔 수 없던거 알아. 달성 현황에는 반영하지 않을게.</p>
-            </p>
+              <p class="comment" v-if="selectedStatus === '3'">
+                <img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000">
+                걱정마! 오늘은 정말 어쩔 수 없던거 알아. 달성 현황에는 반영하지 않을게.
+              </p>
+            </label>
           </div>
           <button class="pop_btm" @click="closePopup">
             {{ selectedStatus ? '다짐 현황 저장' : '다짐 현황을 선택해주세요.' }}
@@ -307,19 +252,30 @@
       <!-- 다짐 삭제하기 -->
 	</div>
 	<!--// 레이어 팝업 -->
+
+  <!--다짐 추가하기-->
+  <button class="add_rout" @click="isAddRoutineOpen = true">
+    <img src="https://img.icons8.com/?size=100&id=11255&format=png&color=000000">
+    <span>다짐 추가하기</span>
+  </button>
+  <!--//다짐 추가하기-->
+  <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { usePopup } from '@/assets/js/usePopup.js'
-import Header from '@/components/Header.vue'
-import Footer from '@/components/Footer.vue'
-import Lnb from '@/components/Lnb.vue'
+import Header from '@/components/common/Header.vue'
+import Footer from '@/components/common/Footer.vue'
+import Lnb from '@/components/common/Lnb.vue'
+import AddRoutineSelector from '@/components/AddRoutineSelector.vue'
+import Calendar from '@/components/common/Calendar.vue'
 
 const isLnbOpen = ref(false)
 const showCalendar = ref(false)
 const isRuffyOpen = ref(false)
 const selectedStatus = ref(null)
+const isAddRoutineOpen = ref(false)
 
 const {
   activePopupId,
