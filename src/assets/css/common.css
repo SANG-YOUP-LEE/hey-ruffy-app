@@ -1,0 +1,359 @@
+@font-face {
+  font-family: 'Pretendard-Regular';
+  src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Paperlogy-8ExtraBold';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Freesentation-9Black';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ownglyph_ParkDaHyun';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'GmarketSansMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Pretendard-Regular', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: #333;
+  background-color: #f9f9f9;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+}
+
+img, picture, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+  vertical-align: middle;
+	box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+a {
+  text-decoration:none;
+	color:#438EDB;
+	vertical-align:middle;
+}
+
+a.temp {
+	width:2rem;
+	height:2rem;
+	display:inline-block
+}
+
+a.temp span {
+	display:none
+}
+
+a.temp img,
+span.icon.temp {
+	width:100%;
+	height:100%;
+}
+
+em {
+  font-style: normal;
+}
+
+label {
+	display:none
+}
+
+span.icon.temp {
+	width:1.5rem;
+	height:1.5rem;
+	display:inline-block;
+	vertical-align:middle;
+	margin-right:0.5rem;
+}
+
+.button {
+  width: 100%;
+  text-align: center;
+}
+
+.button a {
+  width: 100%;
+  display: inline-block;
+  padding: 1rem 0;
+  border: none;
+  border-radius: 2rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #438EDB;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* 토글 외형 */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 3.5rem;
+  height: 2rem;
+	vertical-align:middle;
+}
+
+/* input 숨기기 */
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* 슬라이더 영역 */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 2rem;
+}
+
+/* 원형 스위치 */
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 1.5rem;
+  width: 1.5rem;
+  left: 0.25rem;
+  bottom: 0.25rem;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+/* 토글 ON 상태 */
+.toggle-switch input:checked + .slider {
+  background-color: #2da9ff;
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(1.5rem);
+}
+
+/* 옐로우 라디오 버튼 */
+.pretty-radio {
+  width: 2rem;
+  height: 2rem;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.pretty-radio input[type="radio"] {
+  display: none;
+}
+
+.pretty-radio .radio-style {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: #fff;
+  position: relative;
+  box-shadow: inset 0 0 0 0.1rem #ccc;
+  display: block;
+}
+
+.pretty-radio input[type="radio"]:checked + .radio-style::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  background-color: #ffc000;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* lnb */
+.lnb_wrap {
+	width:80%;
+	height:100%;
+	background-color:#fff;
+	position:absolute;
+	top:0;
+	left:0;
+	padding:2rem;
+}
+
+/* 오늘의 달성 현황 */
+.done_check_pop {
+	width:100%;
+	height:100%;
+	margin-top:1rem;
+}
+
+.done_check_pop .check_wrap {
+	font-size:1.2rem;
+	line-height:1.2rem;
+	text-align:left;
+}
+
+.done_check_pop .check_wrap p {
+	margin-bottom:1rem
+}
+
+.done_check_pop .check_wrap .pretty-radio {
+	width:1.5rem;
+	height:1.5rem;
+	margin-top:-0.2rem;
+}
+
+.done_check_pop .check_wrap p.comment {
+	margin-top:0.5rem;
+	background-color:#fff8da;
+	border-radius:1rem;
+	font-size:0.8rem;
+	padding:0.5rem 1rem 0.5rem 1rem;
+	text-align:center;
+	line-height:1.5rem
+}
+
+.done_check_pop .check_wrap p.comment img {
+	width:1.5rem;
+	height:1.5rem;
+	float:left;
+	vertical-align:middle;
+	margin-right:0.3rem;
+}
+
+/* 알럿 팝업 */
+
+.alert p.comment {
+	line-height:1.4rem;
+	letter-spacing:-0.01rem;
+	padding:2rem;
+	margin:1rem;
+	color:#777
+}
+
+.alert p.comment strong {
+	width:100%;
+	color:#333;
+	font-size:1.2rem;
+	display:inline-block;
+	margin-bottom:0.5rem;
+}
+
+.alert p.sns {
+	display:flex;
+	gap:1rem;
+	justify-content: center;
+	align-items: center;
+	margin:1rem
+}
+
+.alert p.sns img {
+	width:3rem;
+	height:3rem
+}
+
+.alert p.sns img:last-child {
+	width:2rem;
+	height:2rem
+}
+
+/* 달력 */
+.calendar-container {
+  width: 100%;
+	border-radius:1rem;
+  padding:3rem 2rem 3rem 2rem;
+	background-color:#fff;
+	margin-bottom:1rem
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.prev-btn,
+.next-btn,
+.edit-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.month-year {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0rem;
+}
+
+.day {
+  width: 100%;
+  height: 100%;
+  line-height: 4.2rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.h {
+	display:none
+}
