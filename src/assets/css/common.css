@@ -383,7 +383,7 @@ span.icon.temp {
 }
 
 .day.today {
-  background-color: #cdfadf;
+  background-color: #eee;
   font-weight: bold;
   text-decoration:underline;
   border-radius:1rem;

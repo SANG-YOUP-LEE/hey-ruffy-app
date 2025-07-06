@@ -1,37 +1,43 @@
 <template>
   <div class="calendar-container" v-if="visible">
+    <!-- 헤더 -->
     <div class="calendar-header">
       <button class="prev-btn" @click="goToPrevMonth">
         <img src="https://img.icons8.com/?size=100&id=40217&format=png&color=000000" />
         <span>이전달</span>
       </button>
+
       <div class="month-year">
-        <span class="year">{{ currentYear }}</span>
+        <span class="year" @click="openYearPicker">{{ currentYear }}</span>
         <button class="edit-btn" @click="openYearPicker">
           <img src="https://img.icons8.com/?size=100&id=vwGXRtPWrZSn&format=png&color=000000" />
         </button>
-        <span class="month">{{ currentMonth + 1 }}월</span>
+
+        <span class="month" @click="openMonthPicker">{{ currentMonth + 1 }}월</span>
         <button class="edit-btn" @click="openMonthPicker">
           <img src="https://img.icons8.com/?size=100&id=vwGXRtPWrZSn&format=png&color=000000" />
         </button>
       </div>
+
       <button class="prev-btn" @click="goToNextMonth">
         <img src="https://img.icons8.com/?size=100&id=7849&format=png&color=000000" />
         <span>다음달</span>
       </button>
     </div>
 
+    <!-- 요일 -->
     <div class="calendar-weekdays">
       <div
-        class="weekday"
         v-for="(w, i) in ['일','월','화','수','목','금','토']"
         :key="i"
+        class="weekday"
         :class="{ sunday: i === 0, saturday: i === 6 }"
       >
         {{ w }}
       </div>
     </div>
 
+    <!-- 날짜 -->
     <div class="calendar-grid">
       <div
         v-for="(day, index) in calendarDays"
@@ -47,23 +53,27 @@
         {{ day ? day.date() : '' }}
       </div>
     </div>
+
+    <!-- 년도 선택 휠 -->
+    <WheelPicker
+      v-if="isYearPickerOpen"
+      :items="yearList"
+      :modelValue="currentYear"
+      title="년도 선택"
+      @update:modelValue="updateYear"
+      @close="isYearPickerOpen = false"
+    />
+
+    <!-- 월 선택 휠 -->
+    <WheelPicker
+      v-if="isMonthPickerOpen"
+      :items="monthList"
+      :modelValue="currentMonth + 1"
+      title="월 선택"
+      @update:modelValue="updateMonth"
+      @close="isMonthPickerOpen = false"
+    />
   </div>
-
-  <WheelPicker
-    v-if="isYearPickerOpen"
-    :items="yearList"
-    v-model:selected="tempSelected"
-    title="년도 선택"
-    @close="applyYear"
-  />
-
-  <WheelPicker
-    v-if="isMonthPickerOpen"
-    :items="monthList"
-    v-model:selected="tempSelected"
-    title="월 선택"
-    @close="applyMonth"
-  />
 </template>
 
 <script setup>
@@ -75,15 +85,6 @@ defineProps({
   visible: Boolean
 })
 
-const applyYear = () => {
-  currentDate.value = currentDate.value.year(Number(tempSelected.value))
-  isYearPickerOpen.value = false
-}
-
-const applyMonth = () => {
-  currentDate.value = currentDate.value.month(Number(tempSelected.value) - 1)
-  isMonthPickerOpen.value = false
-}
 const isYearPickerOpen = ref(false)
 const isMonthPickerOpen = ref(false)
 
@@ -95,21 +96,26 @@ const monthList = computed(() =>
   Array.from({ length: 12 }, (_, i) => i + 1)
 )
 
-const tempSelected = ref(null)
-const openYearPicker = () => {
-  tempSelected.value = currentYear.value
-  isYearPickerOpen.value = true
-}
-
-const openMonthPicker = () => {
-  tempSelected.value = currentMonth.value + 1
-  isMonthPickerOpen.value = true
-}
-
 const currentDate = ref(dayjs())
 
 const currentYear = computed(() => currentDate.value.year())
 const currentMonth = computed(() => currentDate.value.month())
+
+const updateYear = (year) => {
+  currentDate.value = currentDate.value.year(Number(year))
+}
+
+const updateMonth = (month) => {
+  currentDate.value = currentDate.value.month(Number(month) - 1)
+}
+
+const openYearPicker = () => {
+  isYearPickerOpen.value = true
+}
+
+const openMonthPicker = () => {
+  isMonthPickerOpen.value = true
+}
 
 const calendarDays = computed(() => {
   const startOfMonth = currentDate.value.startOf('month')
@@ -120,12 +126,10 @@ const calendarDays = computed(() => {
 
   const days = []
 
-  // 앞에 비어있는 칸
   for (let i = 0; i < startDay; i++) {
     days.push(null)
   }
 
-  // 날짜 채우기 (dayjs 객체로)
   for (let d = 1; d <= totalDays; d++) {
     days.push(currentDate.value.date(d))
   }
@@ -142,7 +146,6 @@ const goToNextMonth = () => {
 }
 
 const isToday = (day) => {
-  if (!day) return false
-  return day.isSame(dayjs(), 'day')
+  return day?.isSame(dayjs(), 'day')
 }
 </script>

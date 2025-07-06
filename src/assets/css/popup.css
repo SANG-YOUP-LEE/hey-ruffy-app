@@ -4,7 +4,8 @@ body.popup-open {
   width: 100%;
 }
 
-.popup_overlay {
+.popup_overlay,
+.wheel-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -156,6 +157,65 @@ body.popup-open {
 	border:0.1rem solid #438EDB;
 	border-radius:0.8rem;
 	color:#438EDB
+}
+
+
+
+
+/* 휠피커 */
+.wheel-popup {
+  width: 80%;
+  max-width: 20rem;
+  text-align: center;
+}
+
+.wheel-title {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.wheel-list-container {
+  height: 200px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+	background-color:#fff;
+}
+
+.wheel-list {
+  transition: transform 0.2s;
+}
+
+.wheel-item {
+  height: 40px;
+  line-height: 40px;
+  font-size: 1.1rem;
+  color: #999;
+}
+
+.wheel-item.selected {
+  font-weight: bold;
+  color: #000;
+  background-color: #ffeeba;
+}
+
+.wheel-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.wheel-actions button {
+  flex: 1;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #438edb;
+  color: white;
 }
 
 /* 다짐 만들기 */

@@ -103,7 +103,6 @@
 
 					</div>
 
-
 					<!-- 설정 팝업 -->
           <div class="setting" v-if="isSettingOpen">
             <button class="close_btn" @click="isSettingOpen = false"><span>팝업 닫기</span></button>
@@ -126,15 +125,10 @@
 				</div>
 				<!-- // 다짐 내역 그룹 -->
 
-
-
-
-
       </div>
     </div>
     <Footer />
   </div>
-
 
 	<!-- 레이어 팝업 -->
 	<div class="popup_overlay" v-if="activePopupId">
@@ -182,7 +176,6 @@
       </div>
       <!-- // 오늘의 다짐 달성 현황 -->
 
-
       <!-- 다짐 잠시 멈추기 -->
       <div class="popup_box" id="rut_stop" v-if="activePopupId === 'rut_stop'">
         <button class="close_btn" @click="closePopup"><span>팝업 닫기</span></button>
@@ -227,7 +220,6 @@
             <img src="https://img.icons8.com/?size=100&id=phOKFKYpe00C&format=png&color=000000">
             <img src="https://img.icons8.com/?size=100&id=5Pfj1WKgkfpk&format=png&color=000000">
           </p>
-
 
           <button class="pop_btm" @click="closePopup">다짐 공유하기</button>
         </div>
@@ -286,4 +278,6 @@ const {
   pauseCommitment,
   resumeCommitment
 } = usePopup()
+
+
 </script>
