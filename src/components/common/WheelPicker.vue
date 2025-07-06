@@ -1,7 +1,8 @@
 <template>
   <div class="wheel-overlay">
     <div class="wheel-popup">
-      <p class="wheel-title">{{ title }}</p>
+      <button class="close_btn" @click="close"><span>팝업 닫기</span></button>
+      <h2>{{ title }}</h2>
 
       <div
         class="wheel-list-container"
@@ -28,10 +29,7 @@
         </div>
       </div>
 
-      <div class="wheel-actions">
-        <button @click="close">닫기</button>
-        <button @click="confirm">확인</button>
-      </div>
+      <button class="pop_btm" @click="confirm">확인</button>
     </div>
   </div>
 </template>

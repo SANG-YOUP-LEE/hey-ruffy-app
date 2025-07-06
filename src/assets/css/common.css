@@ -52,6 +52,15 @@ html, body {
   text-align: center;
 }
 
+body.popup-open {
+  overflow: hidden !important;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 img, picture, video, canvas, svg {
   max-width: 100%;
   height: auto;
@@ -511,72 +520,3 @@ span.icon.temp {
   z-index: 99999; /* 다른 팝업보다 높게 */
 }
 
-
-/* 휠피커 */
-
-.wheel-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: white;
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.wheel-popup {
-  width: 80%;
-  max-width: 20rem;
-  text-align: center;
-}
-
-.wheel-title {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-  font-weight: bold;
-}
-
-.wheel-list-container {
-  height: 200px;
-  overflow: hidden;
-  border: 1px solid #ddd;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.wheel-list {
-  transition: transform 0.2s;
-}
-
-.wheel-item {
-  height: 40px;
-  line-height: 40px;
-  font-size: 1.1rem;
-  color: #999;
-}
-
-.wheel-item.selected {
-  font-weight: bold;
-  color: #000;
-  background-color: #ffeeba;
-}
-
-.wheel-actions {
-  display: flex;
-  justify-content: space-around;
-  gap: 1rem;
-}
-
-.wheel-actions button {
-  flex: 1;
-  padding: 0.6rem;
-  font-size: 1rem;
-  border-radius: 0.5rem;
-  border: none;
-  background-color: #438edb;
-  color: white;
-}
