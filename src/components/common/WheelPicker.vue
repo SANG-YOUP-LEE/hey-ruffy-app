@@ -1,5 +1,5 @@
 <template>
-  <div class="wheel-overlay" @wheel.prevent="onWheel">
+  <div class="wheel-overlay">
     <div class="wheel-popup">
       <p class="wheel-title">{{ title }}</p>
 
@@ -7,6 +7,9 @@
         class="wheel-list-container"
         @wheel.passive="false"
         @wheel="onWheel"
+        @touchstart="onTouchStart"
+        @touchmove.prevent="onTouchMove"
+        @touchend="onTouchEnd"
       >
         <div
           class="wheel-list"
@@ -26,7 +29,7 @@
       </div>
 
       <div class="wheel-actions">
-        <button @click="$emit('close')">닫기</button>
+        <button @click="close">닫기</button>
         <button @click="confirm">확인</button>
       </div>
     </div>
@@ -34,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   title: String,
@@ -58,7 +61,19 @@ onMounted(() => {
     (item) => item === props.modelValue
   )
   if (initialIndex >= 0) selectedIndex.value = initialIndex
+
+  document.body.classList.add('popup-open')
+  document.body.addEventListener('touchmove', preventTouch, { passive: false })
 })
+
+onUnmounted(() => {
+  document.body.classList.remove('popup-open')
+  document.body.removeEventListener('touchmove', preventTouch)
+})
+
+const preventTouch = (e) => {
+  e.preventDefault()
+}
 
 const onWheel = (event) => {
   event.preventDefault()
@@ -69,6 +84,27 @@ const onWheel = (event) => {
   }
 }
 
+let touchStartY = 0
+
+const onTouchStart = (e) => {
+  touchStartY = e.touches[0].clientY
+}
+
+const onTouchMove = (e) => {
+  const deltaY = e.touches[0].clientY - touchStartY
+  if (deltaY > 10 && selectedIndex.value > 0) {
+    selectedIndex.value--
+    touchStartY = e.touches[0].clientY
+  } else if (deltaY < -10 && selectedIndex.value < props.items.length - 1) {
+    selectedIndex.value++
+    touchStartY = e.touches[0].clientY
+  }
+}
+
+const onTouchEnd = () => {
+  // Nothing for now
+}
+
 const select = (index) => {
   selectedIndex.value = index
 }
@@ -77,6 +113,10 @@ const confirm = () => {
   const selectedItem = props.items[selectedIndex.value]
   emit('update:modelValue', selectedItem)
   emit('confirm', selectedItem)
+  emit('close')
+}
+
+const close = () => {
   emit('close')
 }
 </script>
