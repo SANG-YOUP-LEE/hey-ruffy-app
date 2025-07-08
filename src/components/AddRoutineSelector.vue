@@ -23,16 +23,16 @@
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
-						<span>매일</span>
-						<span>일</span>
-						<span>월</span>
-						<span>화</span>
+						<button>매일</button>
+						<button>일</button>
+						<button>월</button>
+						<button>화</button>
 					</p>
 					<p class="check_btn">
-						<span>수</span>
-						<span>못</span>
-						<span>금</span>
-						<span>토</span>
+						<button>수</button>
+						<button>목</button>
+						<button>금</button>
+						<button>토</button>
 					</p>
 				</div>
 				<div class="rt_make_detail" id="v_detail02_block">
@@ -132,7 +132,7 @@ onMounted(() => {
 .form_box_g.rt_make.day_box p:last-child {
 	margin-bottom:0;
 }
-.form_box_g.rt_make.day_box p.check_btn span {
+.form_box_g.rt_make.day_box p.check_btn button {
 	width:24%;
 	margin-right:1%;
 	display:inline-block;
@@ -142,10 +142,10 @@ onMounted(() => {
 	text-align:center;
 	line-height:1.8rem;
 }
-.form_box_g.=rt_make.day_box p.check_btn span:last-child {
+.form_box_g.=rt_make.day_box p.check_btn button:last-child {
 	margin-right:0
 }
-.form_box_g.rt_make.day_box p.check_btn span.on {
+.form_box_g.rt_make.day_box p.check_btn button.on {
 	border:1px solid #17a47a;
 	background-color:#fff;
 	color:#17a47a;
