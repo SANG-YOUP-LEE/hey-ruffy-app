@@ -32,13 +32,29 @@
 						<button>금</button>
 						<button>토</button>
 					</p>
-					<p>
-  						<label class="toggle-switch">
-    						<input type="checkbox" id="my_toggle" />
-    							<span class="slider"></span>
-  						</label>
-  						시작일 지정하기
-					</p>
+					<!-- 시작일 토글 -->
+						<p>
+  <label class="toggle-switch">
+    <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+    <span class="slider"></span>
+  </label>
+  시작일 지정하기
+</p>
+
+<!-- 날짜 선택 팝업 -->
+<DateTimePickerPopup
+  v-if="isDatePopupOpen"
+  title="시작일 선택"
+  :showYear="true"
+  :showMonth="true"
+  :showDate="true"
+  :showAmPm="true"
+  :showHour="true"
+  :showMinute="true"
+  :showSecond="false"
+  @confirm="handleDateConfirm"
+  @close="isDatePopupOpen = false"
+/>
 					<p class="button">
 						<button>다짐 주기 저장</button>
 					</p>
@@ -100,14 +116,32 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+#=import { ref, onMounted } from 'vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
+import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
 const emit = defineEmits(['close'])
-
 const handleClose = () => {
 	emit('close')
 }
+
+// 날짜 선택 토글과 팝업 상태
+const isStartDateOn = ref(false)
+const isDatePopupOpen = ref(false)
+const selectedStartDate = ref(null)
+
+const handleDateConfirm = (data) => {
+  selectedStartDate.value = data
+  console.log('선택된 시작일:', data)
+  isDatePopupOpen.value = false
+}
+
+// 토글 변화 감지해서 팝업 띄우기
+watch(isStartDateOn, (newVal) => {
+  if (newVal) {
+    isDatePopupOpen.value = true
+  }
+})
 
 onMounted(() => {
 	setupToggleBlocks()
