@@ -42,20 +42,7 @@
 						시작일 지정하기
 					</p>
 
-					<!-- 날짜 선택 팝업 -->
-					<DateTimePickerPopup
-						v-if="isDatePopupOpen"
-						title="시작일 선택"
-						:showYear="true"
-						:showMonth="true"
-						:showDate="true"
-						:showAmPm="true"
-						:showHour="true"
-						:showMinute="true"
-						:showSecond="true"
-						@confirm="handleDateConfirm"
-						@close="isDatePopupOpen = false"
-					/>
+					#
 
 					<p class="button">
 						<button>다짐 주기 저장</button>
@@ -144,6 +131,64 @@ onMounted(() => {
 </script>
 
 <style>
+/* ✅ 휠 스타일 */
+.wheel-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.7);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+.wheel-popup {
+	background: #fff;
+	border-radius: 1rem;
+	padding: 1rem;
+	max-width: 80%;
+	width: 18rem;
+}
+.wheel-title {
+	text-align: center;
+	font-weight: bold;
+	margin-bottom: 1rem;
+}
+.wheel-list-container {
+	overflow: hidden;
+	height: 8rem;
+	margin-bottom: 1rem;
+	position: relative;
+}
+.wheel-list {
+	transition: transform 0.3s;
+}
+.wheel-item {
+	text-align: center;
+	font-size: 1.2rem;
+	height: 2rem;
+	line-height: 2rem;
+	color: #999;
+}
+.wheel-item.selected {
+	color: #000;
+	font-weight: bold;
+}
+.wheel-actions {
+	display: flex;
+	justify-content: space-around;
+}
+.wheel-actions button {
+	padding: 0.5rem 1.5rem;
+	border: none;
+	border-radius: 0.5rem;
+	background-color: #222;
+	color: #fff;
+}
+
+
 .form_box_g.rt_make p.button button {
 	width:100%;
 	line-height:2rem;
