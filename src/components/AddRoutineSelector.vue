@@ -23,7 +23,7 @@
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p>
-						<span class="day01_01" class="on">매일</span>
+						<span class="day01_01 on">매일</span>
 						<span class="day01_02">일</span>
 						<span class="day01_03">월</span>
 						<span class="day01_04">화</span>
