@@ -8,7 +8,7 @@
 				<h3>다짐명을 적어주세요.</h3>
 				<p>
 					<label for="rt_name">새 다짐 명</label>
-					<input type="text" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기">
+					<input type="text" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기" />
 				</p>
 			</div>
 
@@ -17,7 +17,7 @@
 				<h3>얼마나 자주 지켜야 하나요2?</h3>
 				<p>
 					<button id="v_detail01">일간</button>
-					<button id="v_detail02">주간</button>					
+					<button id="v_detail02">주간</button>
 					<button id="v_detail03">월간</button>
 					<button id="v_detail04">년간</button>
 				</p>
@@ -32,42 +32,39 @@
 						<button>금</button>
 						<button>토</button>
 					</p>
-					<!-- 시작일 토글 -->
-						<p>
-  <label class="toggle-switch">
-    <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-    <span class="slider"></span>
-  </label>
-  시작일 지정하기
-</p>
 
-<!-- 날짜 선택 팝업 -->
-<DateTimePickerPopup
-  v-if="isDatePopupOpen"
-  title="시작일 선택"
-  :showYear="true"
-  :showMonth="true"
-  :showDate="true"
-  :showAmPm="true"
-  :showHour="true"
-  :showMinute="true"
-  :showSecond="false"
-  @confirm="handleDateConfirm"
-  @close="isDatePopupOpen = false"
-/>
+					<!-- 시작일 토글 -->
+					<p>
+						<label class="toggle-switch">
+							<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+							<span class="slider"></span>
+						</label>
+						시작일 지정하기
+					</p>
+
+					<!-- 날짜 선택 팝업 -->
+					<DateTimePickerPopup
+						v-if="isDatePopupOpen"
+						title="시작일 선택"
+						:showYear="true"
+						:showMonth="true"
+						:showDate="true"
+						:showAmPm="true"
+						:showHour="true"
+						:showMinute="true"
+						:showSecond="true"
+						@confirm="handleDateConfirm"
+						@close="isDatePopupOpen = false"
+					/>
+
 					<p class="button">
 						<button>다짐 주기 저장</button>
 					</p>
 				</div>
-				<div class="rt_make_detail" id="v_detail02_block">
-					주간
-				</div>
-				<div class="rt_make_detail" id="v_detail03_block">
-					월간
-				</div>
-				<div class="rt_make_detail" id="v_detail04_block">
-					년간
-				</div>
+
+				<div class="rt_make_detail" id="v_detail02_block">주간</div>
+				<div class="rt_make_detail" id="v_detail03_block">월간</div>
+				<div class="rt_make_detail" id="v_detail04_block">년간</div>
 			</div>
 
 			<!-- 다짐 시작일 설정 -->
@@ -116,14 +113,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
+import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
 const emit = defineEmits(['close'])
 const handleClose = () => {
 	emit('close')
 }
 
+// 시작일 지정용
+const isStartDateOn = ref(false)
+const isDatePopupOpen = ref(false)
+const selectedStartDate = ref(null)
+
+watch(isStartDateOn, (newVal) => {
+	if (newVal) isDatePopupOpen.value = true
+})
+
+const handleDateConfirm = (data) => {
+	selectedStartDate.value = data
+	console.log('✅ 선택된 시작일:', data)
+	isDatePopupOpen.value = false
+}
 
 onMounted(() => {
 	setupToggleBlocks()
