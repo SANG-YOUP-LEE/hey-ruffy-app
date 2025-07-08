@@ -1,59 +1,40 @@
 <template>
   <div class="wheel-overlay">
-    <div class="wheel-popup">
-      <!-- 닫기 버튼 -->
-      <button class="close_btn" @click="$emit('close')">닫기</button>
+  <div class="wheel-popup">
+    <!-- 닫기 버튼 -->
+    <button class="close_btn" @click="$emit('close')">닫기</button>
+    <h2>{{ title }}</h2>
 
-      <h2>{{ title }}</h2>
-
-      <!-- 각 항목 휠 -->
-      <WheelPicker
-        v-if="showYear"
-        title="년"
-        :items="yearList"
-        v-model="selectedYear"
-      />
-      <WheelPicker
-        v-if="showMonth"
-        title="월"
-        :items="monthList"
-        v-model="selectedMonth"
-      />
-      <WheelPicker
-        v-if="showDate"
-        title="일"
-        :items="dateList"
-        v-model="selectedDate"
-      />
-      <WheelPicker
-        v-if="showAmPm"
-        title="오전/오후"
-        :items="ampmList"
-        v-model="selectedAmPm"
-      />
-      <WheelPicker
-        v-if="showHour"
-        title="시"
-        :items="hourList"
-        v-model="selectedHour"
-      />
-      <WheelPicker
-        v-if="showMinute"
-        title="분"
-        :items="minuteList"
-        v-model="selectedMinute"
-      />
-      <WheelPicker
-        v-if="showSecond"
-        title="초"
-        :items="secondList"
-        v-model="selectedSecond"
-      />
-
-      <!-- 확인 버튼 -->
-      <button class="pop_btm" @click="confirm">확인</button>
+    <div class="wheel-row">
+      <div class="wheel-col" v-if="showYear">
+        <p class="wheel-label">년</p>
+        <WheelPicker :items="yearList" v-model="selectedYear" />
+      </div>
+      <div class="wheel-col" v-if="showMonth">
+        <p class="wheel-label">월</p>
+        <WheelPicker :items="monthList" v-model="selectedMonth" />
+      </div>
+      <div class="wheel-col" v-if="showDate">
+        <p class="wheel-label">일</p>
+        <WheelPicker :items="dateList" v-model="selectedDate" />
+      </div>
+      <div class="wheel-col" v-if="showAmPm">
+        <p class="wheel-label">오전/오후</p>
+        <WheelPicker :items="ampmList" v-model="selectedAmPm" />
+      </div>
+      <div class="wheel-col" v-if="showHour">
+        <p class="wheel-label">시</p>
+        <WheelPicker :items="hourList" v-model="selectedHour" />
+      </div>
+      <div class="wheel-col" v-if="showMinute">
+        <p class="wheel-label">분</p>
+        <WheelPicker :items="minuteList" v-model="selectedMinute" />
+      </div>
     </div>
+
+    <button class="pop_btm" @click="confirm">확인</button>
   </div>
+</div>=
 </template>
 
 <script setup>
@@ -117,3 +98,23 @@ const confirm = () => {
   emit('close')
 }
 </script>
+
+<style>
+.wheel-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wheel-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wheel-label {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+</style>
