@@ -12,7 +12,11 @@
     >
       <div
         class="wheel-list"
-        :style="{ transform: `translateY(-${selectedIndex * itemHeight}px)` }"
+        :style="{
+          transform: `translateY(-${selectedIndex * itemHeight}px)`,
+          paddingTop: `${(containerHeight - itemHeight) / 2}px`,
+          paddingBottom: `${(containerHeight - itemHeight) / 2}px`
+        }"
       >
         <div
           v-for="(item, index) in items"
@@ -42,6 +46,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const selectedIndex = ref(0)
+const containerHeight = 120 // itemHeight * 3 기준
 
 onMounted(() => {
   const idx = props.items.findIndex((i) => i === props.modelValue)
@@ -99,12 +104,26 @@ const select = (idx) => {
 }
 
 .wheel-list-container {
-  height: 6rem;
+  height: 7.5rem; /* itemHeight * 3 → 중앙 정렬용 */
   overflow: hidden;
   position: relative;
   width: 100%;
   border-radius: 0.5rem;
   background: #f9f9f9;
+}
+
+/* 중앙 선택선 */
+.wheel-list-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #ffd600; /* 노란 강조선 */
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .wheel-list {
