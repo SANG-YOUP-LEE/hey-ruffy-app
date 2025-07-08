@@ -15,11 +15,23 @@
 			<!-- 다짐 주기 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>얼마나 자주 지켜야 하나요?</h3>
-				<p>
-					<button id="v_detail01">나만의 반복 주기 만들기</button>
+				<p style="background-color:red">
+					<button id="v_detail01">일간</button>
+					<button id="v_detail02">주간</button>					
+					<button id="v_detail03">월간</button>
+					<button id="v_detail04">년간</button>
 				</p>
-				<div class="rt_make_detail" id="v_detail01_block" style="display: none;">
-					반복주기 펼침
+				<div style="background-color:blue" class="rt_make_detail" id="v_detail01_block" style="display: none;">
+					일간
+				</div>
+				<div style="background-color:blue" class="rt_make_detail" id="v_detail02_block">
+					주간
+				</div>
+				<div style="background-color:blue" class="rt_make_detail" id="v_detail03_block">
+					월간
+				</div>
+				<div style="background-color:blue" class="rt_make_detail" id="v_detail014_block">
+					년간
 				</div>
 			</div>
 
