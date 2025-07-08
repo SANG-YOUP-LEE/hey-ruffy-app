@@ -7,12 +7,10 @@ export function setupToggleBlocks() {
 		allBlocks.forEach((block) => {
 			block.style.display = 'none'
 
-			// ✅ 내부 초기화
-			// 1) 버튼의 .on 클래스 제거
+			// 내부 초기화
 			const buttonsInBlock = block.querySelectorAll('button.on')
 			buttonsInBlock.forEach((b) => b.classList.remove('on'))
 
-			// 2) 입력 필드 초기화
 			const inputs = block.querySelectorAll('input, textarea')
 			inputs.forEach((input) => {
 				if (input.type === 'checkbox' || input.type === 'radio') {
@@ -24,6 +22,9 @@ export function setupToggleBlocks() {
 		})
 	}
 
+	// 페이지 로드 시에도 초기화 (요 부분이 추가됨)
+	resetAndHideAllBlocks()
+
 	buttons.forEach((btn) => {
 		btn.addEventListener('click', () => {
 			const id = btn.getAttribute('id')
@@ -33,13 +34,8 @@ export function setupToggleBlocks() {
 			const target = document.getElementById(targetId)
 
 			if (target) {
-				// 1. 모든 블록 닫고 초기화
 				resetAndHideAllBlocks()
-
-				// 2. 모든 버튼에서 on 제거
 				buttons.forEach((b) => b.classList.remove('on'))
-
-				// 3. 현재 블록 열기, 버튼 on 추가
 				target.style.display = 'block'
 				btn.classList.add('on')
 			}
