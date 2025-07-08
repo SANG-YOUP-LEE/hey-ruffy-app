@@ -106,7 +106,7 @@ onMounted(() => {
 .form_box_g.rt_make.day_box button[id^='v_detail']:last-child {
 	margin-right:0
 }
-.form_box_g.rt_make.day_box button[id^='v_detail'].on {
+.form_box_g.rt_make.day_box button.on {
 	color:#fff;
 	background-color:#17a47a;
 	border:0.1rem solid #17a47a;
