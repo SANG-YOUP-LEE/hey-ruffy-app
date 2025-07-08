@@ -23,7 +23,7 @@
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
-						<button>매일</button>
+						<button class="all">매일</button>
 						<button>일</button>
 						<button>월</button>
 						<button>화</button>
