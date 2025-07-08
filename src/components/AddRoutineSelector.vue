@@ -32,7 +32,7 @@
 						<button>금</button>
 						<button>토</button>
 					</p>
-					<p class="button">
+					<p>
   						<label class="toggle-switch">
     						<input type="checkbox" id="my_toggle" />
     							<span class="slider"></span>
@@ -116,6 +116,15 @@ onMounted(() => {
 </script>
 
 <style>
+.form_box_g.rt_make p.button button {
+	width:100%;
+	line-height:2rem;
+	color:#333;
+	background-color:#ffe35e;
+	border:0.1rem solid #ffe353;
+	border-radius:1rem;
+}
+
 .form_box_g.rt_make.day_box button[id^='v_detail'] {
 	width:24%;
 	background-color:#fff;
