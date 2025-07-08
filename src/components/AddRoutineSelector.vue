@@ -27,8 +27,6 @@
 						<button>일</button>
 						<button>월</button>
 						<button>화</button>
-					</p>
-					<p class="check_btn">
 						<button>수</button>
 						<button>목</button>
 						<button>금</button>
