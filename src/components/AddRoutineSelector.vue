@@ -97,14 +97,11 @@ onMounted(() => {
 
 <style>
 .form_box_g.rt_make.day_box button[id^='v_detail'] {
-	width:25%;
+	width:24%;
 	background-color:#fff;
 	border:0.1rem solid #17a47a;
-	margin-right:0.5rem;
+	margin-right:1%;
 	color:#17a47a;
-}
-.form_box_g.rt_make.day_box button[id^='v_detail']:last-child {
-	margin-right:0
 }
 .form_box_g.rt_make.day_box button.on {
 	color:#fff;
