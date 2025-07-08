@@ -2,7 +2,7 @@
   <div class="wheel-overlay">
     <div class="wheel-popup">
       <!-- 닫기 버튼 -->
-      <button class="close_btn" @click="$emit('close')">닫기</button>
+      <button class="close_btn" @click="$emit('close')"><span>닫기</span></button>
       <h2>{{ title }}</h2>
 
       <div class="wheel-row">
