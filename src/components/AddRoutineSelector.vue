@@ -135,7 +135,7 @@ onMounted(() => {
 	display:inline-block;
 	color:#ddd;
 	background-color:#f5f5f5;
-	color:#ddd
+	border:0.1rem solid #e7e7e7
 }
 .form_box_g.rt_make.day_box p span[class^='day01_']:last-child {
 	margin-right:0
