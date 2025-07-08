@@ -14,7 +14,7 @@
 
 			<!-- 다짐 주기 설정 -->
 			<div class="form_box_g rt_make">
-				<h3>얼마나 자주 지켜야 하나요?</h3>
+				<h3>얼마나 자주 지켜야 하나요1?</h3>
 				<p style="background-color:red">
 					<button id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>					
