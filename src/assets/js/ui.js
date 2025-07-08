@@ -32,3 +32,41 @@ export function setupToggleBlocks() {
 		})
 	})
 }
+
+export function setupCheckButtons() {
+	const checkGroups = document.querySelectorAll('.check_btn')
+
+	checkGroups.forEach((group) => {
+		const buttons = group.querySelectorAll('button')
+
+		buttons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const isAll = btn.classList.contains('all')
+				const isActive = btn.classList.contains('on')
+
+				if (isAll) {
+					// 이미 .on이 있으면 전체 해제
+					if (isActive) {
+						buttons.forEach((b) => b.classList.remove('on'))
+					} else {
+						buttons.forEach((b) => b.classList.add('on'))
+					}
+				} else {
+					// 일반 버튼일 경우
+					buttons.forEach((b) => {
+						if (!b.classList.contains('all')) {
+							b.classList.remove('on')
+						}
+					})
+					btn.classList.add('on')
+
+					// .all 버튼도 함께 .on 제거
+					const allBtn = group.querySelector('button.all')
+					if (allBtn) {
+						allBtn.classList.remove('on')
+					}
+				}
+			})
+		})
+	})
+}
