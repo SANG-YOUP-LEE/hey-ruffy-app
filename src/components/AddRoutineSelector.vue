@@ -37,7 +37,7 @@
     						<input type="checkbox" id="my_toggle" />
     							<span class="slider"></span>
   						</label>
-  						<label for="my_toggle">시작일 지정하기</label>
+  						시작일 지정하기
 					</p>
 					<p class="button">
 						<button>다짐 주기 저장</button>
