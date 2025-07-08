@@ -45,22 +45,19 @@ export function setupCheckButtons() {
 				const isActive = btn.classList.contains('on')
 
 				if (isAll) {
-					// 이미 .on이 있으면 전체 해제
+					// .all 버튼이 눌렸을 때: toggle 전체 on/off
 					if (isActive) {
+						// 전체 해제
 						buttons.forEach((b) => b.classList.remove('on'))
 					} else {
+						// 전체 on
 						buttons.forEach((b) => b.classList.add('on'))
 					}
 				} else {
-					// 일반 버튼일 경우
-					buttons.forEach((b) => {
-						if (!b.classList.contains('all')) {
-							b.classList.remove('on')
-						}
-					})
-					btn.classList.add('on')
+					// 일반 버튼 토글
+					btn.classList.toggle('on')
 
-					// .all 버튼도 함께 .on 제거
+					// 일반 버튼 클릭 시 .all 버튼의 on 클래스는 제거
 					const allBtn = group.querySelector('button.all')
 					if (allBtn) {
 						allBtn.classList.remove('on')
