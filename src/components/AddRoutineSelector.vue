@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-#=import { ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
