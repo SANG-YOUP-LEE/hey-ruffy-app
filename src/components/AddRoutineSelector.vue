@@ -22,7 +22,7 @@
 					<button id="v_detail04">년간</button>
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
-					<p>
+					<p> 
 						<span class="day01_01 on">매일</span>
 						<span class="day01_02">일</span>
 						<span class="day01_03">월</span>
