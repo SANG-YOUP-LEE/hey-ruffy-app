@@ -23,16 +23,16 @@
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p>
-						<span class="day01_01" class="on">매일</div>
-						<span class="day01_02">일</div>
-						<span class="day01_03">월</div>
-						<span class="day01_04">화</div>
+						<span class="day01_01" class="on">매일</span>
+						<span class="day01_02">일</span>
+						<span class="day01_03">월</span>
+						<span class="day01_04">화</span>
 					</p>
 					<p>
-						<span class="day01_05">수</div>
-						<span class="day01_06">못</div>
-						<span class="day01_07">금</div>
-						<span class="day01_08">토</div>
+						<span class="day01_05">수</span>
+						<span class="day01_06">못</span>
+						<span class="day01_07">금</span>
+						<span class="day01_08">토</span>
 					</p>
 				</div>
 				<div class="rt_make_detail" id="v_detail02_block">
