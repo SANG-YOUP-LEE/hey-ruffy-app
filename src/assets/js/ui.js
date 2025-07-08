@@ -17,12 +17,17 @@ export function setupToggleBlocks() {
 			const target = document.getElementById(targetId)
 
 			if (target) {
-				// 모든 블록을 닫고
+				// 1. 모든 블록 닫고, 버튼에서 on 클래스 제거
 				allBlocks.forEach((el) => {
 					el.style.display = 'none'
 				})
-				// 현재 블록만 열기
+				buttons.forEach((b) => {
+					b.classList.remove('on')
+				})
+
+				// 2. 현재 블록만 열고, 짝이 되는 버튼에 on 클래스 추가
 				target.style.display = 'block'
+				btn.classList.add('on')
 			}
 		})
 	})
