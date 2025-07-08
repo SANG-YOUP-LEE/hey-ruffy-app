@@ -32,6 +32,12 @@
 						<button>금</button>
 						<button>토</button>
 					</p>
+					<p class="button">
+						<button>시작일 지정</button>
+					</p>
+					<p class="button">
+						<button>다짐 주기 저장</button>
+					</p>
 				</div>
 				<div class="rt_make_detail" id="v_detail02_block">
 					주간
@@ -119,10 +125,6 @@ onMounted(() => {
 	border:0.1rem solid #17a47a;
 }
 .form_box_g.rt_make.day_box [id$='_block']{
-	border:0.1rem solid #eee;
-	padding:1rem;
-	border-radius:1rem;
-	text-align:left;
 }
 
 .form_box_g.rt_make.day_box p {
