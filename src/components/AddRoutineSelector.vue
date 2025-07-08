@@ -14,7 +14,7 @@
 
 			<!-- 다짐 주기 설정 -->
 			<div class="form_box_g rt_make day_box">
-				<h3>얼마나 자주 지켜야 하나요2?</h3>
+				<h3>얼마나 자주 지켜야 하나요?</h3>
 				<p>
 					<button id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>
@@ -40,6 +40,13 @@
 							<span class="slider"></span>
 						</label>
 						시작일 지정하기
+					</p>
+
+					<!-- 선택된 시작일 표시 -->
+					<p v-if="selectedStartDateTime" class="start_date_preview">
+						선택된 시작일: 
+						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
+						{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
 					</p>
 
 					<p class="button">
@@ -94,11 +101,27 @@
 			<button @click="handleClose">다짐 저장하기</button>
 		</div>
 		<button class="close_btn" @click="handleClose"><span>팝업 닫기</span></button>
+
+		<!-- 시작일 팝업 -->
+		<DateTimePickerPopup
+			v-if="isDatePopupOpen"
+			title="시작일을 선택하세요"
+			:showYear="true"
+			:showMonth="true"
+			:showDate="true"
+			:showAmPm="true"
+			:showHour="true"
+			:showMinute="true"
+			:showSecond="false"
+			@confirm="onDateConfirm"
+			@close="isDatePopupOpen = false"
+		/>
 	</div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 
 const emit = defineEmits(['close'])
@@ -106,6 +129,20 @@ const handleClose = () => {
 	emit('close')
 }
 
+const isStartDateOn = ref(false)
+const isDatePopupOpen = ref(false)
+const selectedStartDateTime = ref(null)
+
+watch(isStartDateOn, (val) => {
+	if (val) {
+		isDatePopupOpen.value = true
+	}
+})
+
+const onDateConfirm = (val) => {
+	selectedStartDateTime.value = val
+	isDatePopupOpen.value = false
+}
 
 onMounted(() => {
 	setupToggleBlocks()
@@ -114,59 +151,60 @@ onMounted(() => {
 </script>
 
 <style>
-
 .form_box_g.rt_make p.button button {
-	width:100%;
-	line-height:2rem;
-	color:#333;
-	background-color:#fff282;
-	border:0.1rem solid #fff282;
-	border-radius:1rem;
+	width: 100%;
+	line-height: 2rem;
+	color: #333;
+	background-color: #fff282;
+	border: 0.1rem solid #fff282;
+	border-radius: 1rem;
 }
 
 .form_box_g.rt_make.day_box button[id^='v_detail'] {
-	width:24%;
-	background-color:#fff;
-	border:0.1rem solid #17a47a;
-	margin-right:1%;
-	color:#17a47a;
+	width: 24%;
+	background-color: #fff;
+	border: 0.1rem solid #17a47a;
+	margin-right: 1%;
+	color: #17a47a;
 }
 .form_box_g.rt_make.day_box button.on {
-	color:#fff;
-	background-color:#17a47a;
-	border:0.1rem solid #17a47a;
+	color: #fff;
+	background-color: #17a47a;
+	border: 0.1rem solid #17a47a;
 }
-.form_box_g.rt_make.day_box [id$='_block']{
-}
+.form_box_g.rt_make.day_box [id$='_block'] {}
 
 .form_box_g.rt_make.day_box p {
-	margin-bottom:0.5rem;
+	margin-bottom: 0.5rem;
 }
 .form_box_g.rt_make.day_box p:last-child {
-	margin-bottom:0;
+	margin-bottom: 0;
 }
 .form_box_g.rt_make.day_box p.check_btn button {
-	width:24%;
-	margin:0 1% 0.5rem 0;
-	display:inline-block;
-	color:#333;
-	border-radius:1rem;
-	border:0.1rem solid #e7e7e7;
-	text-align:center;
-	line-height:1.8rem;
+	width: 24%;
+	margin: 0 1% 0.5rem 0;
+	display: inline-block;
+	color: #333;
+	border-radius: 1rem;
+	border: 0.1rem solid #e7e7e7;
+	text-align: center;
+	line-height: 1.8rem;
 }
 .form_box_g.rt_make.day_box p.check_btn button:last-child {
-	margin-right:0
+	margin-right: 0;
 }
 .form_box_g.rt_make.day_box p.check_btn button.on {
-	border:1px solid #17a47a;
-	background-color:#fff;
-	color:#17a47a;
-	font-weight:bold;
-	padding-left:1rem;
+	border: 1px solid #17a47a;
+	background-color: #fff;
+	color: #17a47a;
+	font-weight: bold;
+	padding-left: 1rem;
 	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 0.8rem 0.8rem no-repeat;
 }
+
+.start_date_preview {
+	margin: 0.5rem 0 0;
+	font-size: 0.9rem;
+	color: #444;
+}
 </style>
-
-
-
