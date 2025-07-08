@@ -20,9 +20,9 @@
 			<div class="form_box_g rt_make">
 				<h3>얼마나 자주 지켜야 하나요?</h3>
 				<p>
-					<button>나만의 반복 주기 만들기</button>
+					<button id="v_detail01">나만의 반복 주기 만들기</button>
 				</p>
-				<div class="rt_make_dtail>
+				<div class="rt_make_detail h" id="v_detail01_block">
 				반복주기 펼침
 				</div>
 			</div>
