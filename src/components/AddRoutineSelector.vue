@@ -135,6 +135,7 @@ onMounted(() => {
 .form_box_g.rt_make.day_box p.check_btn button {
 	width:24%;
 	margin-right:1%;
+	margin-bottom:0;
 	display:inline-block;
 	color:#333;
 	border-radius:1rem;
@@ -142,7 +143,7 @@ onMounted(() => {
 	text-align:center;
 	line-height:1.8rem;
 }
-.form_box_g.=rt_make.day_box p.check_btn button:last-child {
+.form_box_g.rt_make.day_box p.check_btn button:last-child {
 	margin-right:0
 }
 .form_box_g.rt_make.day_box p.check_btn button.on {
