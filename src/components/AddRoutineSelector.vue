@@ -120,6 +120,7 @@ onMounted(() => {
 	border:0.1rem solid #17a47a;
 }
 .form_box_g.rt_make.day_box [id$='_block']{
+	margin-top:0.5rem;
 	border:0.1rem solid #ddd;
 	padding:1rem;
 	bordr-radius:1rem;
@@ -127,18 +128,24 @@ onMounted(() => {
 }
 
 .form_box_g.rt_make.day_box p {
-	background-color:red
+	
 }
 .form_box_g.rt_make.day_box p span[class^='day01_'] {
 	width:24%;
 	margin-right:1%;
 	display:inline-block;
-	color:#ddd;
+	color:#333;
+	border-radius:1rem;
 	background-color:#f5f5f5;
-	border:0.1rem solid #e7e7e7
+	border:0.1rem solid #e7e7e7;
+	text-align:center;
+	line-height:1.8rem;
 }
 .form_box_g.rt_make.day_box p span[class^='day01_']:last-child {
 	margin-right:0
+}
+.form_box_g.rt_make.day_box p span[class^='day01_'].on {
+	border:1px solid #17a47a;
 }
 </style>
 
