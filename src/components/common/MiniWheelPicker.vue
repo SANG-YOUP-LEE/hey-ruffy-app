@@ -119,8 +119,6 @@ const select = (idx) => {
   top: 50%;
   left: 0;
   width: 100%;
-  height: 2px;
-  background: #ffd600; /* 노란 강조선 */
   transform: translateY(-50%);
   pointer-events: none;
   z-index: 10;
