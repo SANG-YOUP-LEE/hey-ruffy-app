@@ -15,22 +15,22 @@
 			<!-- 다짐 주기 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>얼마나 자주 지켜야 하나요2?</h3>
-				<p style="background-color:red">
+				<p>
 					<button id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>					
 					<button id="v_detail03">월간</button>
 					<button id="v_detail04">년간</button>
 				</p>
-				<div style="background-color:blue" class="rt_make_detail h" id="v_detail01_block">
+				<div class="rt_make_detail" id="v_detail01_block">
 					일간2
 				</div>
-				<div style="background-color:blue" class="rt_make_detail h" id="v_detail02_block">
+				<div class="rt_make_detail" id="v_detail02_block">
 					주간
 				</div>
-				<div style="background-color:blue" class="rt_make_detail h" id="v_detail03_block">
+				<div class="rt_make_detail" id="v_detail03_block">
 					월간
 				</div>
-				<div style="background-color:blue" class="rt_make_detail h" id="v_detail04_block">
+				<div class="rt_make_detail" id="v_detail04_block">
 					년간
 				</div>
 			</div>
