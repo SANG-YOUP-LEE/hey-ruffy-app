@@ -93,7 +93,7 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { setupToggleBlocks } from '@/assets/js/ui.js'
+import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 
 const emit = defineEmits(['close'])
 
@@ -103,6 +103,7 @@ const handleClose = () => {
 
 onMounted(() => {
 	setupToggleBlocks()
+	setupCheckButtons()
 })
 </script>
 
