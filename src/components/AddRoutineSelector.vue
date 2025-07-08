@@ -129,13 +129,15 @@ onMounted(() => {
 .form_box_g.rt_make.day_box p {
 	margin-bottom:0.5rem;
 }
+.form_box_g.rt_make.day_box p:last-child {
+	margin-bottom:0;
+}
 .form_box_g.rt_make.day_box p span[class^='day01_'] {
 	width:24%;
 	margin-right:1%;
 	display:inline-block;
 	color:#333;
 	border-radius:1rem;
-	background-color:#f5f5f5;
 	border:0.1rem solid #e7e7e7;
 	text-align:center;
 	line-height:1.8rem;
@@ -148,6 +150,7 @@ onMounted(() => {
 	background-color:#fff;
 	color:#17a47a;
 	font-weight:bold;
+	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 1.2rem 0.8rem no-repeat;#
 }
 </style>
 
