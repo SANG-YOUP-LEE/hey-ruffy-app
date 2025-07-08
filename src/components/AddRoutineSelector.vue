@@ -118,30 +118,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
-import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
 const emit = defineEmits(['close'])
 const handleClose = () => {
 	emit('close')
 }
 
-// 날짜 선택 토글과 팝업 상태
-const isStartDateOn = ref(false)
-const isDatePopupOpen = ref(false)
-const selectedStartDate = ref(null)
-
-const handleDateConfirm = (data) => {
-  selectedStartDate.value = data
-  console.log('선택된 시작일:', data)
-  isDatePopupOpen.value = false
-}
-
-// 토글 변화 감지해서 팝업 띄우기
-watch(isStartDateOn, (newVal) => {
-  if (newVal) {
-    isDatePopupOpen.value = true
-  }
-})
 
 onMounted(() => {
 	setupToggleBlocks()
