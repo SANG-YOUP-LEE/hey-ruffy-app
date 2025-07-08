@@ -22,7 +22,18 @@
 					<button id="v_detail04">년간</button>
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
-					일간2
+					<p>
+						<span class="day01_01" class="on">매일</div>
+						<span class="day01_02">일</div>
+						<span class="day01_03">월</div>
+						<span class="day01_04">화</div>
+					</p>
+					<p>
+						<span class="day01_05">수</div>
+						<span class="day01_06">못</div>
+						<span class="day01_07">금</div>
+						<span class="day01_08">토</div>
+					</p>
 				</div>
 				<div class="rt_make_detail" id="v_detail02_block">
 					주간
@@ -111,6 +122,23 @@ onMounted(() => {
 .form_box_g.rt_make.day_box [id$='_block']{
 	border:0.1rem solid #ddd;
 	padding:1rem;
+	bordr-radius:1rem;
+	text-align:left;
+}
+
+.form_box_g.rt_make.day_box p {
+	background-color:red
+}
+.form_box_g.rt_make.day_box p span[class^='day01_'] {
+	width:24%;
+	margin-right:1%;
+	display:inline-block;
+	color:#ddd;
+	background-color:#f5f5f5;
+	color:#ddd
+}
+.form_box_g.rt_make.day_box p span[class^='day01_']:last-child {
+	margin-right:0
 }
 </style>
 
