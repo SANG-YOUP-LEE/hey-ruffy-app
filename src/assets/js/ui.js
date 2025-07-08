@@ -16,5 +16,3 @@ export function setupToggleBlocks() {
 		})
 	})
 }
-
-alert("aa");
