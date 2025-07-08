@@ -21,16 +21,16 @@
 					<button id="v_detail03">월간</button>
 					<button id="v_detail04">년간</button>
 				</p>
-				<div style="background-color:blue" class="rt_make_detail" id="v_detail01_block">
+				<div style="background-color:blue" class="rt_make_detail h" id="v_detail01_block">
 					일간2
 				</div>
-				<div style="background-color:blue" class="rt_make_detail" id="v_detail02_block">
+				<div style="background-color:blue" class="rt_make_detail h" id="v_detail02_block">
 					주간
 				</div>
-				<div style="background-color:blue" class="rt_make_detail" id="v_detail03_block">
+				<div style="background-color:blue" class="rt_make_detail h" id="v_detail03_block">
 					월간
 				</div>
-				<div style="background-color:blue" class="rt_make_detail" id="v_detail04_block">
+				<div style="background-color:blue" class="rt_make_detail h" id="v_detail04_block">
 					년간
 				</div>
 			</div>
