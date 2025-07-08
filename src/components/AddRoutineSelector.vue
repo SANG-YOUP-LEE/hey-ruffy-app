@@ -3,8 +3,6 @@
 		<h2>새 다짐 만들기</h2>
 
 		<div class="popup_inner">
-
-
 			<!-- 다짐명 적기 -->
 			<div class="form_box_g rt_make">
 				<h3>다짐명을 적어주세요.</h3>
@@ -13,40 +11,30 @@
 					<input type="text" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기">
 				</p>
 			</div>
-			<!--// 다짐명 적기 -->
-
 
 			<!-- 다짐 주기 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>얼마나 자주 지켜야 하나요?</h3>
 				<p>
-					<button id="v_detail01">나만의 반복 주기 만들기4</button>
+					<button id="v_detail01">나만의 반복 주기 만들기</button>
 				</p>
-				<div class="rt_make_detail" id="v_detail01_block">
-				반복주기 펼침
+				<div class="rt_make_detail" id="v_detail01_block" style="display: none;">
+					반복주기 펼침
 				</div>
 			</div>
-			<!--// 다짐 주기 설정 -->
-			
+
 			<!-- 다짐 시작일 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>언제부터 시작할건가요?</h3>
-				<p>
-					
-				</p>
+				<p></p>
 			</div>
-			<!--// 다짐 시작일 설정 -->
-			
-			
+
 			<!-- 다짐 알람 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>알람이 필요한가요?</h3>
-				<p>
-					
-				</p>
+				<p></p>
 			</div>
-			<!--// 다짐 알람 설정 -->
-			
+
 			<!-- 러피 산책 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>러피의 산책 주기는 어떻게 할까요?</h3>
@@ -57,31 +45,21 @@
 					<button class="btn_basic">최소 달성 횟수 선택하기</button>
 				</p>
 			</div>
-			<!--// 러피 산책 설정 -->	
-			
+
 			<!-- 다짐 중요도 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>얼마나 중요한 다짐인가요?</h3>
-				<p>
-					중요한 마음 만큼 컬러를 선택해주세요.
-				</p>
+				<p>중요한 마음 만큼 컬러를 선택해주세요.</p>
 			</div>
-			<!--// 다짐 중요도 설정 -->
 
-      <!-- 메세지 설정 -->
+			<!-- 메세지 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>소곤소곤 더 할 말은 없나요?</h3>
 				<p>
-					<textarea row="2">좀더 하고 싶은 말은 없나요?</textarea>
+					<textarea rows="2">좀더 하고 싶은 말은 없나요?</textarea>
 				</p>
 			</div>
-			<!--// 메세지 설정 -->			
-
-
-
-
 		</div>
-
 
 		<div class="popup_btm">
 			<button @click="handleClose">다짐 저장하기</button>
@@ -91,9 +69,16 @@
 </template>
 
 <script setup>
-	const emit = defineEmits(['close'])
+import { onMounted } from 'vue'
+import { setupToggleBlocks } from '@/assets/js/ui.js'
 
-	const handleClose = () => {
-		emit('close')
-	}
+const emit = defineEmits(['close'])
+
+const handleClose = () => {
+	emit('close')
+}
+
+onMounted(() => {
+	setupToggleBlocks()
+})
 </script>
