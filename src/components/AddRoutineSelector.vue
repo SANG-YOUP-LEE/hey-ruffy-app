@@ -42,8 +42,6 @@
 						시작일 지정하기
 					</p>
 
-					#
-
 					<p class="button">
 						<button>다짐 주기 저장</button>
 					</p>
@@ -102,27 +100,12 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
-import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
 const emit = defineEmits(['close'])
 const handleClose = () => {
 	emit('close')
 }
 
-// 시작일 지정용
-const isStartDateOn = ref(false)
-const isDatePopupOpen = ref(false)
-const selectedStartDate = ref(null)
-
-watch(isStartDateOn, (newVal) => {
-	if (newVal) isDatePopupOpen.value = true
-})
-
-const handleDateConfirm = (data) => {
-	selectedStartDate.value = data
-	console.log('✅ 선택된 시작일:', data)
-	isDatePopupOpen.value = false
-}
 
 onMounted(() => {
 	setupToggleBlocks()
