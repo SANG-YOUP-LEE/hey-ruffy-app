@@ -120,8 +120,8 @@ onMounted(() => {
 	width:100%;
 	line-height:2rem;
 	color:#333;
-	background-color:#ffe35e;
-	border:0.1rem solid #ffe353;
+	background-color:#fff282;
+	border:0.1rem solid #fff282;
 	border-radius:1rem;
 }
 
