@@ -30,7 +30,7 @@
 				<div style="background-color:blue" class="rt_make_detail" id="v_detail03_block">
 					월간
 				</div>
-				<div style="background-color:blue" class="rt_make_detail" id="v_detail014_block">
+				<div style="background-color:blue" class="rt_make_detail" id="v_detail04_block">
 					년간
 				</div>
 			</div>
