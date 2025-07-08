@@ -150,8 +150,8 @@ onMounted(() => {
 	background-color:#fff;
 	color:#17a47a;
 	font-weight:bold;
-	padding-left:1.5rem;
-	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 1.2rem 0.8rem no-repeat;
+	padding-left:1.2rem;
+	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 0.8rem 0.8rem no-repeat;
 }
 </style>
 
