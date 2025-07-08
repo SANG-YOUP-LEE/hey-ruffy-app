@@ -103,19 +103,19 @@
 		<button class="close_btn" @click="handleClose"><span>팝업 닫기</span></button>
 
 		<!-- 시작일 팝업 -->
-		<DateTimePickerPopup
-			v-if="isDatePopupOpen"
-			title="시작일을 선택하세요"
-			:showYear="true"
-			:showMonth="true"
-			:showDate="true"
-			:showAmPm="true"
-			:showHour="true"
-			:showMinute="true"
-			:showSecond="false"
-			@confirm="onDateConfirm"
-			@close="isDatePopupOpen = false"
-		/>
+<DateTimePickerPopup
+  v-if="isDatePopupOpen"
+  title="시작일을 선택하세요"
+  :showYear="true"
+  :showMonth="true"
+  :showDate="true"
+  :showAmPm="false"
+  :showHour="false"
+  :showMinute="false"
+  :showSecond="false"
+  @confirm="onDateConfirm"
+  @close="isDatePopupOpen = false"
+/>
 	</div>
 </template>
 
