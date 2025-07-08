@@ -22,7 +22,7 @@
 					<button id="v_detail04">년간</button>
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
-					<p> 
+					<p>
 						<span class="day01_01 on">매일</span>
 						<span class="day01_02">일</span>
 						<span class="day01_03">월</span>
@@ -150,7 +150,7 @@ onMounted(() => {
 	background-color:#fff;
 	color:#17a47a;
 	font-weight:bold;
-	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 1.2rem 0.8rem no-repeat;#
+	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 1.2rem 0.8rem no-repeat;
 }
 </style>
 
