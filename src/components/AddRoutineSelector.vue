@@ -22,17 +22,17 @@
 					<button id="v_detail04">년간</button>
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
-					<p>
-						<span class="day01_01">매일</span>
-						<span class="day01_02">일</span>
-						<span class="day01_03">월</span>
-						<span class="day01_04">화</span>
+					<p class="check_btn">
+						<span>매일</span>
+						<span>일</span>
+						<span>월</span>
+						<span>화</span>
 					</p>
-					<p>
-						<span class="day01_05">수</span>
-						<span class="day01_06">못</span>
-						<span class="day01_07">금</span>
-						<span class="day01_08">토</span>
+					<p class="check_btn">
+						<span>수</span>
+						<span>못</span>
+						<span>금</span>
+						<span>토</span>
 					</p>
 				</div>
 				<div class="rt_make_detail" id="v_detail02_block">
@@ -132,7 +132,7 @@ onMounted(() => {
 .form_box_g.rt_make.day_box p:last-child {
 	margin-bottom:0;
 }
-.form_box_g.rt_make.day_box p span[class^='day01_'] {
+.form_box_g.rt_make.day_box p.check_btn span {
 	width:24%;
 	margin-right:1%;
 	display:inline-block;
@@ -142,10 +142,10 @@ onMounted(() => {
 	text-align:center;
 	line-height:1.8rem;
 }
-.form_box_g.=rt_make.day_box p span[class^='day01_']:last-child {
+.form_box_g.=rt_make.day_box p.check_btn span:last-child {
 	margin-right:0
 }
-.form_box_g.rt_make.day_box p span[class^='day01_'].on {
+.form_box_g.rt_make.day_box p.check_btn span.on {
 	border:1px solid #17a47a;
 	background-color:#fff;
 	color:#17a47a;
