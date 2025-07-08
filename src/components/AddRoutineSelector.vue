@@ -33,7 +33,11 @@
 						<button>토</button>
 					</p>
 					<p class="button">
-						<button>시작일 지정</button>
+  						<label class="toggle-switch">
+    						<input type="checkbox" id="my_toggle" />
+    							<span class="slider"></span>
+  						</label>
+  						<label for="my_toggle">시작일 지정하기</label>
 					</p>
 					<p class="button">
 						<button>다짐 주기 저장</button>
