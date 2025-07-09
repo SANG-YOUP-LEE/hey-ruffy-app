@@ -1,22 +1,24 @@
 <template>
-  <div class="wheel-overlay">
-    <div class="wheel-popup">
-      <button class="close_btn" @click="$emit('close')"><span>닫기</span></button>
-      <h2>{{ title }}</h2>
+  <teleport to="body">
+    <div class="wheel-overlay">
+      <div class="wheel-popup">
+        <button class="close_btn" @click="$emit('close')"><span>닫기</span></button>
+        <h2>{{ title }}</h2>
 
-      <div class="wheel-row">
-        <MiniWheelPicker v-if="showYear" title="년" :items="yearList" v-model="selectedYear" />
-        <MiniWheelPicker v-if="showMonth" title="월" :items="monthList" v-model="selectedMonth" />
-        <MiniWheelPicker v-if="showDate" title="일" :items="dateList" v-model="selectedDate" />
-        <MiniWheelPicker v-if="showAmPm" title="오전/오후" :items="ampmList" v-model="selectedAmPm" />
-        <MiniWheelPicker v-if="showHour" title="시" :items="hourList" v-model="selectedHour" />
-        <MiniWheelPicker v-if="showMinute" title="분" :items="minuteList" v-model="selectedMinute" />
-        <MiniWheelPicker v-if="showSecond" title="초" :items="secondList" v-model="selectedSecond" />
+        <div class="wheel-row">
+          <MiniWheelPicker v-if="showYear" title="년" :items="yearList" v-model="selectedYear" />
+          <MiniWheelPicker v-if="showMonth" title="월" :items="monthList" v-model="selectedMonth" />
+          <MiniWheelPicker v-if="showDate" title="일" :items="dateList" v-model="selectedDate" />
+          <MiniWheelPicker v-if="showAmPm" title="오전/오후" :items="ampmList" v-model="selectedAmPm" />
+          <MiniWheelPicker v-if="showHour" title="시" :items="hourList" v-model="selectedHour" />
+          <MiniWheelPicker v-if="showMinute" title="분" :items="minuteList" v-model="selectedMinute" />
+          <MiniWheelPicker v-if="showSecond" title="초" :items="secondList" v-model="selectedSecond" />
+        </div>
+
+        <button class="pop_btm" @click="confirm">확인</button>
       </div>
-
-      <button class="pop_btm" @click="confirm">확인</button>
     </div>
-  </div>
+  </teleport>
 </template>
 
 <script setup>
@@ -100,19 +102,51 @@ const confirm = () => {
 </script>
 
 <style>
+.wheel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wheel-popup {
+  background: #fff;
+  max-width: 90%;
+  width: 30rem;
+  border-radius: 1rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 0 1rem rgba(0,0,0,0.1);
+  text-align: center;
+}
+
 .wheel-row {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  margin: 2rem 0;
 }
-.wheel-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+
+.pop_btm {
+  background: #222;
+  color: #fff;
+  padding: 0.8rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
 }
-.wheel-label {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  color: #555;
+
+.close_btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
 }
 </style>
