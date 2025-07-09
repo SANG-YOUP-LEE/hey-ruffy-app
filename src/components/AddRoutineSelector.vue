@@ -59,6 +59,8 @@
 
 				<!-- 월간 상세-->
 				<div class="rt_make_detail" id="v_detail03_block">
+					<div class="select_monthly">
+					</div>
 				</div>
 				<!--//월간 상세-->
 
