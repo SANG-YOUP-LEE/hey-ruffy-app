@@ -32,9 +32,6 @@
 						<button>금</button>
 						<button>토</button>
 					</p>
-					<p class="button">
-						<button>다짐 주기 저장</button>
-					</p>
 				</div>
 
 				<div class="rt_make_detail" id="v_detail02_block">주간</div>
