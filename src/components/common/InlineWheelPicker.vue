@@ -92,9 +92,10 @@ const select = (index) => {
   emit('update:modelValue', props.items[index])
 }
 watch(selectedIndex, (newVal) => {
-  emit('update:modelValue', props.items[newVal])
+  if (newVal >= 0) {
+    emit('update:modelValue', props.items[newVal])
+  }
 })
-
 // 중앙 정렬을 위한 padding 계산
 const paddingOffset = computed(() => {
   return (props.containerHeight - props.itemHeight) / 2
