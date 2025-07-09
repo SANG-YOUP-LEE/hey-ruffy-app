@@ -49,10 +49,16 @@
 			<div class="form_box_g rt_make start_alarm_box">
 				<h3>시작일과 알람도 지정할까요?</h3>
 				<label class="toggle-switch">
-							<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-							<span class="slider"></span>
-						</label>
-						시작일 지정하기
+					<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+					<span class="slider"></span>
+				</label>
+				시작일 지정
+				<!-- 선택된 시작일 표시 -->
+				<p v-if="selectedStartDateTime" class="start_date_preview">
+					선택된 시작일: 
+					{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
+					{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
+				</p>
 			</div>
 
 			<!-- 러피 산책 설정 -->
@@ -145,6 +151,9 @@ onMounted(() => {
 </script>
 
 <style>
+.form_box_g.rt_make h3 {
+	text-align:center
+}
 .form_box_g.rt_make p.button button {
 	width: 100%;
 	line-height: 2rem;
@@ -207,7 +216,10 @@ onMounted(() => {
 
 .form_box_g.rt_make.start_alarm_box  {
 	text-align:left;
-	background-color:red;
+}
+
+.start_date_preview {
+	float:right
 }
 </style>
 
