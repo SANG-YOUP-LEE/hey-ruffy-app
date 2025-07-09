@@ -109,7 +109,7 @@
 			<!-- 러피 산책 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>러피의 산책 주기를 정해주세요.</h3>
-				<p class="comment">목표한 다짐 횟수를 달성할때마다<br />러피도 기다리던 산책을 갈 수 있어요. <br />최소 목표 횟수는 10번이예요.</p>
+				<p class="comment">목표한 다짐 횟수를 달성할때마다<br />드디어 러피가 기다리던 산책을 갈 수 있어요. <br />최소 목표 횟수는 10번이예요.</p>
 				<div class="walking_goal">
 					<input type="text" placeholder="10" /> 번
 				</div>
@@ -118,7 +118,19 @@
 			<!-- 다짐 중요도 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>얼마나 중요한 다짐인가요?</h3>
-				<p>중요한 마음 만큼 컬러를 선택해주세요.</p>
+				<p class="comment">>중요한 마음 만큼 컬러를 선택해주세요.</p>
+				<div class="color_chart">
+					<span class="cchart01"></span>
+					<span class="cchart02"></span>
+					<span class="cchart03"></span>
+					<span class="cchart04"></span>
+					<span class="cchart05"></span>
+					<span class="cchart06"></span>
+					<span class="cchart07"></span>
+					<span class="cchart08"></span>
+					<span class="cchart09"></span>
+					<span class="cchart10"></span>
+				</div>
 			</div>
 
 			<!-- 메세지 설정 -->
@@ -383,12 +395,24 @@ onMounted(async () => {
 	font-size:0.8rem;
 	line-height:1rem;
 	color:#666;
-	margin:0.5rem 0 0.5rem 0;
+	margin:0 0 0.5rem 0;
 }
 .form_box_g.rt_make .walking_goal input {
 	width:5rem!important;
 	text-align:right!important;
 	border:0.1rem solid #aaa;
 	border-radius:1rem;
+}
+
+.form_box_g.rt_make .color_chart [class^='cchart'] {
+	width:9%;
+	height:9%;
+	margin-right:1%;
+	border-radius:50%;
+	display:inline-block;
+}
+
+.form_box_g.rt_make .color_chart .cchart01 {
+	background-color:#990000
 }
 </style>
