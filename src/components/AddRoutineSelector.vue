@@ -120,17 +120,13 @@
 				<h3>얼마나 중요한 다짐인가요?</h3>
 				<p class="comment">중요한 정도를 컬러로 표현해주세요.</p>
 				<div class="color_chart">
-					<span class="cchart01"></span>
-					<span class="cchart02"></span>
-					<span class="cchart03"></span>
-					<span class="cchart04"></span>
-					<span class="cchart05"></span>
-					<span class="cchart06"></span>
-					<span class="cchart07"></span>
-					<span class="cchart08"></span>
-					<span class="cchart09"></span>
-					<span class="cchart10"></span>
-				</div>
+  <span
+    v-for="(_, index) in 10"
+    :key="index"
+    :class="['cchart0' + (index + 1), { on: selectedColorIndex === index }]"
+    @click="handleColorClick(index)"
+  ></span>
+</div>
 			</div>
 
 			<!-- 메세지 설정 -->
@@ -217,6 +213,12 @@ const toggleDateSelection = (day) => {
 	} else {
 		selectedDates.value.push(day)
 	}
+}
+
+// ✅ 중요도 색상 단일 선택용
+const selectedColorIndex = ref(null)
+const handleColorClick = (index) => {
+	selectedColorIndex.value = index
 }
 
 // 토글 감시
