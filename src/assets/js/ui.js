@@ -1,46 +1,68 @@
 export function setupToggleBlocks() {
 	const allBlocks = document.querySelectorAll('[id$="_block"]')
-	const buttons = document.querySelectorAll('button[id*="detail"]')
+	const buttons = document.querySelectorAll('button[id^="v_detail"]')
 
-	// 모든 detail block 숨기기 + 내부 초기화
-	const resetAndHideAllBlocks = () => {
-		allBlocks.forEach((block) => {
-			block.style.display = 'none'
+	// 현재 열려 있는 탭 id 추적
+	let currentActiveId = null
 
-			// 내부 초기화
-			const buttonsInBlock = block.querySelectorAll('button.on')
-			buttonsInBlock.forEach((b) => b.classList.remove('on'))
+	// 특정 블럭을 초기화 (선택된 블럭만)
+	const resetBlock = (block) => {
+		const buttonsInBlock = block.querySelectorAll('button.on')
+		buttonsInBlock.forEach((b) => b.classList.remove('on'))
 
-			const inputs = block.querySelectorAll('input, textarea')
-			inputs.forEach((input) => {
-				if (input.type === 'checkbox' || input.type === 'radio') {
-					input.checked = false
-				} else {
-					input.value = ''
-				}
-			})
+		const inputs = block.querySelectorAll('input, textarea')
+		inputs.forEach((input) => {
+			if (input.type === 'checkbox' || input.type === 'radio') {
+				input.checked = false
+			} else {
+				input.value = ''
+			}
 		})
 	}
 
-	// 페이지 로드 시에도 초기화 (요 부분이 추가됨)
-	resetAndHideAllBlocks()
+	// 초기화: 모든 block 닫기 + 버튼 off
+	const hideAllBlocks = () => {
+		allBlocks.forEach((block) => {
+			block.style.display = 'none'
+		})
+		buttons.forEach((b) => b.classList.remove('on'))
+	}
 
+	// 버튼 클릭 이벤트 등록
 	buttons.forEach((btn) => {
 		btn.addEventListener('click', () => {
 			const id = btn.getAttribute('id')
-			if (!id) return
-
 			const targetId = `${id}_block`
 			const target = document.getElementById(targetId)
 
-			if (target) {
-				resetAndHideAllBlocks()
-				buttons.forEach((b) => b.classList.remove('on'))
-				target.style.display = 'block'
-				btn.classList.add('on')
-			}
+			if (!target) return
+
+			// 같은 탭 누르면 무시
+			if (currentActiveId === id) return
+
+			// 기존 탭 초기화
+			const prevBlock = document.getElementById(`${currentActiveId}_block`)
+			if (prevBlock) resetBlock(prevBlock)
+
+			// 새 탭 열기
+			hideAllBlocks()
+			btn.classList.add('on')
+			target.style.display = 'block'
+			currentActiveId = id
 		})
 	})
+
+	// 페이지 로드시 첫 번째 탭을 기본 활성화
+	if (buttons.length > 0) {
+		const firstBtn = buttons[0]
+		const firstId = firstBtn.getAttribute('id')
+		const firstBlock = document.getElementById(`${firstId}_block`)
+		if (firstBlock) {
+			firstBtn.classList.add('on')
+			firstBlock.style.display = 'block'
+			currentActiveId = firstId
+		}
+	}
 }
 
 export function setupCheckButtons() {
@@ -55,23 +77,21 @@ export function setupCheckButtons() {
 				const isActive = btn.classList.contains('on')
 
 				if (isAll) {
-					// .all 버튼이 눌렸을 때: toggle 전체 on/off
-					if (isActive) {
-						// 전체 해제
-						buttons.forEach((b) => b.classList.remove('on'))
-					} else {
-						// 전체 on
-						buttons.forEach((b) => b.classList.add('on'))
-					}
+					// 전체 on/off 토글
+					buttons.forEach((b) => {
+						if (isActive) {
+							b.classList.remove('on')
+						} else {
+							b.classList.add('on')
+						}
+					})
 				} else {
 					// 일반 버튼 토글
 					btn.classList.toggle('on')
 
-					// 일반 버튼 클릭 시 .all 버튼의 on 클래스는 제거
+					// 일반 버튼 클릭 시 .all off
 					const allBtn = group.querySelector('button.all')
-					if (allBtn) {
-						allBtn.classList.remove('on')
-					}
+					if (allBtn) allBtn.classList.remove('on')
 				}
 			})
 		})
