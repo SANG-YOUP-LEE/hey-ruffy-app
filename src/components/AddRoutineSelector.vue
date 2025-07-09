@@ -12,7 +12,7 @@
 				</p>
 			</div>
 
-			<!-- 다짐 주기 설정-->
+			<!--다짐 주기 설정-->
 			<div class="form_box_g rt_make day_box">
 				<h3>얼마나 자주 지켜야해요?</h3>
 				<p>
