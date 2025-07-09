@@ -56,9 +56,12 @@ onMounted(() => {
   const initialIndex = props.items.findIndex(
     (item) => item === props.modelValue
   )
-  if (initialIndex >= 0) selectedIndex.value = initialIndex
+  if (initialIndex >= 0) {
+    selectedIndex.value = initialIndex
+  } else {
+    selectedIndex.value = -1 // 선택 안함
+  }
 })
-
 const onWheel = (event) => {
   event.preventDefault()
   if (event.deltaY > 0 && selectedIndex.value < props.items.length - 1) {
