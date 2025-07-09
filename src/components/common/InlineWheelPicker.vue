@@ -9,7 +9,11 @@
   >
     <div
       class="inline-wheel-list"
-      :style="{ transform: `translateY(-${selectedIndex * itemHeight}px)` }"
+      :style="{
+        transform: `translateY(-${selectedIndex * itemHeight}px)`,
+        paddingTop: `${paddingOffset}px`,
+        paddingBottom: `${paddingOffset}px`
+      }"
     >
       <div
         v-for="(item, index) in items"
@@ -26,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 
 const props = defineProps({
   items: {
@@ -37,6 +41,10 @@ const props = defineProps({
   itemHeight: {
     type: Number,
     default: 40
+  },
+  containerHeight: {
+    type: Number,
+    default: 96 // rem 기준 6rem = 96px
   }
 })
 
@@ -83,6 +91,11 @@ const select = (index) => {
 watch(selectedIndex, (newVal) => {
   emit('update:modelValue', props.items[newVal])
 })
+
+// 중앙 정렬을 위한 padding 계산
+const paddingOffset = computed(() => {
+  return (props.containerHeight - props.itemHeight) / 2
+})
 </script>
 
 <style scoped>
@@ -94,17 +107,21 @@ watch(selectedIndex, (newVal) => {
 }
 .inline-wheel-list {
   transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .inline-wheel-item {
   text-align: center;
   font-size: 1rem;
   color: #a333;
   user-select: none;
+  width: 100%;
 }
 .inline-wheel-item.selected {
   font-weight: bold;
   color: #333;
-	border-radius:1rem;
-	background-color:#ffed71;
+  border-radius: 1rem;
+  background-color: #ffed71;
 }
 </style>
