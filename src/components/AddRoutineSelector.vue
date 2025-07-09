@@ -206,7 +206,7 @@ const selectedAlarmTime = ref(null)
 
 // 반복 주기 드르륵 휠 상태
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
-const selectedRepeat = ref(null) // 초기 선택 없음
+const selectedRepeat = ref(null)
 
 // 월간 탭 - 월 선택 + 날짜 그리드
 const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
@@ -220,6 +220,7 @@ const toggleDateSelection = (day) => {
     selectedDates.value.push(day)
   }
 }
+
 // 시작일 토글 감시
 watch(isStartDateOn, (val) => {
   if (val) {
@@ -250,16 +251,19 @@ const onAlarmConfirm = (val) => {
   isAlarmPopupOpen.value = false
 }
 
-// onMounted 시 초기화
+// 탭 선택 시마다 초기화
 onMounted(async () => {
-  // 주간 탭에서 휠값 초기화 설정 포함해서 호출
   setupToggleBlocks({
     resetRepeat: () => {
       selectedRepeat.value = null
+    },
+    resetMonthly: () => {
+      selectedMonthOption.value = null
+      selectedDates.value = []
     }
   })
-  setupCheckButtons()
 
+  setupCheckButtons()
   await nextTick()
 
   // 일간 탭 기본 활성화
@@ -276,8 +280,10 @@ onMounted(async () => {
     dailyBlock.style.display = 'block'
   }
 
-  // 휠도 초기화
+  // 초기값도 다시 안전하게 비움
   selectedRepeat.value = null
+  selectedMonthOption.value = null
+  selectedDates.value = []
 })
 </script>
 
