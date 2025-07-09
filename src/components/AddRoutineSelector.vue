@@ -128,8 +128,18 @@ const onDateConfirm = (val) => {
 }
 
 onMounted(() => {
-	setupToggleBlocks()
-	setupCheckButtons()
+  setupToggleBlocks()
+  setupCheckButtons()
+
+  setTimeout(() => {
+    const defaultButton = document.getElementById('v_detail01')
+    const defaultBlock = document.getElementById('v_detail01_block')
+
+    if (defaultButton && defaultBlock) {
+      defaultButton.classList.add('on')
+      defaultBlock.style.display = 'block'
+    }
+  }, 0)
 })
 </script>
 
