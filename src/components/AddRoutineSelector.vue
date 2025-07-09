@@ -33,7 +33,7 @@
 						<button>토</button>
 					</p>
 				</div>
-				<!--//일ㅠ간 상세-->
+				<!--//일간 상세-->
 
 				<!--주간 상세--->
 				<div class="rt_make_detail" id="v_detail02_block">
