@@ -19,9 +19,14 @@ export function setupToggleBlocks(options = {}) {
 			}
 		})
 
-		// 주간 탭일 경우 repeat 값 초기화
+		// ✅ 주간 탭 초기화
 		if (block.id === 'v_detail02_block' && options.resetRepeat) {
 			options.resetRepeat()
+		}
+
+		// ✅ 월간 탭 초기화
+		if (block.id === 'v_detail03_block' && options.resetMonthly) {
+			options.resetMonthly()
 		}
 	}
 
