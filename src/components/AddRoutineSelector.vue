@@ -1,4 +1,4 @@
-#<template>
+<template>
 	<div class="popup_wrap">
 		<h2>새 다짐 만들기</h2>
 
