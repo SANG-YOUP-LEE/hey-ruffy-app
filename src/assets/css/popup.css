@@ -16,6 +16,7 @@ body.popup-open {
   justify-content: center;
   align-items: center;
   z-index: 999;
+  border:1px solid red
 }
 
 .popup_box,
@@ -37,7 +38,7 @@ body.popup-open {
 	font-family: Paperlogy-8ExtraBold;
 	font-size:1.5rem;
 	margin-bottom:1rem;
-  z-index:888;
+  z-index:10;
 }
 
 .popup_box  button.pop_btm,
@@ -52,7 +53,7 @@ body.popup-open {
 	line-height:1.5rem;
 	padding:0 2rem 0 2rem;
 	margin-top:1rem;
-  z-index:888;
+  z-index:10;
 }
 
 .popup_box  button.pop_btm.white,
