@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import MiniWheelPicker from '@/components/common/MiniWheelPicker.vue'
 
 const props = defineProps({
@@ -32,12 +32,11 @@ const props = defineProps({
   showHour: { type: Boolean, default: true },
   showMinute: { type: Boolean, default: true },
   showSecond: { type: Boolean, default: true },
-  minDate: { type: String, default: null } // "2025-07-09" 형식으로만
+  minDate: { type: String, default: null } // "2025-07-09"
 })
 
 const emit = defineEmits(['close', 'confirm'])
 
-// 선택 값들
 const today = new Date()
 const selectedYear = ref(today.getFullYear())
 const selectedMonth = ref(today.getMonth() + 1)
@@ -47,51 +46,40 @@ const selectedHour = ref(1)
 const selectedMinute = ref(0)
 const selectedSecond = ref(0)
 
-// 리스트 계산
-const yearList = computed(() =>
-  Array.from({ length: 100 }, (_, i) => 1970 + i)
-)
-const monthList = computed(() =>
-  Array.from({ length: 12 }, (_, i) => i + 1)
-)
-
 const parsedMinDate = computed(() => {
   if (!props.minDate) return null
   const [y, m, d] = props.minDate.split('-').map(Number)
   return { year: y, month: m, date: d }
 })
 
-const dateList = computed(() => {
-  const daysInMonth = new Date(selectedYear.value, selectedMonth.value, 0).getDate()
-  const list = []
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    let isBeforeMinDate = false
-
-    if (parsedMinDate.value) {
-      const minY = parsedMinDate.value.year
-      const minM = parsedMinDate.value.month
-      const minD = parsedMinDate.value.date
-
-      const curY = selectedYear.value
-      const curM = selectedMonth.value
-
-      if (curY < minY) {
-        isBeforeMinDate = true
-      } else if (curY === minY && curM < minM) {
-        isBeforeMinDate = true
-      } else if (curY === minY && curM === minM && i < minD) {
-        isBeforeMinDate = true
-      }
-    }
-
-    if (!isBeforeMinDate) {
-      list.push(i)
-    }
-  }
-
-  return list
+const yearList = computed(() => {
+  const start = parsedMinDate.value ? parsedMinDate.value.year : 1970
+  return Array.from({ length: 100 }, (_, i) => start + i)
 })
+
+const monthList = computed(() => {
+  const curY = selectedYear.value
+  const min = parsedMinDate.value
+  const from = (min && curY === min.year) ? min.month : 1
+  return Array.from({ length: 12 - from + 1 }, (_, i) => from + i)
+})
+
+const dateList = computed(() => {
+  const curY = selectedYear.value
+  const curM = selectedMonth.value
+  const daysInMonth = new Date(curY, curM, 0).getDate()
+  const min = parsedMinDate.value
+  const from = (min && curY === min.year && curM === min.month) ? min.date : 1
+  return Array.from({ length: daysInMonth - from + 1 }, (_, i) => from + i)
+})
+
+watch([selectedYear, selectedMonth], () => {
+  const dates = dateList.value
+  if (!dates.includes(selectedDate.value)) {
+    selectedDate.value = dates[0]
+  }
+})
+
 const ampmList = ['오전', '오후']
 const hourList = computed(() => Array.from({ length: 12 }, (_, i) => i + 1))
 const minuteList = computed(() => Array.from({ length: 60 }, (_, i) => i))
