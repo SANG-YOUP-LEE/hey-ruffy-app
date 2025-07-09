@@ -347,7 +347,7 @@ onMounted(async () => {
 }
 
 .select_week,
-.select_m_inner= {
+.select_m_inner {
 	border-radius:1rem;
 	background-color:#f9f9f9;
 	border:0.1rem solid #f2f2f2;
