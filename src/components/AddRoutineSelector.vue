@@ -430,7 +430,7 @@ onMounted(async () => {
 	border:0.2rem solid #333;
 }
 .form_box_g.rt_make .color_chart .cchart01 {
-	background-color:#ff4f4f
+	background-color:#ff4f4f!important;
 }
 .form_box_g.rt_make .color_chart .cchart02 {
 	background-color:#ff7a32
