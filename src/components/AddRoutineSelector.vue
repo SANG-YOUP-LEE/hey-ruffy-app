@@ -67,7 +67,7 @@
 							/>
 						</div>
 						<div class="monthly-grid">
-							<button
+							<span
 								class="m_s_btn"
 								v-for="day in 31"
 								:key="day"
@@ -75,7 +75,7 @@
 								:class="{ selected: selectedDates.includes(day) }"
 							>
 								{{ day }}
-							</button>
+							</span>
 						</div>
 					</div>
 				</div>
@@ -362,8 +362,10 @@ onMounted(async () => {
   margin-top:0.2rem;
 }
 
-.monthly-grid button.m_s_btn {
+.monthly-grid span.m_s_btn {
+	display:inline-block;
   padding: 0.5rem;
+	margin-bottom:0.5rem;
   font-size: 0.8rem;
   background-color: #fff;
   border: 0.1rem solid #ccc;
@@ -372,7 +374,7 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.monthly-grid button.m_s_btn.selected {
+.monthly-grid span.m_s_btn.selected {
   background-color: #ffe990;
   border-color: #ffe990;
   font-weight: bold;
