@@ -142,18 +142,24 @@ import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 
 const emit = defineEmits(['close'])
 const handleClose = () => {
-	emit('close')
+  emit('close')
 }
 
+// ✅ 1. 먼저 ref부터 선언
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
+const isAlarmOn = ref(false)
+const isAlarmPopupOpen = ref(false)
+const selectedAlarmTime = ref(null)
+
+// ✅ 2. watch는 반드시 ref 선언 이후에 위치해야 함!!
 watch(isStartDateOn, (val) => {
   if (val) {
     isDatePopupOpen.value = true
   } else {
-    selectedStartDateTime.value = null // 토글 끌 때 값 초기화
+    selectedStartDateTime.value = null
   }
 })
 
@@ -161,23 +167,22 @@ watch(isAlarmOn, (val) => {
   if (val) {
     isAlarmPopupOpen.value = true
   } else {
-    selectedAlarmTime.value = null // 토글 끌 때 값 초기화
+    selectedAlarmTime.value = null
   }
 })
-const onDateConfirm = (val) => {
-	selectedStartDateTime.value = val
-	isDatePopupOpen.value = false
-}
 
-const isAlarmOn = ref(false)
-const isAlarmPopupOpen = ref(false)
-const selectedAlarmTime = ref(null)
+// ✅ 3. 각 팝업에서 선택한 값 처리
+const onDateConfirm = (val) => {
+  selectedStartDateTime.value = val
+  isDatePopupOpen.value = false
+}
 
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
+// ✅ 4. 초기화 시 디폴트 탭 열기
 onMounted(() => {
   setupToggleBlocks()
   setupCheckButtons()
