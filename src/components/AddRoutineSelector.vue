@@ -103,7 +103,7 @@
 		<!-- 시작일 팝업 -->
 <DateTimePickerPopup
   v-if="isDatePopupOpen"
-  title="시작일을 선택하세요"
+  /*title="시작일을 선택하세요"*/
   :showYear="true"
   :showMonth="true"
   :showDate="true"
@@ -119,7 +119,7 @@
 <!-- 알람시간 팝업 -->
 <DateTimePickerPopup
   v-if="isAlarmPopupOpen"
-  title="알람 시간을 선택하세요"
+  /*title="알람 시간을 선택하세요"*/
   :showYear="false"
   :showMonth="false"
   :showDate="false"
