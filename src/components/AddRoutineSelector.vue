@@ -168,28 +168,28 @@ const handleClose = () => {
   emit('close')
 }
 
-// 오늘 날짜를 YYYY-MM-DD 문자열로 생성
+// 오늘 날짜를 YYYY-MM-DD 형식으로 포맷
 const today = new Date()
 const yyyy = today.getFullYear()
 const mm = String(today.getMonth() + 1).padStart(2, '0')
 const dd = String(today.getDate()).padStart(2, '0')
 const todayString = `${yyyy}-${mm}-${dd}`
 
-// 시작일 관련 상태
+// 시작일 설정 상태
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
-// 알람 관련 상태
+// 알람 설정 상태
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
 
-// 휠 관련 상태
+// 반복 주기 드르륵 휠 상태
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
 const selectedRepeat = ref(null) // 초기 선택 없음
 
-// 시작일 토글
+// 시작일 토글 감시
 watch(isStartDateOn, (val) => {
   if (val) {
     isDatePopupOpen.value = true
@@ -198,7 +198,7 @@ watch(isStartDateOn, (val) => {
   }
 })
 
-// 알람 토글
+// 알람 토글 감시
 watch(isAlarmOn, (val) => {
   if (val) {
     isAlarmPopupOpen.value = true
@@ -207,55 +207,47 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-// 시작일 팝업에서 값 선택 시
+// 시작일 팝업 확인 시
 const onDateConfirm = (val) => {
   selectedStartDateTime.value = val
   isDatePopupOpen.value = false
 }
 
-// 알람 팝업에서 값 선택 시
+// 알람 팝업 확인 시
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
-// 탭과 체크버튼 초기화 + 일간 기본 선택
+// onMounted 시 초기화
 onMounted(async () => {
-  setupToggleBlocks()
+  // 주간 탭에서 휠값 초기화 설정 포함해서 호출
+  setupToggleBlocks({
+    resetRepeat: () => {
+      selectedRepeat.value = null
+    }
+  })
   setupCheckButtons()
 
   await nextTick()
 
-  // 일간 버튼과 상세영역 기본 설정
+  // 일간 탭 기본 활성화
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
-
   const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
   const allBlocks = document.querySelectorAll("div[id$='_block']")
 
-  // 이미 다른 탭이 활성화돼 있다면 초기화
   allTabBtns.forEach((btn) => btn.classList.remove('on'))
   allBlocks.forEach((block) => (block.style.display = 'none'))
 
-  // 일간 기본 표시
   if (dailyBtn && dailyBlock) {
     dailyBtn.classList.add('on')
     dailyBlock.style.display = 'block'
   }
 
-  // 인라인휠도 초기화
+  // 휠도 초기화
   selectedRepeat.value = null
 })
-
-// 탭이 바뀔 때마다 주간 탭이 보이면 휠 선택 해제
-watch(
-  () => document.getElementById('v_detail02_block')?.style.display,
-  (newVal) => {
-    if (newVal === 'block') {
-      selectedRepeat.value = null
-    }
-  }
-)
 </script>
 
 <style>
