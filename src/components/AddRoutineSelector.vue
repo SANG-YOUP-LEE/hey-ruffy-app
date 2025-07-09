@@ -33,7 +33,7 @@
 						<button>토</button>
 					</p>
 				</div>
-				<!--//일간 상세-->
+				<!--//일ㅠ간 상세-->
 
 				<!--주간 상세--->
 				<div class="rt_make_detail" id="v_detail02_block">
@@ -168,28 +168,28 @@ const handleClose = () => {
   emit('close')
 }
 
-// 오늘 날짜를 YYYY-MM-DD 문자열로 생성
+// 오늘 날짜를 YYYY-MM-DD 형식으로 포맷
 const today = new Date()
 const yyyy = today.getFullYear()
 const mm = String(today.getMonth() + 1).padStart(2, '0')
 const dd = String(today.getDate()).padStart(2, '0')
 const todayString = `${yyyy}-${mm}-${dd}`
 
-// 시작일 관련 상태
+// 시작일 설정 상태
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
-// 알람 관련 상태
+// 알람 설정 상태
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
 
-// 휠 관련 상태
+// 반복 주기 드르륵 휠 상태
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
 const selectedRepeat = ref(null) // 초기 선택 없음
 
-// 시작일 토글
+// 시작일 토글 감시
 watch(isStartDateOn, (val) => {
   if (val) {
     isDatePopupOpen.value = true
@@ -198,7 +198,7 @@ watch(isStartDateOn, (val) => {
   }
 })
 
-// 알람 토글
+// 알람 토글 감시
 watch(isAlarmOn, (val) => {
   if (val) {
     isAlarmPopupOpen.value = true
@@ -207,55 +207,47 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-// 시작일 팝업에서 값 선택 시
+// 시작일 팝업 확인 시
 const onDateConfirm = (val) => {
   selectedStartDateTime.value = val
   isDatePopupOpen.value = false
 }
 
-// 알람 팝업에서 값 선택 시
+// 알람 팝업 확인 시
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
-// 탭과 체크버튼 초기화 + 일간 기본 선택
+// onMounted 시 초기화
 onMounted(async () => {
-  setupToggleBlocks()
+  // 주간 탭에서 휠값 초기화 설정 포함해서 호출
+  setupToggleBlocks({
+    resetRepeat: () => {
+      selectedRepeat.value = null
+    }
+  })
   setupCheckButtons()
 
   await nextTick()
 
-  // 일간 버튼과 상세영역 기본 설정
+  // 일간 탭 기본 활성화
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
-
   const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
   const allBlocks = document.querySelectorAll("div[id$='_block']")
 
-  // 이미 다른 탭이 활성화돼 있다면 초기화
   allTabBtns.forEach((btn) => btn.classList.remove('on'))
   allBlocks.forEach((block) => (block.style.display = 'none'))
 
-  // 일간 기본 표시
   if (dailyBtn && dailyBlock) {
     dailyBtn.classList.add('on')
     dailyBlock.style.display = 'block'
   }
 
-  // 인라인휠도 초기화
+  // 휠도 초기화
   selectedRepeat.value = null
 })
-
-// 탭이 바뀔 때마다 주간 탭이 보이면 휠 선택 해제
-watch(
-  () => document.getElementById('v_detail02_block')?.style.display,
-  (newVal) => {
-    if (newVal === 'block') {
-      selectedRepeat.value = null
-    }
-  }
-)
 </script>
 
 <style>
@@ -341,3 +333,232 @@ watch(
 
 
 
+export function setupToggleBlocks(options = {}) {
+	const allBlocks = document.querySelectorAll('[id$="_block"]')
+	const buttons = document.querySelectorAll('button[id^="v_detail"]')
+
+	let currentActiveId = null
+
+	const resetBlock = (block) => {
+		// 버튼 상태 초기화
+		const buttonsInBlock = block.querySelectorAll('button.on')
+		buttonsInBlock.forEach((b) => b.classList.remove('on'))
+
+		// 입력 필드 초기화
+		const inputs = block.querySelectorAll('input, textarea')
+		inputs.forEach((input) => {
+			if (input.type === 'checkbox' || input.type === 'radio') {
+				input.checked = false
+			} else {
+				input.value = ''
+			}
+		})
+
+		// 주간 탭일 경우 repeat 값 초기화
+		if (block.id === 'v_detail02_block' && options.resetRepeat) {
+			options.resetRepeat()
+		}
+	}
+
+	const hideAllBlocks = () => {
+		allBlocks.forEach((block) => {
+			block.style.display = 'none'
+		})
+		buttons.forEach((b) => b.classList.remove('on'))
+	}
+
+	buttons.forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const id = btn.getAttribute('id')
+			const targetId = `${id}_block`
+			const target = document.getElementById(targetId)
+
+			if (!target) return
+			if (currentActiveId === id) return
+
+			const prevBlock = document.getElementById(`${currentActiveId}_block`)
+			if (prevBlock) resetBlock(prevBlock)
+
+			hideAllBlocks()
+			btn.classList.add('on')
+			target.style.display = 'block'
+			currentActiveId = id
+		})
+	})
+
+	if (buttons.length > 0) {
+		const firstBtn = buttons[0]
+		const firstId = firstBtn.getAttribute('id')
+		const firstBlock = document.getElementById(`${firstId}_block`)
+		if (firstBlock) {
+			firstBtn.classList.add('on')
+			firstBlock.style.display = 'block'
+			currentActiveId = firstId
+		}
+	}
+}
+
+export function setupCheckButtons() {
+	const checkGroups = document.querySelectorAll('.check_btn')
+
+	checkGroups.forEach((group) => {
+		const buttons = group.querySelectorAll('button')
+
+		buttons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const isAll = btn.classList.contains('all')
+				const isActive = btn.classList.contains('on')
+
+				if (isAll) {
+					// 전체 on/off 토글
+					buttons.forEach((b) => {
+						if (isActive) {
+							b.classList.remove('on')
+						} else {
+							b.classList.add('on')
+						}
+					})
+				} else {
+					// 일반 버튼 토글
+					btn.classList.toggle('on')
+
+					// 일반 버튼 클릭 시 .all off
+					const allBtn = group.querySelector('button.all')
+					if (allBtn) allBtn.classList.remove('on')
+				}
+			})
+		})
+	})
+}
+
+<template>
+  <div
+    class="inline-wheel-container"
+    @wheel.passive="false"
+    @wheel="onWheel"
+    @touchstart="onTouchStart"
+    @touchmove.prevent="onTouchMove"
+    @touchend="onTouchEnd"
+  >
+    <div
+      class="inline-wheel-list"
+      :style="{
+        transform: `translateY(-${selectedIndex * itemHeight}px)`,
+        paddingTop: `${paddingOffset}px`,
+        paddingBottom: `${paddingOffset}px`
+      }"
+    >
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        class="inline-wheel-item"
+        :class="{ selected: index === selectedIndex }"
+        :style="{ height: itemHeight + 'px', lineHeight: itemHeight + 'px' }"
+        @click="select(index)"
+      >
+        {{ item }}
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, onMounted, computed } from 'vue'
+
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true
+  },
+  modelValue: [String, Number],
+  itemHeight: {
+    type: Number,
+    default: 40
+  },
+  containerHeight: {
+    type: Number,
+    default: 96 // rem 기준 6rem = 96px
+  }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const selectedIndex = ref(0)
+
+onMounted(() => {
+  const initialIndex = props.items.findIndex(
+    (item) => item === props.modelValue
+  )
+  if (initialIndex >= 0) {
+    selectedIndex.value = initialIndex
+  } else {
+    selectedIndex.value = -1 // 선택 안함
+  }
+})
+const onWheel = (event) => {
+  event.preventDefault()
+  if (event.deltaY > 0 && selectedIndex.value < props.items.length - 1) {
+    selectedIndex.value++
+  } else if (event.deltaY < 0 && selectedIndex.value > 0) {
+    selectedIndex.value--
+  }
+}
+
+let touchStartY = 0
+const onTouchStart = (e) => {
+  touchStartY = e.touches[0].clientY
+}
+const onTouchMove = (e) => {
+  const deltaY = e.touches[0].clientY - touchStartY
+  if (deltaY > 10 && selectedIndex.value > 0) {
+    selectedIndex.value--
+    touchStartY = e.touches[0].clientY
+  } else if (deltaY < -10 && selectedIndex.value < props.items.length - 1) {
+    selectedIndex.value++
+    touchStartY = e.touches[0].clientY
+  }
+}
+const onTouchEnd = () => {}
+
+const select = (index) => {
+  selectedIndex.value = index
+  emit('update:modelValue', props.items[index])
+}
+watch(selectedIndex, (newVal) => {
+  if (newVal >= 0) {
+    emit('update:modelValue', props.items[newVal])
+  }
+})
+// 중앙 정렬을 위한 padding 계산
+const paddingOffset = computed(() => {
+  return (props.containerHeight - props.itemHeight) / 2
+})
+</script>
+
+<style scoped>
+.inline-wheel-container {
+  overflow: hidden;
+  height: 6rem;
+  position: relative;
+  width: 100%;
+}
+.inline-wheel-list {
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.inline-wheel-item {
+  text-align: center;
+  font-size: 1rem;
+  color: #a333;
+  user-select: none;
+  width: 100%;
+}
+.inline-wheel-item.selected {
+  font-weight: bold;
+  color: #333;
+  border-radius: 1rem;
+  background-color: #ffed71;
+}
+</style>
