@@ -230,6 +230,13 @@ onMounted(() => {
   }, 0)
 })
 
+watchEffect(() => {
+  const weeklyBlock = document.getElementById('v_detail02_block')
+  if (weeklyBlock?.style.display === 'block') {
+    selectedRepeat.value = null
+  }
+})
+
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
