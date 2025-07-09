@@ -220,18 +220,16 @@ onMounted(() => {
 	height:10rem;
 	background-color:yellow;
 }
-
+/*
 .start_alarm_box p:first-child {
 	width:30%;
 	background-color:red;
-	float:left
 }
 .start_alarm_box p:last-child {
 	width:70%;
 	background-color:blue;
-	float:right;
 	text-align:right
-}
+}*/
 </style>
 
 
