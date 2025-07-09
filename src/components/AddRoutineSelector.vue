@@ -1,4 +1,4 @@
-=<template>
+<template>
 	<div class="popup_wrap">
 		<h2>새 다짐 만들기</h2>
 
@@ -150,11 +150,20 @@ const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
 watch(isStartDateOn, (val) => {
-	if (val) {
-		isDatePopupOpen.value = true
-	}
+  if (val) {
+    isDatePopupOpen.value = true
+  } else {
+    selectedStartDateTime.value = null // 토글 끌 때 값 초기화
+  }
 })
 
+watch(isAlarmOn, (val) => {
+  if (val) {
+    isAlarmPopupOpen.value = true
+  } else {
+    selectedAlarmTime.value = null // 토글 끌 때 값 초기화
+  }
+})
 const onDateConfirm = (val) => {
 	selectedStartDateTime.value = val
 	isDatePopupOpen.value = false
@@ -163,12 +172,6 @@ const onDateConfirm = (val) => {
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
-
-watch(isAlarmOn, (val) => {
-  if (val) {
-    isAlarmPopupOpen.value = true
-  }
-})
 
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
