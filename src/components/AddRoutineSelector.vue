@@ -21,7 +21,7 @@
 					<button id="v_detail03">월간</button>
 					<button id="v_detail04">년간</button>
 				</p>
-				<div class="rt_make_detail" id="v_detail01_block">
+				<div class="rt_make_detail" id="v_detail01_block" style="display:block">
 					<p class="check_btn">
 						<button class="all">매일</button>
 						<button>일</button>
