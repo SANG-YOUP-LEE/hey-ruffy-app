@@ -208,6 +208,18 @@ const selectedAlarmTime = ref(null)
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
 const selectedRepeat = ref(null) // 초기 선택 없음
 
+// 월간 탭 - 월 선택 + 날짜 그리드
+const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+const selectedMonthOption = ref(null)
+const selectedDates = ref([])
+
+const toggleDateSelection = (day) => {
+  if (selectedDates.value.includes(day)) {
+    selectedDates.value = selectedDates.value.filter(d => d !== day)
+  } else {
+    selectedDates.value.push(day)
+  }
+}
 // 시작일 토글 감시
 watch(isStartDateOn, (val) => {
   if (val) {
