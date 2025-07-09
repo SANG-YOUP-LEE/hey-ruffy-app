@@ -266,6 +266,22 @@ onMounted(async () => {
 
   // 휠도 초기화
   selectedRepeat.value = null
+
+// 월간 휠 목록 (매월, 1월~12월)
+const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+const selectedMonthOption = ref(null) // 선택된 월 (InlineWheelPicker 바인딩)
+
+// 선택된 날짜들 (중복 가능)
+const selectedDates = ref([])
+
+// 날짜 선택/해제
+const toggleDateSelection = (day) => {
+  if (selectedDates.value.includes(day)) {
+    selectedDates.value = selectedDates.value.filter(d => d !== day)
+  } else {
+    selectedDates.value.push(day)
+  }
+}#
 })
 </script>
 
@@ -346,6 +362,33 @@ onMounted(async () => {
 	background-color:#f9f9f9;
 	border:0.1rem solid #f2f2f2;
 	margin-bottom:0.5rem
+}
+
+.select_monthly {
+  margin-bottom: 1rem;
+}
+
+.monthly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.monthly-grid button {
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  background-color: #fff;
+  border: 0.1rem solid #ccc;
+  border-radius: 0.6rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.monthly-grid button.selected {
+  background-color: #ffed71;
+  border-color: #e0b800;
+  font-weight: bold;
 }
 </style>
 
