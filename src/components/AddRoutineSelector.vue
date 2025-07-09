@@ -233,7 +233,7 @@ onMounted(() => {
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
-const selectedRepeat = ref(repeatOptions[0])
+const selectedRepeat = ref(null) // 기본 선택 없음
 </script>
 
 <style>
