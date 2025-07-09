@@ -204,11 +204,11 @@ const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
 
-// 반복 주기 드르륵 휠 상태
+// 주간 휠 상태
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
 const selectedRepeat = ref(null)
 
-// 월간 탭 - 월 선택 + 날짜 그리드
+// 월간 휠 및 날짜 선택 상태
 const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 const selectedMonthOption = ref(null)
 const selectedDates = ref([])
@@ -239,19 +239,18 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-// 시작일 팝업 확인 시
+// 팝업 확인 시
 const onDateConfirm = (val) => {
   selectedStartDateTime.value = val
   isDatePopupOpen.value = false
 }
 
-// 알람 팝업 확인 시
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
-// 탭 선택 시마다 초기화
+// 초기 세팅
 onMounted(async () => {
   setupToggleBlocks({
     resetRepeat: () => {
@@ -266,7 +265,7 @@ onMounted(async () => {
   setupCheckButtons()
   await nextTick()
 
-  // 일간 탭 기본 활성화
+  // 일간 탭 기본 표시 + 모든 탭값 초기화
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
   const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
@@ -280,7 +279,7 @@ onMounted(async () => {
     dailyBlock.style.display = 'block'
   }
 
-  // 초기값도 다시 안전하게 비움
+  // ✅ 모든 초기값 명시적 초기화
   selectedRepeat.value = null
   selectedMonthOption.value = null
   selectedDates.value = []
