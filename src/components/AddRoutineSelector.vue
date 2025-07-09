@@ -428,7 +428,7 @@ onMounted(async () => {
 }
 
 .form_box_g.rt_make .color_chart span[class^='cchart'].on {
-	background:url('https://img.icons8.com/?size=100&id=98955&format=png&color=000000') 0 0 norepeat/ 50% 50%
+	border:0.2rem solid #333;
 }
 .form_box_g.rt_make .color_chart .cchart01 {
 	background-color:red
