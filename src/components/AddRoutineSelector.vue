@@ -344,37 +344,34 @@ onMounted(async () => {
 	float:right
 }
 
-.select_week {
+.select_week,
+.select_monthly {
 	border-radius:1rem;
 	background-color:#f9f9f9;
 	border:0.1rem solid #f2f2f2;
 	margin-bottom:0.5rem
 }
 
-.select_monthly {
-  margin-bottom: 1rem;
-}
-
 .monthly-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.4rem;
-  margin-top: 1rem;
+  margin-top:0.2rem;
 }
 
 .monthly-grid button {
   padding: 0.5rem 0;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   background-color: #fff;
   border: 0.1rem solid #ccc;
-  border-radius: 0.6rem;
+  border-radius:50%;
   text-align: center;
   cursor: pointer;
 }
 
 .monthly-grid button.selected {
-  background-color: #ffed71;
-  border-color: #e0b800;
+  background-color: #ffe990;
+  border-color: #ffe990;
   font-weight: bold;
 }
 </style>
