@@ -405,7 +405,7 @@ onMounted(async () => {
 }
 
 .form_box_g.rt_make .color_chart {
-	width:70%;
+	width:70%!important;
 	margin:0 auto;
 	margin-top:0.5rem;
 	display: flex;
