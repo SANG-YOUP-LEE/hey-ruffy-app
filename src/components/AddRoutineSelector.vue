@@ -121,12 +121,12 @@
 				<p class="comment">중요한 정도를 컬러로 표현해주세요.</p>
 				<div class="color_chart">
   <span
-    v-for="(_, index) in 10"
+    v-for="(_, index) in colorCount"
     :key="index"
-    :class="['cchart0' + (index + 1), { on: selectedColorIndex === index }]"
+    :class="['cchart' + (index + 1), { on: selectedColorIndex === index }]"
     @click="handleColorClick(index)"
   ></span>
-</div>
+</div>#
 			</div>
 
 			<!-- 메세지 설정 -->
