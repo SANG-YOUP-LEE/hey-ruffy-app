@@ -58,9 +58,28 @@
 				<!--//주간 상세-->
 
 				<!-- 월간 상세-->
-				<div class="rt_make_detail" id="v_detail03_block">
-				</div>
-				<!--//월간 상세-->
+<div class="rt_make_detail" id="v_detail03_block">
+  <div class="select_monthly">
+    <!-- 윗칸: 월 선택 휠 -->
+    <InlineWheelPicker
+      :items="monthlyOptions"
+      v-model="selectedMonthOption"
+      :itemHeight="40"
+    />
+
+    <!-- 아래칸: 날짜 선택 그리드 -->
+    <div class="monthly-grid">
+      <button
+        v-for="day in 31"
+        :key="day"
+        @click="toggleDateSelection(day)"
+        :class="{ selected: selectedDates.includes(day) }"
+      >
+        {{ day }}
+      </button>
+    </div>
+  </div>
+</div>
 
 
 				
