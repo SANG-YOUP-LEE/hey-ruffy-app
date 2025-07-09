@@ -59,11 +59,13 @@
 				<!-- 월간 상세 -->
 				<div class="rt_make_detail" id="v_detail03_block">
 					<div class="select_monthly">
-						<InlineWheelPicker
-							:items="monthlyOptions"
-							v-model="selectedMonthOption"
-							:itemHeight="40"
-						/>
+						<div class="select_m_inner">
+							<InlineWheelPicker
+								:items="monthlyOptions"
+								v-model="selectedMonthOption"
+								:itemHeight="40"
+							/>
+						</div>
 						<div class="monthly-grid">
 							<button
 								v-for="day in 31"
@@ -345,7 +347,7 @@ onMounted(async () => {
 }
 
 .select_week,
-.select_monthly {
+.select_m_inner= {
 	border-radius:1rem;
 	background-color:#f9f9f9;
 	border:0.1rem solid #f2f2f2;
@@ -360,7 +362,7 @@ onMounted(async () => {
 }
 
 .monthly-grid button {
-  padding: 0.5rem 0;
+  padding: 0.5rem
   font-size: 0.8rem;
   background-color: #fff;
   border: 0.1rem solid #ccc;
