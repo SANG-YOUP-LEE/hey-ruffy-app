@@ -36,7 +36,7 @@
 				<!--//일간 상세-->
 
 				<!--주간 상세--->
-				<div class="rt_make_detail" id="v_detail02_block">
+				<=div class="rt_make_detail" id="v_detail02_block">
 					<div class="select_week">
 						<InlineWheelPicker
         			:items="repeatOptions"
@@ -57,12 +57,29 @@
 				</div>
 				<!--//주간 상세-->
 
-				<!-- 월간 상세-->
-				<div class="rt_make_detail" id="v_detail03_block">
-					<div class="select_monthly">
-					</div>
-				</div>
-				<!--//월간 상세-->
+				<!-- 월간 상세 -->
+<div class="rt_make_detail" id="v_detail03_block">
+  <div class="select_monthly">
+    <!-- 윗칸: 월 선택 드르륵 -->
+    <InlineWheelPicker
+      :items="monthlyOptions"
+      v-model="selectedMonthOption"
+      :itemHeight="40"
+    />
+
+    <!-- 아래칸: 날짜 선택 그리드 -->
+    <div class="monthly-grid">
+      <button
+        v-for="day in 31"
+        :key="day"
+        @click="toggleDateSelection(day)"
+        :class="{ selected: selectedDates.includes(day) }"
+      >
+        {{ day }}
+      </button>
+    </div>
+  </div>
+</div>
 
 
 				
