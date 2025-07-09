@@ -44,6 +44,16 @@
         			:itemHeight="40"
       				/>
 					</div>
+					<p class="check_btn">
+						<button class="all">매일</button>
+						<button>일</button>
+						<button>월</button>
+						<button>화</button>
+						<button>수</button>
+						<button>목</button>
+						<button>금</button>
+						<button>토</button>
+					</p>
 				</div>
 				<!--//주간 상세-->
 
@@ -296,6 +306,12 @@ const selectedRepeat = ref(repeatOptions[0])
 
 .start_date_preview {
 	float:right
+}
+
+.select_week {
+	border-radius:1rem;
+	background-color:#f9f9f9;
+	border:0.1rem solid #e7e7e7
 }
 </style>
 
