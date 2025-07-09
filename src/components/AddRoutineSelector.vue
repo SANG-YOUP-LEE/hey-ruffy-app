@@ -32,23 +32,6 @@
 						<button>금</button>
 						<button>토</button>
 					</p>
-
-					<!-- 시작일 토글 -->
-					<p>
-						<label class="toggle-switch">
-							<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-							<span class="slider"></span>
-						</label>
-						시작일 지정하기
-					</p>
-
-					<!-- 선택된 시작일 표시 -->
-					<p v-if="selectedStartDateTime" class="start_date_preview">
-						선택된 시작일: 
-						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
-						{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
-					</p>
-
 					<p class="button">
 						<button>다짐 주기 저장</button>
 					</p>
