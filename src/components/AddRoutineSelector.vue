@@ -436,7 +436,7 @@ onMounted(async () => {
 
 .form_box_g.rt_make textarea{
 	border:0.1rem solid #aaa;
-	padding:2rem;
+	padding:0.5rem;
 	border-radius:1rem;
 	margin-top:0.5rem;
 }
