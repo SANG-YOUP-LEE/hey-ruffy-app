@@ -431,10 +431,38 @@ onMounted(async () => {
 	border:0.2rem solid #333;
 }
 .form_box_g.rt_make .color_chart .cchart01 {
-	background-color:red
+	background-color:#ff4f4f
+}
+.form_box_g.rt_make .color_chart .cchart02 {
+	background-color:#ff7a32
+}
+.form_box_g.rt_make .color_chart .cchart03 {
+	background-color:#ff6792
+}
+.form_box_g.rt_make .color_chart .cchart04 {
+	background-color:#ffc24d
+}
+.form_box_g.rt_make .color_chart .cchart05 {
+	background-color:#a1d156
+}
+.form_box_g.rt_make .color_chart .cchart06 {
+	background-color:#56d1b0
+}
+.form_box_g.rt_make .color_chart .cchart07 {
+	background-color:#36b9c9
+}
+.form_box_g.rt_make .color_chart .cchart08 {
+	background-color:#3f6ed8
+}
+.form_box_g.rt_make .color_chart .cchart09 {
+	background-color:#9b6dd4
+}
+.form_box_g.rt_make .color_chart .cchart10 {
+	background-color:#5a5a5a
 }
 
 .form_box_g.rt_make textarea{
+	width:100%;
 	border:0.1rem solid #aaa;
 	padding:0.5rem;
 	border-radius:1rem;
