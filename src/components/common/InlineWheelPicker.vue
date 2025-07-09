@@ -116,8 +116,8 @@ const paddingOffset = computed(() => {
 .inline-wheel-item {
   text-align: center;
   font-size: 1rem;
-  color: #a333;
-  user-select: none;
+  color: #bcbcbc;
+  user-select: #none;
   width: 100%;
 }
 .inline-wheel-item.selected {
