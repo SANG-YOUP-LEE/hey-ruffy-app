@@ -50,18 +50,20 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const selectedIndex = ref(0)
+const selectedIndex = ref(-1)
 
+// 초기 설정
 onMounted(() => {
-  const initialIndex = props.items.findIndex(
-    (item) => item === props.modelValue
-  )
-  if (initialIndex >= 0) {
-    selectedIndex.value = initialIndex
-  } else {
-    selectedIndex.value = -1 // 선택 안함
-  }
+  const initialIndex = props.items.findIndex((item) => item === props.modelValue)
+  selectedIndex.value = initialIndex >= 0 ? initialIndex : -1
 })
+
+// 외부에서 modelValue가 바뀌었을 때 selectedIndex도 함께 바꿈
+watch(() => props.modelValue, (val) => {
+  const i = props.items.findIndex((item) => item === val)
+  selectedIndex.value = i >= 0 ? i : -1
+})
+
 const onWheel = (event) => {
   event.preventDefault()
   if (event.deltaY > 0 && selectedIndex.value < props.items.length - 1) {
@@ -91,12 +93,8 @@ const select = (index) => {
   selectedIndex.value = index
   emit('update:modelValue', props.items[index])
 }
-watch(selectedIndex, (newVal) => {
-  if (newVal >= 0) {
-    emit('update:modelValue', props.items[newVal])
-  }
-})
-// 중앙 정렬을 위한 padding 계산
+
+// 중앙 정렬 패딩 계산
 const paddingOffset = computed(() => {
   return (props.containerHeight - props.itemHeight) / 2
 })
