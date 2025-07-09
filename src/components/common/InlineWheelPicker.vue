@@ -89,8 +89,8 @@ const onTouchEnd = () => {}
 
 const select = (index) => {
   selectedIndex.value = index
+  emit('update:modelValue', props.items[index])
 }
-
 watch(selectedIndex, (newVal) => {
   emit('update:modelValue', props.items[newVal])
 })
