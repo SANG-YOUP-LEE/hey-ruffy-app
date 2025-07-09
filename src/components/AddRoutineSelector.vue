@@ -182,31 +182,29 @@ import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 
+// 부모에게 팝업 닫기 emit
 const emit = defineEmits(['close'])
 const handleClose = () => {
   emit('close')
 }
 
-// 오늘 날짜를 YYYY-MM-DD 형식으로 포맷
+// 오늘 날짜 포맷 (minDate로 사용)
 const today = new Date()
 const yyyy = today.getFullYear()
 const mm = String(today.getMonth() + 1).padStart(2, '0')
 const dd = String(today.getDate()).padStart(2, '0')
 const todayString = `${yyyy}-${mm}-${dd}`
 
-// 시작일 설정 상태
+// ------------------------------
+// 시작일 & 알람 설정
+// ------------------------------
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
-// 알람 설정 상태
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
-
-// 반복 주기 드르륵 휠 상태
-const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
-const selectedRepeat = ref(null) // 초기 선택 없음
 
 // 시작일 토글 감시
 watch(isStartDateOn, (val) => {
@@ -226,31 +224,54 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-// 시작일 팝업 확인 시
+// 시작일 팝업 확인
 const onDateConfirm = (val) => {
   selectedStartDateTime.value = val
   isDatePopupOpen.value = false
 }
 
-// 알람 팝업 확인 시
+// 알람 팝업 확인
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
-// onMounted 시 초기화
+// ------------------------------
+// 주간 탭 - n주마다 휠 선택
+// ------------------------------
+const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
+const selectedRepeat = ref(null)
+
+// ------------------------------
+// 월간 탭 - 월 선택 + 날짜 그리드
+// ------------------------------
+const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+const selectedMonthOption = ref(null)
+const selectedDates = ref([])
+
+const toggleDateSelection = (day) => {
+  if (selectedDates.value.includes(day)) {
+    selectedDates.value = selectedDates.value.filter(d => d !== day)
+  } else {
+    selectedDates.value.push(day)
+  }
+}
+
+// ------------------------------
+// 페이지 마운트 시 초기화
+// ------------------------------
 onMounted(async () => {
-  // 주간 탭에서 휠값 초기화 설정 포함해서 호출
+  // 주간 휠 초기화 포함
   setupToggleBlocks({
     resetRepeat: () => {
       selectedRepeat.value = null
     }
   })
-  setupCheckButtons()
 
+  setupCheckButtons()
   await nextTick()
 
-  // 일간 탭 기본 활성화
+  // 기본: 일간 탭 표시
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
   const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
@@ -264,24 +285,7 @@ onMounted(async () => {
     dailyBlock.style.display = 'block'
   }
 
-  // 휠도 초기화
   selectedRepeat.value = null
-
-// 월간 휠 목록 (매월, 1월~12월)
-const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-const selectedMonthOption = ref(null) // 선택된 월 (InlineWheelPicker 바인딩)
-
-// 선택된 날짜들 (중복 가능)
-const selectedDates = ref([])
-
-// 날짜 선택/해제
-const toggleDateSelection = (day) => {
-  if (selectedDates.value.includes(day)) {
-    selectedDates.value = selectedDates.value.filter(d => d !== day)
-  } else {
-    selectedDates.value.push(day)
-  }
-}
 })
 </script>
 
