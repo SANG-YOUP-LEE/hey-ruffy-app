@@ -14,7 +14,7 @@
 
 			<!-- 다짐 주기 설정 -->
 			<div class="form_box_g rt_make day_box">
-				<h3>얼마나 자주 지켜야 하나요?</h3>
+				<h3>얼마나 자주 지켜야해요?</h3>
 				<p>
 					<button id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>
@@ -41,34 +41,18 @@
 				<div class="rt_make_detail" id="v_detail03_block">월간</div>
 				<div class="rt_make_detail" id="v_detail04_block">년간</div>
 
-				<div class="start_alarm_box">
-					<p>
-						<label class="toggle-switch">
-							<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-							<span class="slider"></span>
-						</label>
-						시작일 지정하기
-					</p>
-					<p v-if="selectedStartDateTime" class="start_date_preview">
-						선택된 시작일: 
-						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
-						{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
-					</p>
-				</div>
 
 				
 			</div>
 
 			<!-- 다짐 시작일 설정 -->
-			<div class="form_box_g rt_make">
-				<h3>언제부터 시작할건가요?</h3>
-				<p></p>
-			</div>
-
-			<!-- 다짐 알람 설정 -->
-			<div class="form_box_g rt_make">
-				<h3>알람이 필요한가요?</h3>
-				<p></p>
+			<div class="form_box_g rt_make start_alarm_box">
+				<h3>시작일과 알람도 지정할까요?</h3>
+				<label class="toggle-switch">
+							<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+							<span class="slider"></span>
+						</label>
+						시작일 지정하기
 			</div>
 
 			<!-- 러피 산책 설정 -->
@@ -220,16 +204,11 @@ onMounted(() => {
 	height:10rem;
 	background-color:yellow;
 }
-/*
-.start_alarm_box p:first-child {
-	width:30%;
+
+.form_box_g.rt_make.start_alarm_box  {
+	text-align:left;
 	background-color:red;
 }
-.start_alarm_box p:last-child {
-	width:70%;
-	background-color:blue;
-	text-align:right
-}*/
 </style>
 
 
