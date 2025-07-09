@@ -418,7 +418,7 @@ onMounted(async () => {
 }
 
 .form_box_g.rt_make .color_chart span[class^='cchart'] {
-	width:5%;
+	width:8%;
 	aspect-ratio: 1 / 1;
 	margin-right:1%;
 	border-radius:50%;
@@ -456,7 +456,7 @@ onMounted(async () => {
 	background-color:#9b6dd4
 }
 .form_box_g.rt_make .color_chart .cchart10 {
-	background-color:#5a5a5a
+	background-color:#eee
 }
 
 .form_box_g.rt_make textarea{
