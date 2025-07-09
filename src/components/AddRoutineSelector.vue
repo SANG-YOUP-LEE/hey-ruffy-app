@@ -118,7 +118,7 @@
 			<!-- 다짐 중요도 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>얼마나 중요한 다짐인가요?</h3>
-				<p class="comment">중요한 정도를 색깔로 선택해주세요.</p>
+				<p class="comment">중요한 정도를 컬러로 표현해주세요.</p>
 				<div class="color_chart">
 					<span class="cchart01"></span>
 					<span class="cchart02"></span>
@@ -404,7 +404,7 @@ onMounted(async () => {
 	border-radius:1rem;
 }
 
-.form_box_g.rt_make .color_chart [class^='cchart'] {
+.form_box_g.rt_make .color_chart span[class^='cchart'] {
 	width:9%;
 	height:9%;
 	margin-right:1%;
