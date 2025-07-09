@@ -219,11 +219,14 @@ onMounted(() => {
 }
 
 .form_box_g.rt_make.day_box button[id^='v_detail'] {
-	width: 24%;
+	width: 32%;
 	background-color: #fff;
 	border: 0.1rem solid #17a47a;
 	margin-right: 1%;
 	color: #17a47a;
+}
+.form_box_g.rt_make.day_box button[id^='v_detail']:last-child {
+	width:34%;
 }
 .form_box_g.rt_make.day_box button.on {
 	color: #fff;
