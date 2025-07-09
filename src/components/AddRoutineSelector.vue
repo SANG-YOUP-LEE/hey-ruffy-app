@@ -20,6 +20,7 @@
 					<button id="v_detail02">주간</button>
 					<button id="v_detail03">월간</button>
 				</p>
+				<!--일간 상세-->
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
 						<button class="all">매일</button>
@@ -32,9 +33,19 @@
 						<button>토</button>
 					</p>
 				</div>
+				<!--//일간 상세-->
 
-				<div class="rt_make_detail" id="v_detail02_block">주간</div>
-				<div class="rt_make_detail" id="v_detail03_block">월간</div>
+				<!--주간 상세--->
+				<div class="rt_make_detail" id="v_detail02_block">
+					<div class="select_week">
+					</div>
+				</div>
+				<!--//주간 상세-->
+
+				<!-- 월간 상세-->
+				<div class="rt_make_detail" id="v_detail03_block">
+				</div>
+				<!--//월간 상세-->
 
 
 				
