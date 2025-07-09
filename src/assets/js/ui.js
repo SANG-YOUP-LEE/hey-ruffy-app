@@ -1,12 +1,11 @@
-export function setupToggleBlocks() {
+// ui.js에서 수정
+export function setupToggleBlocks(options = {}) {
 	const allBlocks = document.querySelectorAll('[id$="_block"]')
 	const buttons = document.querySelectorAll('button[id^="v_detail"]')
 
-	// 현재 열려 있는 탭 id 추적
 	let currentActiveId = null
 
-	// 특정 블럭을 초기화 (선택된 블럭만)
-	const resetBlock = (block) => {
+	const resetBlock = (block, blockId) => {
 		const buttonsInBlock = block.querySelectorAll('button.on')
 		buttonsInBlock.forEach((b) => b.classList.remove('on'))
 
@@ -18,9 +17,13 @@ export function setupToggleBlocks() {
 				input.value = ''
 			}
 		})
+
+		// 여기서 주간 탭의 repeat 값만 추가 초기화
+		if (blockId === 'v_detail02_block' && options.resetRepeat) {
+			options.resetRepeat() // 외부에서 전달받은 초기화 함수 실행
+		}
 	}
 
-	// 초기화: 모든 block 닫기 + 버튼 off
 	const hideAllBlocks = () => {
 		allBlocks.forEach((block) => {
 			block.style.display = 'none'
@@ -28,7 +31,6 @@ export function setupToggleBlocks() {
 		buttons.forEach((b) => b.classList.remove('on'))
 	}
 
-	// 버튼 클릭 이벤트 등록
 	buttons.forEach((btn) => {
 		btn.addEventListener('click', () => {
 			const id = btn.getAttribute('id')
@@ -36,15 +38,11 @@ export function setupToggleBlocks() {
 			const target = document.getElementById(targetId)
 
 			if (!target) return
-
-			// 같은 탭 누르면 무시
 			if (currentActiveId === id) return
 
-			// 기존 탭 초기화
 			const prevBlock = document.getElementById(`${currentActiveId}_block`)
-			if (prevBlock) resetBlock(prevBlock)
+			if (prevBlock) resetBlock(prevBlock, `${currentActiveId}_block`)
 
-			// 새 탭 열기
 			hideAllBlocks()
 			btn.classList.add('on')
 			target.style.display = 'block'
@@ -52,7 +50,6 @@ export function setupToggleBlocks() {
 		})
 	})
 
-	// 페이지 로드시 첫 번째 탭을 기본 활성화
 	if (buttons.length > 0) {
 		const firstBtn = buttons[0]
 		const firstId = firstBtn.getAttribute('id')
