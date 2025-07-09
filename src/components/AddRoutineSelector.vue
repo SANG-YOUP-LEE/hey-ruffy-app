@@ -21,7 +21,7 @@
 					<button id="v_detail03">월간</button>
 				</p>
 
-				<!-- 일간 상세 -->
+				<!-- 일간 상세-->
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
 						<button class="all">매일</button>
