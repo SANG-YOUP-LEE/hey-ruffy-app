@@ -104,6 +104,7 @@ watch(selectedIndex, (newVal) => {
 .inline-wheel-item.selected {
   font-weight: bold;
   color: #333;
+	border-radius:1rem;
 	background-color:#ffed71;
 }
 </style>
