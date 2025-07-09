@@ -1,4 +1,4 @@
-<template>
+=<template>
 	<div class="popup_wrap">
 		<h2>새 다짐 만들기</h2>
 
@@ -48,17 +48,30 @@
 			<!-- 다짐 시작일 설정 -->
 			<div class="form_box_g rt_make start_alarm_box">
 				<h3>시작일과 알람도 지정할까요?</h3>
-				<label class="toggle-switch">
-					<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-					<span class="slider"></span>
-				</label>
-				시작일 지정
-				<!-- 선택된 시작일 표시 -->
-				<p v-if="selectedStartDateTime" class="start_date_preview">
-					선택된 시작일: 
-					{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
-					{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
-				</p>
+				<div>
+					<label class="toggle-switch">
+						<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+						<span class="slider"></span>
+					</label>
+					시작일 지정
+					<!-- 선택된 시작일 표시 -->
+					<p v-if="selectedStartDateTime" class="start_date_preview">
+						선택된 시작일: 
+						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
+						{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
+					</p>
+				</div>
+				<div>
+   				<label class="toggle-switch">
+      				<input type="checkbox" v-model="isAlarmOn" />
+      				<span class="slider"></span>
+    				</label>
+    				알람 설정
+    				<!-- 선택된 알람시간 표시 -->
+    				<p v-if="selectedAlarmTime" class="start_date_preview">
+      				{{ selectedAlarmTime.ampm }} {{ selectedAlarmTime.hour }}:{{ selectedAlarmTime.minute }}
+    				</p>
+  				</div>
 			</div>
 
 			<!-- 러피 산책 설정 -->
