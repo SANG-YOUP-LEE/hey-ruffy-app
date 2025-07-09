@@ -111,6 +111,7 @@
   :showHour="false"
   :showMinute="false"
   :showSecond="false"
+	:minDate="todayString"
   @confirm="onDateConfirm"
   @close="isDatePopupOpen = false"
 />
@@ -142,16 +143,24 @@ const handleClose = () => {
   emit('close')
 }
 
-// ✅ 1. 먼저 ref부터 선언
+// 오늘 날짜를 YYYY-MM-DD 문자열로 생성
+const today = new Date()
+const yyyy = today.getFullYear()
+const mm = String(today.getMonth() + 1).padStart(2, '0')
+const dd = String(today.getDate()).padStart(2, '0')
+const todayString = `${yyyy}-${mm}-${dd}`
+
+// 시작일 관련 상태
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
+// 알람 관련 상태
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
 
-// ✅ 2. watch는 반드시 ref 선언 이후에 위치해야 함!!
+// 시작일 토글
 watch(isStartDateOn, (val) => {
   if (val) {
     isDatePopupOpen.value = true
@@ -160,6 +169,7 @@ watch(isStartDateOn, (val) => {
   }
 })
 
+// 알람 토글
 watch(isAlarmOn, (val) => {
   if (val) {
     isAlarmPopupOpen.value = true
@@ -168,18 +178,19 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-// ✅ 3. 각 팝업에서 선택한 값 처리
+// 시작일 팝업에서 값 선택 시
 const onDateConfirm = (val) => {
   selectedStartDateTime.value = val
   isDatePopupOpen.value = false
 }
 
+// 알람 팝업에서 값 선택 시
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
-// ✅ 4. 초기화 시 디폴트 탭 열기
+// 탭 초기화
 onMounted(() => {
   setupToggleBlocks()
   setupCheckButtons()
