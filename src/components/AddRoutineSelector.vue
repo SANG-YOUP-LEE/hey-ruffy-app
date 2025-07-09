@@ -379,13 +379,13 @@ onMounted(async () => {
   border-color: #ffe990;
   font-weight: bold;
 }
-.form_box_g rt_make .comment {
+.form_box_g.rt_make .comment {
 	font-size:0.5rem;
 	line-height:0.6rem;
 	color:#666;
 	margin:0.2rem 0 0.5rem 0;
 }
-.form_box_g rt_make .walking_goal input {
+.form_box_g.rt_make .walking_goal input {
 	width:50%;
 	border:0.1rem solid #aaa;
 	border-radius:1rem;
