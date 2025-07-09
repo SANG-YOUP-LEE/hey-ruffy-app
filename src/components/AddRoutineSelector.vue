@@ -412,6 +412,7 @@ onMounted(async () => {
 	flex-wrap: wrap;
 	gap: 0.5rem;
 	align-items: center;
+	justify-content: center;
 }
 
 .form_box_g.rt_make .color_chart span[class^='cchart'] {
