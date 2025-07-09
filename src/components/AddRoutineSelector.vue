@@ -36,7 +36,7 @@
 				<!--//일간 상세-->
 
 				<!--주간 상세--->
-				<=div class="rt_make_detail" id="v_detail02_block">
+				<div class="rt_make_detail" id="v_detail02_block">
 					<div class="select_week">
 						<InlineWheelPicker
         			:items="repeatOptions"
