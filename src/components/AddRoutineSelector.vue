@@ -40,6 +40,23 @@
 				<div class="rt_make_detail" id="v_detail02_block">주간</div>
 				<div class="rt_make_detail" id="v_detail03_block">월간</div>
 				<div class="rt_make_detail" id="v_detail04_block">년간</div>
+
+				<div class="start_alarm_box">
+					<p>
+						<label class="toggle-switch">
+							<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+							<span class="slider"></span>
+						</label>
+						시작일 지정하기
+					</p>
+					<p v-if="selectedStartDateTime" class="start_date_preview">
+						선택된 시작일: 
+						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
+						{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
+					</p>
+				</div>
+
+				
 			</div>
 
 			<!-- 다짐 시작일 설정 -->
@@ -197,4 +214,23 @@ onMounted(() => {
 	font-size: 0.9rem;
 	color: #444;
 }
+
+.start_alarm_box {
+}
+
+.start_alarm_box p:first-child {
+	width:30%;
+	background-color:red;
+	float:left
+}
+.start_alarm_box p:last-child {
+	width:70%;
+	background-color:blue;
+	float:right;
+	text-align:right
+}
 </style>
+
+
+
+
