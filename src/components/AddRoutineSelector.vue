@@ -57,29 +57,12 @@
 				</div>
 				<!--//주간 상세-->
 
-				<!-- 월간 상세 -->
-<div class="rt_make_detail" id="v_detail03_block">
-  <div class="select_monthly">
-    <!-- 윗칸: 월 선택 드르륵 -->
-    <InlineWheelPicker
-      :items="monthlyOptions"
-      v-model="selectedMonthOption"
-      :itemHeight="40"
-    />
-
-    <!-- 아래칸: 날짜 선택 그리드 -->
-    <div class="monthly-grid">
-      <button
-        v-for="day in 31"
-        :key="day"
-        @click="toggleDateSelection(day)"
-        :class="{ selected: selectedDates.includes(day) }"
-      >
-        {{ day }}
-      </button>
-    </div>
-  </div>
-</div>
+				<!-- 월간 상세-->
+				<div class="rt_make_detail" id="v_detail03_block">
+					<div class="select_monthly">
+					</div>
+				</div>
+				<!--//월간 상세-->
 
 
 				
@@ -182,29 +165,31 @@ import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 
-// 부모에게 팝업 닫기 emit
 const emit = defineEmits(['close'])
 const handleClose = () => {
   emit('close')
 }
 
-// 오늘 날짜 포맷 (minDate로 사용)
+// 오늘 날짜를 YYYY-MM-DD 형식으로 포맷
 const today = new Date()
 const yyyy = today.getFullYear()
 const mm = String(today.getMonth() + 1).padStart(2, '0')
 const dd = String(today.getDate()).padStart(2, '0')
 const todayString = `${yyyy}-${mm}-${dd}`
 
-// ------------------------------
-// 시작일 & 알람 설정
-// ------------------------------
+// 시작일 설정 상태
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
+// 알람 설정 상태
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
+
+// 반복 주기 드르륵 휠 상태
+const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
+const selectedRepeat = ref(null) // 초기 선택 없음
 
 // 시작일 토글 감시
 watch(isStartDateOn, (val) => {
@@ -224,54 +209,31 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-// 시작일 팝업 확인
+// 시작일 팝업 확인 시
 const onDateConfirm = (val) => {
   selectedStartDateTime.value = val
   isDatePopupOpen.value = false
 }
 
-// 알람 팝업 확인
+// 알람 팝업 확인 시
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
   isAlarmPopupOpen.value = false
 }
 
-// ------------------------------
-// 주간 탭 - n주마다 휠 선택
-// ------------------------------
-const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
-const selectedRepeat = ref(null)
-
-// ------------------------------
-// 월간 탭 - 월 선택 + 날짜 그리드
-// ------------------------------
-const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-const selectedMonthOption = ref(null)
-const selectedDates = ref([])
-
-const toggleDateSelection = (day) => {
-  if (selectedDates.value.includes(day)) {
-    selectedDates.value = selectedDates.value.filter(d => d !== day)
-  } else {
-    selectedDates.value.push(day)
-  }
-}
-
-// ------------------------------
-// 페이지 마운트 시 초기화
-// ------------------------------
+// onMounted 시 초기화
 onMounted(async () => {
-  // 주간 휠 초기화 포함
+  // 주간 탭에서 휠값 초기화 설정 포함해서 호출
   setupToggleBlocks({
     resetRepeat: () => {
       selectedRepeat.value = null
     }
   })
-
   setupCheckButtons()
+
   await nextTick()
 
-  // 기본: 일간 탭 표시
+  // 일간 탭 기본 활성화
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
   const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
@@ -285,6 +247,7 @@ onMounted(async () => {
     dailyBlock.style.display = 'block'
   }
 
+  // 휠도 초기화
   selectedRepeat.value = null
 })
 </script>
@@ -366,33 +329,6 @@ onMounted(async () => {
 	background-color:#f9f9f9;
 	border:0.1rem solid #f2f2f2;
 	margin-bottom:0.5rem
-}
-
-.select_monthly {
-  margin-bottom: 1rem;
-}
-
-.monthly-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.4rem;
-  margin-top: 1rem;
-}
-
-.monthly-grid button {
-  padding: 0.5rem 0;
-  font-size: 0.9rem;
-  background-color: #fff;
-  border: 0.1rem solid #ccc;
-  border-radius: 0.6rem;
-  text-align: center;
-  cursor: pointer;
-}
-
-.monthly-grid button.selected {
-  background-color: #ffed71;
-  border-color: #e0b800;
-  font-weight: bold;
 }
 </style>
 
