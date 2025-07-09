@@ -158,9 +158,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
+import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 
 const emit = defineEmits(['close'])
 const handleClose = () => {
@@ -183,6 +184,10 @@ const selectedStartDateTime = ref(null)
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
+
+// 휠 관련 상태
+const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
+const selectedRepeat = ref(null) // 초기 선택 없음
 
 // 시작일 토글
 watch(isStartDateOn, (val) => {
@@ -214,33 +219,43 @@ const onAlarmConfirm = (val) => {
   isAlarmPopupOpen.value = false
 }
 
-// 탭 초기화
-onMounted(() => {
+// 탭과 체크버튼 초기화 + 일간 기본 선택
+onMounted(async () => {
   setupToggleBlocks()
   setupCheckButtons()
 
-  setTimeout(() => {
-    const defaultButton = document.getElementById('v_detail01')
-    const defaultBlock = document.getElementById('v_detail01_block')
+  await nextTick()
 
-    if (defaultButton && defaultBlock) {
-      defaultButton.classList.add('on')
-      defaultBlock.style.display = 'block'
-    }
-  }, 0)
-})
+  // 일간 버튼과 상세영역 기본 설정
+  const dailyBtn = document.getElementById('v_detail01')
+  const dailyBlock = document.getElementById('v_detail01_block')
 
-watchEffect(() => {
-  const weeklyBlock = document.getElementById('v_detail02_block')
-  if (weeklyBlock?.style.display === 'block') {
-    selectedRepeat.value = null
+  const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
+  const allBlocks = document.querySelectorAll("div[id$='_block']")
+
+  // 이미 다른 탭이 활성화돼 있다면 초기화
+  allTabBtns.forEach((btn) => btn.classList.remove('on'))
+  allBlocks.forEach((block) => (block.style.display = 'none'))
+
+  // 일간 기본 표시
+  if (dailyBtn && dailyBlock) {
+    dailyBtn.classList.add('on')
+    dailyBlock.style.display = 'block'
   }
+
+  // 인라인휠도 초기화
+  selectedRepeat.value = null
 })
 
-import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
-
-const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
-const selectedRepeat = ref(null) // 기본 선택 없음
+// 탭이 바뀔 때마다 주간 탭이 보이면 휠 선택 해제
+watch(
+  () => document.getElementById('v_detail02_block')?.style.display,
+  (newVal) => {
+    if (newVal === 'block') {
+      selectedRepeat.value = null
+    }
+  }
+)
 </script>
 
 <style>
