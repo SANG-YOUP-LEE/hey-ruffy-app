@@ -66,19 +66,32 @@ const dateList = computed(() => {
   const list = []
 
   for (let i = 1; i <= daysInMonth; i++) {
-    const isBeforeMinDate =
-      props.minDate &&
-      selectedYear.value === parsedMinDate.value?.year &&
-      selectedMonth.value === parsedMinDate.value?.month &&
-      i < parsedMinDate.value?.date
+    let isBeforeMinDate = false
 
-    if (isBeforeMinDate) continue
-    list.push(i)
+    if (parsedMinDate.value) {
+      const minY = parsedMinDate.value.year
+      const minM = parsedMinDate.value.month
+      const minD = parsedMinDate.value.date
+
+      const curY = selectedYear.value
+      const curM = selectedMonth.value
+
+      if (curY < minY) {
+        isBeforeMinDate = true
+      } else if (curY === minY && curM < minM) {
+        isBeforeMinDate = true
+      } else if (curY === minY && curM === minM && i < minD) {
+        isBeforeMinDate = true
+      }
+    }
+
+    if (!isBeforeMinDate) {
+      list.push(i)
+    }
   }
 
   return list
 })
-
 const ampmList = ['오전', '오후']
 const hourList = computed(() => Array.from({ length: 12 }, (_, i) => i + 1))
 const minuteList = computed(() => Array.from({ length: 60 }, (_, i) => i))
