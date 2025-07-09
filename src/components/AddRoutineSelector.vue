@@ -216,6 +216,9 @@ onMounted(() => {
 }
 
 .start_alarm_box {
+	width:100%;
+	height:10rem;
+	background-color:yellow;
 }
 
 .start_alarm_box p:first-child {
