@@ -16,12 +16,12 @@
 			<div class="form_box_g rt_make day_box">
 				<h3>얼마나 자주 지켜야 하나요?</h3>
 				<p>
-					<button class="on" id="v_detail01">일간</button>
+					<button id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>
 					<button id="v_detail03">월간</button>
 					<button id="v_detail04">년간</button>
 				</p>
-				<div class="rt_make_detail" id="v_detail01_block" style="display:block">
+				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
 						<button class="all">매일</button>
 						<button>일</button>
