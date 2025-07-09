@@ -98,7 +98,7 @@ watch(selectedIndex, (newVal) => {
 .inline-wheel-item {
   text-align: center;
   font-size: 1rem;
-  color: #a333
+  color: #a333;
   user-select: none;
 }
 .inline-wheel-item.selected {
