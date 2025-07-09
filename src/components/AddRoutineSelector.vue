@@ -131,8 +131,8 @@
 
 			<!-- 메세지 설정 -->
 			<div class="form_box_g rt_make">
-				<h3>소곤소곤 더 할 말은 없나요?</h3>
-				<p><textarea rows="2">좀더 하고 싶은 말은 없나요?</textarea></p>
+				<h3>소곤소곤 더 얘기해줄건 없나요?</h3>
+				<p><textarea rows="2">ex) 다음번 건강검진은 완벽하게!</textarea></p>
 			</div>
 		</div>
 
@@ -432,5 +432,12 @@ onMounted(async () => {
 }
 .form_box_g.rt_make .color_chart .cchart01 {
 	background-color:red
+}
+
+.form_box_g.rt_make textarea{
+	border:0.1rem solid #aaa;
+	padding:2rem;
+	border-radius:1rem;
+	margin-top:0.5rem;
 }
 </style>
