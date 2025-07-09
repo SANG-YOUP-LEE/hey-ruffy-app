@@ -419,7 +419,7 @@ onMounted(async () => {
 }
 
 .form_box_g.rt_make .color_chart span[class^='cchart'] {
-	width:8%;
+	width:7%;
 	aspect-ratio: 1 / 1;
 	margin-right:1%;
 	border-radius:50%;
@@ -430,7 +430,7 @@ onMounted(async () => {
 	border:0.2rem solid #333;
 }
 .form_box_g.rt_make .color_chart .cchart01 {
-	background-color:#ff4f4f!important;
+	background-color:#ff4f4f
 }
 .form_box_g.rt_make .color_chart .cchart02 {
 	background-color:#ff7a32
@@ -457,7 +457,7 @@ onMounted(async () => {
 	background-color:#9b6dd4
 }
 .form_box_g.rt_make .color_chart .cchart10 {
-	background-color:#eee
+	background-color:#5a5a5a
 }
 
 .form_box_g.rt_make textarea{
