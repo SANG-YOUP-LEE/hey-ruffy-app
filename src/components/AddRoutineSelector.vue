@@ -407,24 +407,22 @@ onMounted(async () => {
 }
 
 .form_box_g.rt_make .color_chart {
-	width:70%!important;
+	width:100%!important;
 	margin:0 auto;
 	margin-top:0.5rem;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.5rem;
+	gap: 0.2rem;
 	align-items: center;
 	justify-content: center;
 }
 
 .form_box_g.rt_make .color_chart span[class^='cchart'] {
-	width:9%;
+	width:5%;
 	aspect-ratio: 1 / 1;
 	margin-right:1%;
 	border-radius:50%;
 	display:inline-block;
-	background-color:Red;
-	margin-bottom:0.5rem
 }
 
 .form_box_g.rt_make .color_chart span[class^='cchart'].on {
