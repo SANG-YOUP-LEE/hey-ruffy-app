@@ -1,14 +1,15 @@
-// ui.js에서 수정
 export function setupToggleBlocks(options = {}) {
 	const allBlocks = document.querySelectorAll('[id$="_block"]')
 	const buttons = document.querySelectorAll('button[id^="v_detail"]')
 
 	let currentActiveId = null
 
-	const resetBlock = (block, blockId) => {
+	const resetBlock = (block) => {
+		// 버튼 상태 초기화
 		const buttonsInBlock = block.querySelectorAll('button.on')
 		buttonsInBlock.forEach((b) => b.classList.remove('on'))
 
+		// 입력 필드 초기화
 		const inputs = block.querySelectorAll('input, textarea')
 		inputs.forEach((input) => {
 			if (input.type === 'checkbox' || input.type === 'radio') {
@@ -18,9 +19,9 @@ export function setupToggleBlocks(options = {}) {
 			}
 		})
 
-		// 여기서 주간 탭의 repeat 값만 추가 초기화
-		if (blockId === 'v_detail02_block' && options.resetRepeat) {
-			options.resetRepeat() // 외부에서 전달받은 초기화 함수 실행
+		// 주간 탭일 경우 repeat 값 초기화
+		if (block.id === 'v_detail02_block' && options.resetRepeat) {
+			options.resetRepeat()
 		}
 	}
 
@@ -41,7 +42,7 @@ export function setupToggleBlocks(options = {}) {
 			if (currentActiveId === id) return
 
 			const prevBlock = document.getElementById(`${currentActiveId}_block`)
-			if (prevBlock) resetBlock(prevBlock, `${currentActiveId}_block`)
+			if (prevBlock) resetBlock(prevBlock)
 
 			hideAllBlocks()
 			btn.classList.add('on')
