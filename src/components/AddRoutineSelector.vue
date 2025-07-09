@@ -68,6 +68,7 @@
 						</div>
 						<div class="monthly-grid">
 							<button
+								class="m_s_btn"
 								v-for="day in 31"
 								:key="day"
 								@click="toggleDateSelection(day)"
@@ -361,7 +362,7 @@ onMounted(async () => {
   margin-top:0.2rem;
 }
 
-.monthly-grid button {
+.monthly-grid button.m_s_btn {
   padding: 0.5rem;
   font-size: 0.8rem;
   background-color: #fff;
@@ -371,7 +372,7 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.monthly-grid button.selected {
+.monthly-grid button.m_s_btn.selected {
   background-color: #ffe990;
   border-color: #ffe990;
   font-weight: bold;
