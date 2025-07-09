@@ -20,7 +20,8 @@
 					<button id="v_detail02">주간</button>
 					<button id="v_detail03">월간</button>
 				</p>
-				<!--일간 상세-->
+
+				<!-- 일간 상세 -->
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
 						<button class="all">매일</button>
@@ -33,16 +34,15 @@
 						<button>토</button>
 					</p>
 				</div>
-				<!--//일간 상세-->
 
-				<!--주간 상세--->
+				<!-- 주간 상세 -->
 				<div class="rt_make_detail" id="v_detail02_block">
 					<div class="select_week">
 						<InlineWheelPicker
-        			:items="repeatOptions"
-        			v-model="selectedRepeat"
-        			:itemHeight="40"
-      				/>
+							:items="repeatOptions"
+							v-model="selectedRepeat"
+							:itemHeight="40"
+						/>
 					</div>
 					<p class="check_btn">
 						<button class="all">매일</button>
@@ -55,34 +55,27 @@
 						<button>토</button>
 					</p>
 				</div>
-				<!--//주간 상세-->
 
-				<!-- 월간 상세-->
-<div class="rt_make_detail" id="v_detail03_block">
-  <div class="select_monthly">
-    <!-- 윗칸: 월 선택 휠 -->
-    <InlineWheelPicker
-      :items="monthlyOptions"
-      v-model="selectedMonthOption"
-      :itemHeight="40"
-    />
-
-    <!-- 아래칸: 날짜 선택 그리드 -->
-    <div class="monthly-grid">
-      <button
-        v-for="day in 31"
-        :key="day"
-        @click="toggleDateSelection(day)"
-        :class="{ selected: selectedDates.includes(day) }"
-      >
-        {{ day }}
-      </button>
-    </div>
-  </div>
-</div>
-
-
-				
+				<!-- 월간 상세 -->
+				<div class="rt_make_detail" id="v_detail03_block">
+					<div class="select_monthly">
+						<InlineWheelPicker
+							:items="monthlyOptions"
+							v-model="selectedMonthOption"
+							:itemHeight="40"
+						/>
+						<div class="monthly-grid">
+							<button
+								v-for="day in 31"
+								:key="day"
+								@click="toggleDateSelection(day)"
+								:class="{ selected: selectedDates.includes(day) }"
+							>
+								{{ day }}
+							</button>
+						</div>
+					</div>
+				</div>
 			</div>
 
 			<!-- 다짐 시작일 설정 -->
@@ -94,30 +87,26 @@
 						<span class="slider"></span>
 					</label>
 					시작일 지정
-					<!-- 선택된 시작일 표시 -->
 					<p v-if="selectedStartDateTime" class="start_date_preview">
 						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
 					</p>
 				</div>
 				<div>
-   				<label class="toggle-switch">
-      				<input type="checkbox" v-model="isAlarmOn" />
-      				<span class="slider"></span>
-    				</label>
-    				알람 설정
-    				<!-- 선택된 알람시간 표시 -->
-    				<p v-if="selectedAlarmTime" class="start_date_preview">
-      				{{ selectedAlarmTime.ampm }} {{ selectedAlarmTime.hour }}:{{ selectedAlarmTime.minute }}
-    				</p>
-  				</div>
+					<label class="toggle-switch">
+						<input type="checkbox" v-model="isAlarmOn" />
+						<span class="slider"></span>
+					</label>
+					알람 설정
+					<p v-if="selectedAlarmTime" class="start_date_preview">
+						{{ selectedAlarmTime.ampm }} {{ selectedAlarmTime.hour }}:{{ selectedAlarmTime.minute }}
+					</p>
+				</div>
 			</div>
 
 			<!-- 러피 산책 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>러피의 산책 주기는 어떻게 할까요?</h3>
-				<p>
-					미리 설정한 다짐 횟수를 달성하면 러피의 산책이 시작돼요. 최소 다짐 횟수는 5번이예요.
-				</p>
+				<p>미리 설정한 다짐 횟수를 달성하면 러피의 산책이 시작돼요. 최소 다짐 횟수는 5번이예요.</p>
 				<p>
 					<button class="btn_basic">최소 달성 횟수 선택하기</button>
 				</p>
@@ -132,9 +121,7 @@
 			<!-- 메세지 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>소곤소곤 더 할 말은 없나요?</h3>
-				<p>
-					<textarea rows="2">좀더 하고 싶은 말은 없나요?</textarea>
-				</p>
+				<p><textarea rows="2">좀더 하고 싶은 말은 없나요?</textarea></p>
 			</div>
 		</div>
 
@@ -144,147 +131,146 @@
 		<button class="close_btn" @click="handleClose"><span>팝업 닫기</span></button>
 
 		<!-- 시작일 팝업 -->
-<DateTimePickerPopup
-  v-if="isDatePopupOpen"
-	title="시작일을 선택하세요"
-  :showYear="true"
-  :showMonth="true"
-  :showDate="true"
-  :showAmPm="false"
-  :showHour="false"
-  :showMinute="false"
-  :showSecond="false"
-	:minDate="todayString"
-  @confirm="onDateConfirm"
-  @close="isDatePopupOpen = false"
-/>
+		<DateTimePickerPopup
+			v-if="isDatePopupOpen"
+			title="시작일을 선택하세요"
+			:showYear="true"
+			:showMonth="true"
+			:showDate="true"
+			:showAmPm="false"
+			:showHour="false"
+			:showMinute="false"
+			:showSecond="false"
+			:minDate="todayString"
+			@confirm="onDateConfirm"
+			@close="handleDatePopupClose"
+		/>
 
-<!-- 알람시간 팝업 -->
-<DateTimePickerPopup
-  v-if="isAlarmPopupOpen"
-	title="알람시간을 선택하세요"
-  :showYear="false"
-  :showMonth="false"
-  :showDate="false"
-  :showAmPm="true"
-  :showHour="true"
-  :showMinute="true"
-  :showSecond="false"
-  @confirm="onAlarmConfirm"
-  @close="isAlarmPopupOpen = false"
-/>
+		<!-- 알람시간 팝업 -->
+		<DateTimePickerPopup
+			v-if="isAlarmPopupOpen"
+			title="알람시간을 선택하세요"
+			:showYear="false"
+			:showMonth="false"
+			:showDate="false"
+			:showAmPm="true"
+			:showHour="true"
+			:showMinute="true"
+			:showSecond="false"
+			@confirm="onAlarmConfirm"
+			@close="handleAlarmPopupClose"
+		/>
 	</div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
-import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
+import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 
 const emit = defineEmits(['close'])
-const handleClose = () => {
-  emit('close')
-}
+const handleClose = () => emit('close')
 
-// 오늘 날짜를 YYYY-MM-DD 형식으로 포맷
+// 날짜 포맷
 const today = new Date()
 const yyyy = today.getFullYear()
 const mm = String(today.getMonth() + 1).padStart(2, '0')
 const dd = String(today.getDate()).padStart(2, '0')
 const todayString = `${yyyy}-${mm}-${dd}`
 
-// 시작일 설정 상태
+// 시작일/알람 상태
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
 const selectedStartDateTime = ref(null)
 
-// 알람 설정 상태
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
 
-// 주간 휠 상태
+// 주간/월간 반복 선택
 const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
 const selectedRepeat = ref(null)
 
-// 월간 휠 및 날짜 선택 상태
 const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 const selectedMonthOption = ref(null)
 const selectedDates = ref([])
 
 const toggleDateSelection = (day) => {
-  if (selectedDates.value.includes(day)) {
-    selectedDates.value = selectedDates.value.filter(d => d !== day)
-  } else {
-    selectedDates.value.push(day)
-  }
+	if (selectedDates.value.includes(day)) {
+		selectedDates.value = selectedDates.value.filter(d => d !== day)
+	} else {
+		selectedDates.value.push(day)
+	}
 }
 
-// 시작일 토글 감시
+// 토글 감시
 watch(isStartDateOn, (val) => {
-  if (val) {
-    isDatePopupOpen.value = true
-  } else {
-    selectedStartDateTime.value = null
-  }
+	if (val) {
+		isDatePopupOpen.value = true
+	} else {
+		selectedStartDateTime.value = null
+	}
 })
 
-// 알람 토글 감시
 watch(isAlarmOn, (val) => {
-  if (val) {
-    isAlarmPopupOpen.value = true
-  } else {
-    selectedAlarmTime.value = null
-  }
+	if (val) {
+		isAlarmPopupOpen.value = true
+	} else {
+		selectedAlarmTime.value = null
+	}
 })
 
-// 팝업 확인 시
+// 팝업 확인
 const onDateConfirm = (val) => {
-  selectedStartDateTime.value = val
-  isDatePopupOpen.value = false
+	selectedStartDateTime.value = val
+	isDatePopupOpen.value = false
 }
 
 const onAlarmConfirm = (val) => {
-  selectedAlarmTime.value = val
-  isAlarmPopupOpen.value = false
+	selectedAlarmTime.value = val
+	isAlarmPopupOpen.value = false
+}
+
+// 팝업 닫기 시 토글도 해제
+const handleDatePopupClose = () => {
+	isDatePopupOpen.value = false
+	if (!selectedStartDateTime.value) {
+		isStartDateOn.value = false
+	}
+}
+
+const handleAlarmPopupClose = () => {
+	isAlarmPopupOpen.value = false
+	if (!selectedAlarmTime.value) {
+		isAlarmOn.value = false
+	}
 }
 
 // 초기 세팅
 onMounted(async () => {
-  setupToggleBlocks({
-    resetRepeat: () => {
-      selectedRepeat.value = null
-    },
-    resetMonthly: () => {
-      selectedMonthOption.value = null
-      selectedDates.value = []
-    }
-  })
+	setupToggleBlocks({
+		resetRepeat: () => selectedRepeat.value = null,
+		resetMonthly: () => {
+			selectedMonthOption.value = null
+			selectedDates.value = []
+		}
+	})
+	setupCheckButtons()
+	await nextTick()
 
-  setupCheckButtons()
-  await nextTick()
-
-  // 일간 탭 기본 표시 + 모든 탭값 초기화
-  const dailyBtn = document.getElementById('v_detail01')
-  const dailyBlock = document.getElementById('v_detail01_block')
-  const allTabBtns = document.querySelectorAll("button[id^='v_detail']")
-  const allBlocks = document.querySelectorAll("div[id$='_block']")
-
-  allTabBtns.forEach((btn) => btn.classList.remove('on'))
-  allBlocks.forEach((block) => (block.style.display = 'none'))
-
-  if (dailyBtn && dailyBlock) {
-    dailyBtn.classList.add('on')
-    dailyBlock.style.display = 'block'
-  }
-
-  // ✅ 모든 초기값 명시적 초기화
-  selectedRepeat.value = null
-  selectedMonthOption.value = null
-  selectedDates.value = []
+	// 일간 탭 기본 표시
+	const dailyBtn = document.getElementById('v_detail01')
+	const dailyBlock = document.getElementById('v_detail01_block')
+	document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+	document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+	if (dailyBtn && dailyBlock) {
+		dailyBtn.classList.add('on')
+		dailyBlock.style.display = 'block'
+	}
 })
 </script>
+
 
 <style>
 .form_box_g.rt_make h3 {
