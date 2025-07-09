@@ -404,9 +404,16 @@ onMounted(async () => {
 	border-radius:1rem;
 }
 
+.form_box_g.rt_make .color_chart {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: center;
+}
+
 .form_box_g.rt_make .color_chart span[class^='cchart'] {
 	width:9%;
-	height:9%;
+	aspect-ratio: 1 / 1;
 	margin-right:1%;
 	border-radius:50%;
 	display:inline-block;
@@ -415,6 +422,6 @@ onMounted(async () => {
 }
 
 .form_box_g.rt_make .color_chart .cchart01 {
-	background-color:#990000
+	background-color:red
 }
 </style>
