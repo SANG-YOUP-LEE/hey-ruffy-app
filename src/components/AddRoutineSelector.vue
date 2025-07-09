@@ -132,7 +132,7 @@
 			<!-- 메세지 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>소곤소곤 더 얘기해줄건 없나요?</h3>
-				<p><textarea rows="2">ex) 다음번 건강검진은 완벽하게!</textarea></p>
+				<p><textarea maxlength="100" placeholder="최대 100자까지 적을 수 있어요."></textarea></p>
 			</div>
 		</div>
 
