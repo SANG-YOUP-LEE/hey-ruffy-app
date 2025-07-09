@@ -123,7 +123,7 @@
   <span
     v-for="(_, index) in colorCount"
     :key="index"
-    :class="['cchart' + (index + 1), { on: selectedColorIndex === index }]"
+    :class="['cchart' + String(index + 1).padStart(2, '0'), { on: selectedColorIndex === index }]"
     @click="handleColorClick(index)"
   ></span>
 </div>
