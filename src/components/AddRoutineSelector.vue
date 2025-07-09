@@ -19,7 +19,6 @@
 					<button id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>
 					<button id="v_detail03">월간</button>
-					<button id="v_detail04">년간</button>
 				</p>
 				<div class="rt_make_detail" id="v_detail01_block">
 					<p class="check_btn">
@@ -36,7 +35,6 @@
 
 				<div class="rt_make_detail" id="v_detail02_block">주간</div>
 				<div class="rt_make_detail" id="v_detail03_block">월간</div>
-				<div class="rt_make_detail" id="v_detail04_block">년간</div>
 
 
 				
