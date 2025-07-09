@@ -109,7 +109,7 @@
 			<!-- 러피 산책 설정 -->
 			<div class="form_box_g rt_make">
 				<h3>러피의 산책 주기를 정해주세요.</h3>
-				<p class="comment">목표한 다짐 횟수를 달성할때마다 러피도 기다리던 산책을 갈 수 있어요. <br />최소 목표 횟수는 10번이예요.</p>
+				<p class="comment">목표한 다짐 횟수를 달성할때마다<br />러피도 기다리던 산책을 갈 수 있어요. <br />최소 목표 횟수는 10번이예요.</p>
 				<div class="walking_goal">
 					<input type="text" placeholder="10" /> 번
 				</div>
@@ -387,7 +387,7 @@ onMounted(async () => {
 }
 .form_box_g.rt_make .walking_goal input {
 	width:5rem!important;
-	text-align:right;
+	text-align:right!important;
 	border:0.1rem solid #aaa;
 	border-radius:1rem;
 }
