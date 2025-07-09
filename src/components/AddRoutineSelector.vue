@@ -126,7 +126,7 @@
     :class="['cchart' + (index + 1), { on: selectedColorIndex === index }]"
     @click="handleColorClick(index)"
   ></span>
-</div>#
+</div>
 			</div>
 
 			<!-- 메세지 설정 -->
@@ -216,6 +216,7 @@ const toggleDateSelection = (day) => {
 }
 
 // ✅ 중요도 색상 단일 선택용
+const colorCount = 10 // 이후 11, 12로 늘려도 됨
 const selectedColorIndex = ref(null)
 const handleColorClick = (index) => {
 	selectedColorIndex.value = index
