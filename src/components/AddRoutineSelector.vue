@@ -56,9 +56,7 @@
 					시작일 지정
 					<!-- 선택된 시작일 표시 -->
 					<p v-if="selectedStartDateTime" class="start_date_preview">
-						선택된 시작일: 
 						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
-						{{ selectedStartDateTime.ampm }} {{ selectedStartDateTime.hour }}:{{ selectedStartDateTime.minute }}
 					</p>
 				</div>
 				<div>
@@ -251,14 +249,14 @@ onMounted(() => {
 	color: #444;
 }
 
-.start_alarm_box {
-	width:100%;
-	height:10rem;
-	background-color:yellow;
-}
-
 .form_box_g.rt_make.start_alarm_box  {
 	text-align:left;
+}
+.form_box_g.rt_make.start_alarm_box div {
+	margin-bottom:0.5rem;
+}
+.form_box_g.rt_make.start_alarm_box div:last-child {
+	margin-bottom:0
 }
 
 .start_date_preview {
