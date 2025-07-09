@@ -21,6 +21,14 @@
           :disabled="signupComplete"
         />
         <input
+          v-model="passwordCheck"
+          type="password"
+          placeholder="비밀번호를 다시 입력해 주세요."
+          class="input password-check"
+          :class="{ 'input-error': showWarning && password !== passwordCheck }"
+          :disabled="signupComplete"
+        />
+        <input
           v-model="nickname"
           type="text"
           placeholder="닉네임을 입력해 주세요."
@@ -33,6 +41,7 @@
       <div class="warn-message" v-if="!signupComplete && showWarning">
         <p v-if="!email">이메일을 입력해 주세요 🐶</p>
         <p v-else-if="!password">비밀번호를 입력해 주세요 🌙</p>
+        <p v-else-if="password !== passwordCheck">비밀번호가 일치하지 않아요 🧩</p>
         <p v-else-if="!nickname">닉네임을 입력해 주세요 💫</p>
         <p v-else-if="!isOver14">14세 이상임을 확인해 주세요 🍑</p>
       </div>
@@ -71,6 +80,9 @@
           <button class="sub-button gray" @click="resendVerification">
             인증 메일 다시 보내기
           </button>
+          <button class="sub-button gray" @click="editEmail">
+            이메일 주소 수정하기
+          </button>
         </div>
       </div>
     </div>
@@ -85,17 +97,18 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   reload,
+  updateProfile
 } from "firebase/auth"
 import {
   doc,
   setDoc,
-  updateDoc,
   serverTimestamp
 } from "firebase/firestore"
 import { getFirebaseErrorMessage } from "@/utils/firebaseErrorMessage"
 
 const email = ref("")
 const password = ref("")
+const passwordCheck = ref("")
 const nickname = ref("")
 const isOver14 = ref(false)
 const signupComplete = ref(false)
@@ -105,7 +118,13 @@ const showWarning = ref(false)
 const router = useRouter()
 
 const handleSignup = async () => {
-  if (!email.value || !password.value || !nickname.value.trim() || !isOver14.value) {
+  if (
+    !email.value ||
+    !password.value ||
+    !nickname.value.trim() ||
+    !isOver14.value ||
+    password.value !== passwordCheck.value
+  ) {
     showWarning.value = true
     setTimeout(() => {
       showWarning.value = false
@@ -123,14 +142,12 @@ const handleSignup = async () => {
     )
     const user = userCredential.user
 
-    // Firestore에 사용자 정보 저장
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      nickname: nickname.value,
-      createdAt: serverTimestamp(),
-      verified: false
+    // 닉네임을 Firebase Auth에 저장
+    await updateProfile(user, {
+      displayName: nickname.value
     })
 
+    // 인증 메일 발송만 → Firestore 저장은 인증 완료 후로 미룸
     await sendEmailVerification(user)
 
     setTimeout(() => {
@@ -150,7 +167,11 @@ const checkVerification = async () => {
 
   if (auth.currentUser.emailVerified) {
     try {
-      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+      // 인증된 경우에만 Firestore에 저장
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        email: auth.currentUser.email,
+        nickname: auth.currentUser.displayName,
+        createdAt: serverTimestamp(),
         verified: true
       })
       alert("인증이 완료되었습니다!")
@@ -171,6 +192,15 @@ const resendVerification = async () => {
   } catch (err) {
     alert("메일 발송 오류: " + err.message)
   }
+}
+
+const editEmail = () => {
+  signupComplete.value = false
+  email.value = ""
+  password.value = ""
+  passwordCheck.value = ""
+  nickname.value = ""
+  isOver14.value = false
 }
 </script>
 
@@ -216,6 +246,27 @@ const resendVerification = async () => {
   border: 1px solid #e5484d;
   background-color: #fff0f0;
   outline: none;
+}
+
+/* ✅ 버튼 스타일 전체 정리 */
+.sub-button {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  border-radius: 2rem;
+  font-weight: bold;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+  text-align: center;
+  background-color: #0099ff; /* 기본: 파란색 */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.sub-button.gray {
+  background-color: #eee; /* 회색 버튼 */
+  color: #333;
 }
 
 @keyframes fadeIn {
