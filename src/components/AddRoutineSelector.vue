@@ -38,6 +38,11 @@
 				<!--주간 상세--->
 				<div class="rt_make_detail" id="v_detail02_block">
 					<div class="select_week">
+						<InlineWheelPicker
+        			:items="repeatOptions"
+        			v-model="selectedRepeat"
+        			:itemHeight="40"
+      				/>
 					</div>
 				</div>
 				<!--//주간 상세-->
@@ -214,6 +219,11 @@ onMounted(() => {
     }
   }, 0)
 })
+
+import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
+
+const repeatOptions = ['2주마다', '3주마다', '4주마다', '5주마다']
+const selectedRepeat = ref(repeatOptions[0])
 </script>
 
 <style>
