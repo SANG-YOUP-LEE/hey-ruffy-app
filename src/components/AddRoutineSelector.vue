@@ -119,6 +119,21 @@
   @confirm="onDateConfirm"
   @close="isDatePopupOpen = false"
 />
+
+<!-- 알람시간 팝업 -->
+<DateTimePickerPopup
+  v-if="isAlarmPopupOpen"
+  title="알람 시간을 선택하세요"
+  :showYear="false"
+  :showMonth="false"
+  :showDate="false"
+  :showAmPm="true"
+  :showHour="true"
+  :showMinute="true"
+  :showSecond="false"
+  @confirm="onAlarmConfirm"
+  @close="isAlarmPopupOpen = false"
+/>
 	</div>
 </template>
 
@@ -145,6 +160,21 @@ watch(isStartDateOn, (val) => {
 const onDateConfirm = (val) => {
 	selectedStartDateTime.value = val
 	isDatePopupOpen.value = false
+}
+
+const isAlarmOn = ref(false)
+const isAlarmPopupOpen = ref(false)
+const selectedAlarmTime = ref(null)
+
+watch(isAlarmOn, (val) => {
+  if (val) {
+    isAlarmPopupOpen.value = true
+  }
+})
+
+const onAlarmConfirm = (val) => {
+  selectedAlarmTime.value = val
+  isAlarmPopupOpen.value = false
 }
 
 onMounted(() => {
