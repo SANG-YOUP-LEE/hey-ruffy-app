@@ -311,7 +311,8 @@ const selectedRepeat = ref(repeatOptions[0])
 .select_week {
 	border-radius:1rem;
 	background-color:#f9f9f9;
-	border:0.1rem solid #e7e7e7
+	border:0.1rem solid #f2f2f2;
+	margin-bottom:0.5rem
 }
 </style>
 
