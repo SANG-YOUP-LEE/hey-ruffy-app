@@ -16,7 +16,7 @@
 			<div class="form_box_g rt_make day_box">
 				<h3>얼마나 자주 지켜야 하나요?</h3>
 				<p>
-					<button id="v_detail01">일간</button>
+					<button class="on" id="v_detail01">일간</button>
 					<button id="v_detail02">주간</button>
 					<button id="v_detail03">월간</button>
 					<button id="v_detail04">년간</button>
@@ -171,15 +171,12 @@ onMounted(() => {
 	border-radius: 1rem;
 	border: 0.1rem solid #e7e7e7;
 	text-align: center;
-	line-height: 1.8rem;
+	line-height: 1rem;
 }
 .form_box_g.rt_make.day_box p.check_btn button:last-child {
 	margin-right: 0;
 }
 .form_box_g.rt_make.day_box p.check_btn button.on {
-	border: 1px solid #17a47a;
-	background-color: #fff;
-	color: #17a47a;
 	font-weight: bold;
 	padding-left: 1rem;
 	background: url('https://img.icons8.com/?size=100&id=11849&format=png&color=000000') left 0.5rem center / 0.8rem 0.8rem no-repeat;
