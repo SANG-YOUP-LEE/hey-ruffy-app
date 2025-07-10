@@ -46,6 +46,9 @@
 								</p>
 								<!-- // 흐린 눈 -->
 								<p>
+									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=73785&format=png&color=000000"></span> 2025.7.10 부터
+								</p>
+								<p>
 									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=vwGXRtPWrZSn&format=png&color=000000"></span> 2주마다 월,수,금
 								</p>
 								<p>
