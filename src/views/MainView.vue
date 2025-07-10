@@ -58,6 +58,7 @@
 									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=Zyo5wDjgJxRW&format=png&color=000000"></span> 이정도 중요해요
 								</p>
 							</div>
+							<button>오늘의 다짐 현황 선택</buttom>
 						</div>
 						<div class="right">
 							<div class="walking">
