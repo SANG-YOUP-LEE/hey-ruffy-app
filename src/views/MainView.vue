@@ -111,7 +111,7 @@
 
 					</div>
 
-					<button v-if="!selectedStatus" @click.prevent="openPopup('rut_status')">오늘의 다짐 현황 선택</button>
+					<button v-if="!selectedStatus" @click.prevent="openStatusPopup">오늘의 다짐 현황 선택</button>
 
 					<!-- 설정 팝업 -->
           <div class="setting" v-if="isSettingOpen">
