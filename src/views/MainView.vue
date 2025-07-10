@@ -300,8 +300,8 @@ const {
 	font-weight:bold;
 	background-color:#fff
 }
-.setting button {
-	border:none
+.setting .close_btn {
+	border:none!important
 }
 
 .done_check {
