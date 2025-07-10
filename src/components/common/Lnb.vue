@@ -1,12 +1,24 @@
 <template>
-    <div class="popup_overlay">
-        <!-- lnb -->
-        <div class="lnb_wrap">
-            <p><span>러피님fff</span> 환영합니다</p>
-						<button>로그아웃</button>
-						<br />
-						<button>회원탈퇴</button>
-            <button class="close_btn"  @click.prevent="$emit('close')"><span>팝업 닫기</span></button>
+  <div class="popup_overlay">
+    <div class="lnb_wrap">
+      <!-- 닉네임 + 닫기버튼 -->
+      <div class="lnb_header">
+        <p class="welcome_msg">{{ nickname }}님, 환영합니다.</p>
+        <button class="close_btn" @click.prevent="$emit('close')">✕</button>
+      </div>
+
+      <!-- 전체 메뉴 영역 -->
+      <div class="lnb_body">
+        <ul class="lnb_menu">
+          <li @click="$emit('close')"><router-link to="/main">내 다짐</router-link></li>
+          <li @click="$emit('close')"><router-link to="/settings">설정</router-link></li>
+          <li><button @click="logout">로그아웃</button></li>
+          <li><button @click="withdraw">회원탈퇴</button></li>
+        </ul>
+
+        <!-- 고객센터 -->
+        <div class="lnb_footer">
+          <router-link to="/support">고객센터</router-link>
         </div>
       </div>
     </div>
