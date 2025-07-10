@@ -287,11 +287,18 @@ const {
 </script>
 
 <style>
-	.form_box_g.main .left button {
+.form_box_g.main .left {
+	background-color:red
+}
+.form_box_g.main .right {
+	background-color:blue
+}
+.form_box_g.main .left button {
 	width:100%;
 	line-height:2rem;
 	border-radius:1rem;
 	color:#fff;
+	font-weight:bold;
 	background-color:#17a47a;
 }
 </style>
