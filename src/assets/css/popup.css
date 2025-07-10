@@ -367,7 +367,7 @@ body.popup-open {
 	justify-content: center;
 }
 
-.form_box_g.rt_make .color_chart span[class^='cchart'] {
+span[class^='cchart'] {
 	width:7%;
 	aspect-ratio: 1 / 1;
 	margin-right:1%;
@@ -375,37 +375,37 @@ body.popup-open {
 	display:inline-block;
 }
 
-.form_box_g.rt_make .color_chart span[class^='cchart'].on {
+span[class^='cchart'].on {
 	border:0.2rem solid #333;
 }
-.form_box_g.rt_make .color_chart .cchart01 {
+.cchart01 {
 	background-color:#ff4f4f
 }
-.form_box_g.rt_make .color_chart .cchart02 {
+.cchart02 {
 	background-color:#ff7a32
 }
-.form_box_g.rt_make .color_chart .cchart03 {
+.cchart03 {
 	background-color:#ff6792
 }
-.form_box_g.rt_make .color_chart .cchart04 {
+.cchart04 {
 	background-color:#ffc24d
 }
-.form_box_g.rt_make .color_chart .cchart05 {
+.cchart05 {
 	background-color:#a1d156
 }
-.form_box_g.rt_make .color_chart .cchart06 {
+.cchart06 {
 	background-color:#56d1b0
 }
-.form_box_g.rt_make .color_chart .cchart07 {
+.cchart07 {
 	background-color:#36b9c9
 }
-.form_box_g.rt_make .color_chart .cchart08 {
+.cchart08 {
 	background-color:#3f6ed8
 }
-.form_box_g.rt_make .color_chart .cchart09 {
+.cchart09 {
 	background-color:#9b6dd4
 }
-.form_box_g.rt_make .color_chart .cchart10 {
+.cchart10 {
 	background-color:#5a5a5a
 }
 
