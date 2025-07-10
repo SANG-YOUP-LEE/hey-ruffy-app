@@ -271,12 +271,17 @@ import Lnb from '@/components/common/Lnb.vue'
 import AddRoutineSelector from '@/components/AddRoutineSelector.vue'
 import Calendar from '@/components/common/Calendar.vue'
 
+// 사이드바, 캘린더, 러피 상태, 추가 팝업 열림 여부
 const isLnbOpen = ref(false)
 const showCalendar = ref(false)
 const isRuffyOpen = ref(false)
-const selectedStatus = ref(null)
 const isAddRoutineOpen = ref(false)
 
+// 다짐 상태 관련
+const selectedStatus = ref(null)       // 실제 메인에 보여지는 상태
+const selectedStatusTemp = ref(null)   // 팝업 내 임시 상태
+
+// 팝업 관련
 const {
   activePopupId,
   isSettingOpen,
@@ -287,7 +292,19 @@ const {
   resumeCommitment
 } = usePopup()
 
+// 다짐 상태 팝업 열기: 임시 선택값 초기화
+function openStatusPopup() {
+  selectedStatusTemp.value = selectedStatus.value
+  openPopup('rut_status')
+}
 
+// 저장 버튼 클릭 시에만 상태 반영
+function saveRoutineStatus() {
+  if (selectedStatusTemp.value) {
+    selectedStatus.value = selectedStatusTemp.value
+    closePopup()
+  }
+}
 </script>
 
 <style>
