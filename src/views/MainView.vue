@@ -153,7 +153,7 @@
               <input type="radio" name="rut_status" value="1" v-model="selectedStatusTemp" />
               <span class="radio-style"></span>
               달성
-              <p class="comment" v-if="selectedStatus === '1'">
+              <p class="comment" v-if="selectedStatusTemp === '1'">
                 <img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000">
                 WOW! 오늘도 갓생 달성! 정말 어디까지 대단할래?
               </p>
@@ -163,7 +163,7 @@
               <input type="radio" name="rut_status" value="2" v-model="selectedStatusTemp" />
               <span class="radio-style"></span>
               미달성
-              <p class="comment" v-if="selectedStatus === '2'">
+              <p class="comment" v-if="selectedStatusTemp === '2'">
                 <img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000">
                 괜찮아! 다이어트와 다짐은 원래 내일부터가 국룰!
               </p>
@@ -173,7 +173,7 @@
               <input type="radio" name="rut_status" value="3" v-model="selectedStatusTemp" />
               <span class="radio-style"></span>
               흐린 눈
-              <p class="comment" v-if="selectedStatus === '3'">
+              <p class="comment" v-if="selectedStatusTemp === '3'">
                 <img src="https://img.icons8.com/?size=100&id=DgnWHpQwsSUq&format=png&color=000000">
                 걱정마! 오늘은 정말 어쩔 수 없던거 알아. 달성 현황에는 반영하지 않을게.
               </p>
