@@ -2,7 +2,7 @@
     <div class="popup_overlay">
         <!-- lnb -->
         <div class="lnb_wrap">
-            <p><span>러피님</span> 환영합니다</p>
+            <p><span>러피님fff</span> 환영합니다</p>
 						<button>로그아웃</button>
 						<br />
 						<button>회원탈퇴</button>
