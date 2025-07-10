@@ -6,7 +6,7 @@
             <div class="ad_inner">
                 <p class="left">
                     <span class="tv_box">
-                        <img src="@/assets/images/add_sample.jpeg">
+                        <img src="@/assets/images/pr_001.jpeg">
                     </span>
                 </p>
                 <p class="right">
