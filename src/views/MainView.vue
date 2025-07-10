@@ -105,9 +105,11 @@
 						<!-- // 러피 상태 보기 -->
 						
 					
-						<button>오늘의 다짐 현황 선택</button>
+						
 
 					</div>
+
+					<button>오늘의 다짐 현황 선택</button>
 
 					<!-- 설정 팝업 -->
           <div class="setting" v-if="isSettingOpen">
