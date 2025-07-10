@@ -109,7 +109,7 @@
 
 					</div>
 
-					<button v-if="!selectedStatus">오늘의 다짐 현황 선택</button>
+					<button v-if="!selectedStatus" @click.prevent="openPopup('rut_status')">오늘의 다짐 현황 선택</button>
 
 					<!-- 설정 팝업 -->
           <div class="setting" v-if="isSettingOpen">
@@ -295,9 +295,9 @@ const {
 	width:100%;
 	line-height:2.5rem;
 	border-radius:1rem;
-	color:#fff;
+	border:0.1rem solid #333;
 	font-weight:bold;
-	background-color:#17a47a;
+	background-color:#fff
 }
 </style>
 
