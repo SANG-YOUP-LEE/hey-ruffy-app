@@ -150,7 +150,7 @@
           <h2>오늘의 다짐은 어땠나요?</h2>
           <div class="check_wrap">
             <label class="pretty-radio-block">
-              <input type="radio" name="rut_status" value="1" v-model="selectedStatus" />
+              <input type="radio" name="rut_status" value="1" v-model="selectedStatusTemp" />
               <span class="radio-style"></span>
               달성
               <p class="comment" v-if="selectedStatus === '1'">
@@ -160,7 +160,7 @@
             </label>
 
             <label class="pretty-radio-block">
-              <input type="radio" name="rut_status" value="2" v-model="selectedStatus" />
+              <input type="radio" name="rut_status" value="2" v-model="selectedStatusTemp" />
               <span class="radio-style"></span>
               미달성
               <p class="comment" v-if="selectedStatus === '2'">
@@ -170,7 +170,7 @@
             </label>
 
             <label class="pretty-radio-block">
-              <input type="radio" name="rut_status" value="3" v-model="selectedStatus" />
+              <input type="radio" name="rut_status" value="3" v-model="selectedStatusTemp" />
               <span class="radio-style"></span>
               흐린 눈
               <p class="comment" v-if="selectedStatus === '3'">
