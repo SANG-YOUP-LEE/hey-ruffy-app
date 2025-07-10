@@ -179,9 +179,9 @@
               </p>
             </label>
           </div>
-          <button class="pop_btm" @click="closePopup">
-            {{ selectedStatus ? '다짐 현황 저장' : '다짐 현황을 선택해주세요.' }}
-          </button>
+          <button class="pop_btm" @click="saveRoutineStatus">
+  						{{ selectedStatusTemp ? '다짐 현황 저장' : '다짐 현황을 선택해주세요.' }}
+					</button>
         </div>
       </div>
       <!-- // 오늘의 다짐 달성 현황 -->
