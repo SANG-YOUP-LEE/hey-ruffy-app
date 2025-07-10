@@ -27,7 +27,7 @@
 							<div class="detail_box">
 								<!-- 달성 체크 전 -->
 								<p class="done_icon" v-if="!selectedStatus">
-  									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=Rish2KK6aiTD&format=png&color=000000"></span>
+  									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=SIvUzMn4cgQ6&format=png&color=000000"></span>
   									<a href="#none" @click.prevent="openStatusPopup">오늘의 다짐은 어땠나요?</a>
 								</p>
 
