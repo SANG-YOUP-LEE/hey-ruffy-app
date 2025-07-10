@@ -285,3 +285,16 @@ const {
 
 
 </script>
+
+<style>
+	.form_box_g.main .left button {
+	width:100%;
+	line-height:2rem;
+	border-radius:1rem
+	color:#fff;
+	background-color:#17a47a;
+}
+</style>
+
+
+
