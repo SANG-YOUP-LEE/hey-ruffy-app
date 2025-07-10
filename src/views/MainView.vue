@@ -83,22 +83,22 @@
 								</p>
 								<!-- // step01 -->
 								<!-- step02 -->
-								<p class="step02 off">
+								<p class="step02">
 									<span>step <em>2</em></span>
 								</p>
 								<!-- // step02 -->
 								<!-- step03 -->
-								<p class="step03 off">
+								<p class="step03">
 									<span>step <em>3</em></span>
 								</p>
 								<!-- // step01 -->
 								<!-- step04 -->
-								<p class="step04 off">
+								<p class="step04">
 									<span>step <em>4</em></span>
 								</p>
 								<!-- // step04 -->
 								<!-- step05 -->
-								<p class="step05 off">
+								<p class="step05">
 									<span>step <em>5</em></span>
 								</p>
 								<!-- // step05 -->
