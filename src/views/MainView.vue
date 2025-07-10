@@ -57,7 +57,7 @@
 									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=54481&format=png&color=000000"></span> 오전 9시 30분
 								</p>
 								<p>
-									<span class="icon temp"><span class="cchart01"></span></span> 이정도 중요해요
+									<span class="icon temp"><span class="cchart01" style="width:100%;height:100%"></span></span> 이정도 중요해요
 								</p>
 							</div>
 						</div>
