@@ -99,31 +99,3 @@ const paddingOffset = computed(() => {
   return (props.containerHeight - props.itemHeight) / 2
 })
 </script>
-
-<style scoped>
-.inline-wheel-container {
-  overflow: hidden;
-  height: 6rem;
-  position: relative;
-  width: 100%;
-}
-.inline-wheel-list {
-  transition: transform 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.inline-wheel-item {
-  text-align: center;
-  font-size: 1rem;
-  color: #bcbcbc;
-  user-select: #none;
-  width: 100%;
-}
-.inline-wheel-item.selected {
-  font-weight: bold;
-  color: #333;
-  border-radius: 1rem;
-  background-color: #ffed71;
-}
-</style>
