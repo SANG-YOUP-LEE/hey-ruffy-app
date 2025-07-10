@@ -58,7 +58,6 @@
 									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=Zyo5wDjgJxRW&format=png&color=000000"></span> 이정도 중요해요
 								</p>
 							</div>
-							<button>오늘의 다짐 현황 선택</button>
 						</div>
 						<div class="right">
 							<div class="walking">
@@ -104,6 +103,9 @@
 							</div>
 						</div>
 						<!-- // 러피 상태 보기 -->
+						
+					
+						<button>오늘의 다짐 현황 선택</button>
 
 					</div>
 
@@ -293,7 +295,7 @@ const {
 .form_box_g.main .right {
 	background-color:blue
 }
-.form_box_g.main .left button {
+.form_box_g.main button {
 	width:100%;
 	line-height:2rem;
 	border-radius:1rem;
