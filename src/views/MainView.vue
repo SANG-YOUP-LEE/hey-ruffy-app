@@ -293,11 +293,20 @@ const {
 <style>
 .form_box_g.main button {
 	width:100%;
+	margin-top:0.5rem;
 	line-height:2.5rem;
 	border-radius:1rem;
 	border:0.1rem solid #333;
 	font-weight:bold;
 	background-color:#fff
+}
+.setting button {
+	border:none
+}
+
+.done_check {
+	margin-top:0;
+	background-color:red
 }
 </style>
 
