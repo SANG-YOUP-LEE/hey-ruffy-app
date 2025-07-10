@@ -305,8 +305,7 @@ const {
 }
 
 .done_check {
-	margin-top:0;
-	background-color:red
+	margin-top:-0.5rem;
 }
 </style>
 
