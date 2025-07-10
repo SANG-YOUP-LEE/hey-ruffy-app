@@ -328,8 +328,11 @@ function saveRoutineStatus() {
 }
 
 .detail_box span[class^='cchart'] {
-	width:80%;
-	height:80%;
+	width:60%;
+	height:60%;
+	display: flex;
+  justify-content: center;  /* 가로 중앙 */
+  align-items: center;   
 }
 </style>
 
