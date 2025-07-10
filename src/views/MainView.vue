@@ -327,12 +327,14 @@ function saveRoutineStatus() {
 	margin-top:-0.5rem;
 }
 
+.detail_box span.icon {
+	text-align:center
+}
+
 .detail_box span[class^='cchart'] {
-	width:60%;
-	height:60%;
-	display: flex;
-  justify-content: center;  /* 가로 중앙 */
-  align-items: center;   
+	width:70%;
+	height:70%;  
+	margin-top:0.2rem
 }
 </style>
 
