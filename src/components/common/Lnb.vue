@@ -4,22 +4,25 @@
       <!-- 닉네임 + 닫기버튼 -->
       <div class="lnb_header">
         <p class="welcome_msg">{{ nickname }}님, 환영합니다.</p>
-        <button class="close_btn" @click.prevent="$emit('close')">✕</button>
+        <button class="close_btn" @click.prevent="$emit('close')" type="button">✕</button>
       </div>
 
       <!-- 전체 메뉴 영역 -->
       <div class="lnb_body">
         <ul class="lnb_menu">
-          <li @click="$emit('close')"><router-link to="/main">내 다짐</router-link></li>
-          <li @click="$emit('close')"><router-link to="/settings">설정</router-link></li>
-          <li><button @click="logout">로그아웃</button></li>
-          <li><button @click="withdraw">회원탈퇴</button></li>
+          <li>
+            <router-link to="/main" @click="$emit('close')">내 다짐</router-link>
+          </li>
+          <li>
+            <router-link to="/settings" @click="$emit('close')">설정</router-link>
+          </li>
+          <li>
+            <button @click="logout" type="button">로그아웃</button>
+          </li>
+          <li>
+            <button @click="withdraw" type="button">회원탈퇴</button>
+          </li>
         </ul>
-
-        <!-- 고객센터 -->
-        <div class="lnb_footer">
-          <router-link to="/support">고객센터</router-link>
-        </div>
       </div>
     </div>
   </div>
@@ -146,21 +149,5 @@ const withdraw = async () => {
   background-color: #f0f0f0;
   color: #000;
 }
-
-/* 고객센터 */
-.lnb_footer {
-  border-top: 1px solid #ddd;
-  padding-top: 1rem;
-  margin-top: 2rem;
-}
-.lnb_footer :deep(a) {
-  font-size: 0.95rem;
-  color: #333;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-.lnb_footer :deep(a:hover) {
-  text-decoration: underline;
-  color: #000;
-}
 </style>
+
