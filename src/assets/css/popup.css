@@ -1,4 +1,4 @@
-body.popup-open {
+.body.popup-open {
   overflow: hidden;
   position: fixed;
   width: 100%;
@@ -313,7 +313,7 @@ body.popup-open {
 }
 
 .walking_goal .pretty-radio-block {
-	float:left;
+  display:flex;
 }
 
 .start_date_preview {
