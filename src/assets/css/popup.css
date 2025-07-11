@@ -309,9 +309,15 @@
 
 .walking_goal {
 	display:flex;
+  text-align:cemter
 }
 
 .walking_goal .pretty-radio-block {
+  margin-right:0.5rem
+}
+
+.walking_goal .pretty-radio-block:last-child {
+	margin-right:0
 }
 
 .start_date_preview {
