@@ -308,12 +308,10 @@
 }
 
 .walking_goal {
-	text-align:center;
-  background-color:red
+	display:flex;
 }
 
 .walking_goal .pretty-radio-block {
-  display:flex;
 }
 
 .start_date_preview {
