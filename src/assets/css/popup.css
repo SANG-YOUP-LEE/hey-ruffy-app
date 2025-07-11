@@ -308,7 +308,8 @@ body.popup-open {
 }
 
 .walking_goral {
-	text-align:center
+	text-align:center;
+  background-color:red
 }
 
 .walking_goral .pretty-radio-block {
