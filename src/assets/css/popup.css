@@ -309,7 +309,7 @@
 
 .walking_goal {
 	display:flex;
-  text-align:center;
+  justify-content: center
 }
 
 .walking_goal .pretty-radio-block {
