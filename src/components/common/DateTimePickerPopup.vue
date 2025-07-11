@@ -88,6 +88,9 @@ const minuteList = computed(() => Array.from({ length: 60 }, (_, i) => i))
 const secondList = computed(() => Array.from({ length: 60 }, (_, i) => i))
 
 const confirm = () => {
+  // 분(minute)과 초(second) 패딩 처리
+  const paddedMinute = String(selectedMinute.value).padStart(2, '0')
+  const paddedSecond = String(selectedSecond.value).padStart(2, '0')
   emit('confirm', {
     year: selectedYear.value,
     month: selectedMonth.value,
@@ -100,3 +103,4 @@ const confirm = () => {
   emit('close')
 }
 </script>
+

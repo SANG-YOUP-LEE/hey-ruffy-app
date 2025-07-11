@@ -337,6 +337,3 @@ function saveRoutineStatus() {
 	margin-top:0.2rem
 }
 </style>
-
-
-
