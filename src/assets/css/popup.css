@@ -307,6 +307,14 @@ body.popup-open {
 	margin-bottom:0
 }
 
+.walking_goral {
+	text-align:center
+}
+
+.walking_goral .pretty-radio-block {
+	float:left;
+}
+
 .start_date_preview {
 	float:right
 }
