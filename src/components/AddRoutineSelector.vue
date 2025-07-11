@@ -108,8 +108,8 @@
 
 			<!-- 러피 산책 설정 -->
 			<div class="form_box_g rt_make">
-				<h3>최소 달성 목표를 선택해주세요.</h3>
-				<p class="comment">목표한 다짐 횟수를 달성할때마다<br />러피가 산책을 다녀올 수 있어요.</p>
+				<h3>최소 달성 횟수를 선택해주세요.</h3>
+				<p class="comment">최소 목표를 달성할때마다<br />러피가 즐거운 산책을 다녀올 수 있어요.</p>
 				<div class="walking_goal">
 					<label class="pretty-radio-block">
           		<input type="radio" name="rut_status" value="1" v-model="selectedStatusTemp" />
