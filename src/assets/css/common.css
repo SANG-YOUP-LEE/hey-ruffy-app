@@ -45,7 +45,6 @@ html, body {
   font-size: 1rem;
   line-height: 1.5rem;
   color: #333;
-  background-color: #f9f9f9;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
@@ -328,9 +327,9 @@ span.icon.temp {
   width: 100%;
 	border-radius:1rem;
   padding:3rem 2rem 3rem 2rem;
-	background-color:#fff;
 	margin-bottom:1rem;
   font-family: 'Freesentation-9Black';
+  background-color:#fff;
 }
 
 .calendar-header {
@@ -338,9 +337,6 @@ span.icon.temp {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-}
-
-.calendar-header button {
 }
 
 .calendar-header button img {
@@ -376,6 +372,7 @@ span.icon.temp {
   font-size: 1.2rem;
 
 }
+
 .calendar-weekdays .sunday,
 .calendar-grid .day.sunday {
   color: #ec6862; /* 빨강 */
@@ -385,6 +382,7 @@ span.icon.temp {
 .calendar-grid .day.saturday {
   color: #438EDB; /* 파랑 */
 }
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -417,6 +415,7 @@ span.icon.temp {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  background-color:#fff;
 }
 
 .container input[type="text"],
@@ -442,8 +441,6 @@ span.icon.temp {
   text-decoration: underline;
 
 }
-
-
 
 /* 인트로 */
 .intro_wrap {
