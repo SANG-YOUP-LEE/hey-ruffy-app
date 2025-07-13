@@ -170,30 +170,28 @@ const emit = defineEmits(['close'])
 const handleClose = () => emit('close')
 
 const routineData = ref({
-	title: '',
-	comment: '',
-	frequencyType: '',
-	days: [],
-	months: [],
-	dates: [],
-	startDate: '',
-	time: '',
-	goalCount: 0,
-	color: '',
-	createdAt: null,
-	userId: null
+  title: '',
+  comment: '',
+  frequencyType: '',
+  days: [],
+  months: [],
+  dates: [],
+  startDate: '',
+  time: '',
+  goalCount: 0,
+	color: 'cchart01', 
+  createdAt: null,
+  userId: null
 })
 
-// 요일 선택 핸들러
 const toggleDay = (day) => {
-	if (routineData.value.days.includes(day)) {
-		routineData.value.days = routineData.value.days.filter(d => d !== day)
-	} else {
-		routineData.value.days.push(day)
-	}
+  if (routineData.value.days.includes(day)) {
+    routineData.value.days = routineData.value.days.filter(d => d !== day)
+  } else {
+    routineData.value.days.push(day)
+  }
 }
 
-// 날짜 포맷
 const today = new Date()
 const yyyy = today.getFullYear()
 const mm = String(today.getMonth() + 1).padStart(2, '0')
@@ -216,112 +214,109 @@ const colorCount = 10
 const selectedColorIndex = ref(null)
 
 const toggleDateSelection = (day) => {
-	if (selectedDates.value.includes(day)) {
-		selectedDates.value = selectedDates.value.filter(d => d !== day)
-	} else {
-		selectedDates.value.push(day)
-	}
-	routineData.value.dates = [...selectedDates.value]
+  if (selectedDates.value.includes(day)) {
+    selectedDates.value = selectedDates.value.filter(d => d !== day)
+  } else {
+    selectedDates.value.push(day)
+  }
+  routineData.value.dates = [...selectedDates.value]
 }
 
 const handleColorClick = (index) => {
-	selectedColorIndex.value = index
-	routineData.value.color = `#color${index + 1}`
+  selectedColorIndex.value = index
+  routineData.value.color = `cchart${String(index + 1).padStart(2, '0')}`
 }
 
 watch(isStartDateOn, (val) => {
-	if (val) {
-		isDatePopupOpen.value = true
-	} else {
-		selectedStartDateTime.value = null
-		routineData.value.startDate = ''
-	}
+  if (val) {
+    isDatePopupOpen.value = true
+  } else {
+    selectedStartDateTime.value = null
+    routineData.value.startDate = ''
+  }
 })
 
 watch(isAlarmOn, (val) => {
-	if (val) {
-		isAlarmPopupOpen.value = true
-	} else {
-		selectedAlarmTime.value = null
-		routineData.value.time = ''
-	}
+  if (val) {
+    isAlarmPopupOpen.value = true
+  } else {
+    selectedAlarmTime.value = null
+    routineData.value.time = ''
+  }
 })
 
 const onDateConfirm = (val) => {
-	selectedStartDateTime.value = val
-	routineData.value.startDate = `${val.year}-${val.month}-${val.date}`
-	isDatePopupOpen.value = false
+  selectedStartDateTime.value = val
+  routineData.value.startDate = `${val.year}-${val.month}-${val.date}`
+  isDatePopupOpen.value = false
 }
 
 const onAlarmConfirm = (val) => {
-	selectedAlarmTime.value = val
-	routineData.value.time = `${val.ampm} ${val.hour}:${val.minute}`
-	isAlarmPopupOpen.value = false
+  selectedAlarmTime.value = val
+  routineData.value.time = `${val.ampm} ${val.hour}:${val.minute}`
+  isAlarmPopupOpen.value = false
 }
 
 const handleDatePopupClose = () => {
-	isDatePopupOpen.value = false
-	if (!selectedStartDateTime.value) {
-		isStartDateOn.value = false
-	}
+  isDatePopupOpen.value = false
+  if (!selectedStartDateTime.value) {
+    isStartDateOn.value = false
+  }
 }
 
 const handleAlarmPopupClose = () => {
-	isAlarmPopupOpen.value = false
-	if (!selectedAlarmTime.value) {
-		isAlarmOn.value = false
-	}
+  isAlarmPopupOpen.value = false
+  if (!selectedAlarmTime.value) {
+    isAlarmOn.value = false
+  }
 }
 
-
 const saveRoutine = async () => {
-  // 🔐 로그인 확인
   const user = auth.currentUser
   if (!user) {
-    alert("로그인 후 다짐을 저장할 수 있어요!");
-    return;
+    alert("로그인 후 다짐을 저장할 수 있어요!")
+    return
   }
 
-  // 📋 필수값 체크
   if (!routineData.value.title) {
-    alert("다짐명을 입력해주세요.");
-    return;
+    alert("다짐명을 입력해주세요.")
+    return
   }
 
   try {
-    await addDoc(collection(db, "routines"), {
-      ...routineData.value,
-      createdAt: serverTimestamp(),
-      userId: user.uid
-    });
-    alert("다짐이 저장되었습니다!");
-    emit("close"); // 팝업 닫기
-  } catch (err) {
-    console.error("저장 실패:", err);
-    alert("저장에 실패했습니다. 다시 시도해주세요.");
-  }
-};
+  await addDoc(collection(db, 'routines'), {
+    ...routineData.value,
+    createdAt: serverTimestamp(),
+    userId: user.uid
+  })
+  alert("다짐이 저장되었습니다!")
+  emit('close')
+	} catch (err) {
+	console.error("저장 실패:", err)
+	alert("저장에 실패했습니다. 다시 시도해주세요.")
+	}
+}
 
 onMounted(async () => {
-	setupToggleBlocks({
-		resetRepeat: () => selectedRepeat.value = null,
-		resetMonthly: () => {
-			selectedMonthOption.value = null
-			selectedDates.value = []
-			routineData.value.dates = []
-		}
-	})
-	setupCheckButtons()
-	await nextTick()
+  setupToggleBlocks({
+    resetRepeat: () => selectedRepeat.value = null,
+    resetMonthly: () => {
+      selectedMonthOption.value = null
+      selectedDates.value = []
+      routineData.value.dates = []
+    }
+  })
+  setupCheckButtons()
+  await nextTick()
 
-	const dailyBtn = document.getElementById('v_detail01')
-	const dailyBlock = document.getElementById('v_detail01_block')
-	document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
-	document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
-	if (dailyBtn && dailyBlock) {
-		dailyBtn.classList.add('on')
-		dailyBlock.style.display = 'block'
-	}
+  const dailyBtn = document.getElementById('v_detail01')
+  const dailyBlock = document.getElementById('v_detail01_block')
+  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+  if (dailyBtn && dailyBlock) {
+    dailyBtn.classList.add('on')
+    dailyBlock.style.display = 'block'
+  }
 })
 </script>
 

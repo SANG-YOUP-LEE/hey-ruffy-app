@@ -164,7 +164,7 @@
 	border:none;
 	background-color:#fff;
 	position:relative;
-
+	padding:2rem
 }
 
 .form_box_g.main .setting {
@@ -203,103 +203,104 @@
 	z-index:1;
 }
 
-.form_box_g.main .rout_inner {
-	width:100%;
-	display:flex;
-	padding:2rem 1rem 2rem 1rem;
-	position:relative;
-	border-radius:1rem;
+.routine_card {
+  display: flex;
+  justify-content: space-between; 
+	align-items: stretch;
+  gap: 1rem; 
 }
 
+.routine_card .left,
+.routine_card .right {
+  flex: 1; 
+}
+
+.routine_card .left {
+	margin-top:-1rem
+}
+
+.routine_card .right {
+  max-width: 6rem; 
+}
 .form_box_g.main.off .left,
 .form_box_g.main.off .right {
 	opacity:0.2;
 	pointer-events: none;
 }
 
-.form_box_g.main .rout_inner .com_btn {
-	width:95%;
+.form_box_g.main .com_btn {
+	width:88%;
 	height:2rem;
 	position:absolute;
-	top:0;
+	top:1rem;
 	text-align:right;
 }
 
-.form_box_g.main .rout_inner .com_btn a {
+.form_box_g.main .com_btn a {
 	width:1.2rem;
 	height:1.2rem;
 	display:inline-block
 }
 
-.form_box_g.main .rout_inner .com_btn a img {
+.form_box_g.main .com_btn a img {
 	width:100%;
 	height:100%;
 }
 
-.form_box_g.main .rout_inner .com_btn .left {
+.form_box_g.main .com_btn .left {
 	float:left
 }
 
-.form_box_g.main .rout_inner .com_btn .left img {
+.form_box_g.main .com_btn .left img {
 	width:1.5rem;
 	height:1.5rem;
 }
 
-.form_box_g.main .rout_inner a {
+.form_box_g.main a {
 	display:inline-block;
 }
 
-.form_box_g.main .rout_inner a img {
+.form_box_g.main a img {
 	width:2rem;
 	height:2rem;
 }
 
-.form_box_g.main .rout_inner a span {
+.form_box_g.main a span {
 	display:none
 }
 
-.form_box_g.main .rout_inner .left {
-	min-height:9rem;
-	flex: 1;
-	margin-top:-1.5rem;
-}
-
-.form_box_g.main .rout_inner .left em {
+.form_box_g.main .left em {
 	line-height:1.5rem;
 }
 
-.form_box_g.main .rout_inner .left em a {
+.form_box_g.main .left em a {
 	margin-top:-0.3rem
 }
 
-.form_box_g.main .rout_inner .left .detail_box {
+.form_box_g.main .left .detail_box {
 	font-size:0.9rem;
 	letter-spacing: -0.01rem;
 	margin-top:0.5rem
 }
 
-.form_box_g.main .rout_inner .left .detail_box a {
+.form_box_g.main .left .detail_box a {
 	text-decoration: underline;
 }
 
-.form_box_g.main .rout_inner .left .detail_box p.done_icon.pink  {
+.form_box_g.main .left .detail_box p.done_icon.pink  {
 	color:#ff7d7d
 }
 
-.form_box_g.main .rout_inner .left .detail_box p.done_icon.green  {
+.form_box_g.main .left .detail_box p.done_icon.green  {
 	color:#009b49
 }
 
-.form_box_g.main .rout_inner .left .detail_box p.done_icon.gray  {
+.form_box_g.main .left .detail_box p.done_icon.gray  {
 	color:#b6b6b6
 }
 
-.form_box_g.main .rout_inner .right {
-	width: 6rem;
-	text-align:center;
-}
 
-.form_box_g.main .rout_inner em {
+.form_box_g.main em {
 	font-size:1.2rem;
 	font-weight:bold;
 	line-height:1.2rem;
@@ -307,36 +308,40 @@
 	margin:0.5rem 0 0.5rem 0;
 }
 
-.form_box_g.main .rout_inner em a img {
+.form_box_g.main em a img {
 	width:1.2rem;
 	height:1.2rem;
 }
 
-.form_box_g.main .rout_inner .right .walking  {
-	height:100%;
-	position:relative
+.form_box_g.main .right .walking {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
 }
 
-.form_box_g.main .rout_inner .right .walking [class*="step0"] {
+.form_box_g.main .right .walking [class*="step0"] {
 	width:100%;
-	height:50%;
+	height:40%;
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position:50% 50%;
 	padding:0;
+	top:45%;
 }
 
-.form_box_g.main .rout_inner .right .walking .step01 {
+.form_box_g.main .right .walking .step01 {
 	position:absolute;
 	bottom:1rem;
 }
 
-.form_box_g.main .rout_inner .right .walking a.step {
+.form_box_g.main .right .walking a.step {
 	width:100%;
 	height:1.5rem;
 	display:inline-block;
 	position:absolute;
-	bottom:-1rem;
+	text-align:center;
 	left:0;
 	color:#333;
 	border:0.1rem solid #fff55d;
@@ -347,47 +352,39 @@
 	font-family: Paperlogy-8ExtraBold;
 }
 
-.form_box_g.main .rout_inner .right .walking span.step strong {
+.form_box_g.main .right .walking span.step strong {
 	color:#ff6600;
 	font-size:0.8rem;
 }
 
-.form_box_g.main .rout_inner .right .walking .speech-bubble {
-	width:100%;
-	position:absolute;
-	top:0rem;;
-	right:0.5rem;
-}
-
-.form_box_g.main .rout_inner .right .walking .speech-bubble span {
-	width:45%;
-	height:42%;
-	font-family: Ownglyph_ParkDaHyun;
-	font-size:1rem;
-	line-height:0.8rem;
-	text-align:center;
-	position:absolute;
-	top:0.8rem;
-	right:1.2rem;
-	display:inline-block;
-	word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-	margin:0;
-}
-
 /* 말풍선 */
 .speech-bubble {
+  width: 6rem;
+  height: 6rem;
+  position: absolute;
+  top: 0.5rem;
+  right: 0;
   display: inline-block;
-  width: 10rem;
-  height: 5rem;
   background: url('../images/ruffy_sample03.png') no-repeat top right;
-  background-size: contain;
+  background-size: 100%;
   text-align: center;
   line-height: 5rem;
   font-size: 0.7rem;
   color: #333;
-  position: relative;
+}
+
+.form_box_g.main .right .speech-bubble span {
+	width:5rem;
+  position: absolute;
+  top: -0.5rem;
+  right: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1rem;
+	letter-spacing:-0.05rem;
+  word-break: keep-all;
+  white-space: normal;
+  text-align: center;
+	font-family: 'Ownglyph_ParkDaHyun';
 }
 
 .done_check {

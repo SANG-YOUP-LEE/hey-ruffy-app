@@ -8,119 +8,103 @@
       <div class="main_inner">
         <Calendar :visible="showCalendar" />
         <!-- 다짐 내역 그룹 -->
-				<div class="form_box_g main">
-					<div class="rout_inner">
-						<!-- 공통 버튼 -->
-						<div class="com_btn">
-							<a href="#none" @click.prevent="isSettingOpen = !isSettingOpen">
-                <img src="https://img.icons8.com/?size=100&id=6N9JHPf2dwXP&format=png&color=000000">
-                <span>설정변경하기</span>
-              </a>
-						</div>
-						<!-- //공통 버튼 -->
+        <div v-for="routine in routines" :key="routine.id" class="form_box_g main">
+          <!-- 루틴 카드 -->
+          <div class="routine_card">
+            <!-- 공통 버튼 -->
+            <div class="com_btn">
+              <a href="#none" @click.prevent="toggleSetting(routine.id)"><img src="https://img.icons8.com/?size=100&id=6N9JHPf2dwXP&format=png&color=000000"><span>설정변경하기</span></a>
+            </div>
+            <!-- //공통 버튼 -->
+            <div class="left">
+              <em>{{ routine.title }}</em>
+              <p class="coment">{{ routine.comment }}</p>
 
-						<div class="left">
-							<em>외로워도 슬퍼도 탄수화물 끊기</em>
-							<!-- 간단 코멘트 -->
-							<p class="coment">다음번 건강검진 극락 가즈아!</p>
-							<!--// 간단 코멘트 -->
-							<div class="detail_box">
-								<!-- 달성 체크 전 -->
-								<p class="done_icon" v-if="!selectedStatus">
-  									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=SIvUzMn4cgQ6&format=png&color=000000"></span>
-  									<a href="#none" @click.prevent="openStatusPopup">오늘의 다짐은 어땠나요?</a>
-								</p>
+              <div class="detail_box">
+                <!-- 상태에 따른 출력 -->
+                <p class="done_icon" v-if="!selectedStatus">
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=SIvUzMn4cgQ6&format=png&color=000000">
+                  </span>
+                  <a href="#none" @click.prevent="openStatusPopup">오늘의 다짐은 어땠나요?</a>
+                </p>
 
-								<!-- // 달성 체크전 -->
-								<!-- 다짐 성공 -->
-								<p class="done_icon green" v-if="selectedStatus === '1'">
-									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=PEmFcgjhBgKF&format=png&color=000000"></span> <strong>다짐 성공!</strong>
-								</p>
-								<!-- // 다짐 성공 -->
-								<!-- 다짐 실패 -->
-								<p class="done_icon pink" v-if="selectedStatus === '2'">
-									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=Rish2KK6aiTD&format=png&color=000000"></span> <strong>다짐 실패</strong>
-								</p>
-								<!-- // 다짐 실패 -->
-								<!-- 흐린 눈 -->
-								<p class="done_icon gray" v-if="selectedStatus === '3'">
-									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=9VG6Oa5PC1pt&format=png&color=000000"></span> <strong>흐린 눈</strong>
-								</p>
-								<!-- // 흐린 눈 -->
-								<p>
-									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=73785&format=png&color=000000"></span> 2025.7.10 부터
-								</p>
-								<p>
-									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=vwGXRtPWrZSn&format=png&color=000000"></span> 2주마다 월,수,금
-								</p>
-								<p>
-									<span class="icon temp"><img src="https://img.icons8.com/?size=100&id=54481&format=png&color=000000"></span> 오전 9시 30분
-								</p>
-								<p>
-									<span class="icon temp"><span class="cchart01"></span></span> 이정도 중요해요
-								</p>
-							</div>
-						</div>
-						<div class="right">
-							<div class="walking">
-								<p class="step01"></p>
-								<p class="speech-bubble">
-									<span>나도 산책 가고 싶당...</span>
-								</p>
-								<a href="#none" class="step" @click.prevent="isRuffyOpen = !isRuffyOpen">{{ isRuffyOpen ? '러피 상태 닫기' : '러피 상태 열기' }}</a>
-							</div>
-						</div>
-					</div>
+                <p class="done_icon green" v-if="selectedStatus === '1'">
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=PEmFcgjhBgKF&format=png&color=000000">
+                  </span> <strong>다짐 성공!</strong>
+                </p>
 
-					<!-- 러피 상태 보기 -->
-					<div class="done_check" v-if="isRuffyOpen">
-						<!-- 러피 단계별 -->
-						<div class="ruffy_step">
-							<div class="walking">
-								<!-- step01 -->
-								<p class="step01">
-									<span>step <em>1</em></span>
-								</p>
-								<!-- // step01 -->
-								<!-- step02 -->
-								<p class="step02">
-									<span>step <em>2</em></span>
-								</p>
-								<!-- // step02 -->
-								<!-- step03 -->
-								<p class="step03">
-									<span>step <em>3</em></span>
-								</p>
-								<!-- // step01 -->
-								<!-- step04 -->
-								<p class="step04">
-									<span>step <em>4</em></span>
-								</p>
-								<!-- // step04 -->
-								<!-- step05 -->
-								<p class="step05">
-									<span>step <em>5</em></span>
-								</p>
-								<!-- // step05 -->
-							</div>
-						</div>
-						<!-- // 러피 상태 보기 -->
-						
-					
-						
+                <p class="done_icon pink" v-if="selectedStatus === '2'">
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=Rish2KK6aiTD&format=png&color=000000">
+                  </span> <strong>다짐 실패</strong>
+                </p>
 
-					</div>
+                <p class="done_icon gray" v-if="selectedStatus === '3'">
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=9VG6Oa5PC1pt&format=png&color=000000">
+                  </span> <strong>흐린 눈</strong>
+                </p>
 
-					<button v-if="!selectedStatus" @click.prevent="openStatusPopup">오늘의 다짐 현황 선택</button>
+                <!-- 상세 정보 -->
+                <p>
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=73785&format=png&color=000000">
+                  </span> {{ routine.startDate }} 부터
+                </p>
+                <p>
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=vwGXRtPWrZSn&format=png&color=000000">
+                  </span> {{ routine.frequencyType }}
+                </p>
+                <p>
+                  <span class="icon temp">
+                    <img src="https://img.icons8.com/?size=100&id=54481&format=png&color=000000">
+                  </span> {{ routine.time }}
+                </p>
+                <p>
+                  <span :class="['icon', 'temp', routine.color]"></span> 이정도 중요해요
+                </p>
+              </div>
+            </div>
 
-					<!-- 설정 팝업 -->
-          <div class="setting" v-if="isSettingOpen">
-            <button class="close_btn" @click="isSettingOpen = false"><span>팝업 닫기</span></button>
+            <div class="right">
+              <div class="walking">
+                <p class="step01"></p>
+                <p class="speech-bubble">
+                  <span>나도 산책 가고 싶당...</span>
+                </p>
+                <a href="#none" class="step" @click.prevent="toggleRuffy(routine.id)">
+                  {{ ruffyOpenMap[routine.id] ? '러피 상태 닫기' : '러피 상태 열기' }}
+                </a>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- 러피 상태 보기 -->
+          <div class="done_check" v-if="ruffyOpenMap[routine.id]">
+            <div class="ruffy_step">
+              <div class="walking">
+                <p class="step01"><span>step <em>1</em></span></p>
+                <p class="step02"><span>step <em>2</em></span></p>
+                <p class="step03"><span>step <em>3</em></span></p>
+                <p class="step04"><span>step <em>4</em></span></p>
+                <p class="step05"><span>step <em>5</em></span></p>
+              </div>
+            </div>
+          </div>
+
+          <button v-if="!selectedStatus" @click.prevent="openStatusPopup">오늘의 다짐 현황 선택</button>
+
+          <!-- 설정 팝업 -->
+          <div class="setting" v-if="openedSettingId === routine.id">
+            <button class="close_btn" @click="openedSettingId = null"><span>팝업 닫기</span></button>
             <a href="#none">
               <img src="https://img.icons8.com/?size=100&id=gDy5dpa1NZQj&format=png&color=000000"> 다짐 수정하기
             </a>
-            <a href="#none"
-              @click.prevent="isPaused ? openPopup('rut_restart') : openPopup('rut_stop')">
+            <a href="#none" @click.prevent="isPaused ? openPopup('rut_restart') : openPopup('rut_stop')">
               <img src="https://img.icons8.com/?size=100&id=JsKfjywDmtY0&format=png&color=000000">
               {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
             </a>
@@ -128,12 +112,11 @@
               <img src="https://img.icons8.com/?size=100&id=90278&format=png&color=000000"> 다짐 공유하기
             </a>
             <a href="#none" @click.prevent="openPopup('rut_del')">
-              <img src="https://img.icons8.com/?size=100&id=KPhFC2OwpbWV&format=png&color=000000">다짐 삭제 하기
+              <img src="https://img.icons8.com/?size=100&id=KPhFC2OwpbWV&format=png&color=000000"> 다짐 삭제 하기
             </a>
           </div>
-					<!-- //설정 팝업 -->
-				</div>
-				<!-- // 다짐 내역 그룹 -->
+        </div>
+        <!-- // 다짐 내역 그룹 -->
 
       </div>
     </div>
@@ -265,25 +248,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePopup } from '@/assets/js/usePopup.js'
+import { onAuthStateChanged } from 'firebase/auth'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { auth, db } from '@/firebase'
+
 import Header from '@/components/common/Header.vue'
 import Footer from '@/components/common/Footer.vue'
 import Lnb from '@/components/common/Lnb.vue'
 import AddRoutineSelector from '@/components/AddRoutineSelector.vue'
 import Calendar from '@/components/common/Calendar.vue'
 
-// 사이드바, 캘린더, 러피 상태, 추가 팝업 열림 여부
+// 상태 관리
 const isLnbOpen = ref(false)
 const showCalendar = ref(false)
 const isRuffyOpen = ref(false)
 const isAddRoutineOpen = ref(false)
 
-// 다짐 상태 관련
-const selectedStatus = ref(null)       // 실제 메인에 보여지는 상태
-const selectedStatusTemp = ref(null)   // 팝업 내 임시 상태
+const selectedStatus = ref(null)
+const selectedStatusTemp = ref(null)
 
-// 팝업 관련
+// 팝업 제어 로직
 const {
   activePopupId,
   isSettingOpen,
@@ -294,18 +280,52 @@ const {
   resumeCommitment
 } = usePopup()
 
-// 다짐 상태 팝업 열기: 임시 선택값 초기화
 function openStatusPopup() {
   selectedStatusTemp.value = selectedStatus.value
   openPopup('rut_status')
 }
 
-// 저장 버튼 클릭 시에만 상태 반영
 function saveRoutineStatus() {
   if (selectedStatusTemp.value) {
     selectedStatus.value = selectedStatusTemp.value
     closePopup()
   }
+}
+
+// Firestore 루틴 불러오기
+const routines = ref([])
+
+const fetchRoutines = async (uid) => {
+  try {
+    const q = query(collection(db, 'routines'), where('userId', '==', uid))
+    const querySnapshot = await getDocs(q)
+    routines.value = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  } catch (error) {
+    console.error('다짐 불러오기 실패:', error)
+  }
+}
+
+onMounted(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      fetchRoutines(user.uid)
+    }
+  })
+})
+
+const openedSettingId = ref(null)
+
+const toggleSetting = (id) => {
+  openedSettingId.value = openedSettingId.value === id ? null : id
+}
+
+const ruffyOpenMap = ref({})
+
+const toggleRuffy = (routineId) => {
+  ruffyOpenMap.value[routineId] = !ruffyOpenMap.value[routineId]
 }
 </script>
 
@@ -322,15 +342,12 @@ function saveRoutineStatus() {
 .setting .close_btn {
 	border:none!important
 }
-
 .done_check {
 	margin-top:-0.5rem;
 }
-
 .detail_box span.icon {
 	text-align:center
 }
-
 .detail_box span[class^='cchart'] {
 	width:70%;
 	height:70%;  
