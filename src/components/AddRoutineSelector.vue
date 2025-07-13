@@ -284,17 +284,22 @@ const saveRoutine = async () => {
   }
 
   try {
-  await addDoc(collection(db, 'routines'), {
-    ...routineData.value,
-    createdAt: serverTimestamp(),
-    userId: user.uid
-  })
-  alert("다짐이 저장되었습니다!")
-  emit('close')
-	} catch (err) {
-	console.error("저장 실패:", err)
-	alert("저장에 실패했습니다. 다시 시도해주세요.")
-	}
+    await addDoc(collection(db, 'routines'), {
+      ...routineData.value,
+      createdAt: serverTimestamp(),
+      userId: user.uid
+    })
+    alert("다짐이 저장되었습니다!")
+
+    // ✅ Firestore 반영될 시간을 주고 갱신
+    setTimeout(() => {
+      emit('refresh')   // 메인뷰에게 다시 fetch하라고 알림
+      emit('close')     // 팝업 닫기
+    }, 500)
+  } catch (err) {
+    console.error("저장 실패:", err)
+    alert("저장에 실패했습니다. 다시 시도해주세요.")
+  }
 }
 
 onMounted(async () => {
