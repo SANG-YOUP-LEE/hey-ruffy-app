@@ -69,7 +69,7 @@
             </div>
           </div>
 
-          <button v-if="!selectedStatusMap[routine.id]" @click.prevent="openStatusPopup(routine.id)">
+          <button v-if="!selectedStatusMap[routine.id]" @click.prevent="openStatusPopup(routine.id)" class="wbtn">
             오늘의 다짐 현황 선택
           </button>
 

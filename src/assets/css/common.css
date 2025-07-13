@@ -114,14 +114,6 @@ label {
 	display:none
 }
 
-span.icon.temp {
-	width:1.5rem;
-	height:1.5rem;
-	display:inline-block;
-	vertical-align:middle;
-	margin-right:0.5rem;
-}
-
 .button {
   width: 100%;
   text-align: center;
