@@ -166,7 +166,7 @@ import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import { auth, db } from '@/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'refresh'])
 const handleClose = () => emit('close')
 
 const routineData = ref({
