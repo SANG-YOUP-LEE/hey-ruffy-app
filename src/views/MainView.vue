@@ -96,9 +96,8 @@
       v-if="isAddRoutineOpen"
       :routine-to-edit="routineToEdit"
       @close="isAddRoutineOpen = false"
-      @refresh="() => currentUserUid && fetchRoutines(currentUserUid)"
-      @resetEdit="routineToEdit = null"
-      />
+      @refresh="handleRoutineUpdated"
+    />
 
 
     <div class="popup_overlay" v-if="activePopupId === 'rut_status'">
@@ -148,6 +147,13 @@ const startEditRoutine = (routine) => {
   routineToEdit.value = routine
   isAddRoutineOpen.value = true
 }
+const handleRoutineUpdated = async () => {
+  if (currentUserUid.value) {
+    await fetchRoutines(currentUserUid.value)
+  }
+  openedSettingId.value = null // ✅ 설정 메뉴 닫기!
+}
+
 const deleteRoutine = async (routineId) => {
   if (!confirm("정말 이 다짐을 삭제할까요?")) return
 
