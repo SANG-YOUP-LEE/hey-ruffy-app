@@ -81,7 +81,7 @@
               {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
             </a>
             <a href="#none" @click.prevent="openPopup('rut_share')"><img src="https://img.icons8.com/?size=100&id=90278&format=png&color=000000"> 다짐 공유하기</a>
-            <a href="#none" @click.prevent="openPopup('rut_del')"><img src="https://img.icons8.com/?size=100&id=KPhFC2OwpbWV&format=png&color=000000"> 다짐 삭제 하기</a>
+            <a href="#none" @click.prevent="deleteRoutine(routine.id)"><img src="https://img.icons8.com/?size=100&id=KPhFC2OwpbWV&format=png&color=000000"> 다짐 삭제하기</a>
           </div>
         </div>
       </div>
@@ -138,7 +138,20 @@ import Footer from '@/components/common/Footer.vue'
 import Lnb from '@/components/common/Lnb.vue'
 import AddRoutineSelector from '@/components/AddRoutineSelector.vue'
 import Calendar from '@/components/common/Calendar.vue'
+import { deleteDoc, doc } from 'firebase/firestore'
 
+const deleteRoutine = async (routineId) => {
+  if (!confirm("정말 이 다짐을 삭제할까요?")) return
+
+  try {
+    await deleteDoc(doc(db, 'routines', routineId))
+    alert("다짐이 삭제되었습니다.")
+    fetchRoutines(currentUserUid.value) // 삭제 후 목록 갱신
+  } catch (err) {
+    console.error("삭제 실패:", err)
+    alert("삭제에 실패했습니다. 다시 시도해주세요.")
+  }
+}
 const isLnbOpen = ref(false)
 const showCalendar = ref(false)
 const isRuffyOpen = ref(false)
