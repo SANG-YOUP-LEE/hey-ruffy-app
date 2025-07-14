@@ -130,7 +130,7 @@
 import { ref, onMounted } from 'vue'
 import { usePopup } from '@/assets/js/usePopup.js'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
 import { auth, db } from '@/firebase'
 
 import Header from '@/components/common/Header.vue'
@@ -176,12 +176,21 @@ function saveRoutineStatus() {
 const fetchRoutines = async (uid) => {
   if (!uid) return
   try {
-    const q = query(collection(db, 'routines'), where('userId', '==', uid))
+    const q = query(
+  collection(db, 'routines'),
+  where('userId', '==', uid),
+  orderBy('createdAt', 'desc') 
+    )
     const querySnapshot = await getDocs(q)
-    routines.value = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
+
+    routines.value = querySnapshot.docs.map(doc => {
+      const data = doc.data()
+      console.log('🔥 다짐 데이터:', data) // ← 이 줄 추가!
+      return {
+        id: doc.id,
+        ...data
+      }
+    })
   } catch (error) {
     console.error('다짐 불러오기 실패:', error)
   }
