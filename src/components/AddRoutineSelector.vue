@@ -1,6 +1,6 @@
 <template>
 	<div class="popup_wrap">
-		<h2>새 다짐 만들기</h2>
+		<h2>{{ routineToEdit ? '다짐 수정하기' : '새 다짐 만들기' }}</h2>
 
 		<div class="popup_inner">
 			<!-- 다짐명 적기 -->
@@ -121,7 +121,7 @@
 		</div>
 
 		<div class="popup_btm">
-			<button @click="saveRoutine">다짐 저장하기</button>
+			<button class="save_btn" @click="saveRoutine">{{ routineToEdit ? '다짐 수정하기' : '다짐 저장하기' }}</button>
 		</div>
 		<button class="close_btn" @click="handleClose"><span>팝업 닫기</span></button>
 
@@ -346,7 +346,8 @@ const saveRoutine = async () => {
     // ✅ 저장 후 화면 갱신
     setTimeout(() => {
       emit('refresh')   // 메인뷰에게 다시 fetch하라고 알림
-      emit('close')     // 팝업 닫기
+     emit('resetEdit')  
+	  emit('close')     // 팝업 닫기
     }, 500)
   } catch (err) {
     console.error("저장 실패:", err)

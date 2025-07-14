@@ -88,7 +88,7 @@
     </div>
 
     <Footer />
-    <button class="add_rout" @click="isAddRoutineOpen = true">
+    <button class="add_rout" @click="openAddRoutine">
       <img src="https://img.icons8.com/?size=100&id=11255&format=png&color=000000">
       <span>다짐 추가하기</span>
     </button>
@@ -97,7 +97,9 @@
       :routine-to-edit="routineToEdit"
       @close="isAddRoutineOpen = false"
       @refresh="() => currentUserUid && fetchRoutines(currentUserUid)"
-    />
+      @resetEdit="routineToEdit = null"
+      />
+
 
     <div class="popup_overlay" v-if="activePopupId === 'rut_status'">
       <div class="popup_box" id="rut_status">
@@ -162,6 +164,10 @@ const isLnbOpen = ref(false)
 const showCalendar = ref(false)
 const isRuffyOpen = ref(false)
 const isAddRoutineOpen = ref(false)
+const openAddRoutine = () => {
+  routineToEdit.value = null
+  isAddRoutineOpen.value = true
+}
 
 const routines = ref([])
 const selectedStatusMap = ref({})
