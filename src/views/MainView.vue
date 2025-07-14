@@ -75,7 +75,7 @@
 
           <div class="setting" v-if="openedSettingId === routine.id">
             <button class="close_btn" @click="openedSettingId = null"><span>팝업 닫기</span></button>
-            <a href="#none"><img src="https://img.icons8.com/?size=100&id=gDy5dpa1NZQj&format=png&color=000000"> 다짐 수정하기</a>
+            <a href="#none" @click.prevent="startEditRoutine(routine)"><img src="https://img.icons8.com/?size=100&id=gDy5dpa1NZQj&format=png&color=000000"> 다짐 수정하기</a>
             <a href="#none" @click.prevent="isPaused ? openPopup('rut_restart') : openPopup('rut_stop')">
               <img src="https://img.icons8.com/?size=100&id=JsKfjywDmtY0&format=png&color=000000">
               {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
@@ -94,6 +94,7 @@
     </button>
     <AddRoutineSelector
       v-if="isAddRoutineOpen"
+      :routine-to-edit="routineToEdit"
       @close="isAddRoutineOpen = false"
       @refresh="() => currentUserUid && fetchRoutines(currentUserUid)"
     />
@@ -140,6 +141,11 @@ import AddRoutineSelector from '@/components/AddRoutineSelector.vue'
 import Calendar from '@/components/common/Calendar.vue'
 import { deleteDoc, doc } from 'firebase/firestore'
 
+const routineToEdit = ref(null)
+const startEditRoutine = (routine) => {
+  routineToEdit.value = routine
+  isAddRoutineOpen.value = true
+}
 const deleteRoutine = async (routineId) => {
   if (!confirm("정말 이 다짐을 삭제할까요?")) return
 

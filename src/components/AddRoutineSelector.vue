@@ -164,7 +164,11 @@ import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import { auth, db } from '@/firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, doc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+
+const props = defineProps({
+  routineToEdit: Object
+})
 
 const emit = defineEmits(['close', 'refresh'])
 const handleClose = () => emit('close')
@@ -183,6 +187,42 @@ const routineData = ref({
   createdAt: null,
   userId: null
 })
+watch(
+  () => props.routineToEdit,
+  (newRoutine) => {
+    if (newRoutine) {
+      routineData.value = {
+        title: newRoutine.title || '',
+        comment: newRoutine.comment || '',
+        frequencyType: newRoutine.frequencyType || '',
+        days: newRoutine.days || [],
+        months: newRoutine.months || [],
+        dates: newRoutine.dates || [],
+        startDate: newRoutine.startDate || '',
+        endDate: newRoutine.endDate || '',
+        time: newRoutine.time || '',
+        goalCount: newRoutine.goalCount || 0,
+        color: newRoutine.color || ''
+      }
+    } else {
+      // ✨ 혹시 모를 초기화
+      routineData.value = {
+        title: '',
+        comment: '',
+        frequencyType: '',
+        days: [],
+        months: [],
+        dates: [],
+        startDate: '',
+        endDate: '',
+        time: '',
+        goalCount: 0,
+        color: ''
+      }
+    }
+  },
+  { immediate: true }
+)
 
 const toggleDay = (day) => {
   if (routineData.value.days.includes(day)) {
@@ -284,14 +324,26 @@ const saveRoutine = async () => {
   }
 
   try {
-    await addDoc(collection(db, 'routines'), {
-      ...routineData.value,
-      createdAt: serverTimestamp(),
-      userId: user.uid
-    })
-    alert("다짐이 저장되었습니다!")
+    if (props.routineToEdit) {
+      // ✅ 수정 로직
+     console.log("🧩 routineToEdit.id:", props.routineToEdit?.id) 
+	  const routineRef = doc(db, 'routines', props.routineToEdit.id)
+      await updateDoc(routineRef, {
+        ...routineData.value,
+        userId: user.uid  // 혹시 몰라 안전하게 넣음
+      })
+      alert("다짐이 수정되었습니다!")
+    } else {
+      // ✅ 신규 저장 로직
+      await addDoc(collection(db, 'routines'), {
+        ...routineData.value,
+        createdAt: serverTimestamp(),
+        userId: user.uid
+      })
+      alert("다짐이 저장되었습니다!")
+    }
 
-    // ✅ Firestore 반영될 시간을 주고 갱신
+    // ✅ 저장 후 화면 갱신
     setTimeout(() => {
       emit('refresh')   // 메인뷰에게 다시 fetch하라고 알림
       emit('close')     // 팝업 닫기
@@ -324,4 +376,5 @@ onMounted(async () => {
   }
 })
 </script>
+
 
