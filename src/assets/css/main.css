@@ -226,6 +226,7 @@
 .form_box_g.main.off .right {
 	opacity:0.2;
 	pointer-events: none;
+  z-index:10;
 }
 
 .form_box_g.main .com_btn {
