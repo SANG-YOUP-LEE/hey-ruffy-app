@@ -172,7 +172,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'refresh'])
 const handleClose = () => emit('close')
-
+const selectedColorIndex = ref(null)
 const routineData = ref({
   title: '',
   comment: '',
@@ -204,8 +204,16 @@ watch(
         goalCount: newRoutine.goalCount || 0,
         color: newRoutine.color || ''
       }
+
+      // 🎯 컬러 인덱스 복원
+      const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
+      if (match) {
+        selectedColorIndex.value = Number(match[1]) - 1
+      } else {
+        selectedColorIndex.value = null
+      }
     } else {
-      // ✨ 혹시 모를 초기화
+      // ✨ 초기화
       routineData.value = {
         title: '',
         comment: '',
@@ -219,6 +227,7 @@ watch(
         goalCount: 0,
         color: ''
       }
+      selectedColorIndex.value = null
     }
   },
   { immediate: true }
@@ -251,7 +260,7 @@ const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월'
 const selectedMonthOption = ref(null)
 const selectedDates = ref([])
 const colorCount = 10
-const selectedColorIndex = ref(null)
+
 
 const toggleDateSelection = (day) => {
   if (selectedDates.value.includes(day)) {
@@ -346,8 +355,7 @@ const saveRoutine = async () => {
     // ✅ 저장 후 화면 갱신
     setTimeout(() => {
       emit('refresh')   // 메인뷰에게 다시 fetch하라고 알림
-     emit('resetEdit')  
-	  emit('close')     // 팝업 닫기
+      emit('close')     // 팝업 닫기
     }, 500)
   } catch (err) {
     console.error("저장 실패:", err)
