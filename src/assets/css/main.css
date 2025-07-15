@@ -234,6 +234,7 @@
 	position:absolute;
 	top:1rem;
 	text-align:right;
+  z-index:20;
 }
 
 .form_box_g.main .com_btn a {
