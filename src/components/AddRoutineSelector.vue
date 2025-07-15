@@ -12,6 +12,17 @@
 				</p>
 			</div>
 
+			<!-- ✅ 수정 모드일 때만 보여야 하므로 이거만 남기기 -->
+			<div v-if="routineToEdit" class="form_box_g rt_make">
+			<h3>이 다짐을 잠시 멈출까요?</h3>
+			<button
+				:class="{ on: routineData.status === 'paused' }"
+				@click="togglePauseStatus"
+			>
+				{{ routineData.status === 'paused' ? '다짐 다시 시작하기' : '일시정지 하기' }}
+			</button>
+			</div>
+			
 			<!--다짐 주기 설정-->
 			<div class="form_box_g rt_make day_box">
 				<h3>얼마나 자주 지켜야해요?</h3>
@@ -183,15 +194,19 @@ const routineData = ref({
   startDate: '',
   time: '',
   goalCount: 0,
-	color: 'cchart01', 
+  color: 'cchart01', 
   createdAt: null,
-  userId: null
+  userId: null,	
+  status: 'active',        // 그냥 문자열 값만
+  pauseDate: null
 })
+
 watch(
   () => props.routineToEdit,
   (newRoutine) => {
     if (newRoutine) {
-      routineData.value = {
+      // 기존 객체에 덮어쓰기 (반응성 유지)
+      Object.assign(routineData.value, {
         title: newRoutine.title || '',
         comment: newRoutine.comment || '',
         frequencyType: newRoutine.frequencyType || '',
@@ -202,8 +217,10 @@ watch(
         endDate: newRoutine.endDate || '',
         time: newRoutine.time || '',
         goalCount: newRoutine.goalCount || 0,
-        color: newRoutine.color || ''
-      }
+        color: newRoutine.color || '',
+        status: newRoutine.status || 'active',        // ✅ 일시정지 상태 포함
+        pauseDate: newRoutine.pauseDate || null       // ✅ 일시정지 일자 포함
+      })
 
       // 🎯 컬러 인덱스 복원
       const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
@@ -213,8 +230,8 @@ watch(
         selectedColorIndex.value = null
       }
     } else {
-      // ✨ 초기화
-      routineData.value = {
+      // ✨ 초기화할 때도 반응성 유지
+      Object.assign(routineData.value, {
         title: '',
         comment: '',
         frequencyType: '',
@@ -225,8 +242,10 @@ watch(
         endDate: '',
         time: '',
         goalCount: 0,
-        color: ''
-      }
+        color: 'cchart01',           // 초기값 설정
+        status: 'active',            // 기본 상태
+        pauseDate: null
+      })
       selectedColorIndex.value = null
     }
   },
@@ -345,10 +364,22 @@ const saveRoutine = async () => {
     } else {
       // ✅ 신규 저장 로직
       await addDoc(collection(db, 'routines'), {
-        ...routineData.value,
-        createdAt: serverTimestamp(),
-        userId: user.uid
-      })
+		title: routineData.value.title,
+		comment: routineData.value.comment,
+		frequencyType: routineData.value.frequencyType,
+		days: routineData.value.days,
+		months: routineData.value.months,
+		dates: routineData.value.dates,
+		startDate: routineData.value.startDate,
+		endDate: routineData.value.endDate,
+		time: routineData.value.time,
+		goalCount: routineData.value.goalCount,
+		color: routineData.value.color,
+		status: routineData.value.status,        // ✅ 새로 추가된 필드
+		pauseDate: routineData.value.pauseDate,  // ✅ 새로 추가된 필드
+		createdAt: serverTimestamp(),
+		userId: user.uid
+		})
       alert("다짐이 저장되었습니다!")
     }
 
@@ -363,6 +394,20 @@ const saveRoutine = async () => {
   }
 }
 
+const togglePauseStatus = () => {
+  if (routineData.value.status === 'active') {
+    routineData.value.status = 'paused'
+    const now = new Date()
+    const yyyy = now.getFullYear()
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    const dd = String(now.getDate()).padStart(2, '0')
+    routineData.value.pauseDate = `${yyyy}-${mm}-${dd}`
+  } else {
+    routineData.value.status = 'active'
+    routineData.value.pauseDate = null
+  }
+} 
+
 onMounted(async () => {
   setupToggleBlocks({
     resetRepeat: () => selectedRepeat.value = null,
@@ -375,6 +420,7 @@ onMounted(async () => {
   setupCheckButtons()
   await nextTick()
 
+  
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))

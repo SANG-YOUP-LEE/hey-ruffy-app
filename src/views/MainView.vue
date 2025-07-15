@@ -7,7 +7,7 @@
         <Calendar :visible="showCalendar" />
 
         <div v-for="routine in routines" :key="routine.id" class="form_box_g main">
-          <div class="routine_card">
+          <div class="routine_card" :class="{ paused: routine.status === 'paused' }">
             <div class="com_btn">
               <a href="#none" @click.prevent="toggleSetting(routine.id)">
                 <img src="https://img.icons8.com/?size=100&id=6N9JHPf2dwXP&format=png&color=000000">
@@ -15,6 +15,7 @@
               </a>
             </div>
             <div class="left">
+        
               <em>{{ routine.title }}</em>
               <p class="coment">{{ routine.comment }}</p>
 
@@ -76,9 +77,11 @@
           <div class="setting" v-if="openedSettingId === routine.id">
             <button class="close_btn" @click="openedSettingId = null"><span>팝업 닫기</span></button>
             <a href="#none" @click.prevent="startEditRoutine(routine)"><img src="https://img.icons8.com/?size=100&id=gDy5dpa1NZQj&format=png&color=000000"> 다짐 수정하기</a>
-            <a href="#none" @click.prevent="isPaused ? openPopup('rut_restart') : openPopup('rut_stop')">
-              <img src="https://img.icons8.com/?size=100&id=JsKfjywDmtY0&format=png&color=000000">
-              {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
+            <a
+              href="#none"
+              @click.prevent="(routine.status === 'paused' ? resumeRoutine : pauseRoutine)(routine.id)"
+            >
+              {{ routine.status === 'paused' ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
             </a>
             <a href="#none" @click.prevent="openPopup('rut_share')"><img src="https://img.icons8.com/?size=100&id=90278&format=png&color=000000"> 다짐 공유하기</a>
             <a href="#none" @click.prevent="deleteRoutine(routine.id)"><img src="https://img.icons8.com/?size=100&id=KPhFC2OwpbWV&format=png&color=000000"> 다짐 삭제하기</a>
@@ -140,8 +143,43 @@ import Footer from '@/components/common/Footer.vue'
 import Lnb from '@/components/common/Lnb.vue'
 import AddRoutineSelector from '@/components/AddRoutineSelector.vue'
 import Calendar from '@/components/common/Calendar.vue'
-import { deleteDoc, doc } from 'firebase/firestore'
+import { deleteDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
 
+const pauseRoutine = async (routineId) => {
+  try {
+    const routineRef = doc(db, 'routines', routineId)
+    await updateDoc(routineRef, {
+      status: 'paused',
+      pauseDate: serverTimestamp()
+    })
+    alert('다짐이 잠시 멈췄어요.')
+
+    // 수정 전: selectedRoutineId.value = null
+    openedSettingId.value = null  // ✅ 설정 메뉴 닫기
+    await fetchRoutines(currentUserUid.value)
+  } catch (err) {
+    console.error('잠시 멈추기 실패:', err)
+    alert('멈추기 실패! 다시 시도해주세요.')
+  }
+}
+
+const resumeRoutine = async (routineId) => {
+  try {
+    const routineRef = doc(db, 'routines', routineId)
+    await updateDoc(routineRef, {
+      status: 'active',
+      pauseDate: null
+    })
+    alert('다짐이 다시 시작되었어요.')
+
+    // 수정 전: selectedRoutineId.value = null
+    openedSettingId.value = null  // ✅ 설정 메뉴 닫기
+    await fetchRoutines(currentUserUid.value)
+  } catch (err) {
+    console.error('재시작 실패:', err)
+    alert('재시작 실패! 다시 시도해주세요.')
+  }
+}
 const routineToEdit = ref(null)
 const startEditRoutine = (routine) => {
   routineToEdit.value = routine
@@ -246,3 +284,13 @@ const toggleRuffy = (routineId) => {
   ruffyOpenMap.value[routineId] = !ruffyOpenMap.value[routineId]
 }
 </script>
+
+<style scoped>
+.routine_card.paused {
+  opacity: 0.4;
+  filter: grayscale(100%);
+  position: relative;
+}
+
+</style>
+
