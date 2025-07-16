@@ -85,6 +85,31 @@
 						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
 					</p>
 				</div>
+				
+				<!-- 종료일 toggle -->
+			<div>
+			<label class="toggle-switch">
+				<input
+				type="checkbox"
+				v-model="isEndDateOn"
+				@change="(e) => {
+					if (e.target.checked) {
+					isEndDatePopupOpen = true
+					} else {
+					routineData.endDate = ''
+					selectedEndDateTime.value = null
+					}
+				}"
+				/>
+				<span class="slider"></span>
+			</label>
+			종료일 지정
+			<p v-if="selectedEndDateTime" class="start_date_preview">
+				{{ selectedEndDateTime.year }}-{{ selectedEndDateTime.month }}-{{ selectedEndDateTime.date }}
+			</p>
+			</div>
+				
+				
 				<div>
 					<label class="toggle-switch">
 						<input type="checkbox" v-model="isAlarmOn" />
@@ -152,7 +177,23 @@
 			@close="handleDatePopupClose"
 		/>
 
-		<!-- 알람시간 팝업 -->
+		<!-- 종료일 팝업 -->
+			<DateTimePickerPopup
+			v-if="isEndDatePopupOpen"
+			title="종료일을 선택하세요"
+			:showYear="true"
+			:showMonth="true"
+			:showDate="true"
+			:showAmPm="false"
+			:showHour="false"
+			:showMinute="false"
+			:showSecond="false"
+			:minDate="routineData.startDate || todayString"
+			@confirm="onEndDateConfirm"
+			@close="handleEndDatePopupClose"
+			/>
+					
+			<!-- 알람시간 팝업 -->
 		<DateTimePickerPopup
 			v-if="isAlarmPopupOpen"
 			title="알람시간을 선택하세요"
@@ -191,66 +232,80 @@ const routineData = ref({
   days: [],
   months: [],
   dates: [],
-  startDate: '',
+  startDate: {
+    year: '',
+    month: '',
+    date: ''
+  },
+  endDate: {
+    year: '',
+    month: '',
+    date: '',
+    hour: '',
+    minute: '',
+    ampm: '',
+    second: ''
+  },
   time: '',
   goalCount: 0,
-  color: 'cchart01', 
+  color: 'cchart01',
   createdAt: null,
-  userId: null,	
-  status: 'active',        // 그냥 문자열 값만
+  userId: null,
+  status: 'active',
   pauseDate: null
 })
 
-watch(
-  () => props.routineToEdit,
-  (newRoutine) => {
-    if (newRoutine) {
-      // 기존 객체에 덮어쓰기 (반응성 유지)
-      Object.assign(routineData.value, {
-        title: newRoutine.title || '',
-        comment: newRoutine.comment || '',
-        frequencyType: newRoutine.frequencyType || '',
-        days: newRoutine.days || [],
-        months: newRoutine.months || [],
-        dates: newRoutine.dates || [],
-        startDate: newRoutine.startDate || '',
-        endDate: newRoutine.endDate || '',
-        time: newRoutine.time || '',
-        goalCount: newRoutine.goalCount || 0,
-        color: newRoutine.color || '',
-        status: newRoutine.status || 'active',        // ✅ 일시정지 상태 포함
-        pauseDate: newRoutine.pauseDate || null       // ✅ 일시정지 일자 포함
-      })
+const selectedEndDateTime = ref(null)
 
-      // 🎯 컬러 인덱스 복원
-      const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
-      if (match) {
-        selectedColorIndex.value = Number(match[1]) - 1
-      } else {
-        selectedColorIndex.value = null
-      }
-    } else {
-      // ✨ 초기화할 때도 반응성 유지
-      Object.assign(routineData.value, {
-        title: '',
-        comment: '',
-        frequencyType: '',
-        days: [],
-        months: [],
-        dates: [],
-        startDate: '',
-        endDate: '',
-        time: '',
-        goalCount: 0,
-        color: 'cchart01',           // 초기값 설정
-        status: 'active',            // 기본 상태
-        pauseDate: null
-      })
-      selectedColorIndex.value = null
-    }
-  },
-  { immediate: true }
-)
+const onEndDateConfirm = (value) => {
+  routineData.value.endDate = { ...value }
+  selectedEndDateTime.value = value
+  isEndDatePopupOpen.value = false
+}
+
+const handleEndDatePopupClose = () => {
+  isEndDatePopupOpen.value = false
+}
+
+watch(() => props.routineToEdit, (newRoutine) => {
+  if (newRoutine) {
+    Object.assign(routineData.value, {
+      title: newRoutine.title || '',
+      comment: newRoutine.comment || '',
+      frequencyType: newRoutine.frequencyType || '',
+      days: newRoutine.days || [],
+      months: newRoutine.months || [],
+      dates: newRoutine.dates || [],
+      startDate: newRoutine.startDate || '',
+      endDate: newRoutine.endDate || '',
+      time: newRoutine.time || '',
+      goalCount: newRoutine.goalCount || 0,
+      color: newRoutine.color || '',
+      status: newRoutine.status || 'active',
+      pauseDate: newRoutine.pauseDate || null
+    })
+
+    const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
+    selectedColorIndex.value = match ? Number(match[1]) - 1 : null
+  } else {
+    Object.assign(routineData.value, {
+      title: '',
+      comment: '',
+      frequencyType: '',
+      days: [],
+      months: [],
+      dates: [],
+      startDate: '',
+      endDate: '',
+      time: '',
+      goalCount: 0,
+      color: 'cchart01',
+      status: 'active',
+      pauseDate: null
+    })
+    selectedColorIndex.value = null
+  }
+}, { immediate: true })
 
 const toggleDay = (day) => {
   if (routineData.value.days.includes(day)) {
@@ -268,7 +323,16 @@ const todayString = `${yyyy}-${mm}-${dd}`
 
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
-const selectedStartDateTime = ref(null)
+const selectedStartDateTime = ref({
+  year: '',
+  month: '',
+  date: ''
+})
+
+const isEndDateOn = ref(false)
+const isEndDatePopupOpen = ref(false)
+const selectedEndDate = ref('')
+
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
@@ -279,7 +343,6 @@ const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월'
 const selectedMonthOption = ref(null)
 const selectedDates = ref([])
 const colorCount = 10
-
 
 const toggleDateSelection = (day) => {
   if (selectedDates.value.includes(day)) {
@@ -301,6 +364,21 @@ watch(isStartDateOn, (val) => {
   } else {
     selectedStartDateTime.value = null
     routineData.value.startDate = ''
+  }
+})
+
+watch(isEndDateOn, (val) => {
+  if (!val) {
+    selectedEndDateTime.value = null
+    routineData.value.endDate = {
+      year: '',
+      month: '',
+      date: '',
+      hour: '',
+      minute: '',
+      ampm: '',
+      second: ''
+    }
   }
 })
 
@@ -353,40 +431,24 @@ const saveRoutine = async () => {
 
   try {
     if (props.routineToEdit) {
-      // ✅ 수정 로직
-     console.log("🧩 routineToEdit.id:", props.routineToEdit?.id) 
-	  const routineRef = doc(db, 'routines', props.routineToEdit.id)
+      const routineRef = doc(db, 'routines', props.routineToEdit.id)
       await updateDoc(routineRef, {
         ...routineData.value,
-        userId: user.uid  // 혹시 몰라 안전하게 넣음
+        userId: user.uid
       })
       alert("다짐이 수정되었습니다!")
     } else {
-      // ✅ 신규 저장 로직
       await addDoc(collection(db, 'routines'), {
-		title: routineData.value.title,
-		comment: routineData.value.comment,
-		frequencyType: routineData.value.frequencyType,
-		days: routineData.value.days,
-		months: routineData.value.months,
-		dates: routineData.value.dates,
-		startDate: routineData.value.startDate,
-		endDate: routineData.value.endDate,
-		time: routineData.value.time,
-		goalCount: routineData.value.goalCount,
-		color: routineData.value.color,
-		status: routineData.value.status,        // ✅ 새로 추가된 필드
-		pauseDate: routineData.value.pauseDate,  // ✅ 새로 추가된 필드
-		createdAt: serverTimestamp(),
-		userId: user.uid
-		})
+        ...routineData.value,
+        createdAt: serverTimestamp(),
+        userId: user.uid
+      })
       alert("다짐이 저장되었습니다!")
     }
 
-    // ✅ 저장 후 화면 갱신
     setTimeout(() => {
-      emit('refresh')   // 메인뷰에게 다시 fetch하라고 알림
-      emit('close')     // 팝업 닫기
+      emit('refresh')
+      emit('close')
     }, 500)
   } catch (err) {
     console.error("저장 실패:", err)
@@ -406,7 +468,7 @@ const togglePauseStatus = () => {
     routineData.value.status = 'active'
     routineData.value.pauseDate = null
   }
-} 
+}
 
 onMounted(async () => {
   setupToggleBlocks({
@@ -420,7 +482,6 @@ onMounted(async () => {
   setupCheckButtons()
   await nextTick()
 
-  
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
@@ -431,5 +492,6 @@ onMounted(async () => {
   }
 })
 </script>
+
 
 
