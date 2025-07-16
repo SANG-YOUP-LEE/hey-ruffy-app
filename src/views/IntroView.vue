@@ -24,7 +24,6 @@
 
 <script setup>
 import { useRouter } from "vue-router";
-import ruffyImage from "@/assets/ruffy.png"; // 이미지 import
 
 const router = useRouter();
 
