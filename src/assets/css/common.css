@@ -129,9 +129,9 @@ label {
   font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
-  background-color: #fff1c2;
-  border:0.1rem solid #ccc;
-  color: #333;
+  background-color: #ff505c;
+  border:0.1rem solid #ff505c;
+  color: #fff;
   text-decoration: none;
 }
 
