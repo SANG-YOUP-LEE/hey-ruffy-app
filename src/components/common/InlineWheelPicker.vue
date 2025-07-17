@@ -95,8 +95,7 @@ const onScroll = () => {
   height: 40px;
   left: 0;
   right: 0;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+
   pointer-events: none;
 }
 </style>
