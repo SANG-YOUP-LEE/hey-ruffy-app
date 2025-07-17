@@ -111,7 +111,6 @@ label {
 button,
 a {
   text-align: center;
-  display: inline-block;
   cursor: pointer;
   vertical-align:middle;
   text-decoration:none;
