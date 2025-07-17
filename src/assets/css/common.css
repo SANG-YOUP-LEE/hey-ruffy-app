@@ -451,13 +451,13 @@ a[class$="green"] {
 }
 
 .intro_wrap .ruffy-img {
-  width: 10rem;
+  width: 15rem;
 	margin:0.5rem 0 0 0;
 	margin:0 auto;
 }
 
 .intro_wrap .button {
-	margin-top:1rem
+	margin-top:0rem
 }
 
 .intro_wrap .button a{
