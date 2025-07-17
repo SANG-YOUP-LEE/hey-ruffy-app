@@ -113,7 +113,8 @@ a {
   text-align: center;
   display: inline-block;
   cursor: pointer;
-  vertical-align:middle
+  vertical-align:middle;
+  text-decoration:none;
 }
 
 button[class^="b_"],
