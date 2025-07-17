@@ -11,11 +11,11 @@
         class="ruffy-img"
       />
       <div class="button">
-        <a href="#" class="b_green" @click="goToExplore">러피방 구경하기</a>
-        <a href="#" class="b_green" @click="goToSignup">러피랑 친구맺기</a>
+        <a href="#none" class="b_green" @click="goToExplore">러피방 구경하기</a>
+        <a href="#none" class="b_green" @click="goToSignup">러피랑 친구맺기</a>
       </div>
       <div class="footer-text">
-        러피랑 이미 친구라면 <a href="#" @click="goToLogin">여기</a>를
+        러피랑 이미 친구라면 <a href="#none" @click="goToLogin">여기</a>를
         눌러주세요!
       </div>
     </div>
