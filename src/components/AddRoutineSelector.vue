@@ -437,6 +437,11 @@ const saveRoutine = async () => {
     return
   }
 
+if (routineData.value.frequencyType === 'daily') {
+  routineData.value.repeatText = selectedRepeatDaily.value
+} else if (routineData.value.frequencyType === 'weekly') {
+  routineData.value.repeatText = selectedRepeatWeekly.value
+}
   try {
     if (props.routineToEdit) {
       const routineRef = doc(db, 'routines', props.routineToEdit.id)
