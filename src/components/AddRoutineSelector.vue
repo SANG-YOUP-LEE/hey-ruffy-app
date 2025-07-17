@@ -260,7 +260,11 @@ const routineData = ref({
   pauseDate: null
 })
 
-const selectedEndDateTime = ref(null)
+const formatDate = (dateObj) => {
+  if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.date) return '--'
+  return `${dateObj.year}.${String(dateObj.month).padStart(2, '0')}.${String(dateObj.date).padStart(2, '0')}`
+}
+
 
 const onEndDateConfirm = (value) => {
   routineData.value.endDate = { ...value }
@@ -334,9 +338,14 @@ const selectedStartDateTime = ref({
   date: ''
 })
 
+const selectedEndDateTime = ref({
+  year: '',
+  month: '',
+  date: ''
+})
 const isEndDateOn = ref(false)
 const isEndDatePopupOpen = ref(false)
-const selectedEndDate = ref('')
+
 
 const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
@@ -365,6 +374,7 @@ const handleColorClick = (index) => {
   routineData.value.color = `cchart${String(index + 1).padStart(2, '0')}`
 }
 
+
 watch(isStartDateOn, (val) => {
   if (val) {
     isDatePopupOpen.value = true
@@ -378,14 +388,10 @@ watch(isEndDateOn, (val) => {
   if (!val) {
     selectedEndDateTime.value = null
     routineData.value.endDate = {
-      year: '',
-      month: '',
-      date: '',
-      hour: '',
-      minute: '',
-      ampm: '',
-      second: ''
-    }
+    year: '',
+    month: '',
+    date: '',
+  }
   }
 })
 
