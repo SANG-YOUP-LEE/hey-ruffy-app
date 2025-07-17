@@ -86,7 +86,7 @@ ul, ol {
 
 a {
   text-decoration:none;
-	color:#438EDB;
+	color:#00af80;
 	vertical-align:middle;
 }
 
@@ -117,22 +117,21 @@ label {
 .button {
   width: 100%;
   text-align: center;
+  display: inline-block;
+  cursor: pointer;
 }
 
-.button a,
-.button button {
-  width: 100%;
-  display: inline-block;
+button[class^="b_"] {
   padding: 1rem 0;
-  border: none;
   border-radius: 2rem;
   font-size: 1.2rem;
   font-weight: 600;
-  cursor: pointer;
+}
+
+button[class$="green"] {
   background-color: #00af80;
   border:0.1rem solid #00af80;
   color: #fff;
-  text-decoration: none;
 }
 
 /* 토글 외형 */
