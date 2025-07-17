@@ -81,10 +81,7 @@ ul, ol {
 }
 
 a {
-  text-decoration:none;
 	color:#00af80;
-	vertical-align:middle;
-  line-height:1.5rem;
 }
 
 a.temp {
@@ -116,6 +113,7 @@ a {
   text-align: center;
   display: inline-block;
   cursor: pointer;
+  vertical-align:middle
 }
 
 button[class^="b_"],
