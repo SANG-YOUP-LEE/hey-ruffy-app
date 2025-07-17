@@ -53,10 +53,7 @@
 
 				<!-- 월간 상세 -->
 				<div class="rt_make_detail" id="v_detail03_block">
-					<div class="select_monthly">
-						<div class="select_m_inner">
-							<InlineWheelPicker :items="monthlyOptions" v-model="selectedMonthOption" :itemHeight="40" />
-						</div>
+					<div class="">
 						<div class="monthly-grid">
 							<span
 								class="m_s_btn"
