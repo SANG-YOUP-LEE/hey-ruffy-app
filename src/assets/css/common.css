@@ -82,7 +82,7 @@ ul, ol {
 
 a {
 	color:#00af80;
-  text-decoration:none;
+  text-decoration:underline;
   cursor: pointer;
 }
 
@@ -113,7 +113,6 @@ label {
 button {
   text-align: center;
   vertical-align:middle;
-  display:inline-block;
 }
 
 button[class^="b_"],
@@ -124,6 +123,7 @@ a[class^="b_"] {
   font-size: 1.2rem;
   font-weight: 600;
   display:inline-block;
+  text-decoration:none;
 }
 
 button[class$="green"],
@@ -424,7 +424,7 @@ a[class$="green"] {
 
 .intro_wrap h2,
 .join_wrap h2 {
-  font-family: 'Paperlogy-8ExtraBold';
+  font-family: 'Freesentation-9Black';
   line-height:2rem;
 }
 .intro_wrap .agree a,
@@ -439,7 +439,7 @@ a[class$="green"] {
 }
 
 .intro_wrap h1 {
-	font-family: 'Paperlogy-8ExtraBold';
+	font-family: 'Freesentation-9Black';
   font-size:3rem;
   line-height:3.5rem;
 }
