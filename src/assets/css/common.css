@@ -76,10 +76,6 @@ input, button, textarea, select {
 	box-sizing: border-box;
 }
 
-button {
-  cursor: pointer;
-}
-
 ul, ol {
   list-style: none;
 }
@@ -114,21 +110,24 @@ label {
 	display:none
 }
 
-.button {
-  width: 100%;
+button,
+a {
   text-align: center;
   display: inline-block;
   cursor: pointer;
 }
 
-button[class^="b_"] {
+button[class^="b_"],
+a {
+  width:100%;
   padding: 1rem 0;
   border-radius: 2rem;
   font-size: 1.2rem;
   font-weight: 600;
 }
 
-button[class$="green"] {
+button[class$="green"],
+a {
   background-color: #00af80;
   border:0.1rem solid #00af80;
   color: #fff;
