@@ -27,11 +27,10 @@
 			<div class="form_box_g rt_make day_box">
 				<h3>얼마나 자주 지켜야해요?</h3>
 				<p>
-					<button id="v_detail01" @click="routineData.frequencyType = 'daily'">일간</button>
-					<button id="v_detail02" @click="routineData.frequencyType = 'weekly'">주간</button>
-					<button id="v_detail03" @click="routineData.frequencyType = 'monthly'">월간</button>
-				</p>
-
+  <button id="v_detail01" @click="handleTabClick('daily')">일간</button>
+  <button id="v_detail02" @click="handleTabClick('weekly')">주간</button>
+  <button id="v_detail03" @click="handleTabClick('monthly')">월간</button>
+</p>
 				<!-- 일간 상세 -->
 <div class="rt_make_detail" id="v_detail01_block">
   <div class="select_week">
