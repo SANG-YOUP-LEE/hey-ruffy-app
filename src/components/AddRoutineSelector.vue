@@ -342,8 +342,8 @@ const isAlarmOn = ref(false)
 const isAlarmPopupOpen = ref(false)
 const selectedAlarmTime = ref(null)
 
-const repeatOptionsDaily = ['2일마다', '3일마다', '4일마다', '5일마다', '6일마다']
-const repeatOptionsWeekly = ['매주', '2주마다', '3주마다', '4주마다', '5주마다']
+const repeatOptionsDaily = ['매일', '2일마다', '3일마다', '4일마다', '5일마다', '6일마다']
+const repeatOptionsWeekly = ['2주마다', '3주마다', '4주마다', '5주마다']
 const selectedRepeatDaily = ref(null)
 const selectedRepeatWeekly = ref(null)
 const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
