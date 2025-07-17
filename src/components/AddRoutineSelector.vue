@@ -32,23 +32,33 @@
 					<button id="v_detail03" @click="routineData.frequencyType = 'monthly'">월간</button>
 				</p>
 
-				<!--일간 상세-->
-				<div class="rt_make_detail" id="v_detail01_block">
-					<div class="select_week">
-						<InlineWheelPicker :items="repeatOptions" v-model="selectedRepeat" :itemHeight="40" />
-					</div>
-				</div>
+				<!-- 일간 상세 -->
+<div class="rt_make_detail" id="v_detail01_block">
+  <div class="select_week">
+    <InlineWheelPicker
+      :items="repeatOptionsDaily"
+      v-model="selectedRepeatDaily"
+      :itemHeight="40"
+    />
+  </div>
+</div>
 
-				<!-- 주간 상세 -->
-				<div class="rt_make_detail" id="v_detail02_block">
-					<div class="select_week">
-						<InlineWheelPicker :items="repeatOptions" v-model="selectedRepeat" :itemHeight="40" />
-					</div>
-					<p class="check_btn">
-						<button class="all" @click="routineData.days = ['일','월','화','수','목','금','토']">매일</button>
-						<button v-for="d in ['일','월','화','수','목','금','토']" :key="d + 'w'" @click="toggleDay(d)">{{ d }}</button>
-					</p>
-				</div>
+<!-- 주간 상세 -->
+<div class="rt_make_detail" id="v_detail02_block">
+  <div class="select_week">
+    <InlineWheelPicker
+      :items="repeatOptionsWeekly"
+      v-model="selectedRepeatWeekly"
+      :itemHeight="40"
+    />
+  </div>
+  <p class="check_btn">
+    <button class="all" @click="routineData.days = ['일','월','화','수','목','금','토']">매일</button>
+    <button v-for="d in ['일','월','화','수','목','금','토']" :key="d + 'w'" @click="toggleDay(d)">
+      {{ d }}
+    </button>
+  </p>
+</div>
 
 				<!-- 월간 상세 -->
 				<div class="rt_make_detail" id="v_detail03_block">
