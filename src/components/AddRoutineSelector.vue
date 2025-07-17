@@ -34,10 +34,9 @@
 
 				<!--일간 상세-->
 				<div class="rt_make_detail" id="v_detail01_block">
-					<p class="check_btn">
-						<button class="all" @click="routineData.days = ['일','월','화','수','목','금','토']">매일</button>
-						<button v-for="d in ['일','월','화','수','목','금','토']" :key="d" @click="toggleDay(d)">{{ d }}</button>
-					</p>
+					<div class="select_week">
+						<InlineWheelPicker :items="repeatOptions" v-model="selectedRepeat" :itemHeight="40" />
+					</div>
 				</div>
 
 				<!-- 주간 상세 -->
