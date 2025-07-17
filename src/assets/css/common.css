@@ -118,7 +118,7 @@ a {
 }
 
 button[class^="b_"],
-a {
+a[class^="b_"] {
   width:100%;
   padding: 1rem 0;
   border-radius: 2rem;
@@ -127,7 +127,7 @@ a {
 }
 
 button[class$="green"],
-a {
+a[class$="green"] {
   background-color: #00af80;
   border:0.1rem solid #00af80;
   color: #fff;
