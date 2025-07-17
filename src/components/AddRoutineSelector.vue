@@ -504,6 +504,22 @@ onMounted(async () => {
     dailyBlock.style.display = 'block'
   }
 })
+
+const handleTabClick = (type) => {
+  routineData.value.frequencyType = type
+
+  // 모든 버튼 초기화
+  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+
+  // 해당 탭 버튼 및 블록 활성화
+  const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
+  const tabBlock = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}_block`)
+  if (tabBtn && tabBlock) {
+    tabBtn.classList.add('on')
+    tabBlock.style.display = 'block'
+  }
+}
 </script>
 
 
