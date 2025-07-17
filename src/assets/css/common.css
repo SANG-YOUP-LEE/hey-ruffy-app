@@ -82,6 +82,8 @@ ul, ol {
 
 a {
 	color:#00af80;
+  text-decoration:none;
+  cursor: pointer;
 }
 
 a.temp {
@@ -110,9 +112,7 @@ label {
 
 button {
   text-align: center;
-  cursor: pointer;
   vertical-align:middle;
-  text-decoration:none;
   display:inline-block;
 }
 
@@ -123,6 +123,7 @@ a[class^="b_"] {
   border-radius: 2rem;
   font-size: 1.2rem;
   font-weight: 600;
+  display:inline-block;
 }
 
 button[class$="green"],
