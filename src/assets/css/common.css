@@ -108,12 +108,12 @@ label {
 	display:none
 }
 
-button,
-a {
+button {
   text-align: center;
   cursor: pointer;
   vertical-align:middle;
   text-decoration:none;
+  display:inline-block;
 }
 
 button[class^="b_"],
