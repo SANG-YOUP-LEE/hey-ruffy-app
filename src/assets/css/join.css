@@ -82,16 +82,6 @@
   opacity: 1 !important;
 }
 
-.warn-message {
-  margin-top: 1rem;
-  padding: 0.8rem 1rem;
-  background-color: #fff3f3;
-  border: 1px solid #ffa0a0;
-.input-error {
-  border: 1px solid #e5484d;
-  background-color: #fff0f0;
-  outline: none;
-}
 
 /* ✅ 버튼 스타일 전체 정리 */
 .sub-button {
@@ -112,15 +102,4 @@
 .sub-button.gray {
   background-color: #eee; /* 회색 버튼 */
   color: #333;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
