@@ -39,11 +39,11 @@
       </div>
 
       <div class="warn-message" v-if="!signupComplete && showWarning">
-        <p v-if="!email">이메일을 입력해 주세요 🐶</p>
-        <p v-else-if="!password">비밀번호를 입력해 주세요 🌙</p>
-        <p v-else-if="password !== passwordCheck">비밀번호가 일치하지 않아요 🧩</p>
-        <p v-else-if="!nickname">닉네임을 입력해 주세요 💫</p>
-        <p v-else-if="!isOver14">14세 이상임을 확인해 주세요 🍑</p>
+        <p v-if="!email">이메일을 입력해 주세요.</p>
+        <p v-else-if="!password">비밀번호를 입력해 주세요.</p>
+        <p v-else-if="password !== passwordCheck">비밀번호가 일치하지 않아요.</p>
+        <p v-else-if="!nickname">닉네임을 입력해 주세요.</p>
+        <p v-else-if="!isOver14">14세 이상임을 확인해 주세요.</p>
       </div>
 
       <div class="join_inner">
@@ -62,6 +62,7 @@
 
       <div class="button">
         <button
+          class="b_green"
           :disabled="loading || signupComplete"
           @click="handleSignup"
           v-if="!signupComplete"
@@ -203,80 +204,3 @@ const editEmail = () => {
   isOver14.value = false
 }
 </script>
-
-<style scoped>
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.checkbox-label input[type="checkbox"] {
-  display: inline-block !important;
-  width: 1.2rem;
-  height: 1.2rem;
-  margin: 0;
-  appearance: auto !important;
-  position: static !important;
-  opacity: 1 !important;
-}
-
-.warn-message {
-  margin-top: 1rem;
-  padding: 0.8rem 1rem;
-  background-color: #fff3f3;
-  border: 1px solid #ffa0a0;
-  border-radius: 0.5rem;
-  color: #e5484d;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  animation: fadeIn 0.3s ease-in-out;
-  text-align: center;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.warn-message p {
-  margin: 0.3rem 0;
-  font-weight: bold;
-}
-
-.input-error {
-  border: 1px solid #e5484d;
-  background-color: #fff0f0;
-  outline: none;
-}
-
-/* ✅ 버튼 스타일 전체 정리 */
-.sub-button {
-  display: block;
-  width: 100%;
-  padding: 0.8rem 1.2rem;
-  border-radius: 2rem;
-  font-weight: bold;
-  font-size: 1rem;
-  margin: 0.5rem 0;
-  text-align: center;
-  background-color: #0099ff; /* 기본: 파란색 */
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-.sub-button.gray {
-  background-color: #eee; /* 회색 버튼 */
-  color: #333;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
