@@ -89,22 +89,6 @@ a {
   cursor: pointer;
 }
 
-a.temp {
-	width:2rem;
-	height:2rem;
-	display:inline-block
-}
-
-a.temp span {
-	display:none
-}
-
-a.temp img,
-span.icon.temp {
-	width:100%;
-	height:100%;
-}
-
 em {
   font-style: normal;
 }
@@ -347,5 +331,22 @@ a[class$="green"] {
 
 .h {
 	display:none
+}
+
+
+a.temp {
+	width:2rem;
+	height:2rem;
+	display:inline-block
+}
+
+a.temp span {
+	display:none
+}
+
+a.temp img,
+span.icon.temp {
+	width:100%;
+	height:100%;
 }
 
