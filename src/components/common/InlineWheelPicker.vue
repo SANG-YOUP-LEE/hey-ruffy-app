@@ -6,6 +6,7 @@
         :key="index"
         class="inline-wheel-item"
         :class="{ selected: index === selectedIndex }"
+        @click="handleItemClick(index)" <!-- 클릭 이벤트 추가 -->
       >
         {{ item }}
       </div>
@@ -28,8 +29,8 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const listRef = ref(null)
-const selectedIndex = ref(-1) // ✅ -1부터 시작 (선택 없음)
-const itemHeight = 40 // px
+const selectedIndex = ref(-1)
+const itemHeight = 40
 
 onMounted(() => {
   const index = props.items.findIndex((i) => i === props.modelValue)
@@ -56,10 +57,21 @@ watch(() => props.modelValue, (val) => {
 const onScroll = () => {
   const scrollTop = listRef.value.scrollTop
   const index = Math.round(scrollTop / itemHeight)
-
   if (index !== selectedIndex.value && props.items[index] !== undefined) {
     selectedIndex.value = index
     emit('update:modelValue', props.items[index])
+  }
+}
+
+// 터치 선택을 위한 핸들러
+const handleItemClick = (index) => {
+  if (props.items[index] !== undefined) {
+    selectedIndex.value = index
+    emit('update:modelValue', props.items[index])
+    // 클릭 시 스크롤도 해당 위치로 이동
+    nextTick(() => {
+      listRef.value.scrollTop = index * itemHeight
+    })
   }
 }
 </script>
