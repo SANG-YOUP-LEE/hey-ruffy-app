@@ -42,6 +42,10 @@
 }
 
 
+.join_wrap .button botton {
+  margin-bottom:0.5rem
+}
+
 .join_wrap .form {
 	margin:1rem 0 0.5rem 0;
 }
