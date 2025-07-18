@@ -42,6 +42,7 @@
         <p v-if="!email">이메일을 입력해 주세요.</p>
         <p v-else-if="!isValidEmail(email)">이메일 형식이 바르지 않습니다.</p>
         <p v-else-if="!password">비밀번호를 입력해 주세요.</p>
+        <p v-else-if="password.length < 6">비밀번호는 6자 이상 입력해 주세요.</p>
         <p v-else-if="password !== passwordCheck">비밀번호가 일치하지 않아요.</p>
         <p v-else-if="!nickname">닉네임을 입력해 주세요.</p>
         <p v-else-if="!isOver14">14세 이상임을 확인해 주세요.</p>
@@ -129,6 +130,7 @@ const handleSignup = async () => {
     !email.value ||
     !isValidEmail(email.value) ||  
     !password.value ||
+    password.value.length < 6 ||
     !nickname.value.trim() ||
     !isOver14.value ||
     password.value !== passwordCheck.value
