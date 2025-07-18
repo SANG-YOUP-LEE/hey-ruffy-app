@@ -45,8 +45,8 @@ const selectedMonth = ref(today.getMonth() + 1)
 const selectedDate = ref(today.getDate())
 const selectedAmPm = ref('오전')
 const selectedHour = ref(1)
-const selectedMinute = ref(0)
-const selectedSecond = ref(0)
+const selectedMinute = ref('00') // string으로 설정 (두자리)
+const selectedSecond = ref('00')
 
 const parsedMinDate = computed(() => {
   if (!props.minDate) return null
@@ -84,13 +84,12 @@ watch([selectedYear, selectedMonth], () => {
 
 const ampmList = ['오전', '오후']
 const hourList = computed(() => Array.from({ length: 12 }, (_, i) => i + 1))
-const minuteList = computed(() => Array.from({ length: 60 }, (_, i) => i))
-const secondList = computed(() => Array.from({ length: 60 }, (_, i) => i))
+
+// 두자리 문자열로 표시
+const minuteList = computed(() => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')))
+const secondList = computed(() => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')))
 
 const confirm = () => {
-  // 분(minute)과 초(second) 패딩 처리
-  const paddedMinute = String(selectedMinute.value).padStart(2, '0')
-  const paddedSecond = String(selectedSecond.value).padStart(2, '0')
   emit('confirm', {
     year: selectedYear.value,
     month: selectedMonth.value,
@@ -103,4 +102,3 @@ const confirm = () => {
   emit('close')
 }
 </script>
-
