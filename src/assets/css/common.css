@@ -124,12 +124,13 @@ a[class$="green"] {
 .warn-message,
 .info-message {
   width:100%;
-  margin:1.5rem 0 1.5rem 0;
-  padding: 1.5rem;
+  margin:1.2rem 0 1.2rem 0;
+  padding: 1rem 1.5rem 1rem 1.5rem;
   border-radius: 1rem;
   animation: fadeIn 0.3s ease-in-out;
   text-align: center;
   font-size:0.9rem;
+  line-height:0.9rem;
   letter-spacing:-0.01rem;
   background-color:#f9f9f9;
   border:0.1rem solid #f1f1f1;
