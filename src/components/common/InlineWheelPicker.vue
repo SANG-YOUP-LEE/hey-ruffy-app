@@ -6,7 +6,7 @@
         :key="index"
         class="inline-wheel-item"
         :class="{ selected: index === selectedIndex }"
-        @click="handleItemClick(index)" <!-- 클릭 이벤트 추가 -->
+        @click="handleItemClick(index)"
       >
         {{ item }}
       </div>
