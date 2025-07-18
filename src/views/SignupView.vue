@@ -38,7 +38,7 @@
         />
       </div>
 
-      <div class="warn-message" v-if="!signupComplete && showWarning">
+      <div class="warn-message t_red01" v-if="!signupComplete && showWarning">
         <p v-if="!email">이메일을 입력해 주세요.</p>
         <p v-else-if="!isValidEmail(email)">이메일 형식이 바르지 않습니다.</p>
         <p v-else-if="!password">비밀번호를 입력해 주세요.</p>
