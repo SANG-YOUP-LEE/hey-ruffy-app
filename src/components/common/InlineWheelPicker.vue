@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 
 const props = defineProps({
   items: {
@@ -48,21 +48,6 @@ const scrollToTop = () => {
   }
 }
 
-onMounted(() => {
-  updateSelectedIndexFromModel()
-})
-
-// modelValue가 바뀔 때 → 선택 위치 이동
-watch(() => props.modelValue, (val) => {
-  updateSelectedIndexFromModel()
-})
-
-// resetKey가 바뀔 때만 무조건 초기화 (다른 탭에서 돌아온 경우)
-watch(() => props.resetKey, () => {
-  selectedIndex.value = -1
-  scrollToTop()
-})
-
 const updateSelectedIndexFromModel = () => {
   const i = props.items.findIndex((item) => item === props.modelValue)
   if (i >= 0) {
@@ -72,6 +57,23 @@ const updateSelectedIndexFromModel = () => {
     selectedIndex.value = -1
   }
 }
+
+onMounted(() => {
+  updateSelectedIndexFromModel()
+})
+
+watch(() => props.modelValue, () => {
+  updateSelectedIndexFromModel()
+})
+
+// ✅ resetKey가 바뀔 때 무조건 초기화 + nextTick 후 selectedIndex 재초기화
+watch(() => props.resetKey, async () => {
+  selectedIndex.value = -1
+  scrollToTop()
+
+  await nextTick()
+  selectedIndex.value = -1 // 렌더 후에도 확실하게 제거
+})
 
 const onScroll = () => {
   const scrollTop = listRef.value.scrollTop
@@ -116,11 +118,13 @@ const handleItemClick = (index) => {
   text-align: center;
   font-size: 1rem;
   color: #666;
+  transition: background-color 0.2s;
 }
 
 .inline-wheel-item.selected {
   color: #000;
   font-weight: bold;
+  background-color: #ffe08a; /* 예시: 노란 배경 */
 }
 
 .highlight-overlay {
