@@ -57,7 +57,12 @@ watch(() => props.modelValue, (val) => {
 const onScroll = () => {
   const scrollTop = listRef.value.scrollTop
   const index = Math.round(scrollTop / itemHeight)
-  if (index !== selectedIndex.value && props.items[index] !== undefined) {
+
+  if (
+    index >= 0 &&
+    index < props.items.length &&
+    index !== selectedIndex.value
+  ) {
     selectedIndex.value = index
     emit('update:modelValue', props.items[index])
   }
