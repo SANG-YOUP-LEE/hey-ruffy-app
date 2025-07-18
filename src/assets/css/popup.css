@@ -1,3 +1,43 @@
+/* 알럿 팝업 */
+
+.alert p.comment {
+	line-height:1.4rem;
+	letter-spacing:-0.01rem;
+	padding:2rem;
+	margin:1rem;
+	color:#777
+}
+
+.alert p.comment strong {
+	width:100%;
+	color:#333;
+	font-size:1.2rem;
+	display:inline-block;
+	margin-bottom:0.5rem;
+}
+
+.alert p.sns {
+	display:flex;
+	gap:1rem;
+	justify-content: center;
+	align-items: center;
+	margin:1rem
+}
+
+.alert p.sns img {
+	width:3rem;
+	height:3rem
+}
+
+.alert p.sns img:last-child {
+	width:2rem;
+	height:2rem
+}
+
+.full_popup {
+  z-index: 99999; /* 다른 팝업보다 높게 */
+}
+
 body.popup-open {
   overflow: hidden !important;
   height: 100%;
