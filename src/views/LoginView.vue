@@ -82,7 +82,7 @@ const login = async () => {
       }, 1000);
     } else {
       await signOut(auth);
-      error.value = '이메일을 확인한 후 인증해주세요.<br />혹시 이메일이 도착하지 않았다면<br />스팸메일함도 확인해주세요.';
+      error.value = '이메일을 확인하신 후 인증해주세요.<br />혹시 이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.';
     }
   } catch (err) {
     error.value = getFirebaseErrorMessage(err.code);
@@ -95,7 +95,7 @@ const resetPassword = async () => {
   errorField.value = '';
 
   if (!email.value) {
-    error.value = "비밀번호를 재설정하려면<br />이메일을 먼저 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.";
+    error.value = "비밀번호 재설정을 위해<br />이메일을 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.";
     errorField.value = 'email';
     return;
   }
