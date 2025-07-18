@@ -29,7 +29,7 @@
       </div>
 
       <div class="button">
-        <a href="#" @click.prevent="login" class="login-button">러피 만나러가기</a>
+        <a href="#" @click.prevent="login" class="b_green">러피 만나러가기</a>
       </div>
     </div>
   </div>
@@ -76,13 +76,13 @@ const login = async () => {
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
 
     if (userCredential.user.emailVerified) {
-      message.value = '로그인 성공! 잠시만 기다려 주세요...';
+      message.value = '로그인 중이예요...';
       setTimeout(() => {
         router.push('/main');
       }, 1000);
     } else {
       await signOut(auth);
-      error.value = '이메일 인증이 필요합니다. 메일함을 확인해 주세요.';
+      error.value = '이메일을 확인한 후 인증해주세요. 이메일이 도착하지 않았으면 스팸메일함도 확인해주세요.';
     }
   } catch (err) {
     error.value = getFirebaseErrorMessage(err.code);
@@ -108,55 +108,4 @@ const resetPassword = async () => {
   }
 };
 </script>
-
-<style scoped>
-.warn-message {
-  margin-top: 1rem;
-  padding: 0.8rem 1rem;
-  background-color: #fff3f3;
-  border: 1px solid #ffa0a0;
-  border-radius: 0.5rem;
-  color: #e5484d;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  animation: fadeIn 0.3s ease-in-out;
-  text-align: center;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.info-message {
-  margin-top: 1rem;
-  padding: 0.8rem 1rem;
-  background-color: #f3f9ff;
-  border: 1px solid #a0c8ff;
-  border-radius: 0.5rem;
-  color: #2080ff;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  animation: fadeIn 0.3s ease-in-out;
-  text-align: center;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.input.error {
-  border: 1px solid #e5484d;
-  background-color: #fff0f0;
-  outline: none;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
 
