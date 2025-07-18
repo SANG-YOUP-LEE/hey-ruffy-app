@@ -72,7 +72,7 @@ input[type="password"],
 input[type="email"] {
   width:100%;
   height:3rem;
-  border:0.1rem solid #333;
+  border:0.1rem solid #00b170;
   margin-bottom:0.5rem;
   border-radius:0.8rem;
   padding:0.3rem 1rem 0.3rem 1rem;
