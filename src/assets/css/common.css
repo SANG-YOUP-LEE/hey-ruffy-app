@@ -91,11 +91,9 @@ a {
 }
 
 em,
-.t_red01,
-.input.error,
-.input-error {
+.t_red01 {
   font-style: normal;
-  color:#ec6862
+  color:#ff4949
 }
 
 label {
