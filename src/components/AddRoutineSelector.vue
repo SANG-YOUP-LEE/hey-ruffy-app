@@ -274,6 +274,16 @@ const onEndDateConfirm = (value) => {
 
 const handleEndDatePopupClose = () => {
   isEndDatePopupOpen.value = false
+
+  // 날짜가 설정되지 않았으면 토글 꺼버리기
+  if (
+    !selectedEndDateTime.value ||
+    !selectedEndDateTime.value.year ||
+    !selectedEndDateTime.value.month ||
+    !selectedEndDateTime.value.date
+  ) {
+    isEndDateOn.value = false
+  }
 }
 
 watch(() => props.routineToEdit, (newRoutine) => {
