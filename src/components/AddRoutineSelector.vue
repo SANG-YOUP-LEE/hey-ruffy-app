@@ -223,6 +223,9 @@ import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import { auth, db } from '@/firebase'
 import { collection, doc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 
+const resetDailyKey = ref(0)
+const resetWeeklyKey = ref(0)
+
 const props = defineProps({
   routineToEdit: Object
 })
