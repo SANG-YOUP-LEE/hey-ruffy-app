@@ -90,8 +90,12 @@ a {
   cursor: pointer;
 }
 
-em {
+em,
+.t_red01,
+.input.error,
+.input-error {
   font-style: normal;
+  color:#ec6862
 }
 
 label {
@@ -142,10 +146,6 @@ a[class$="green"] {
 .info-message {
 }
 
-.input.error,
-.input-error {
-  color:#ff7891
-}
 
 @keyframes fadeIn {
   from {
