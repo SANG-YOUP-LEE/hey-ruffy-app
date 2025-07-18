@@ -122,8 +122,8 @@
 					</label>
 					알람 설정
 					<p v-if="selectedAlarmTime" class="start_date_preview">
-						{{ selectedAlarmTime.ampm }} {{ selectedAlarmTime.hour }}:{{ selectedAlarmTime.minute }}
-					</p>
+  {{ selectedAlarmTime.ampm }} {{ selectedAlarmTime.hour }}:{{ String(selectedAlarmTime.minute).padStart(2, '0') }}
+</p>
 				</div>
 			</div>
 
