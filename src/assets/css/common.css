@@ -12,20 +12,6 @@
   font-style: normal;
 }
 
-@font-face {
-  font-family: 'Freesentation-9Black';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-}
-
-
-@font-face {
-    font-family: 'GongGothicMedium';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/GongGothicMedium.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
 * {
   margin: 0;
   padding: 0;
@@ -45,7 +31,6 @@ html, body {
 }
 
 h1 {
-	font-family: 'Paperlogy-8ExtraBold';
   font-size:3.8rem;
   line-height:4.3rem;
   color:#00b170
