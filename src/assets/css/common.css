@@ -60,6 +60,20 @@ body.popup-open {
   touch-action: none;
 }
 
+h1 {
+	font-family: 'Paperlogy-8ExtraBold';
+  font-size:3.8rem;
+  line-height:4.3rem;
+  color:#00b170
+}
+
+h2 {
+  font-family: 'Paperlogy-8ExtraBold';
+  font-size:2rem;
+  line-height:2.5rem;
+  color:#00b170
+}
+
 img, picture, video, canvas, svg {
   max-width: 100%;
   height: auto;
@@ -74,6 +88,19 @@ input, button, textarea, select {
   outline: none;
   vertical-align: middle;
 	box-sizing: border-box;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width:100%;
+  height:3rem;
+  border:0.1rem solid #333;
+  margin-bottom:0.5rem;
+  border-radius:0.8rem;
+  padding:0.3rem 1rem 0.3rem 1rem;
+  line-height:2rem;
+  font-size:1.2rem;
 }
 
 ul, ol {
@@ -118,21 +145,56 @@ button {
 button[class^="b_"],
 a[class^="b_"] {
   width:100%;
-  padding: 1rem 0;
+  padding: 0.8rem 0;
   border-radius: 2rem;
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 800;
   display:inline-block;
   text-decoration:none;
 }
 
 button[class$="green"],
 a[class$="green"] {
-  background-color: #00af80;
-  border:0.1rem solid #00af80;
+  background-color: #00b170;
+  border:0.1rem solid #00b170;
   color: #fff;
 }
 
+.warn-message,
+.info-message {
+  width:100%;
+  margin:1rem 0 1rem 0;
+  padding: 1rem;
+  border-radius: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+  text-align: center;
+  background-color:#f1f1f1;
+  color:#333;
+  border:0.1rem solid #e9e9e9
+}
+
+.warn-message {
+}
+
+.info-message {
+}
+
+.input.error {
+  border: 1px solid #e5484d;
+  background-color: #fff0f0;
+  outline: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 /* 토글 외형 */
 .toggle-switch {
   position: relative;
@@ -409,39 +471,10 @@ a[class$="green"] {
   background-color:#fff;
 }
 
-.container input[type="text"],
-.container input[type="password"],
-.container input[type="email"] {
-  width:100%;
-  height:3rem;
-  border:0.1rem solid #ccc;
-  margin-bottom:0.5rem;
-  border-radius:0.8rem;
-  padding:0.3rem 1rem 0.3rem 1rem;
-  line-height:2rem;
-  font-size:1.2rem;
-}
-
-.intro_wrap h2,
-.join_wrap h2 {
-  font-family: 'Freesentation-9Black';
-  line-height:2rem;
-}
-.intro_wrap .agree a,
-.join_wrap .agree a {
-  text-decoration: underline;
-
-}
 
 /* 인트로 */
 .intro_wrap {
 	width:80%;margin:0 auto
-}
-
-.intro_wrap h1 {
-	font-family: 'Paperlogy-8ExtraBold';
-  font-size:3rem;
-  line-height:3.5rem;
 }
 
 .intro_wrap .subtext {
@@ -451,13 +484,13 @@ a[class$="green"] {
 }
 
 .intro_wrap .ruffy-img {
-  width: 15rem;
+  width: 13rem;
 	margin:0.5rem 0 0 0;
 	margin:0 auto;
 }
 
 .intro_wrap .button {
-	margin-top:0rem
+	margin-top:1rem
 }
 
 .intro_wrap .button a{
@@ -471,17 +504,9 @@ a[class$="green"] {
 	text-align:center
 }
 
-.join_wrap h1 {
-	font-size: 2rem;
-	line-height:2.5rem;
-}
 
 .join_wrap .form {
 	margin:1rem 0 0.5rem 0;
-}
-
-.join_wrap .form input {
-	width:100%;
 }
 
 .join_wrap .join_inner {
@@ -507,4 +532,3 @@ a[class$="green"] {
 .full_popup {
   z-index: 99999; /* 다른 팝업보다 높게 */
 }
-
