@@ -18,8 +18,8 @@
           />
       </div>
 
-      <div v-if="error" class="warn-message" v-html="error">{{ error }}</div>
-      <div v-if="message" class="info-message" v-html="message">{{ message }}</div>
+      <div v-if="error" class="warn-message" v-html="error"></div>
+      <div v-if="message" class="info-message" v-html="message"></div>
 
       <div class="radio">
         <div class="agree">
