@@ -1,3 +1,57 @@
+/* lnb */
+.lnb_wrap {
+	width:80%;
+	height:100%;
+	background-color:#fff;
+	position:absolute;
+	top:0;
+	left:0;
+	padding:2rem;
+}
+
+/* 오늘의 달성 현황 */
+.done_check_pop {
+	width:100%;
+  max-width:20rem;
+  min-width:20rem;
+	height:100%;
+	margin-top:1rem;
+}
+
+.done_check_pop .check_wrap {
+  width:100%;
+	font-size:1.2rem;
+	line-height:1.2rem;
+	text-align:left;
+}
+
+.done_check_pop .check_wrap p {
+	margin-bottom:1rem
+}
+
+.done_check_pop .check_wrap .pretty-radio {
+	width:1.5rem;
+	height:1.5rem;
+	margin-top:-0.2rem;
+}
+
+.done_check_pop .check_wrap p.comment {
+	margin-top:0.5rem;
+	background-color:#fff8da;
+	border-radius:1rem;
+	font-size:0.8rem;
+	padding:0.5rem 1rem 0.5rem 1rem;
+	text-align:center;
+	line-height:1.5rem
+}
+
+.done_check_pop .check_wrap p.comment img {
+	width:1.5rem;
+	height:1.5rem;
+	float:left;
+	vertical-align:middle;
+	margin-right:0.3rem;
+}
 
 /* 고정된 전체 레이아웃 */
 .v_container {
