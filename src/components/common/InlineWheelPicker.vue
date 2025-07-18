@@ -35,6 +35,8 @@ const emit = defineEmits(['update:modelValue'])
 const listRef = ref(null)
 const selectedIndex = ref(-1)
 const isResetting = ref(false)
+const isUserClicking = ref(false)
+
 const itemHeight = 40
 
 const scrollToIndex = (index) => {
@@ -64,10 +66,20 @@ onMounted(() => {
 })
 
 watch(() => props.modelValue, () => {
+  if (isUserClicking.value) {
+    isUserClicking.value = false
+    return // 클릭 시에는 scrollToIndex 하지 않음
+  }
+
+  if (isResetting.value) {
+    // resetKey로 인해 초기화될 경우에도 scrollToIndex 하지 않음
+    return
+  }
+
   updateSelectedIndexFromModel()
 })
 
-// ✅ resetKey가 바뀔 때: 스크롤 & 선택 초기화, 이후 자동 onScroll 차단
+// ✅ 탭 전환 시: 초기화 (선택 제거 + 스크롤 맨 위)
 watch(() => props.resetKey, async () => {
   isResetting.value = true
   selectedIndex.value = -1
@@ -76,14 +88,13 @@ watch(() => props.resetKey, async () => {
   await nextTick()
   selectedIndex.value = -1
 
-  // ✅ 100ms 뒤에 reset 상태 해제 (스크롤 이벤트 차단용)
   setTimeout(() => {
     isResetting.value = false
   }, 100)
 })
 
 const onScroll = () => {
-  if (isResetting.value) return // 초기화 중엔 무시
+  if (isResetting.value) return
 
   const scrollTop = listRef.value.scrollTop
   const index = Math.round(scrollTop / itemHeight)
@@ -99,10 +110,12 @@ const onScroll = () => {
 }
 
 const handleItemClick = (index) => {
+  isUserClicking.value = true
   selectedIndex.value = index
   emit('update:modelValue', props.items[index])
 }
 </script>
+
 <style scoped>
 .inline-wheel-wrapper {
   height: 120px;
@@ -130,7 +143,7 @@ const handleItemClick = (index) => {
 .inline-wheel-item.selected {
   color: #000;
   font-weight: bold;
-  background-color: #ffe08a; /* 예시: 노란 배경 */
+  background-color: #ffe08a;
 }
 
 .highlight-overlay {
