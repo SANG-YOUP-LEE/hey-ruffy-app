@@ -34,6 +34,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const listRef = ref(null)
 const selectedIndex = ref(-1)
+const isResetting = ref(false)
 const itemHeight = 40
 
 const scrollToIndex = (index) => {
@@ -66,16 +67,24 @@ watch(() => props.modelValue, () => {
   updateSelectedIndexFromModel()
 })
 
-// ✅ resetKey가 바뀔 때 무조건 초기화 + nextTick 후 selectedIndex 재초기화
+// ✅ resetKey가 바뀔 때: 스크롤 & 선택 초기화, 이후 자동 onScroll 차단
 watch(() => props.resetKey, async () => {
+  isResetting.value = true
   selectedIndex.value = -1
   scrollToTop()
 
   await nextTick()
-  selectedIndex.value = -1 // 렌더 후에도 확실하게 제거
+  selectedIndex.value = -1
+
+  // ✅ 100ms 뒤에 reset 상태 해제 (스크롤 이벤트 차단용)
+  setTimeout(() => {
+    isResetting.value = false
+  }, 100)
 })
 
 const onScroll = () => {
+  if (isResetting.value) return // 초기화 중엔 무시
+
   const scrollTop = listRef.value.scrollTop
   const index = Math.round(scrollTop / itemHeight)
 
@@ -90,13 +99,10 @@ const onScroll = () => {
 }
 
 const handleItemClick = (index) => {
-  if (index >= 0 && index < props.items.length) {
-    selectedIndex.value = index
-    emit('update:modelValue', props.items[index])
-  }
+  selectedIndex.value = index
+  emit('update:modelValue', props.items[index])
 }
 </script>
-
 <style scoped>
 .inline-wheel-wrapper {
   height: 120px;
