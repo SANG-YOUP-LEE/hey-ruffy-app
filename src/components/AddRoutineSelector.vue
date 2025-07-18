@@ -543,8 +543,9 @@ const handleTabClick = (type) => {
     tabBlock.style.display = 'block'
   }
 
-  // 선택값 초기화: 반드시 아래 포함!
+  // resetKey 증가로 휠 초기화 트리거
   if (type === 'daily') {
+    resetDailyKey.value++
     selectedRepeatDaily.value = null
     selectedRepeatWeekly.value = null
     routineData.value.days = []
@@ -552,6 +553,7 @@ const handleTabClick = (type) => {
     selectedDates.value = []
     routineData.value.dates = []
   } else if (type === 'weekly') {
+    resetWeeklyKey.value++
     selectedRepeatDaily.value = null
     selectedRepeatWeekly.value = null
     routineData.value.days = []
