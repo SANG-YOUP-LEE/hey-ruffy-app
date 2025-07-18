@@ -47,10 +47,11 @@
 <div class="rt_make_detail" id="v_detail02_block">
   <div class="select_week">
     <InlineWheelPicker
-      :items="repeatOptionsWeekly"
-      v-model="selectedRepeatWeekly"
-      :itemHeight="40"
-    />
+  :items="repeatOptionsWeekly"
+  v-model="selectedRepeatWeekly"
+  :itemHeight="40"
+  :resetKey="resetWeeklyKey"
+/>
   </div>
   <p class="check_btn">
     <button class="all" @click="routineData.days = ['일','월','화','수','목','금','토']">매일</button>
