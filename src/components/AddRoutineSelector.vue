@@ -35,10 +35,11 @@
 <div class="rt_make_detail" id="v_detail01_block">
   <div class="select_week">
     <InlineWheelPicker
-      :items="repeatOptionsDaily"
-      v-model="selectedRepeatDaily"
-      :itemHeight="40"
-    />
+  :items="repeatOptionsDaily"
+  v-model="selectedRepeatDaily"
+  :itemHeight="40"
+  :resetKey="resetDailyKey"
+/>
   </div>
 </div>
 
