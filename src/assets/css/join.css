@@ -76,24 +76,3 @@
   opacity: 1 !important;
 }
 
-
-/* 버튼 스타일 전체 정리 */
-.sub-button {
-  display: block;
-  width: 100%;
-  padding: 0.8rem 1.2rem;
-  border-radius: 2rem;
-  font-weight: bold;
-  font-size: 1rem;
-  margin: 0.5rem 0;
-  text-align: center;
-  background-color: #0099ff; /* 기본: 파란색 */
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-.sub-button.gray {
-  background-color: #eee; /* 회색 버튼 */
-  color: #333;
-}
