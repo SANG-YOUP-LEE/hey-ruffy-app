@@ -47,9 +47,6 @@
 }
 
 .join_wrap .join_inner {
-	height:5.5rem;
-	font-size:0.9rem;
-	line-height:1.2rem
 }
 
 .join_wrap .radio {
@@ -57,9 +54,6 @@
 	margin-bottom:1rem;
 }
 
-.join_wrap .radio em {
-	color:#ec6862
-}
 
 .join_wrap .agree {
 	width:100%;
@@ -83,7 +77,7 @@
 }
 
 
-/* ✅ 버튼 스타일 전체 정리 */
+/* 버튼 스타일 전체 정리 */
 .sub-button {
   display: block;
   width: 100%;
