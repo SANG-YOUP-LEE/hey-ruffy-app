@@ -70,10 +70,9 @@ const onScroll = () => {
 
 // 터치 선택을 위한 핸들러
 const handleItemClick = (index) => {
-  if (props.items[index] !== undefined) {
+  if (index >= 0 && index < props.items.length) {
     selectedIndex.value = index
     emit('update:modelValue', props.items[index])
-    // 클릭 시 스크롤도 해당 위치로 이동
     nextTick(() => {
       listRef.value.scrollTop = index * itemHeight
     })
