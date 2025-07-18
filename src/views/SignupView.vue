@@ -80,10 +80,10 @@
           <button class="b_green" @click="checkVerification">
             인증 확인
           </button>
-          <button class="b_white br_green" @click="resendVerification">
+          <button class="b_white_br_green" @click="resendVerification">
             인증 메일 다시 보내기
           </button>
-          <button class="b_white br_green" @click="editEmail">
+          <button class="b_white_br_green" @click="editEmail">
             이메일 주소 수정하기
           </button>
         </div>
