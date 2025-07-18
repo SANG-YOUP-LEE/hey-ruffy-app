@@ -95,7 +95,7 @@ const resetPassword = async () => {
   errorField.value = '';
 
   if (!email.value) {
-    error.value = '비밀번호를 재설정하려면<br />이메일을 먼저 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.';
+    error.value = "비밀번호를 재설정하려면<br />이메일을 먼저 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.";
     errorField.value = 'email';
     return;
   }
