@@ -1,7 +1,10 @@
-.body.popup-open {
-  overflow: hidden;
+body.popup-open {
+  overflow: hidden !important;
+  height: 100%;
   position: fixed;
   width: 100%;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .popup_overlay,
