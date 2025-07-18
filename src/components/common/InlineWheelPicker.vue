@@ -49,6 +49,14 @@ watch(() => props.modelValue, (val) => {
   }
 })
 
+watch(() => modelValue, (newVal) => {
+  if (newVal === null || newVal === undefined) {
+    selectedIndex.value = -1
+  } else {
+    selectedIndex.value = items.findIndex((item) => item === newVal)
+  }
+})
+
 const onScroll = () => {
   const scrollTop = listRef.value.scrollTop
   const index = Math.round(scrollTop / itemHeight)
