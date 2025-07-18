@@ -121,14 +121,10 @@ button {
   color: #fff;
 }
 
-[class$="white"] {
+[class$="white_br_green"] {
   background-color: #fff;
-  border:0.1rem solid #333;
-  color: #333;
-}
-
-[class$="br_green"] {
-  border:0.1rem solid #00b170;  
+  border:0.1rem solid #00b170;
+  color: #00b170;
 }
 
 .warn-message,
