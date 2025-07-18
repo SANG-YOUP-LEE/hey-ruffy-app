@@ -69,7 +69,7 @@
           @click="handleSignup"
           v-if="!signupComplete"
         >
-          {{ loading ? "메일 보내는 중..." : "이메일 인증하기" }}
+          {{ loading ? "메일을 보내고 있어요..." : "이메일 인증하기" }}
         </button>
 
         <div v-else>
@@ -77,13 +77,13 @@
             가입 이메일로 인증 메일을 보냈어요.<br />
             인증 후 아래 버튼을 눌러주세요.
           </p>
-          <button class="sub-button" @click="checkVerification">
+          <button class="b_green" @click="checkVerification">
             인증 확인
           </button>
-          <button class="sub-button gray" @click="resendVerification">
+          <button class="b_white br_green" @click="resendVerification">
             인증 메일 다시 보내기
           </button>
-          <button class="sub-button gray" @click="editEmail">
+          <button class="b_white br_green" @click="editEmail">
             이메일 주소 수정하기
           </button>
         </div>
