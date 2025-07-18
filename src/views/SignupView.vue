@@ -40,6 +40,7 @@
 
       <div class="warn-message" v-if="!signupComplete && showWarning">
         <p v-if="!email">이메일을 입력해 주세요.</p>
+        <p v-else-if="!isValidEmail(email)">이메일 형식이 바르지 않습니다.</p>
         <p v-else-if="!password">비밀번호를 입력해 주세요.</p>
         <p v-else-if="password !== passwordCheck">비밀번호가 일치하지 않아요.</p>
         <p v-else-if="!nickname">닉네임을 입력해 주세요.</p>
@@ -118,9 +119,15 @@ const showWarning = ref(false)
 
 const router = useRouter()
 
+const isValidEmail = (email) => {
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+return emailPattern.test(email)
+}
+  
 const handleSignup = async () => {
   if (
     !email.value ||
+    !isValidEmail(email.value) ||  
     !password.value ||
     !nickname.value.trim() ||
     !isOver14.value ||
