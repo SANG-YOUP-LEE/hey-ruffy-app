@@ -73,9 +73,6 @@ const handleItemClick = (index) => {
   if (index >= 0 && index < props.items.length) {
     selectedIndex.value = index
     emit('update:modelValue', props.items[index])
-    nextTick(() => {
-      listRef.value.scrollTop = index * itemHeight
-    })
   }
 }
 </script>
