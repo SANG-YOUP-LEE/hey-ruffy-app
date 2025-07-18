@@ -51,15 +51,6 @@ html, body {
   text-align: center;
 }
 
-body.popup-open {
-  overflow: hidden !important;
-  height: 100%;
-  position: fixed;
-  width: 100%;
-  overscroll-behavior: none;
-  touch-action: none;
-}
-
 h1 {
 	font-family: 'Paperlogy-8ExtraBold';
   font-size:3.8rem;
