@@ -28,7 +28,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const listRef = ref(null)
-const selectedIndex = ref(0)
+const selectedIndex = ref(-1) // ✅ -1부터 시작 (선택 없음)
 const itemHeight = 40 // px
 
 onMounted(() => {
@@ -38,6 +38,8 @@ onMounted(() => {
     nextTick(() => {
       listRef.value.scrollTop = index * itemHeight
     })
+  } else {
+    selectedIndex.value = -1
   }
 })
 
@@ -46,20 +48,15 @@ watch(() => props.modelValue, (val) => {
   if (i >= 0) {
     selectedIndex.value = i
     listRef.value.scrollTop = i * itemHeight
-  }
-})
-
-watch(() => modelValue, (newVal) => {
-  if (newVal === null || newVal === undefined) {
-    selectedIndex.value = -1
   } else {
-    selectedIndex.value = items.findIndex((item) => item === newVal)
+    selectedIndex.value = -1
   }
 })
 
 const onScroll = () => {
   const scrollTop = listRef.value.scrollTop
   const index = Math.round(scrollTop / itemHeight)
+
   if (index !== selectedIndex.value && props.items[index] !== undefined) {
     selectedIndex.value = index
     emit('update:modelValue', props.items[index])
