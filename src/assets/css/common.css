@@ -138,19 +138,13 @@ a[class$="green"] {
 
 .warn-message {
 }
-.warn-message p {
-  margin: 0.3rem 0;
-  font-weight: bold;
-}
 
 .info-message {
 }
 
 .input.error,
 .input-error {
-  border: 1px solid #e5484d;
-  background-color: #fff0f0;
-  outline: none;
+  color:#ff7891
 }
 
 @keyframes fadeIn {
