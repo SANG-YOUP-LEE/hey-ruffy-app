@@ -9,7 +9,7 @@
           type="email"
           placeholder="이메일을 등록해 주세요."
           class="input email"
-          :class="{ 'input-error': showWarning && !email }"
+          :class="{ 't_red01': showWarning && !email }"
           :disabled="signupComplete"
         />
         <input
@@ -17,7 +17,7 @@
           type="password"
           placeholder="비밀번호를 등록해 주세요."
           class="input password"
-          :class="{ 'input-error': showWarning && !password }"
+          :class="{ 't_red01': showWarning && !password }"
           :disabled="signupComplete"
         />
         <input
@@ -25,7 +25,7 @@
           type="password"
           placeholder="비밀번호를 다시 입력해 주세요."
           class="input password-check"
-          :class="{ 'input-error': showWarning && password !== passwordCheck }"
+          :class="{ 't_red01': showWarning && password !== passwordCheck }"
           :disabled="signupComplete"
         />
         <input
@@ -33,7 +33,7 @@
           type="text"
           placeholder="닉네임을 입력해 주세요."
           class="input nickname"
-          :class="{ 'input-error': showWarning && !nickname }"
+          :class="{ 't_red01': showWarning && !nickname }"
           :disabled="signupComplete"
         />
       </div>
