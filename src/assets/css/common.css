@@ -129,10 +129,9 @@ a[class$="green"] {
   border-radius: 1rem;
   animation: fadeIn 0.3s ease-in-out;
   text-align: center;
-  font-size:0.8rem;
   letter-spacing:-0.01rem;
-  background-color:#fff6d6;
-  border:0.1rem solid #f8eaba;
+  background-color:#f9f9f9;
+  border:0.1rem solid #f1f1f1;
 }
 
 .warn-message {
