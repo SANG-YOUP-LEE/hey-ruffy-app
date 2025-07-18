@@ -139,6 +139,11 @@ a[class$="green"] {
 .warn-message {
 }
 
+.warn-message p {
+  margin: 0.3rem 0;
+  font-weight: bold;
+}
+
 .info-message {
 }
 
