@@ -82,7 +82,7 @@ const login = async () => {
       }, 1000);
     } else {
       await signOut(auth);
-      error.value = '이메일을 확인하신 후 인증해주세요.<br />혹시 이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.';
+      error.value = '이메일을 확인하신 후 인증해주세요.<br />이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.';
     }
   } catch (err) {
     error.value = getFirebaseErrorMessage(err.code);
@@ -102,7 +102,7 @@ const resetPassword = async () => {
 
   try {
     await sendPasswordResetEmail(auth, email.value);
-    message.value = '비밀번호 재설정 링크를 이메일로 보냈어요.<br />혹시 이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.';
+    message.value = '비밀번호 재설정 링크를 이메일로 보냈어요.<br />이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.';
   } catch (err) {
     error.value = getFirebaseErrorMessage(err.code);
   }
