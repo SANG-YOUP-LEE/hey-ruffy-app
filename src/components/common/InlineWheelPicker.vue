@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
   items: {
@@ -32,12 +32,26 @@ const listRef = ref(null)
 const selectedIndex = ref(-1)
 const itemHeight = 40
 
+const scrollToIndex = (index) => {
+  if (listRef.value) {
+    listRef.value.scrollTop = index * itemHeight
+  }
+}
+
+const scrollToTop = () => {
+  if (listRef.value) {
+    listRef.value.scrollTop = 0
+  }
+}
+
 onMounted(() => {
   const index = props.items.findIndex((i) => i === props.modelValue)
   if (index >= 0) {
     selectedIndex.value = index
+    scrollToIndex(index)
   } else {
     selectedIndex.value = -1
+    scrollToTop()
   }
 })
 
@@ -45,8 +59,10 @@ watch(() => props.modelValue, (val) => {
   const i = props.items.findIndex((item) => item === val)
   if (i >= 0) {
     selectedIndex.value = i
+    scrollToIndex(i)
   } else {
     selectedIndex.value = -1
+    scrollToTop()
   }
 })
 
@@ -64,7 +80,6 @@ const onScroll = () => {
   }
 }
 
-// 터치 선택을 위한 핸들러
 const handleItemClick = (index) => {
   if (index >= 0 && index < props.items.length) {
     selectedIndex.value = index
@@ -107,7 +122,6 @@ const handleItemClick = (index) => {
   height: 40px;
   left: 0;
   right: 0;
-
   pointer-events: none;
 }
 </style>
