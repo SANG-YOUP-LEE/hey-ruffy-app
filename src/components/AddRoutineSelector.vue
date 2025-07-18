@@ -529,20 +529,20 @@ onMounted(async () => {
 const handleTabClick = (type) => {
   routineData.value.frequencyType = type
 
-  // 탭 스타일 초기화
+  // 탭 UI 전환
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
   document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
 
-  // 해당 탭 활성화
   const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
-  const tabBlock = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}_block`)
+  const tabBlock = document.getElementById(`${tabBtn.id}_block`)
   if (tabBtn && tabBlock) {
     tabBtn.classList.add('on')
     tabBlock.style.display = 'block'
   }
 
-  // 선택값 초기화
+  // 선택값 초기화: 반드시 아래 포함!
   if (type === 'daily') {
+    selectedRepeatDaily.value = null
     selectedRepeatWeekly.value = null
     routineData.value.days = []
     selectedMonthOption.value = null
@@ -550,6 +550,8 @@ const handleTabClick = (type) => {
     routineData.value.dates = []
   } else if (type === 'weekly') {
     selectedRepeatDaily.value = null
+    selectedRepeatWeekly.value = null
+    routineData.value.days = []
     selectedMonthOption.value = null
     selectedDates.value = []
     routineData.value.dates = []
@@ -557,6 +559,9 @@ const handleTabClick = (type) => {
     selectedRepeatDaily.value = null
     selectedRepeatWeekly.value = null
     routineData.value.days = []
+    selectedMonthOption.value = null
+    selectedDates.value = []
+    routineData.value.dates = []
   }
 }
 </script>
