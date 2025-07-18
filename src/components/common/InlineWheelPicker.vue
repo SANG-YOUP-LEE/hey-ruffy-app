@@ -36,9 +36,6 @@ onMounted(() => {
   const index = props.items.findIndex((i) => i === props.modelValue)
   if (index >= 0) {
     selectedIndex.value = index
-    nextTick(() => {
-      listRef.value.scrollTop = index * itemHeight
-    })
   } else {
     selectedIndex.value = -1
   }
@@ -48,7 +45,6 @@ watch(() => props.modelValue, (val) => {
   const i = props.items.findIndex((item) => item === val)
   if (i >= 0) {
     selectedIndex.value = i
-    listRef.value.scrollTop = i * itemHeight
   } else {
     selectedIndex.value = -1
   }
