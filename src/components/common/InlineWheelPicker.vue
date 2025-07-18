@@ -16,14 +16,18 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
   items: {
     type: Array,
     required: true
   },
-  modelValue: [String, Number]
+  modelValue: [String, Number],
+  resetKey: {
+    type: [String, Number],
+    default: null
+  }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -32,23 +36,42 @@ const listRef = ref(null)
 const selectedIndex = ref(-1)
 const itemHeight = 40
 
-onMounted(() => {
-  const index = props.items.findIndex((i) => i === props.modelValue)
-  if (index >= 0) {
-    selectedIndex.value = index
-  } else {
-    selectedIndex.value = -1
+const scrollToIndex = (index) => {
+  if (listRef.value) {
+    listRef.value.scrollTop = index * itemHeight
   }
+}
+
+const scrollToTop = () => {
+  if (listRef.value) {
+    listRef.value.scrollTop = 0
+  }
+}
+
+onMounted(() => {
+  updateSelectedIndexFromModel()
 })
 
+// modelValue가 바뀔 때 → 선택 위치 이동
 watch(() => props.modelValue, (val) => {
-  const i = props.items.findIndex((item) => item === val)
+  updateSelectedIndexFromModel()
+})
+
+// resetKey가 바뀔 때만 무조건 초기화 (다른 탭에서 돌아온 경우)
+watch(() => props.resetKey, () => {
+  selectedIndex.value = -1
+  scrollToTop()
+})
+
+const updateSelectedIndexFromModel = () => {
+  const i = props.items.findIndex((item) => item === props.modelValue)
   if (i >= 0) {
     selectedIndex.value = i
+    scrollToIndex(i)
   } else {
     selectedIndex.value = -1
   }
-})
+}
 
 const onScroll = () => {
   const scrollTop = listRef.value.scrollTop
@@ -64,7 +87,6 @@ const onScroll = () => {
   }
 }
 
-// 터치 선택을 위한 핸들러
 const handleItemClick = (index) => {
   if (index >= 0 && index < props.items.length) {
     selectedIndex.value = index
@@ -107,7 +129,6 @@ const handleItemClick = (index) => {
   height: 40px;
   left: 0;
   right: 0;
-
   pointer-events: none;
 }
 </style>
