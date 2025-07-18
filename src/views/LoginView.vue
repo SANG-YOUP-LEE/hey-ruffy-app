@@ -18,8 +18,8 @@
           />
       </div>
 
-      <div v-if="error" class="warn-message">{{ error }}</div>
-      <div v-if="message" class="info-message">{{ message }}</div>
+      <div v-if="error" class="warn-message" v-html="error">{{ error }}</div>
+      <div v-if="message" class="info-message" v-html="message">{{ message }}</div>
 
       <div class="radio">
         <div class="agree">
@@ -82,7 +82,7 @@ const login = async () => {
       }, 1000);
     } else {
       await signOut(auth);
-      error.value = '이메일을 확인한 후 인증해주세요. 이메일이 도착하지 않았으면 스팸메일함도 확인해주세요.';
+      error.value = '이메일을 확인한 후 인증해주세요.<br />이메일이 도착하지 않았으면 스팸메일함도 확인해주세요.';
     }
   } catch (err) {
     error.value = getFirebaseErrorMessage(err.code);
