@@ -9,7 +9,7 @@
           type="email"
           placeholder="이메일을 등록해 주세요."
           class="input email"
-          :class="{ 't_red01': showWarning && !email }"
+          :class="{ 't_red01': showWarning && (!email || !isValidEmail(email)) }"
           :disabled="signupComplete"
         />
         <input
@@ -17,7 +17,7 @@
           type="password"
           placeholder="비밀번호를 등록해 주세요."
           class="input password"
-          :class="{ 't_red01': showWarning && !password }"
+          :class="{ 't_red01': showWarning && (!password || password.length < 6) }"
           :disabled="signupComplete"
         />
         <input
