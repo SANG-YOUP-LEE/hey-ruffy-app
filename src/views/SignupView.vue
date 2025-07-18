@@ -9,7 +9,7 @@
           type="email"
           placeholder="이메일을 등록해 주세요."
           class="input email"
-          :class="{ 't_red01': showWarning && (!email || !isValidEmail(email)) }"
+          :class="{ 't_red01': emailError }"
           :disabled="signupComplete"
         />
         <input
@@ -17,7 +17,7 @@
           type="password"
           placeholder="비밀번호를 등록해 주세요."
           class="input password"
-          :class="{ 't_red01': showWarning && (!password || password.length < 6) }"
+          :class="{ 't_red01': passwordError }"
           :disabled="signupComplete"
         />
         <input
@@ -25,7 +25,7 @@
           type="password"
           placeholder="비밀번호를 다시 입력해 주세요."
           class="input password-check"
-          :class="{ 't_red01': showWarning && password !== passwordCheck }"
+          :class="{ 't_red01': passwordCheckError }"
           :disabled="signupComplete"
         />
         <input
@@ -33,7 +33,7 @@
           type="text"
           placeholder="닉네임을 입력해 주세요."
           class="input nickname"
-          :class="{ 't_red01': showWarning && !nickname }"
+          :class="{ 't_red01': nicknameError }"
           :disabled="signupComplete"
         />
       </div>
@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 import { auth, db } from "../firebase"
 import {
@@ -120,11 +120,14 @@ const showWarning = ref(false)
 
 const router = useRouter()
 
-const isValidEmail = (email) => {
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-return emailPattern.test(email)
-}
-  
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+// 각각의 에러 조건을 따로 computed로 분리
+const emailError = computed(() => showWarning.value && (!email.value || !isValidEmail(email.value)))
+const passwordError = computed(() => showWarning.value && (!password.value || password.value.length < 6))
+const passwordCheckError = computed(() => showWarning.value && password.value !== passwordCheck.value)
+const nicknameError = computed(() => showWarning.value && !nickname.value)
+
 const handleSignup = async () => {
   if (
     !email.value ||
@@ -152,12 +155,10 @@ const handleSignup = async () => {
     )
     const user = userCredential.user
 
-    // 닉네임을 Firebase Auth에 저장
     await updateProfile(user, {
       displayName: nickname.value
     })
 
-    // 인증 메일 발송만 → Firestore 저장은 인증 완료 후로 미룸
     await sendEmailVerification(user)
 
     setTimeout(() => {
@@ -177,7 +178,6 @@ const checkVerification = async () => {
 
   if (auth.currentUser.emailVerified) {
     try {
-      // 인증된 경우에만 Firestore에 저장
       await setDoc(doc(db, "users", auth.currentUser.uid), {
         email: auth.currentUser.email,
         nickname: auth.currentUser.displayName,
