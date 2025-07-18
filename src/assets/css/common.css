@@ -105,8 +105,7 @@ button {
   vertical-align:middle;
 }
 
-button[class^="b_"],
-a[class^="b_"] {
+[class^="b_"] {
   width:100%;
   padding: 0.8rem 0;
   border-radius: 2rem;
@@ -116,11 +115,20 @@ a[class^="b_"] {
   text-decoration:none;
 }
 
-button[class$="green"],
-a[class$="green"] {
+[class$="green"] {
   background-color: #00b170;
   border:0.1rem solid #00b170;
   color: #fff;
+}
+
+[class$="white"] {
+  background-color: #fff;
+  border:0.1rem solid #333;
+  color: #333;
+}
+
+.br_green {
+  border:0.1rem solid #00b170;  
 }
 
 .warn-message,
