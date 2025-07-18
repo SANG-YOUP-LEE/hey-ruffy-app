@@ -422,9 +422,15 @@ const onDateConfirm = (val) => {
 
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
-  routineData.value.time = `${val.ampm} ${val.hour}:${val.minute}`
+
+  // 분(minute)을 항상 두 자리로 맞춰줌
+  const paddedMinute = String(val.minute).padStart(2, '0')
+
+  routineData.value.time = `${val.ampm} ${val.hour}:${paddedMinute}`
+
   isAlarmPopupOpen.value = false
 }
+
 
 const handleDatePopupClose = () => {
   isDatePopupOpen.value = false
