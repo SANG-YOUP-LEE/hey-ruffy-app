@@ -11,13 +11,13 @@
   font-weight: 800;
   font-style: normal;
 }
-/*
+
 @font-face {
   font-family: 'Freesentation-9Black';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2') format('woff2');
   font-weight: 900;
   font-style: normal;
-}*/
+}
 * {
   margin: 0;
   padding: 0;
@@ -44,6 +44,7 @@ h1 {
 }
 
 h2 {
+  font-family: 'Freesentation-9Black'
   font-weight: bold;
   font-size:2rem;
   line-height:2.5rem;
