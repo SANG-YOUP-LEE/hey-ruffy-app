@@ -87,22 +87,6 @@
   padding: 0.8rem 1rem;
   background-color: #fff3f3;
   border: 1px solid #ffa0a0;
-  border-radius: 0.5rem;
-  color: #e5484d;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  animation: fadeIn 0.3s ease-in-out;
-  text-align: center;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.warn-message p {
-  margin: 0.3rem 0;
-  font-weight: bold;
-}
-
 .input-error {
   border: 1px solid #e5484d;
   background-color: #fff0f0;
