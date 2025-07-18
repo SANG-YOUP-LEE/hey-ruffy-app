@@ -12,7 +12,7 @@
 				</p>
 			</div>
 
-			<!-- ✅ 수정 모드일 때만 보여야 하므로 이거만 남기기 -->
+			<!-- 수정 모드일 때만 보여야 하므로 이거만 남기기 -->
 			<div v-if="routineToEdit" class="form_box_g rt_make">
 			<h3>이 다짐을 잠시 멈출까요?</h3>
 			<button
@@ -529,16 +529,34 @@ onMounted(async () => {
 const handleTabClick = (type) => {
   routineData.value.frequencyType = type
 
-  // 모든 버튼 초기화
+  // 탭 스타일 초기화
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
   document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
 
-  // 해당 탭 버튼 및 블록 활성화
+  // 해당 탭 활성화
   const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
   const tabBlock = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}_block`)
   if (tabBtn && tabBlock) {
     tabBtn.classList.add('on')
     tabBlock.style.display = 'block'
+  }
+
+  // 선택값 초기화
+  if (type === 'daily') {
+    selectedRepeatWeekly.value = null
+    routineData.value.days = []
+    selectedMonthOption.value = null
+    selectedDates.value = []
+    routineData.value.dates = []
+  } else if (type === 'weekly') {
+    selectedRepeatDaily.value = null
+    selectedMonthOption.value = null
+    selectedDates.value = []
+    routineData.value.dates = []
+  } else if (type === 'monthly') {
+    selectedRepeatDaily.value = null
+    selectedRepeatWeekly.value = null
+    routineData.value.days = []
   }
 }
 </script>
