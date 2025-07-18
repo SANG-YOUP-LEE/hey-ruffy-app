@@ -87,7 +87,6 @@ const handleItemClick = (index) => {
 .inline-wheel-list {
   height: 100%;
   overflow-y: scroll;
-  scroll-snap-type: y mandatory;
   -webkit-overflow-scrolling: touch;
   padding-top: 40px;
   padding-bottom: 40px;
@@ -97,7 +96,6 @@ const handleItemClick = (index) => {
   height: 40px;
   line-height: 40px;
   text-align: center;
-  scroll-snap-align: center;
   font-size: 1rem;
   color: #666;
 }
