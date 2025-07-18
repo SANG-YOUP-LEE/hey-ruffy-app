@@ -21,12 +21,11 @@
 
 
 @font-face {
-    font-family: 'GmarketSansMedium';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+    font-family: 'GongGothicMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/GongGothicMedium.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
-
 * {
   margin: 0;
   padding: 0;
@@ -53,7 +52,7 @@ h1 {
 }
 
 h2 {
-  font-family: 'GmarketSansMedium';
+  font-family: 'GongGothicMedium';
   font-weight: bold;
   font-size:2rem;
   line-height:2.5rem;
