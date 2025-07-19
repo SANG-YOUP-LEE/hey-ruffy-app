@@ -80,6 +80,13 @@ input[type="email"] {
   font-size:1.2rem;
 }
 
+input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  -webkit-text-fill-color: #000 !important;
+  transition: background-color 9999s ease-out 0s; /* 잔재 배경 색상 제거용 */
+}
+
 ul, ol {
   list-style: none;
 }
@@ -142,12 +149,6 @@ button {
   border:0.1rem solid #f1f1f1;
 }
 
-.warn-message {
-}
-
-.info-message {
-}
-
 
 @keyframes fadeIn {
   from {
@@ -159,6 +160,40 @@ button {
     transform: translateY(0);
   }
 }
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+}
+
+.error-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  border: 0.1rem solid #333;
+  border-radius: 1rem;
+  text-align: center;
+  padding: 2rem;
+  z-index: 1000;
+  animation: fadeInOut 3s ease forwards;
+}
+
 /* 토글 외형 */
 .toggle-switch {
   position: relative;
