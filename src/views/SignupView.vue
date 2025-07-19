@@ -8,22 +8,23 @@
           v-model="email"
           type="email"
           placeholder="이메일을 등록해 주세요."
-          class="input"
           :disabled="signupComplete"
         />
         <input
           v-model="password"
           type="password"
           placeholder="비밀번호를 등록해 주세요."
-          class="input"
           :disabled="signupComplete"
         />
         <input
           v-model="passwordCheck"
           type="password"
           placeholder="비밀번호를 다시 입력해 주세요."
-          class="input"
           :disabled="signupComplete"
+        />
+        <input
+          type="text"
+          placeholder="친구가 되고 싶은 러피를 선택해주세요."
         />
       </div>
 
