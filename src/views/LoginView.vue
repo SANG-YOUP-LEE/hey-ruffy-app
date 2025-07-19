@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { auth } from '../firebase'
 import {
@@ -56,32 +56,48 @@ const router = useRouter()
 const errorText = computed(() => error.value.trim() !== '' ? error.value : '')
 const messageText = computed(() => message.value.trim() !== '' ? message.value : '')
 
-const login = async () => {
+const showError = async (msg, field = '') => {
   error.value = ''
   message.value = ''
   errorField.value = ''
+  await nextTick()
+  error.value = msg
+  errorField.value = field
+  setTimeout(() => {
+    error.value = ''
+    errorField.value = ''
+  }, 2500)
+}
 
+const showMessage = async (msg) => {
+  message.value = ''
+  error.value = ''
+  errorField.value = ''
+  await nextTick()
+  message.value = msg
+  setTimeout(() => {
+    message.value = ''
+  }, 2500)
+}
+
+const login = async () => {
   if (!email.value) {
-    error.value = '이메일을 입력해 주세요.'
-    errorField.value = 'email'
+    await showError('이메일을 입력해 주세요.', 'email')
     return
   }
 
   if (!isValidEmail(email.value)) {
-    error.value = getFirebaseErrorMessage('auth/invalid-email')
-    errorField.value = 'email'
+    await showError(getFirebaseErrorMessage('auth/invalid-email'), 'email')
     return
   }
 
   if (!password.value) {
-    error.value = '비밀번호를 입력해 주세요.'
-    errorField.value = 'password'
+    await showError('비밀번호를 입력해 주세요.', 'password')
     return
   }
 
   if (password.value.length < 6) {
-    error.value = getFirebaseErrorMessage('auth/weak-password')
-    errorField.value = 'password'
+    await showError(getFirebaseErrorMessage('auth/weak-password'), 'password')
     return
   }
 
@@ -93,39 +109,39 @@ const login = async () => {
     )
 
     if (userCredential.user.emailVerified) {
-      message.value = '로그인 중이예요...'
+      await showMessage('로그인 중이예요...')
       setTimeout(() => {
         router.push('/main')
       }, 1000)
     } else {
       await signOut(auth)
-      error.value =
-        '이메일을 확인하신 후 인증해주세요.<br />이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.'
+      await showError(
+        '이메일을 확인하신 후 인증해주세요.<br />이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.',
+        'email'
+      )
     }
   } catch (err) {
     console.log('Firebase error code:', err.code)
-    error.value = getFirebaseErrorMessage(err.code)
+    await showError(getFirebaseErrorMessage(err.code))
   }
 }
 
 const resetPassword = async () => {
-  error.value = ''
-  message.value = ''
-  errorField.value = ''
-
   if (!email.value) {
-    error.value =
-      "비밀번호 재설정을 위해<br />이메일을 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요."
-    errorField.value = 'email'
+    await showError(
+      "비밀번호 재설정을 위해<br />이메일을 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.",
+      'email'
+    )
     return
   }
 
   try {
     await sendPasswordResetEmail(auth, email.value)
-    message.value =
+    await showMessage(
       '비밀번호 재설정 링크를 이메일로 보냈어요.<br />이메일이 도착하지 않았다면<br />스팸메일함을 확인해주세요.'
+    )
   } catch (err) {
-    error.value = getFirebaseErrorMessage(err.code)
+    await showError(getFirebaseErrorMessage(err.code))
   }
 }
 

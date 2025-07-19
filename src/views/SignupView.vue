@@ -61,19 +61,13 @@
           {{ loading ? "메일을 보내고 있어요..." : "이메일 인증하기" }}
         </button>
         <div v-else>
-          <button class="b_green" @click="checkVerification">
-            인증 확인
-          </button>
-          <button class="b_white_br_green" @click="resendVerification">
-            인증 메일 다시 보내기
-          </button>
-          <button class="b_white_br_green" @click="editEmail">
-            이메일 주소 수정하기
-          </button>
+          <button class="b_green" @click="checkVerification">인증 확인</button>
+          <button class="b_white_br_green" @click="resendVerification">인증 메일 다시 보내기</button>
+          <button class="b_white_br_green" @click="editEmail">이메일 주소 수정하기</button>
         </div>
 
         <!-- 에러 메시지 -->
-        <div class="error-box" v-if="errorMessage"  v-html="errorMessage"></div>
+        <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
       </div>
     </div>
   </div>
@@ -86,8 +80,7 @@ import { auth, db } from "../firebase"
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  reload,
-  fetchSignInMethodsForEmail
+  reload
 } from "firebase/auth"
 import {
   doc,
@@ -120,6 +113,15 @@ const warningText = computed(() => {
   return ""
 })
 
+const showWarningMessage = async () => {
+  showWarning.value = false
+  await nextTick()
+  showWarning.value = true
+  setTimeout(() => {
+    showWarning.value = false
+  }, 2500)
+}
+
 const showError = async (msg) => {
   errorMessage.value = ""
   await nextTick()
@@ -147,7 +149,7 @@ const handleSignup = async () => {
     !isOver14.value ||
     password.value !== passwordCheck.value
   ) {
-    showWarning.value = true
+    await showWarningMessage()
     return
   }
 
@@ -170,7 +172,6 @@ const handleSignup = async () => {
     loading.value = false
   }
 }
-
 
 const checkVerification = async () => {
   if (!auth.currentUser) return
@@ -204,7 +205,6 @@ const resendVerification = async () => {
   }
 }
 
-
 const editEmail = () => {
   signupComplete.value = false
   email.value = ""
@@ -213,4 +213,3 @@ const editEmail = () => {
   isOver14.value = false
 }
 </script>
-
