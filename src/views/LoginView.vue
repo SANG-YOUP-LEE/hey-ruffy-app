@@ -1,19 +1,21 @@
 <template>
-  <div class="container">
+  <div class="no-touch yscroll">
     <div class="join_wrap">
-      <h2>안녕!<br />다시 만나서 반가워요.</h2>
+      <h2>안녕!<br />다시 만나서 반가워요. </h2>
 
       <div class="form">
         <input
           type="email"
           placeholder="이메일을 입력해 주세요."
           v-model="email"
+          @focus="clearAllMessages"
           :class="{ error: errorField === 'email' }"
         />
         <input
           type="password"
           placeholder="비밀번호를 입력해 주세요."
           v-model="password"
+          @focus="clearAllMessages"
           :class="{ error: errorField === 'password' }"
         />
       </div>
@@ -21,16 +23,12 @@
       <div v-if="errorText" class="warn-message" v-html="errorText"></div>
       <div v-if="messageText" class="info-message" v-html="messageText"></div>
 
-      <div class="radio">
-        <div class="agree">
-          혹시 비밀번호를 잊었다면
-          <a href="#" @click.prevent="resetPassword">여기</a>를 눌러주세요.
-        </div>
+      <div class="t_box">
+        혹시 비밀번호를 잊었다면
+        <a href="#" @click.prevent="resetPassword">여기</a>를 눌러주세요.
       </div>
 
-      <div class="button">
-        <a href="#" @click.prevent="login" class="b_green">러피 만나러가기</a>
-      </div>
+      <a href="#" @click.prevent="login" class="b_green">러피 만나러가기</a>
     </div>
   </div>
 </template>
@@ -53,8 +51,12 @@ const message = ref('')
 const errorField = ref('')
 const router = useRouter()
 
-const errorText = computed(() => error.value.trim() !== '' ? error.value : '')
-const messageText = computed(() => message.value.trim() !== '' ? message.value : '')
+const errorText = computed(() =>
+  error.value.trim() !== '' ? error.value : ''
+)
+const messageText = computed(() =>
+  message.value.trim() !== '' ? message.value : ''
+)
 
 const showError = async (msg, field = '') => {
   error.value = ''
@@ -63,21 +65,25 @@ const showError = async (msg, field = '') => {
   await nextTick()
   error.value = msg
   errorField.value = field
-  setTimeout(() => {
-    error.value = ''
-    errorField.value = ''
-  }, 2500)
 }
 
 const showMessage = async (msg) => {
-  message.value = ''
   error.value = ''
   errorField.value = ''
+  message.value = ''
   await nextTick()
   message.value = msg
-  setTimeout(() => {
-    message.value = ''
-  }, 2500)
+}
+
+const clearAllMessages = () => {
+  error.value = ''
+  message.value = ''
+  errorField.value = ''
+}
+
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
 }
 
 const login = async () => {
@@ -97,7 +103,7 @@ const login = async () => {
   }
 
   if (password.value.length < 6) {
-    await showError(getFirebaseErrorMessage('auth/weak-password'), 'password')
+     await showError('비밀번호는 6자 이상 입력해 주세요.', 'password')
     return
   }
 
@@ -129,7 +135,7 @@ const login = async () => {
 const resetPassword = async () => {
   if (!email.value) {
     await showError(
-      "비밀번호 재설정을 위해<br />이메일을 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.",
+      "이메일을 입력하신 후<br />아래 '여기'를 다시 한번 눌러주세요.",
       'email'
     )
     return
@@ -143,10 +149,5 @@ const resetPassword = async () => {
   } catch (err) {
     await showError(getFirebaseErrorMessage(err.code))
   }
-}
-
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
 }
 </script>

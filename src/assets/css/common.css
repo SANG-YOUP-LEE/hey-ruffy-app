@@ -18,6 +18,7 @@
   font-weight: 900;
   font-style: normal;
 }
+
 * {
   margin: 0;
   padding: 0;
@@ -30,10 +31,35 @@ html, body {
   font-size: 1rem;
   line-height: 1.5rem;
   color: #333;
+  letter-spacing:-0.01rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   text-align: center;
+}
+
+.no-touch {
+  width: 100vw;     
+  height: 100vh;   
+  position: fixed; 
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.no-touch.yscroll {
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  touch-action: pan-y;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding:5rem 0 5rem 0;
 }
 
 h1 {
@@ -47,7 +73,7 @@ h2 {
   font-family: 'Freesentation-9Black';
   font-weight: bold;
   font-size:2rem;
-  line-height:2.5rem;
+  line-height:2.3rem;
   color:#00b170
 }
 
@@ -72,12 +98,17 @@ input[type="password"],
 input[type="email"] {
   width:100%;
   height:3rem;
-  border:0.1rem solid #00b170;
+  border:none;
+  border-bottom:1px solid #c9c9c9;
   margin-bottom:0.5rem;
-  border-radius:0.8rem;
   padding:0.3rem 1rem 0.3rem 1rem;
   line-height:2rem;
-  font-size:1.2rem;
+  font-size:1.16rem;
+  text-align:center;
+}
+
+input::placeholder {
+  color:#999
 }
 
 input:-webkit-autofill {
@@ -92,15 +123,15 @@ ul, ol {
 }
 
 a {
-	color:#009a71;
-  text-decoration:underline;
+	color:#009a5b;
+  text-decoration:none;
   cursor: pointer;
 }
 
 em,
 .t_red01 {
   font-style: normal;
-  color:#ff4949
+  color:#ff4c7f
 }
 
 label {
@@ -112,11 +143,16 @@ button {
   vertical-align:middle;
 }
 
+.button button,
+.button a {
+  margin-bottom:0.5rem
+}
+
 [class^="b_"] {
   width:100%;
-  padding: 0.8rem 0;
+  line-height:2.4rem;
   border-radius: 2rem;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: bold;
   display:inline-block;
   text-decoration:none;
@@ -136,9 +172,11 @@ button {
 
 [class$="white_br_green"] {
   background-color: #fff;
-  border:0.1rem solid #00b170;
+  border:0.1px solid #00b170;
   color: #00b170;
 }
+
+.mt1 {margin-top:1rem;}
 
 .warn-message,
 .info-message {
@@ -186,13 +224,102 @@ button {
   }
 }
 
+/* 체크 박스 */
+.checkbox-label {
+  display: flex;
+  justify-content: center; 
+  align-items: center;  
+  gap: 0.5rem;
+  margin:0 auto;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  display: none;
+  margin: 0;
+  appearance: auto !important;
+  position: static !important;
+  opacity: 1 !important;
+}
+
+.checkbox-label .checkmark {
+  width: 1.3rem;
+  height: 1.3rem;
+  border: 0.1rem solid #00b170; 
+  border-radius: 0.3rem;
+  background-color: #fff;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.checkbox-label input:checked + .checkmark::after {
+  width: 0.6rem;
+  height: 1rem;
+  content: '';
+  position: absolute;
+  left: 0.4rem;
+  top:-0.3rem;
+  border: solid #00b170; 
+  border-width: 0 0.2rem 0.2rem 0;
+  transform: rotate(45deg);
+}
+
+
+/* 라디오 박스 */
+.custom-radio {
+  width: 1.4em;
+  height: 1.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.custom-radio input[type="radio"] {
+  display: none;
+}
+
+.custom-radio .circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  box-sizing: border-box;
+  border:1px solid #ddd;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.custom-radio input[type="radio"]:checked + .circle::after {
+  width: 0.8rem;
+  height: 0.8rem;
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(to bottom right, #00b78a, #008259);
+  border-radius: 50%;
+}
+
+/* 화면 중앙 정렬시 */
+.container {
+	width:100%;
+	position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .error-box {
+  min-width:70%;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #fff;
-  border: 0.1rem solid #333;
+  border: 0.1rem solid #00b170;
   border-radius: 1rem;
   text-align: center;
   padding: 2rem;
@@ -252,7 +379,7 @@ button {
 }
 
 /* 옐로우 라디오 버튼 */
-.pretty-radio-block {
+.custom-radio-block {
   display: block;
   cursor: pointer;
   margin-bottom: 0.5rem;
@@ -262,11 +389,11 @@ button {
   position: relative;
 }
 
-.pretty-radio-block input[type="radio"] {
+.custom-radio-block input[type="radio"] {
   display: none;
 }
 
-.pretty-radio-block .radio-style {
+.custom-radio-block .radio-style {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
@@ -277,7 +404,7 @@ button {
   margin-right: 0.5rem;
 }
 
-.pretty-radio-block input[type="radio"]:checked + .radio-style::after {
+.custom-radio-block input[type="radio"]:checked + .radio-style::after {
   width: 0.8rem;
   height: 0.8rem;
   content: "";

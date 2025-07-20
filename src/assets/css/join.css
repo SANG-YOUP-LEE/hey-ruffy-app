@@ -1,36 +1,43 @@
-/* 화면 중앙 정렬시 */
-.container {
-	width:100%;
-	position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color:#fff;
-}
-
 /* 인트로 */
 .intro_wrap {
-	width:80%;margin:0 auto
+	width:70%;
+  margin:0 auto;
+}
+
+.intro_wrap h1,
+.intro_wrap h1 em {
+  color:#00b170;
+}
+
+.intro_wrap h1 {
+  font-size:3rem;
+  line-height:3.9rem;
+  margin-bottom:1.5rem
+}
+
+.intro_wrap h1 em {
+  font-size:4rem;
 }
 
 .intro_wrap .subtext {
-  font-size: 1.3rem;
-  line-height: 1.8rem;
-	margin:0.8rem 0 0.8rem 0
+  font-size: 1.2rem;
+  line-height: 1.5rem;
+	margin:0 0 1.5rem 0
 }
 
 .intro_wrap .ruffy-img {
   width: 13rem;
-	margin:0.5rem 0 0 0;
-	margin:0 auto;
+  margin:0 auto;
+  margin-bottom:1.5rem;
 }
 
 .intro_wrap .button {
-	margin-top:1rem
+
+	margin-bottom:1rem
 }
 
-.intro_wrap .button a{
-	margin-bottom:0.8rem
+.intro_wrap .button a:last-child {
+	margin-bottom:0
 }
 
 /* 회원가입 */
@@ -40,42 +47,176 @@
 	text-align:center
 }
 
-
-.join_wrap .button button {
-  margin-bottom:0.8rem
-}
-
 .join_wrap .form {
-	margin:1rem 0 0.5rem 0;
+	margin:1rem 0 0 0;
 }
 
-.join_wrap .radio{
+.join_wrap .t_box {
   text-align:center;
-  margin-bottom:1rem;
-  margin-top:1rem
-}
-
-.join_wrap .join_inner .radio .checkbox-label {
-  display: flex;
-  justify-content: center; 
-  align-items: center;  
-  gap: 0.5rem;
-  margin:0 auto;
-}
-
-.join_wrap .join_inner .radio .checkbox-label input[type="checkbox"] {
-  display: inline-block;
-  width: 1.2rem;
-  height: 1.2rem;
-  margin: 0;
-  appearance: auto !important;
-  position: static !important;
-  opacity: 1 !important;
+  margin:1rem 0 1rem 0;
+  line-height:1.5rem;
 }
 
 .join_wrap .agree {
-	width:100%;
-	margin-top:0.5rem;
+  margin-top:0.5rem
+}
+
+.join_wrap .select_ruffy {
+  margin:0.5rem 0 1rem 0;
+}
+
+.join_wrap .select_ruffy .info_text {
+  font-size:0.9rem;
+  padding:0.5rem;
+  border-radius: 1rem;
+  background-color:#e4ff76;
+}
+
+.join_wrap .select_ruffy .ruffys {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
+  margin-top:0.5rem;
+}
+
+.join_wrap .select_ruffy .ruffys a {
+  width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+  padding: 0 0.2rem;
+}
+
+.join_wrap .select_ruffy .ruffys a span {
+  width:100%;
+  display:inline-block;
+  text-align:center;
+}
+
+.join_wrap .select_ruffy .ruffys a span.img {
+  width: 100%;
+  height: 3.5rem;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  text-align: center;
+}
+
+.join_wrap .select_ruffy .ruffys img {
+  width:3rem;
+}
+
+.join_wrap .select_ruffy .ruffys a span.name {
+  width:100%;
+  display:inline-block;
+  border-radius:0.7rem;
+  background-color:#eee;
+  color:#333;
+  font-size:0.8rem;
+  letter-spacing:-0.02rem;
 }
 
 
+.join_wrap .select_ruffy .ruffys a.on span.name {
+  background-color:#00ac6d;
+  color:#fff
+}
+
+.join_wrap .select_ruffy .ruffys a .custom-radio {
+  margin-bottom:0.5rem;
+}
+
+.join_wrap .select_ruffy .ruffys .ruffys_detail {
+  width:100%;
+  margin:0 0 1rem 0;
+}
+
+.join_wrap .select_ruffy .ruffys .speech-bubble {
+  width: 100%;
+  min-height:9rem;
+  position: relative;
+  padding: 1.5rem 1.8rem;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.25);
+  font-size: 0.8rem;
+  line-height: 1.2rem;
+}
+
+/* 말풍선 래퍼는 relative 기준점 */
+.join_wrap .select_ruffy .ruffys .speech-bubble-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* 말풍선 */
+.join_wrap .select_ruffy .ruffys .speech-bubble {
+  width: 100%;
+  min-height:10rem;
+  background: #fff;
+  padding: 1.5rem 1.8rem;
+  border-radius: 1rem;
+  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.25);
+  font-size: 0.8rem;
+  line-height: 1.2rem;
+}
+
+.join_wrap .select_ruffy .ruffys .tail {
+  position: absolute;
+  top: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  z-index: 1;
+}
+
+/* 회색 테두리 역할 (배경) */
+.join_wrap .select_ruffy .ruffys .tail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -0.85rem;
+  width: 0;
+  height: 0;
+  border-left: 0.85rem solid transparent;
+  border-right: 0.85rem solid transparent;
+  border-bottom: 1.05rem solid rgba(0, 0, 0, 0.1); /* 테두리처럼 보이는 회색 */
+  z-index: 0;
+}
+
+/* 흰색 꼬리 본체 */
+.join_wrap .select_ruffy .ruffys .tail::after {
+  content: "";
+  position: absolute;
+  top: 0.05rem;
+  left: -0.8rem;
+  width: 0;
+  height: 0;
+  border-left: 0.8rem solid transparent;
+  border-right: 0.8rem solid transparent;
+  border-bottom: 1rem solid #fff;
+  z-index: 1;
+}
+/* 러피 카드 중앙 맞춰서 이동 */
+.join_wrap .select_ruffy .ruffys .tail.option1 {
+  left: 12.5%;
+  transform: translateX(-50%);
+}
+.join_wrap .select_ruffy .ruffys .tail.option2 {
+  left: 37.5%;
+  transform: translateX(-50%);
+}
+.join_wrap .select_ruffy .ruffys .tail.option3 {
+  left: 62.5%;
+  transform: translateX(-50%);
+}
+.join_wrap .select_ruffy .ruffys .tail.option4 {
+  left: 87.5%;
+  transform: translateX(-50%);
+}
