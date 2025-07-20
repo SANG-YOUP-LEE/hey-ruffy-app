@@ -3,7 +3,7 @@
 export function getFirebaseErrorMessage(code) {
   switch (code) {
     case "auth/email-already-in-use":
-      return "이미 가입된 이메일이에요. <br />혹시 아직 인증을 하지 않으셨다면<br />메일함을 확인해주세요.";
+      return "이미 가입된 이메일이에요. <br />혹시 아직 인증을 하지 않았다면<br />메일함을 확인해주세요.";
     case "auth/invalid-email":
       return "이메일 형식이 올바르지 않아요.";
     case "auth/weak-password":
