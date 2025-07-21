@@ -50,6 +50,15 @@ html, body {
   touch-action: none;
 }
 
+/* 화면 중앙 정렬시 */
+.container {
+	width:100%;
+	position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .no-touch.yscroll {
   width: 100vw;
   height: 100vh;
@@ -302,15 +311,6 @@ button {
   transform: translate(-50%, -50%);
   background: linear-gradient(to bottom right, #00b78a, #008259);
   border-radius: 50%;
-}
-
-/* 화면 중앙 정렬시 */
-.container {
-	width:100%;
-	position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .error-box {
