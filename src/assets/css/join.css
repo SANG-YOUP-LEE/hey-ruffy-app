@@ -150,7 +150,7 @@
 
 /* 말풍선 래퍼는 relative 기준점 */
 .join_wrap .select_ruffy .ruffys .speech-bubble-wrapper {
-  position: absoulte;
+  position: absolute;
   width: 100%;
   margin-top: 1rem;
 }
