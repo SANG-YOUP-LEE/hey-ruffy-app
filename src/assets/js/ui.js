@@ -108,7 +108,7 @@ export function centerVertically(selector = '.container', wrapperSelector = '.no
 
     if (container && wrapper) {
       const containerHeight = container.offsetHeight
-      const wrapperHeight = wrapper.offsetHeight
+      const wrapperHeight = window.innerHeight // ← 정확한 현재 높이
       const top = (wrapperHeight - containerHeight) / 2
 
       container.style.top = `${top}px`
@@ -116,11 +116,24 @@ export function centerVertically(selector = '.container', wrapperSelector = '.no
     }
   }
 
-  // 실행 타이밍 보장용
+  // 적용 타이밍 강화
+  apply()
   window.addEventListener('load', apply)
   window.addEventListener('resize', apply)
   window.addEventListener('orientationchange', apply)
-  setTimeout(apply, 300) // SPA 전환 대응용
+  setTimeout(apply, 300)
 }
 
 centerVertically()
+
+function setViewportHeightVar() {
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+
+// 최초 실행
+setViewportHeightVar()
+
+// 윈도우 리사이즈, 회전, 키보드 진입 등 대응
+window.addEventListener('resize', setViewportHeightVar)
+window.addEventListener('orientationchange', setViewportHeightVar)
