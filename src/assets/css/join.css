@@ -209,8 +209,8 @@
 
 .join_wrap .select_ruffy .speech-bubble .close-btn {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  top: 1rem;
+  right: 1rem;
   background: none;
   border: none;
   padding: 0;
