@@ -66,12 +66,13 @@
                 <span class="name">도리 러피</span>
               </a>
               <!-- //러피 선택 탭 -->
-  
-              <div class="speech-bubble">
-                <button class="close-btn" @click="selectedOption = ''">
-                  <img src="/src/assets/images/icon_close02.png" alt="닫기" />
-                </button>
-                <div class="tail" :class="selectedOption"></div>
+              <!-- //러피 캐릭터 설명 -->
+              <div class="speech-bubble-wrapper" v-if="selectedOption">
+                <div class="speech-bubble">
+                  <button class="close-btn" @click="selectedOption = ''">
+                    <img src="/src/assets/images/icon_close02.png" alt="닫기" />
+                  </button>
+                  <div class="tail" :class="selectedOption"></div>
                   <p v-if="selectedOption === 'option1'">
                     귀여운 잠보 먹보 퓨리예요.
                     움직이기 싫어해서 산책 한번 나가기 힘들지만
@@ -86,9 +87,7 @@
                   <p v-else-if="selectedOption === 'option3'">마리 러피</p>
                   <p v-else-if="selectedOption === 'option4'">도리 러피</p>
                 </div>
-  
               </div>
-              <!-- //러피 캐릭터 설명 -->
             </div>
           </div>
           <!--러피 선택 끝-->
