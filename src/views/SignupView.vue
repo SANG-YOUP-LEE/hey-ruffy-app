@@ -3,7 +3,7 @@
     <div class="container">
       <div class="join_wrap">
         <h2>러피랑 친구 할래요?</h2>
-  
+
         <div class="form">
           <input
             v-model="email"
@@ -26,14 +26,14 @@
             :disabled="signupComplete"
             @focus="clearMessages"
           />
-          <!--러피 선택 시작-->
+
+          <!-- 러피 선택 -->
           <div class="select_ruffy">
             <div class="info_text">
               친구가 되고 싶은 러피를 선택해주세요.
             </div>
             <div class="ruffys" ref="ruffysRef">
-              <!-- 러피 선택 탭 -->
-              <a href="#none" :class="{ on: selectedOption === 'option1' }" @click.prevent="selectedOption = 'option1'">
+              <a href="#none" :class="{ on: selectedOption === 'option1' }" @click.prevent="selectRuffy('option1')">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp01.png" alt="퓨리 러피"></span>
                 <label class="custom-radio">
                   <input type="radio" name="choice" value="option1" v-model="selectedOption" />
@@ -41,7 +41,7 @@
                 </label>
                 <span class="name">퓨리 러피</span>
               </a>
-              <a href="#none" :class="{ on: selectedOption === 'option2' }" @click.prevent="selectedOption = 'option2'">
+              <a href="#none" :class="{ on: selectedOption === 'option2' }" @click.prevent="selectRuffy('option2')">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp02.png" alt="빌리 러피"></span>
                 <label class="custom-radio">
                   <input type="radio" name="choice" value="option2" v-model="selectedOption" />
@@ -49,7 +49,7 @@
                 </label>
                 <span class="name">빌리 러피</span>
               </a>
-              <a href="#none" :class="{ on: selectedOption === 'option3' }" @click.prevent="selectedOption = 'option3'">
+              <a href="#none" :class="{ on: selectedOption === 'option3' }" @click.prevent="selectRuffy('option3')">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp03.png" alt="마리 러피"></span>
                 <label class="custom-radio">
                   <input type="radio" name="choice" value="option3" v-model="selectedOption" />
@@ -57,7 +57,7 @@
                 </label>
                 <span class="name">마리 러피</span>
               </a>
-              <a href="#none" :class="{ on: selectedOption === 'option4' }" @click.prevent="selectedOption = 'option4'">
+              <a href="#none" :class="{ on: selectedOption === 'option4' }" @click.prevent="selectRuffy('option4')">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp04.png" alt="도리 러피"></span>
                 <label class="custom-radio">
                   <input type="radio" name="choice" value="option4" v-model="selectedOption" />
@@ -65,82 +65,84 @@
                 </label>
                 <span class="name">도리 러피</span>
               </a>
-              <!-- //러피 선택 탭 -->
-              <!-- //러피 캐릭터 설명 -->
-              <div class="speech-bubble-wrapper" v-if="selectedOption">
+
+              <!-- 팝업 -->
+              <div class="speech-bubble-wrapper" v-if="showRuffyPopup">
                 <div class="speech-bubble">
-                  <button class="close-btn" @click="selectedOption = ''">
+                  <button class="close-btn" @click="closeRuffyPopup">
                     <img src="/src/assets/images/ico_close02.png" alt="닫기" />
                   </button>
                   <div class="tail" :class="selectedOption"></div>
                   <p v-if="selectedOption === 'option1'">
-                    귀여운 잠보 먹보 퓨리예요.
-                    움직이기 싫어해서 산책 한번 나가기 힘들지만
-                    막상 나가면 날라다니는거 알죠알죠!
-                    6개월째 생일날 받은 노란색 안대는 퓨리의 최애 아이템!
+                    귀여운 잠보 먹보 퓨리예요.<br />
+                    움직이기 싫어해서 산책 한번 나가기 힘들지만<br />
+                    막상 나가면 날라다녀요!<br />
+                    6개월째 생일날 받은 노란색 안대는 최애템!
                   </p>
                   <p v-else-if="selectedOption === 'option2'">
-                    언제나 씩씩하고 똥꼬 발랄한 빌리의 비밀은
-                    바로바로 할머니가 빌리에게만 선물한 파란색 담요!
-                    요거 없으면 한 숨도 못자요.
+                    언제나 씩씩한 빌리의 비밀은<br />
+                    할머니가 준 파란색 담요!<br />
+                    요거 없으면 잠 못자요.
                   </p>
-                  <p v-else-if="selectedOption === 'option3'">마리 러피</p>
-                  <p v-else-if="selectedOption === 'option4'">도리 러피</p>
+                  <p v-else-if="selectedOption === 'option3'">마리 러피 설명</p>
+                  <p v-else-if="selectedOption === 'option4'">도리 러피 설명</p>
                 </div>
               </div>
             </div>
           </div>
-          <!--러피 선택 끝-->
-        </div>
-  
-        <div class="warn-message" v-if="!signupComplete && showWarning && warningText">
-          <p>{{ warningText }}</p>
-        </div>
-  
-        <div class="warn-message" v-if="infoMessage" v-html="infoMessage"></div>
-  
-        <div class="t_box" v-if="!signupComplete">
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="isOver14" @change="clearMessages" />
-            <span class="checkmark"></span>
-            <span><em>[필수]</em> 14세 이상입니다.</span>
-          </label>
-          <div class="agree">
-            러피와 친구를 맺으면 '헤이, 러피'의<br />
-            <a href="/terms" target="_blank" rel="noopener noreferrer" @click="clearMessages">이용약관</a>과
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" @click="clearMessages">개인정보 정책</a>에 동의하게 됩니다.
+
+          <!-- 유효성 경고 -->
+          <div class="warn-message" v-if="!signupComplete && showWarning && warningText">
+            <p>{{ warningText }}</p>
           </div>
-        </div>
-  
-        <div :class="['button', { mt1: resendClicked }]">
-          <button
-            class="b_green"
-            :disabled="loading || signupComplete"
-            @click="handleSignup"
-            v-if="!signupComplete"
-          >
-            {{
-              loading
-                ? "메일을 보내고 있어요..."
-                : canStartSignup
-                  ? "이메일 인증하기"
-                  : "러피랑 친구하기"
-            }}
-          </button>
-  
-          <div class="button" v-else>
-            <button class="b_green" @click="checkVerification">인증 확인</button>
-            <button class="b_white_br_green" @click="resendVerification" :disabled="resendCooldown > 0">
+
+          <!-- 안내 메시지 -->
+          <div class="warn-message" v-if="infoMessage" v-html="infoMessage"></div>
+
+          <div class="t_box" v-if="!signupComplete">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="isOver14" @change="clearMessages" />
+              <span class="checkmark"></span>
+              <span><em>[필수]</em> 14세 이상입니다.</span>
+            </label>
+            <div class="agree">
+              러피와 친구를 맺으면 '헤이, 러피'의<br />
+              <a href="/terms" target="_blank" rel="noopener noreferrer" @click="clearMessages">이용약관</a>과
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" @click="clearMessages">개인정보 정책</a>에 동의하게 됩니다.
+            </div>
+          </div>
+
+          <!-- 버튼 -->
+          <div :class="['button', { mt1: resendClicked }]">
+            <button
+              class="b_green"
+              :disabled="loading || signupComplete"
+              @click="handleSignup"
+              v-if="!signupComplete"
+            >
               {{
-                resendCooldown > 0
-                  ? `인증 메일 재전송 (${resendCooldown}초)`
-                  : "인증 메일 다시 보내기"
+                loading
+                  ? "메일을 보내고 있어요..."
+                  : canStartSignup
+                    ? "이메일 인증하기"
+                    : "러피랑 친구하기"
               }}
             </button>
-            <button class="b_white_br_green" @click="editEmail">이메일 주소 수정하기</button>
+
+            <div class="button" v-else>
+              <button class="b_green" @click="checkVerification">인증 확인</button>
+              <button class="b_white_br_green" @click="resendVerification" :disabled="resendCooldown > 0">
+                {{
+                  resendCooldown > 0
+                    ? `인증 메일 재전송 (${resendCooldown}초)`
+                    : "인증 메일 다시 보내기"
+                }}
+              </button>
+              <button class="b_white_br_green" @click="editEmail">이메일 주소 수정하기</button>
+            </div>
+
+            <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
           </div>
-  
-          <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
         </div>
       </div>
     </div>
@@ -148,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from "vue"
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
 import { auth, db } from "../firebase"
 import {
@@ -163,6 +165,7 @@ import {
 } from "firebase/firestore"
 import { getFirebaseErrorMessage } from "@/utils/firebaseErrorMessage"
 
+// 폼 관련
 const email = ref("")
 const password = ref("")
 const nickname = ref("")
@@ -172,10 +175,43 @@ const loading = ref(false)
 const showWarning = ref(false)
 const errorMessage = ref("")
 const infoMessage = ref("")
+const resendCooldown = ref(0)
+let resendTimer = null
+const resendClicked = ref(false)
 const router = useRouter()
 
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+// 러피 선택 관련
+const selectedOption = ref("")
+const showRuffyPopup = ref(false)
+const ruffysRef = ref(null)
 
+const selectRuffy = (option) => {
+  selectedOption.value = option
+  showRuffyPopup.value = true
+}
+
+const closeRuffyPopup = () => {
+  showRuffyPopup.value = false
+}
+
+// 팝업 외부 클릭 시 닫기
+const handleClickOutside = (e) => {
+  if (ruffysRef.value && ruffysRef.value.contains(e.target)) return
+  const speechBubbleEl = document.querySelector('.speech-bubble-wrapper')
+  if (speechBubbleEl && speechBubbleEl.contains(e.target)) return
+  showRuffyPopup.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// 이메일 유효성
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const warningText = computed(() => {
   if (!email.value) return "이메일을 입력해 주세요."
   if (!isValidEmail(email.value)) return "이메일 형식이 바르지 않습니다."
@@ -221,11 +257,7 @@ const handleSignup = async () => {
   loading.value = true
 
   try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    )
+    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
     const user = userCredential.user
     await sendEmailVerification(user)
     signupComplete.value = true
@@ -290,6 +322,17 @@ const resendVerification = async () => {
   }
 }
 
+const startResendCooldown = () => {
+  resendCooldown.value = 60
+  resendTimer = setInterval(() => {
+    resendCooldown.value--
+    if (resendCooldown.value <= 0) {
+      clearInterval(resendTimer)
+      resendTimer = null
+    }
+  }, 1000)
+}
+
 const editEmail = () => {
   clearMessages()
   signupComplete.value = false
@@ -315,46 +358,4 @@ const clearMessages = () => {
   infoMessage.value = ""
   errorMessage.value = ""
 }
-
-const resendCooldown = ref(0)
-let resendTimer = null
-
-const startResendCooldown = () => {
-  resendCooldown.value = 60
-  resendTimer = setInterval(() => {
-    resendCooldown.value--
-    if (resendCooldown.value <= 0) {
-      clearInterval(resendTimer)
-      resendTimer = null
-    }
-  }, 1000)
-}
-
-const resendClicked = ref(false)
-
-const selectedOption = ref('')
-
-import { onMounted, onBeforeUnmount } from 'vue'
-
-const ruffysRef = ref(null)
-
-const handleClickOutside = (e) => {
-  // 클릭한 요소가 .ruffys 안에 있으면 무시
-  if (ruffysRef.value && ruffysRef.value.contains(e.target)) return
-
-  // 클릭한 요소가 말풍선 내부라면 무시
-  const speechBubbleEl = document.querySelector('.speech-bubble-wrapper')
-  if (speechBubbleEl && speechBubbleEl.contains(e.target)) return
-
-  // 그 외엔 말풍선 닫기
-  selectedOption.value = ''
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
