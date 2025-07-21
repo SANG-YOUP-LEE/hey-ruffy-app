@@ -37,7 +37,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   text-align: center;
 }
-
+/*왜 안되지*/
 .no-touch {
   width: 100vw;     
   height: calc(var(--vh, 1vh) * 100);
