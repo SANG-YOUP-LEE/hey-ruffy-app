@@ -86,29 +86,24 @@
             </a>
             <!-- //러피 선택 탭 -->
 
-
-            
-            <!-- 러피 캐릭터 설명 -->
-            <div class="ruffys_detail">
-              <div class="speech-bubble-wrapper" v-if="selectedOption">
-                <div class="speech-bubble">
-                  <div class="tail" :class="selectedOption"></div>
-                  <p v-if="selectedOption === 'option1'">
-                    귀여운 잠보 먹보 퓨리예요.
-                    움직이기 싫어해서 산책 한번 나가기 힘들지만
-                    막상 나가면 날라다니는거 알죠알죠!
-                    6개월째 생일날 받은 노란색 안대는 퓨리의 최애 아이템!
-                  </p>
-                  <p v-else-if="selectedOption === 'option2'">
-                    언제나 씩씩하고 똥꼬 발랄한 빌리의 비밀은
-                    바로바로 할머니가 빌리에게만 선물한 파란색 담요!
-                    요거 없으면 한 숨도 못자요.
-                  </p>
-                  <p v-else-if="selectedOption === 'option3'">마리 러피</p>
-                  <p v-else-if="selectedOption === 'option4'">도리 러피</p>
-                </div>
-
+            <div class="speech-bubble-wrapper" v-if="selectedOption">
+              <div class="speech-bubble">
+                <div class="tail" :class="selectedOption"></div>
+                <p v-if="selectedOption === 'option1'">
+                  귀여운 잠보 먹보 퓨리예요.
+                  움직이기 싫어해서 산책 한번 나가기 힘들지만
+                  막상 나가면 날라다니는거 알죠알죠!
+                  6개월째 생일날 받은 노란색 안대는 퓨리의 최애 아이템!
+                </p>
+                <p v-else-if="selectedOption === 'option2'">
+                  언제나 씩씩하고 똥꼬 발랄한 빌리의 비밀은
+                  바로바로 할머니가 빌리에게만 선물한 파란색 담요!
+                  요거 없으면 한 숨도 못자요.
+                </p>
+                <p v-else-if="selectedOption === 'option3'">마리 러피</p>
+                <p v-else-if="selectedOption === 'option4'">도리 러피</p>
               </div>
+
             </div>
             <!-- //러피 캐릭터 설명 -->
           </div>
