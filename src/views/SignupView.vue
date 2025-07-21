@@ -67,7 +67,11 @@
               </a>
               <!-- //러피 선택 탭 -->
               <!-- //러피 캐릭터 설명 -->
-              <div class="speech-bubble-wrapper" v-if="selectedOption">
+              <div
+                class="speech-bubble-wrapper"
+                v-if="selectedOption"
+                ref="speechBubbleRef"
+              >
                 <div class="speech-bubble">
                   <button class="close-btn" @click="selectedOption = ''">
                     <img src="/src/assets/images/ico_close02.png" alt="닫기" />
@@ -333,4 +337,25 @@ const startResendCooldown = () => {
 const resendClicked = ref(false)
 
 const selectedOption = ref('')
+
+import { onMounted, onBeforeUnmount } from 'vue'
+
+const speechBubbleRef = ref(null)
+
+const handleClickOutside = (e) => {
+  if (
+    speechBubbleRef.value &&
+    !speechBubbleRef.value.contains(e.target)
+  ) {
+    selectedOption.value = ''
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
