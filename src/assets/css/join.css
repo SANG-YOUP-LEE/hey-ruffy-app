@@ -152,7 +152,7 @@
 .join_wrap .select_ruffy .ruffys .speech-bubble-wrapper {
   position: absolute;
   width: 100%;
-  margin-top: -12rem;
+  margin-top: -11rem;
 }
 
 /* 말풍선 */
@@ -169,7 +169,7 @@
 
 .join_wrap .select_ruffy .ruffys .tail {
   position: absolute;
-  top: -1rem;
+  bottom: -1rem; /* ✅ 아래로 내림 */
   left: 50%;
   transform: translateX(-50%);
   width: 0;
@@ -177,33 +177,30 @@
   z-index: 1;
 }
 
-/* 회색 테두리 역할 (배경) */
+/* 회색 테두리 역할 (배경) - 아래 방향 */
 .join_wrap .select_ruffy .ruffys .tail::before {
   content: "";
   position: absolute;
-  top: 0;
+  bottom: 0; /* ✅ bottom 기준으로 위치 */
   left: -0.85rem;
-  width: 0;
-  height: 0;
   border-left: 0.85rem solid transparent;
   border-right: 0.85rem solid transparent;
-  border-bottom: 1.05rem solid rgba(0, 0, 0, 0.1); /* 테두리처럼 보이는 회색 */
+  border-top: 1.05rem solid rgba(0, 0, 0, 0.1); /* ✅ border-top으로 아래 방향 꼬리 */
   z-index: 0;
 }
 
-/* 흰색 꼬리 본체 */
+/* 흰색 꼬리 본체 - 아래 방향 */
 .join_wrap .select_ruffy .ruffys .tail::after {
   content: "";
   position: absolute;
-  top: 0.05rem;
+  bottom: 0.05rem; /* ✅ 약간 위로 올려서 배경보다 앞에 위치 */
   left: -0.8rem;
-  width: 0;
-  height: 0;
   border-left: 0.8rem solid transparent;
   border-right: 0.8rem solid transparent;
-  border-bottom: 1rem solid #fff;
+  border-top: 1rem solid #fff; /* ✅ border-top으로 아래 방향 꼬리 */
   z-index: 1;
 }
+
 /* 러피 카드 중앙 맞춰서 이동 */
 .join_wrap .select_ruffy .ruffys .tail.option1 {
   left: 12.5%;
