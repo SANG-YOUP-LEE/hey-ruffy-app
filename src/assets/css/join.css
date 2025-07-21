@@ -178,15 +178,17 @@
 }
 
 /* 회색 테두리 역할 (배경) - 아래 방향 */
+/* 회색 테두리 역할 (배경) - 더 진한 그림자 효과로 변경 */
 .join_wrap .select_ruffy .ruffys .tail::before {
   content: "";
   position: absolute;
-  bottom: 0; /* ✅ bottom 기준으로 위치 */
+  bottom: 0;
   left: -0.85rem;
   border-left: 0.85rem solid transparent;
   border-right: 0.85rem solid transparent;
-  border-top: 1.05rem solid rgba(0, 0, 0, 0.1); /* ✅ border-top으로 아래 방향 꼬리 */
+  border-top: 1.05rem solid rgba(0, 0, 0, 0.2); /* 기존보다 더 진하게 */
   z-index: 0;
+  filter: blur(0.3px); /* 약간 부드럽게 번짐 효과 */
 }
 
 /* 흰색 꼬리 본체 - 아래 방향 */
