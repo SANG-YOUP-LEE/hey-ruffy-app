@@ -1,34 +1,36 @@
 <template>
   <div class="no-touch">
-    <div class="join_wrap">
-      <h2>안녕!<br />다시 만나서 반가워요. </h2>
-
-      <div class="form">
-        <input
-          type="email"
-          placeholder="이메일을 입력해 주세요."
-          v-model="email"
-          @focus="clearAllMessages"
-          :class="{ error: errorField === 'email' }"
-        />
-        <input
-          type="password"
-          placeholder="비밀번호를 입력해 주세요."
-          v-model="password"
-          @focus="clearAllMessages"
-          :class="{ error: errorField === 'password' }"
-        />
+    <div class="container">
+      <div class="join_wrap">
+        <h2>안녕!<br />다시 만나서 반가워요. </h2>
+  
+        <div class="form">
+          <input
+            type="email"
+            placeholder="이메일을 입력해 주세요."
+            v-model="email"
+            @focus="clearAllMessages"
+            :class="{ error: errorField === 'email' }"
+          />
+          <input
+            type="password"
+            placeholder="비밀번호를 입력해 주세요."
+            v-model="password"
+            @focus="clearAllMessages"
+            :class="{ error: errorField === 'password' }"
+          />
+        </div>
+  
+        <div v-if="errorText" class="warn-message" v-html="errorText"></div>
+        <div v-if="messageText" class="info-message" v-html="messageText"></div>
+  
+        <div class="t_box">
+          혹시 비밀번호를 잊었다면
+          <a href="#" @click.prevent="resetPassword">여기</a>를 눌러주세요.
+        </div>
+  
+        <a href="#" @click.prevent="login" class="b_green">러피 만나러가기</a>
       </div>
-
-      <div v-if="errorText" class="warn-message" v-html="errorText"></div>
-      <div v-if="messageText" class="info-message" v-html="messageText"></div>
-
-      <div class="t_box">
-        혹시 비밀번호를 잊었다면
-        <a href="#" @click.prevent="resetPassword">여기</a>를 눌러주세요.
-      </div>
-
-      <a href="#" @click.prevent="login" class="b_green">러피 만나러가기</a>
     </div>
   </div>
 </template>
