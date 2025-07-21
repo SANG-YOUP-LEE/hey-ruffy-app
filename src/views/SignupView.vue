@@ -33,54 +33,34 @@
             </div>
             <div class="ruffys">
               <!-- 러피 선택 탭 -->
-              <a href="#none" :class="{ on: selectedOption === 'option1' }">
+              <a href="#none" :class="{ on: selectedOption === 'option1' }" @click.prevent="selectedOption = 'option1'">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp01.png" alt="퓨리 러피"></span>
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="choice"
-                    value="option1"
-                    v-model="selectedOption"
-                  />
+                  <input type="radio" name="choice" value="option1" v-model="selectedOption" />
                   <span class="circle"></span>
                 </label>
                 <span class="name">퓨리 러피</span>
               </a>
-              <a href="#none" :class="{ on: selectedOption === 'option2' }">
+              <a href="#none" :class="{ on: selectedOption === 'option2' }" @click.prevent="selectedOption = 'option2'">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp02.png" alt="빌리 러피"></span>
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="choice"
-                    value="option2"
-                    v-model="selectedOption"
-                  />
+                  <input type="radio" name="choice" value="option2" v-model="selectedOption" />
                   <span class="circle"></span>
                 </label>
                 <span class="name">빌리 러피</span>
               </a>
-              <a href="#none" :class="{ on: selectedOption === 'option3' }">
+              <a href="#none" :class="{ on: selectedOption === 'option3' }" @click.prevent="selectedOption = 'option3'">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp03.png" alt="마리 러피"></span>
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="choice"
-                    value="option3"
-                    v-model="selectedOption"
-                  />
+                  <input type="radio" name="choice" value="option3" v-model="selectedOption" />
                   <span class="circle"></span>
                 </label>
                 <span class="name">마리 러피</span>
               </a>
-              <a href="#none" :class="{ on: selectedOption === 'option4' }">
+              <a href="#none" :class="{ on: selectedOption === 'option4' }" @click.prevent="selectedOption = 'option4'">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp04.png" alt="도리 러피"></span>
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="choice"
-                    value="option4"
-                    v-model="selectedOption"
-                  />
+                  <input type="radio" name="choice" value="option4" v-model="selectedOption" />
                   <span class="circle"></span>
                 </label>
                 <span class="name">도리 러피</span>
