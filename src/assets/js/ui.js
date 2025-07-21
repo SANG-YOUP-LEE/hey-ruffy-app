@@ -101,16 +101,26 @@ export function setupCheckButtons() {
 	})
 }
 
-// 아이폰 등에서 100vh 문제 해결용
-export function fixViewportHeight() {
-	const vh = window.innerHeight * 0.01
-	document.documentElement.style.setProperty('--vh', `${vh}px`)
-	window.addEventListener('resize', () => {
-		const vh = window.innerHeight * 0.01
-		document.documentElement.style.setProperty('--vh', `${vh}px`)
-	})
-	window.addEventListener('orientationchange', () => {
-		const vh = window.innerHeight * 0.01
-		document.documentElement.style.setProperty('--vh', `${vh}px`)
-	})
+export function centerVertically(selector = '.container', wrapperSelector = '.no-touch') {
+  const apply = () => {
+    const container = document.querySelector(selector)
+    const wrapper = document.querySelector(wrapperSelector)
+
+    if (container && wrapper) {
+      const containerHeight = container.offsetHeight
+      const wrapperHeight = wrapper.offsetHeight
+      const top = (wrapperHeight - containerHeight) / 2
+
+      container.style.top = `${top}px`
+      container.style.transform = 'translateX(-50%)'
+    }
+  }
+
+  // 실행 타이밍 보장용
+  window.addEventListener('load', apply)
+  window.addEventListener('resize', apply)
+  window.addEventListener('orientationchange', apply)
+  setTimeout(apply, 300) // SPA 전환 대응용
 }
+
+centerVertically()
