@@ -67,9 +67,11 @@
               </a>
               <!-- //러피 선택 탭 -->
   
-              <div class="speech-bubble-wrapper" v-if="selectedOption">
-                <div class="speech-bubble">
-                  <div class="tail" :class="selectedOption"></div>
+              <div class="speech-bubble">
+                <button class="close-btn" @click="selectedOption = ''">
+                  <img src="/src/assets/images/icon_close02.png" alt="닫기" />
+                </button>
+                <div class="tail" :class="selectedOption"></div>
                   <p v-if="selectedOption === 'option1'">
                     귀여운 잠보 먹보 퓨리예요.
                     움직이기 싫어해서 산책 한번 나가기 힘들지만
