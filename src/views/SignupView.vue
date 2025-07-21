@@ -118,7 +118,7 @@
           <!-- 버튼 -->
           <div :class="['button', { mt1: resendClicked }]">
             <button
-              class="b_green"
+              class="b_blue"
               :disabled="loading || signupComplete"
               @click="handleSignup"
               v-if="!signupComplete"
@@ -133,15 +133,15 @@
             </button>
 
             <div class="button" v-else>
-              <button class="b_green" @click="checkVerification">인증 확인</button>
-              <button class="b_white_br_green" @click="resendVerification" :disabled="resendCooldown > 0">
+              <button class="b_blue" @click="checkVerification">인증 확인</button>
+              <button class="b_white_br_blue" @click="resendVerification" :disabled="resendCooldown > 0">
                 {{
                   resendCooldown > 0
                     ? `인증 메일 재전송 (${resendCooldown}초)`
                     : "인증 메일 다시 보내기"
                 }}
               </button>
-              <button class="b_white_br_green" @click="editEmail">이메일 주소 수정하기</button>
+              <button class="b_white_br_blue" @click="editEmail">이메일 주소 수정하기</button>
             </div>
 
             <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>

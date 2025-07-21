@@ -29,7 +29,7 @@
           <a href="#" @click.prevent="resetPassword">여기</a>를 눌러주세요.
         </div>
   
-        <a href="#" @click.prevent="login" class="b_green">러피 만나러가기</a>
+        <a href="#" @click.prevent="login" class="b_blue">러피 만나러가기</a>
       </div>
     </div>
   </div>
