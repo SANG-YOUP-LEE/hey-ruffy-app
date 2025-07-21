@@ -66,15 +66,14 @@ h1 {
   font-family: 'Paperlogy-8ExtraBold';
   font-size:3.8rem;
   line-height:4.3rem;
-  color:#00b170
-}
+  color:#00ab79;
 
 h2 {
   font-family: 'Freesentation-9Black';
   font-weight: bold;
   font-size:2rem;
   line-height:2.3rem;
-  color:#00b170
+  color:#00ab79
 }
 
 img, picture, video, canvas, svg {
@@ -99,7 +98,7 @@ input[type="email"] {
   width:100%;
   height:3rem;
   border:none;
-  border-bottom:1px solid #c9c9c9;
+  border-bottom:1px solid #7b7b7b;
   margin-bottom:0.5rem;
   padding:0.3rem 1rem 0.3rem 1rem;
   line-height:2rem;
@@ -125,7 +124,7 @@ ul, ol {
 
 a {
 	color:#009a5b;
-  text-decoration:none;
+  text-decoration:underline;
   cursor: pointer;
 }
 
@@ -160,8 +159,8 @@ button {
 }
 
 [class$="green"] {
-  background-color: #00b170;
-  border:0.1rem solid #00b170;
+  background-color: #00ab79;
+  border:0.1rem solid #00ab79;
   color: #fff;
 }
 
@@ -173,8 +172,8 @@ button {
 
 [class$="white_br_green"] {
   background-color: #fff;
-  border:0.1px solid #00b170;
-  color: #00b170;
+  border:0.1px solid #00ab79;
+  color: #00ab79;
 }
 
 .mt1 {margin-top:1rem;}
