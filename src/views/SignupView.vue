@@ -1,5 +1,5 @@
 <template>
-  <div class="no-touch yscroll">
+  <div class="no-touch">
     <div class="join_wrap">
       <h2>러피랑 친구 할래요?</h2>
 
