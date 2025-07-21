@@ -70,7 +70,7 @@
               <div class="speech-bubble-wrapper" v-if="selectedOption">
                 <div class="speech-bubble">
                   <button class="close-btn" @click="selectedOption = ''">
-                    <img src="/src/assets/images/icon_close02.png" alt="닫기" />
+                    <img src="/images/icon_close02.png" alt="닫기" />
                   </button>
                   <div class="tail" :class="selectedOption"></div>
                   <p v-if="selectedOption === 'option1'">
