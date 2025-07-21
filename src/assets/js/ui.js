@@ -19,12 +19,12 @@ export function setupToggleBlocks(options = {}) {
 			}
 		})
 
-		// ✅ 주간 탭 초기화
+		// 주간 탭 초기화
 		if (block.id === 'v_detail02_block' && options.resetRepeat) {
 			options.resetRepeat()
 		}
 
-		// ✅ 월간 탭 초기화
+		// 월간 탭 초기화
 		if (block.id === 'v_detail03_block' && options.resetMonthly) {
 			options.resetMonthly()
 		}
@@ -98,5 +98,19 @@ export function setupCheckButtons() {
 				}
 			})
 		})
+	})
+}
+
+// 아이폰 등에서 100vh 문제 해결용
+export function fixViewportHeight() {
+	const vh = window.innerHeight * 0.01
+	document.documentElement.style.setProperty('--vh', `${vh}px`)
+	window.addEventListener('resize', () => {
+		const vh = window.innerHeight * 0.01
+		document.documentElement.style.setProperty('--vh', `${vh}px`)
+	})
+	window.addEventListener('orientationchange', () => {
+		const vh = window.innerHeight * 0.01
+		document.documentElement.style.setProperty('--vh', `${vh}px`)
 	})
 }
