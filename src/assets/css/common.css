@@ -44,7 +44,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   text-align: center;
 }
-/*왜 안되지*/
+
 .no-touch {
   width: 100vw;
   height: calc(var(--vh, 1vh) * 100); 
@@ -82,7 +82,7 @@ h1 {
   font-family: 'Paperlogy-8ExtraBold';
   font-size:3.8rem;
   line-height:4.3rem;
-  color:#00b157;
+  color:#0994ff;
 }
 
 h2 {
@@ -90,7 +90,7 @@ h2 {
   font-weight: bold;
   font-size:2rem;
   line-height:2.3rem;
-  color:#00b157
+  color:#0994ff
 }
 
 img, picture, video, canvas, svg {
@@ -140,7 +140,7 @@ ul, ol {
 }
 
 a {
-	color:#009a5b;
+	color:#007fe1;
   text-decoration:underline;
   cursor: pointer;
 }
@@ -176,8 +176,8 @@ button {
 }
 
 [class$="green"] {
-  background-color: #00b157;
-  border:0.1rem solid #00b157;
+  background-color: #0994ff;
+  border:0.1rem solid #0994ff;
   color: #fff;
 }
 
@@ -189,8 +189,8 @@ button {
 
 [class$="white_br_green"] {
   background-color: #fff;
-  border:0.1px solid #00b157;
-  color: #00b157;
+  border:0.1px solid #0994ff;
+  color: #0994ff;
 }
 
 .mt1 {margin-top:1rem;}
@@ -263,7 +263,7 @@ button {
 .checkbox-label .checkmark {
   width: 1.3rem;
   height: 1.3rem;
-  border: 0.1rem solid #00b170; 
+  border: 0.1rem solid #0994ff; 
   border-radius: 0.3rem;
   background-color: #fff;
   position: relative;
@@ -277,7 +277,7 @@ button {
   position: absolute;
   left: 0.4rem;
   top:-0.3rem;
-  border: solid #00b170; 
+  border: solid #0994ff; 
   border-width: 0 0.2rem 0.2rem 0;
   transform: rotate(45deg);
 }
@@ -316,7 +316,7 @@ button {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(to bottom right, #00b78a, #008259);
+  background: linear-gradient(to bottom right, #70c1ff, #0994ff);
   border-radius: 50%;
 }
 

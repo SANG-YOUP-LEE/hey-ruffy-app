@@ -1,4 +1,4 @@
-/* 인트로 이것도 설마*/
+/* 인트로*/
 .intro_wrap {
 	width:70%;
   margin:0 auto;
@@ -6,7 +6,7 @@
 
 .intro_wrap h1,
 .intro_wrap h1 em {
-  color:#00b157;
+  color:#0994ff;
 }
 
 .intro_wrap h1 {
@@ -69,7 +69,7 @@
   font-size:0.9rem;
   padding:0.5rem;
   border-radius: 1rem;
-  background-color:#e4ff76;
+  background-color:#ddf2ff;
 }
 
 .join_wrap .select_ruffy .ruffys {
@@ -123,7 +123,7 @@
 
 
 .join_wrap .select_ruffy .ruffys a.on span.name {
-  background-color:#00ac6d;
+  background-color:#0994ff;
   color:#fff
 }
 
