@@ -31,7 +31,7 @@
             <div class="info_text">
               친구가 되고 싶은 러피를 선택해주세요.
             </div>
-            <div class="ruffys">
+            <div class="ruffys" ref="ruffysRef">
               <!-- 러피 선택 탭 -->
               <a href="#none" :class="{ on: selectedOption === 'option1' }" @click.prevent="selectedOption = 'option1'">
                 <span class="img"><img src="/src/assets/images/hey_ruffy_temp01.png" alt="퓨리 러피"></span>
@@ -333,4 +333,28 @@ const startResendCooldown = () => {
 const resendClicked = ref(false)
 
 const selectedOption = ref('')
+
+import { onMounted, onBeforeUnmount } from 'vue'
+
+const ruffysRef = ref(null)
+
+const handleClickOutside = (e) => {
+  // 클릭한 요소가 .ruffys 안에 있으면 무시
+  if (ruffysRef.value && ruffysRef.value.contains(e.target)) return
+
+  // 클릭한 요소가 말풍선 내부라면 무시
+  const speechBubbleEl = document.querySelector('.speech-bubble-wrapper')
+  if (speechBubbleEl && speechBubbleEl.contains(e.target)) return
+
+  // 그 외엔 말풍선 닫기
+  selectedOption.value = ''
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
