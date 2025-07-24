@@ -114,7 +114,7 @@ const welcomeMessage = computed(() => {
   } else if (route.query.from === 'intro') {
     return '다시 만나서 반가워요! 오늘도 러피랑 좋은 하루 보내요 ☀️'
   } else {
-    return '안녕! 다시 만나서 반가워요.'
+    return '다시 만나서 반가워요! 오늘도 러피랑 좋은 하루 보내셔요.'
   }
 })
 
