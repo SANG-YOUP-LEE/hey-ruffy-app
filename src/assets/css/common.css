@@ -287,7 +287,12 @@ button {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  align-items: flex-start;
+}
+
+.custom-radio-group .custom-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .custom-radio {
