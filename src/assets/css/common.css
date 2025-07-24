@@ -288,12 +288,14 @@ button {
   display: flex;
   flex-direction: row;
   gap: 1rem;
+  background-color:red
 }
 
 .custom-radio-group .custom-radio {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  background-color:Green
 }
 
 .custom-radio {
