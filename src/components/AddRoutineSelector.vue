@@ -411,6 +411,29 @@ watch(isStartDateOn, (val) => {
   }
 })
 
+watch(selectedStartDateTime, (val) => {
+  if (val && val.year && val.month && val.date) {
+    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
+      routineData.value.startDate = {
+      year: val.year,
+      month: val.month,
+      date: val.date
+      }
+  
+  } else {
+    minEndDate.value = todayString
+  }
+})
+
+watch(selectedStartDateTime, (val) => {
+  if (val && val.year && val.month && val.date) {
+    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
+  } else {
+    minEndDate.value = todayString
+  }
+})
+
+
 watch(isEndDateOn, (val) => {
   if (val) {
     // minDate가 유효하지 않으면 todayString으로 fallback
@@ -430,6 +453,14 @@ watch(isEndDateOn, (val) => {
       month: '',
       date: '',
     }
+  }
+})
+
+watch(selectedStartDateTime, (val) => {
+  if (val && val.year && val.month && val.date) {
+    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
+  } else {
+    minEndDate.value = todayString
   }
 })
 

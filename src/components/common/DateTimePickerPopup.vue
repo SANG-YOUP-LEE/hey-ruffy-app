@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import MiniWheelPicker from '@/components/common/MiniWheelPicker.vue'
 
 const props = defineProps({
@@ -80,6 +80,11 @@ const props = defineProps({
   maxDate: { type: String, default: null },
   initialDate: { type: Object, default: null }
 })
+
+onMounted(() => {
+  setInitialDate()
+})
+
 
 const emit = defineEmits(['close', 'confirm'])
 
@@ -108,6 +113,25 @@ watch(
   },
   { immediate: true }
 )
+
+const setInitialDate = () => {
+  const init = props.initialDate
+  const min = parsedMinDate.value
+
+  if (init && init.year && init.month && init.date) {
+    selectedYear.value = init.year
+    selectedMonth.value = init.month
+    selectedDate.value = init.date
+  } else if (min) {
+    selectedYear.value = min.year
+    selectedMonth.value = min.month
+    selectedDate.value = min.date
+  } else {
+    selectedYear.value = today.getFullYear()
+    selectedMonth.value = today.getMonth() + 1
+    selectedDate.value = today.getDate()
+  }
+}
 
 // 최소 날짜 파싱
 const parsedMinDate = computed(() => {

@@ -161,5 +161,6 @@ onMounted(() => {
   color: #000;
   font-weight: bold;
   font-size: 16px;
+  background-color: #ffe95a;
 }
 </style>
