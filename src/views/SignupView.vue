@@ -199,7 +199,7 @@ const checkVerification = async () => {
         verified: true
         })
       await showInfo("인증이 완료되었습니다!")
-      router.push("/login")
+      router.push({ path: "/login", query: { from: "signup" } })
     } catch (err) {
       await showError("인증은 되었지만<br />사용자 정보 저장 중 오류가 발생했습니다.")
     }
@@ -232,10 +232,9 @@ const resendVerification = async () => {
   } catch (err) {
     if (err.code === "auth/too-many-requests") {
       await showError(`
-        인증 메일 요청이 너무 많아요.<br />
-        이 이메일 계정이 잠시 차단되었을 수 있어요.<br />
-        <strong>다른 이메일 주소로 다시 가입</strong>해보거나,<br />
-        <strong>잠시 후 다시 시도</strong>해 주세요.
+         인증 메일 요청이 너무 많아요.<br />
+         이 이메일 계정이 잠시 차단되었을 수 있어요.<br />
+        <strong>1~3분 후 다시 시도</strong>해 주세요.
       `)
     } else {
       const message = getFirebaseErrorMessage(err.code)
