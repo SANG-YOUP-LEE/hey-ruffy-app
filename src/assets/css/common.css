@@ -283,6 +283,13 @@ button {
 
 
 /* 라디오 박스 */
+.custom-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
 .custom-radio {
   width: 1.4em;
   height: 1.4rem;
