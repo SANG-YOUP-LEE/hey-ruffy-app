@@ -79,55 +79,42 @@
 				</div>
 			</div>
 
-			<!-- 다짐 시작일 설정 -->
-			<div class="form_box_g rt_make start_alarm_box">
-				<h3>시작일과 알람도 지정할까요?</h3>
-				<div>
-					<label class="toggle-switch">
-						<input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-						<span class="slider"></span>
-					</label>
-					시작일 지정
-					<p v-if="selectedStartDateTime" class="start_date_preview">
-						{{ selectedStartDateTime.year }}-{{ selectedStartDateTime.month }}-{{ selectedStartDateTime.date }}
-					</p>
-				</div>
-				
-				<!-- 종료일 toggle -->
-			<div>
-			<label class="toggle-switch">
-				<input
-				type="checkbox"
-				v-model="isEndDateOn"
-				@change="(e) => {
-					if (e.target.checked) {
-					isEndDatePopupOpen = true
-					} else {
-					routineData.endDate = ''
-					selectedEndDateTime.value = null
-					}
-				}"
-				/>
-				<span class="slider"></span>
-			</label>
-			종료일 지정
-			<p v-if="selectedEndDateTime" class="start_date_preview">
-				{{ selectedEndDateTime.year }}-{{ selectedEndDateTime.month }}-{{ selectedEndDateTime.date }}
-			</p>
-			</div>
-				
-				
-				<div>
-					<label class="toggle-switch">
-						<input type="checkbox" v-model="isAlarmOn" />
-						<span class="slider"></span>
-					</label>
-					알람 설정
-					<p v-if="selectedAlarmTime" class="start_date_preview">
-  {{ selectedAlarmTime.ampm }} {{ selectedAlarmTime.hour }}:{{ String(selectedAlarmTime.minute).padStart(2, '0') }}
-</p>
-				</div>
-			</div>
+      <!-- 다짐 시작일 설정 -->
+    <div class="form_box_g rt_make start_alarm_box">
+      <h3>시작일과 알람도 지정할까요?</h3>
+
+      <!-- 시작일 toggle -->
+      <div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+          <span class="slider"></span>
+        </label>
+        시작일 지정
+        <p class="start_date_preview">{{ formatDatePreview(selectedStartDateTime) }}</p>
+      </div>
+
+      <!-- 종료일 toggle -->
+      <div>
+        <label class="toggle-switch">
+          <input type="checkbox" v-model="isEndDateOn" />
+          <span class="slider"></span>
+        </label>
+        종료일 지정
+        <p class="start_date_preview">{{ formatDatePreview(selectedEndDateTime) }}</p>
+      </div>
+
+      <!-- 알람 toggle -->
+      <div>
+        <label class="toggle-switch">
+          <input type="checkbox" v-model="isAlarmOn" />
+          <span class="slider"></span>
+        </label>
+        알람 설정
+        <p class="start_date_preview">
+          {{ formatAlarmPreview(selectedAlarmTime) }}
+        </p>
+      </div>
+    </div>
 
 			<!-- 러피 산책 설정 -->
 			<div class="form_box_g rt_make">
@@ -180,7 +167,8 @@
 			:showMinute="false"
 			:showSecond="false"
 			:minDate="todayString"
-			@confirm="onDateConfirm"
+			:max-date="maxStartDate"
+      @confirm="onDateConfirm"
 			@close="handleDatePopupClose"
 		/>
 
@@ -195,7 +183,7 @@
 			:showHour="false"
 			:showMinute="false"
 			:showSecond="false"
-			:minDate="routineData.startDate || todayString"
+			:minDate="minEndDate"
 			@confirm="onEndDateConfirm"
 			@close="handleEndDatePopupClose"
 			/>
@@ -218,7 +206,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
@@ -231,6 +219,28 @@ const resetWeeklyKey = ref(0)
 const props = defineProps({
   routineToEdit: Object
 })
+
+function formatDateObjToStr(dateObj) {
+  if (!dateObj?.year || !dateObj?.month || !dateObj?.date) return '--'
+  return `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.date).padStart(2, '0')}`
+}
+
+const formatDatePreview = (dateObj) => {
+  if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.date) return '--'
+  return `${dateObj.year}.${String(dateObj.month).padStart(2, '0')}.${String(dateObj.date).padStart(2, '0')}`
+}
+
+// 시작일의 최대 날짜 = 종료일
+const maxStartDate = computed(() => {
+  const s = selectedEndDateTime.value
+  if (!s || !s.year || !s.month || !s.date) return null
+  return `${s.year}-${String(s.month).padStart(2, '0')}-${String(s.date).padStart(2, '0')}`
+})
+
+const formatAlarmPreview = (timeObj) => {
+  if (!timeObj || !timeObj.ampm || !timeObj.hour || timeObj.minute == null) return '--'
+  return `${timeObj.ampm} ${timeObj.hour}:${String(timeObj.minute).padStart(2, '0')}`
+}
 
 const emit = defineEmits(['close', 'refresh'])
 const handleClose = () => emit('close')
@@ -271,24 +281,19 @@ const formatDate = (dateObj) => {
 }
 
 
-const onEndDateConfirm = (value) => {
-  routineData.value.endDate = { ...value }
-  selectedEndDateTime.value = value
-  isEndDatePopupOpen.value = false
-}
-
-const handleEndDatePopupClose = () => {
-  isEndDatePopupOpen.value = false
-
-  // 날짜가 설정되지 않았으면 토글 꺼버리기
-  if (
-    !selectedEndDateTime.value ||
-    !selectedEndDateTime.value.year ||
-    !selectedEndDateTime.value.month ||
-    !selectedEndDateTime.value.date
-  ) {
-    isEndDateOn.value = false
+const onEndDateConfirm = (val) => {
+  const day = val.date || 1 // 일자가 비었으면 1일로 강제
+  selectedEndDateTime.value = {
+    year: val.year,
+    month: val.month,
+    date: day
   }
+  routineData.value.endDate = {
+    year: val.year,
+    month: val.month,
+    date: day
+  }
+  isEndDatePopupOpen.value = false
 }
 
 watch(() => props.routineToEdit, (newRoutine) => {
@@ -347,11 +352,7 @@ const todayString = `${yyyy}-${mm}-${dd}`
 
 const isStartDateOn = ref(false)
 const isDatePopupOpen = ref(false)
-const selectedStartDateTime = ref({
-  year: '',
-  month: '',
-  date: ''
-})
+const selectedStartDateTime = ref(null)
 
 const selectedEndDateTime = ref({
   year: '',
@@ -360,6 +361,11 @@ const selectedEndDateTime = ref({
 })
 const isEndDateOn = ref(false)
 const isEndDatePopupOpen = ref(false)
+const startDateString = computed(() => {
+  const s = selectedStartDateTime.value
+  if (!s || !s.year || !s.month || !s.date) return null  // ← 이게 문제될 수 있어
+  return `${s.year}-${String(s.month).padStart(2, '0')}-${String(s.date).padStart(2, '0')}`
+})
 
 
 const isAlarmOn = ref(false)
@@ -374,6 +380,8 @@ const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월'
 const selectedMonthOption = ref(null)
 const selectedDates = ref([])
 const colorCount = 10
+
+const minEndDate = ref(todayString)
 
 const toggleDateSelection = (day) => {
   if (selectedDates.value.includes(day)) {
@@ -395,18 +403,33 @@ watch(isStartDateOn, (val) => {
     isDatePopupOpen.value = true
   } else {
     selectedStartDateTime.value = null
-    routineData.value.startDate = ''
+    routineData.value.startDate = {
+      year: '',
+      month: '',
+      date: ''
+    }
   }
 })
 
 watch(isEndDateOn, (val) => {
-  if (!val) {
+  if (val) {
+    // minDate가 유효하지 않으면 todayString으로 fallback
+    const start = routineData.value.startDate
+    const isValidStart =
+      start && start.year && start.month && start.date
+
+    minEndDate.value = isValidStart
+      ? `${start.year}-${String(start.month).padStart(2, '0')}-${String(start.date).padStart(2, '0')}`
+      : todayString
+
+    isEndDatePopupOpen.value = true
+  } else {
     selectedEndDateTime.value = null
     routineData.value.endDate = {
-    year: '',
-    month: '',
-    date: '',
-  }
+      year: '',
+      month: '',
+      date: '',
+    }
   }
 })
 
@@ -420,8 +443,17 @@ watch(isAlarmOn, (val) => {
 })
 
 const onDateConfirm = (val) => {
-  selectedStartDateTime.value = val
-  routineData.value.startDate = `${val.year}-${val.month}-${val.date}`
+  const day = val.date || 1
+  selectedStartDateTime.value = {
+    year: val.year,
+    month: val.month,
+    date: day
+  }
+  routineData.value.startDate = {
+    year: val.year,
+    month: val.month,
+    date: day
+  }
   isDatePopupOpen.value = false
 }
 
@@ -439,15 +471,32 @@ const onAlarmConfirm = (val) => {
 
 const handleDatePopupClose = () => {
   isDatePopupOpen.value = false
-  if (!selectedStartDateTime.value) {
+  if (
+    !selectedStartDateTime.value ||
+    !selectedStartDateTime.value.year ||
+    !selectedStartDateTime.value.month ||
+    !selectedStartDateTime.value.date
+  ) {
     isStartDateOn.value = false
   }
 }
+
 
 const handleAlarmPopupClose = () => {
   isAlarmPopupOpen.value = false
   if (!selectedAlarmTime.value) {
     isAlarmOn.value = false
+  }
+}
+const handleEndDatePopupClose = () => {
+  isEndDatePopupOpen.value = false
+  if (
+    !selectedEndDateTime.value ||
+    !selectedEndDateTime.value.year ||
+    !selectedEndDateTime.value.month ||
+    !selectedEndDateTime.value.date
+  ) {
+    isEndDateOn.value = false
   }
 }
 
