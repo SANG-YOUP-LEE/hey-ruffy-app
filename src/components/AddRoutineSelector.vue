@@ -120,7 +120,7 @@
 			<div class="form_box_g rt_make">
 				<h3>최소 달성 횟수를 선택해주세요.</h3>
 				<p class="comment">최소 목표를 달성할때마다<br />러피가 즐거운 산책을 다녀올 수 있어요.</p>
-				<div style="width:5rem">
+				<div class="custom-radio-group">
 					<label class="custom-radio" v-for="count in [5, 10, 15, 20]" :key="count">
 						<input type="radio" name="rut_status" :value="count" v-model="routineData.goalCount" />
 						<span class="circle"></span>
