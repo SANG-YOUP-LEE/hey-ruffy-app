@@ -285,7 +285,7 @@ button {
 /* 라디오 박스 */
 .custom-radio-group {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1rem;
 }
 
