@@ -292,6 +292,8 @@ button {
 }
 
 .custom-radio-group .custom-radio { 
+  width:1.4rem;
+  height:1.4rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
