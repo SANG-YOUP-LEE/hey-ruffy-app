@@ -124,7 +124,7 @@
 					<label class="custom-radio" v-for="count in [5, 10, 15, 20]" :key="count">
 						<input type="radio" name="rut_status" :value="count" v-model="routineData.goalCount" />
 						<span class="circle"></span>
-					  {{ count }}번
+					  <span>{{ count }}번</span>
           </label>
 			
 				</div>
