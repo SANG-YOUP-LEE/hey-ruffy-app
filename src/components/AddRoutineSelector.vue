@@ -214,38 +214,12 @@ import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
 import { auth, db } from '@/firebase'
 import { collection, doc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 
+const emit = defineEmits(['close', 'refresh'])
+const props = defineProps({ routineToEdit: Object })
+
 const resetDailyKey = ref(0)
 const resetWeeklyKey = ref(0)
 
-const props = defineProps({
-  routineToEdit: Object
-})
-
-function formatDateObjToStr(dateObj) {
-  if (!dateObj?.year || !dateObj?.month || !dateObj?.date) return '--'
-  return `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.date).padStart(2, '0')}`
-}
-
-const formatDatePreview = (dateObj) => {
-  if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.date) return '--'
-  return `${dateObj.year}.${String(dateObj.month).padStart(2, '0')}.${String(dateObj.date).padStart(2, '0')}`
-}
-
-// 시작일의 최대 날짜 = 종료일
-const maxStartDate = computed(() => {
-  const s = selectedEndDateTime.value
-  if (!s || !s.year || !s.month || !s.date) return null
-  return `${s.year}-${String(s.month).padStart(2, '0')}-${String(s.date).padStart(2, '0')}`
-})
-
-const formatAlarmPreview = (timeObj) => {
-  if (!timeObj || !timeObj.ampm || !timeObj.hour || timeObj.minute == null) return '--'
-  return `${timeObj.ampm} ${timeObj.hour}:${String(timeObj.minute).padStart(2, '0')}`
-}
-
-const emit = defineEmits(['close', 'refresh'])
-const handleClose = () => emit('close')
-const selectedColorIndex = ref(null)
 const routineData = ref({
   title: '',
   comment: '',
@@ -253,20 +227,8 @@ const routineData = ref({
   days: [],
   months: [],
   dates: [],
-  startDate: {
-    year: '',
-    month: '',
-    date: ''
-  },
-  endDate: {
-    year: '',
-    month: '',
-    date: '',
-    hour: '',
-    minute: '',
-    ampm: '',
-    second: ''
-  },
+  startDate: { year: '', month: '', date: '' },
+  endDate: { year: '', month: '', date: '', hour: '', minute: '', ampm: '', second: '' },
   time: '',
   goalCount: 0,
   color: 'cchart01',
@@ -276,26 +238,54 @@ const routineData = ref({
   pauseDate: null
 })
 
-const formatDate = (dateObj) => {
+const selectedColorIndex = ref(null)
+const selectedStartDateTime = ref(null)
+const selectedEndDateTime = ref({ year: '', month: '', date: '' })
+const selectedAlarmTime = ref(null)
+const selectedRepeatDaily = ref(null)
+const selectedRepeatWeekly = ref(null)
+const selectedMonthOption = ref(null)
+const selectedDates = ref([])
+const minEndDate = ref('')
+const isStartDateOn = ref(false)
+const isDatePopupOpen = ref(false)
+const isEndDateOn = ref(false)
+const isEndDatePopupOpen = ref(false)
+const isAlarmOn = ref(false)
+const isAlarmPopupOpen = ref(false)
+
+const repeatOptionsDaily = ['매일', '2일마다', '3일마다', '4일마다', '5일마다', '6일마다']
+const repeatOptionsWeekly = ['2주마다', '3주마다', '4주마다', '5주마다']
+const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
+const colorCount = 10
+
+const today = new Date()
+const yyyy = today.getFullYear()
+const mm = String(today.getMonth() + 1).padStart(2, '0')
+const dd = String(today.getDate()).padStart(2, '0')
+const todayString = `${yyyy}-${mm}-${dd}`
+minEndDate.value = todayString
+
+const formatDateObjToStr = (dateObj) => {
+  if (!dateObj?.year || !dateObj?.month || !dateObj?.date) return '--'
+  return `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.date).padStart(2, '0')}`
+}
+
+const formatDatePreview = (dateObj) => {
   if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.date) return '--'
   return `${dateObj.year}.${String(dateObj.month).padStart(2, '0')}.${String(dateObj.date).padStart(2, '0')}`
 }
 
-
-const onEndDateConfirm = (val) => {
-  const day = val.date || 1 // 일자가 비었으면 1일로 강제
-  selectedEndDateTime.value = {
-    year: val.year,
-    month: val.month,
-    date: day
-  }
-  routineData.value.endDate = {
-    year: val.year,
-    month: val.month,
-    date: day
-  }
-  isEndDatePopupOpen.value = false
+const formatAlarmPreview = (timeObj) => {
+  if (!timeObj || !timeObj.ampm || !timeObj.hour || timeObj.minute == null) return '--'
+  return `${timeObj.ampm} ${timeObj.hour}:${String(timeObj.minute).padStart(2, '0')}`
 }
+
+const startDateString = computed(() => {
+  const s = selectedStartDateTime.value
+  if (!s || !s.year || !s.month || !s.date) return null
+  return `${s.year}-${String(s.month).padStart(2, '0')}-${String(s.date).padStart(2, '0')}`
+})
 
 watch(() => props.routineToEdit, (newRoutine) => {
   if (newRoutine) {
@@ -317,72 +307,118 @@ watch(() => props.routineToEdit, (newRoutine) => {
 
     const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
     selectedColorIndex.value = match ? Number(match[1]) - 1 : null
+
+    if (newRoutine.startDate?.year) {
+      selectedStartDateTime.value = { ...newRoutine.startDate }
+      isStartDateOn.value = true
+    }
+    if (newRoutine.endDate?.year) {
+      selectedEndDateTime.value = { ...newRoutine.endDate }
+      isEndDateOn.value = true
+    }
+    if (newRoutine.time) {
+      const [ampm, time] = newRoutine.time.split(' ')
+      const [hour, minute] = time.split(':')
+      selectedAlarmTime.value = { ampm, hour, minute: Number(minute) }
+      isAlarmOn.value = true
+    }
+    if (newRoutine.frequencyType === 'daily') {
+      selectedRepeatDaily.value = newRoutine.repeatText || null
+    } else if (newRoutine.frequencyType === 'weekly') {
+      selectedRepeatWeekly.value = newRoutine.repeatText || null
+    }
   } else {
     Object.assign(routineData.value, {
-      title: '',
-      comment: '',
-      frequencyType: '',
-      days: [],
-      months: [],
-      dates: [],
-      startDate: '',
-      endDate: '',
-      time: '',
-      goalCount: 0,
-      color: 'cchart01',
-      status: 'active',
-      pauseDate: null
+      title: '', comment: '', frequencyType: '', days: [], months: [], dates: [],
+      startDate: '', endDate: '', time: '', goalCount: 0, color: 'cchart01',
+      status: 'active', pauseDate: null
     })
     selectedColorIndex.value = null
+    selectedStartDateTime.value = null
+    selectedEndDateTime.value = { year: '', month: '', date: '' }
+    selectedAlarmTime.value = null
+    isStartDateOn.value = false
+    isEndDateOn.value = false
+    isAlarmOn.value = false
+    selectedRepeatDaily.value = null
+    selectedRepeatWeekly.value = null
   }
 }, { immediate: true })
 
-const toggleDay = (day) => {
-  if (routineData.value.days.includes(day)) {
-    routineData.value.days = routineData.value.days.filter(d => d !== day)
+watch(isStartDateOn, (val) => {
+  if (val) {
+    isDatePopupOpen.value = true
   } else {
-    routineData.value.days.push(day)
+    selectedStartDateTime.value = null
+    routineData.value.startDate = { year: '', month: '', date: '' }
   }
+})
+
+watch(selectedStartDateTime, (val) => {
+  if (val && val.year && val.month && val.date) {
+    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
+    routineData.value.startDate = { year: val.year, month: val.month, date: val.date }
+  } else {
+    minEndDate.value = todayString
+  }
+})
+
+watch(isEndDateOn, (val) => {
+  const start = routineData.value.startDate
+  const isValidStart = start && start.year && start.month && start.date
+  minEndDate.value = isValidStart
+    ? `${start.year}-${String(start.month).padStart(2, '0')}-${String(start.date).padStart(2, '0')}`
+    : todayString
+  isEndDatePopupOpen.value = val
+  if (!val) {
+    selectedEndDateTime.value = null
+    routineData.value.endDate = { year: '', month: '', date: '' }
+  }
+})
+
+watch(isAlarmOn, (val) => {
+  isAlarmPopupOpen.value = val
+  if (!val) {
+    selectedAlarmTime.value = null
+    routineData.value.time = ''
+  }
+})
+
+const onDateConfirm = (val) => {
+  const day = val.date || 1
+  selectedStartDateTime.value = { year: val.year, month: val.month, date: day }
+  routineData.value.startDate = { year: val.year, month: val.month, date: day }
+  isDatePopupOpen.value = false
 }
 
-const today = new Date()
-const yyyy = today.getFullYear()
-const mm = String(today.getMonth() + 1).padStart(2, '0')
-const dd = String(today.getDate()).padStart(2, '0')
-const todayString = `${yyyy}-${mm}-${dd}`
+const onEndDateConfirm = (val) => {
+  const day = val.date || 1
+  selectedEndDateTime.value = { year: val.year, month: val.month, date: day }
+  routineData.value.endDate = { year: val.year, month: val.month, date: day }
+  isEndDatePopupOpen.value = false
+}
 
-const isStartDateOn = ref(false)
-const isDatePopupOpen = ref(false)
-const selectedStartDateTime = ref(null)
+const onAlarmConfirm = (val) => {
+  selectedAlarmTime.value = val
+  const paddedMinute = String(val.minute).padStart(2, '0')
+  routineData.value.time = `${val.ampm} ${val.hour}:${paddedMinute}`
+  isAlarmPopupOpen.value = false
+}
 
-const selectedEndDateTime = ref({
-  year: '',
-  month: '',
-  date: ''
-})
-const isEndDateOn = ref(false)
-const isEndDatePopupOpen = ref(false)
-const startDateString = computed(() => {
-  const s = selectedStartDateTime.value
-  if (!s || !s.year || !s.month || !s.date) return null  // ← 이게 문제될 수 있어
-  return `${s.year}-${String(s.month).padStart(2, '0')}-${String(s.date).padStart(2, '0')}`
-})
+const handleDatePopupClose = () => {
+  isDatePopupOpen.value = false
+  if (!selectedStartDateTime.value?.year) isStartDateOn.value = false
+}
 
+const handleEndDatePopupClose = () => {
+  isEndDatePopupOpen.value = false
+  if (!selectedEndDateTime.value?.year) isEndDateOn.value = false
+}
 
-const isAlarmOn = ref(false)
-const isAlarmPopupOpen = ref(false)
-const selectedAlarmTime = ref(null)
-
-const repeatOptionsDaily = ['매일', '2일마다', '3일마다', '4일마다', '5일마다', '6일마다']
-const repeatOptionsWeekly = ['2주마다', '3주마다', '4주마다', '5주마다']
-const selectedRepeatDaily = ref(null)
-const selectedRepeatWeekly = ref(null)
-const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-const selectedMonthOption = ref(null)
-const selectedDates = ref([])
-const colorCount = 10
-
-const minEndDate = ref(todayString)
+const handleAlarmPopupClose = () => {
+  isAlarmPopupOpen.value = false
+  if (!selectedAlarmTime.value) isAlarmOn.value = false
+}
 
 const toggleDateSelection = (day) => {
   if (selectedDates.value.includes(day)) {
@@ -393,179 +429,60 @@ const toggleDateSelection = (day) => {
   routineData.value.dates = [...selectedDates.value]
 }
 
+const toggleDay = (day) => {
+  if (routineData.value.days.includes(day)) {
+    routineData.value.days = routineData.value.days.filter(d => d !== day)
+  } else {
+    routineData.value.days.push(day)
+  }
+}
+
 const handleColorClick = (index) => {
   selectedColorIndex.value = index
   routineData.value.color = `cchart${String(index + 1).padStart(2, '0')}`
 }
 
-
-watch(isStartDateOn, (val) => {
-  if (val) {
-    isDatePopupOpen.value = true
-  } else {
-    selectedStartDateTime.value = null
-    routineData.value.startDate = {
-      year: '',
-      month: '',
-      date: ''
-    }
+const handleTabClick = (type) => {
+  routineData.value.frequencyType = type
+  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+  const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
+  const tabBlock = document.getElementById(`${tabBtn.id}_block`)
+  if (tabBtn && tabBlock) {
+    tabBtn.classList.add('on')
+    tabBlock.style.display = 'block'
   }
-})
-
-watch(selectedStartDateTime, (val) => {
-  if (val && val.year && val.month && val.date) {
-    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
-      routineData.value.startDate = {
-      year: val.year,
-      month: val.month,
-      date: val.date
-      }
-  
-  } else {
-    minEndDate.value = todayString
+  if (type === 'daily') {
+    resetDailyKey.value++
+  } else if (type === 'weekly') {
+    resetWeeklyKey.value++
   }
-})
-
-watch(selectedStartDateTime, (val) => {
-  if (val && val.year && val.month && val.date) {
-    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
-  } else {
-    minEndDate.value = todayString
-  }
-})
-
-
-watch(isEndDateOn, (val) => {
-  if (val) {
-    // minDate가 유효하지 않으면 todayString으로 fallback
-    const start = routineData.value.startDate
-    const isValidStart =
-      start && start.year && start.month && start.date
-
-    minEndDate.value = isValidStart
-      ? `${start.year}-${String(start.month).padStart(2, '0')}-${String(start.date).padStart(2, '0')}`
-      : todayString
-
-    isEndDatePopupOpen.value = true
-  } else {
-    selectedEndDateTime.value = null
-    routineData.value.endDate = {
-      year: '',
-      month: '',
-      date: '',
-    }
-  }
-})
-
-watch(selectedStartDateTime, (val) => {
-  if (val && val.year && val.month && val.date) {
-    minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
-  } else {
-    minEndDate.value = todayString
-  }
-})
-
-watch(isAlarmOn, (val) => {
-  if (val) {
-    isAlarmPopupOpen.value = true
-  } else {
-    selectedAlarmTime.value = null
-    routineData.value.time = ''
-  }
-})
-
-const onDateConfirm = (val) => {
-  const day = val.date || 1
-  selectedStartDateTime.value = {
-    year: val.year,
-    month: val.month,
-    date: day
-  }
-  routineData.value.startDate = {
-    year: val.year,
-    month: val.month,
-    date: day
-  }
-  isDatePopupOpen.value = false
-}
-
-const onAlarmConfirm = (val) => {
-  selectedAlarmTime.value = val
-
-  // 분(minute)을 항상 두 자리로 맞춰줌
-  const paddedMinute = String(val.minute).padStart(2, '0')
-
-  routineData.value.time = `${val.ampm} ${val.hour}:${paddedMinute}`
-
-  isAlarmPopupOpen.value = false
-}
-
-
-const handleDatePopupClose = () => {
-  isDatePopupOpen.value = false
-  if (
-    !selectedStartDateTime.value ||
-    !selectedStartDateTime.value.year ||
-    !selectedStartDateTime.value.month ||
-    !selectedStartDateTime.value.date
-  ) {
-    isStartDateOn.value = false
-  }
-}
-
-
-const handleAlarmPopupClose = () => {
-  isAlarmPopupOpen.value = false
-  if (!selectedAlarmTime.value) {
-    isAlarmOn.value = false
-  }
-}
-const handleEndDatePopupClose = () => {
-  isEndDatePopupOpen.value = false
-  if (
-    !selectedEndDateTime.value ||
-    !selectedEndDateTime.value.year ||
-    !selectedEndDateTime.value.month ||
-    !selectedEndDateTime.value.date
-  ) {
-    isEndDateOn.value = false
-  }
+  selectedRepeatDaily.value = null
+  selectedRepeatWeekly.value = null
+  routineData.value.days = []
+  selectedMonthOption.value = null
+  selectedDates.value = []
+  routineData.value.dates = []
 }
 
 const saveRoutine = async () => {
   const user = auth.currentUser
-  if (!user) {
-    alert("로그인 후 다짐을 저장할 수 있어요!")
-    return
+  if (!user) return alert("로그인 후 다짐을 저장할 수 있어요!")
+  if (!routineData.value.title) return alert("다짐명을 입력해주세요.")
+  if (routineData.value.frequencyType === 'daily') {
+    routineData.value.repeatText = selectedRepeatDaily.value
+  } else if (routineData.value.frequencyType === 'weekly') {
+    routineData.value.repeatText = selectedRepeatWeekly.value
   }
-
-  if (!routineData.value.title) {
-    alert("다짐명을 입력해주세요.")
-    return
-  }
-
-if (routineData.value.frequencyType === 'daily') {
-  routineData.value.repeatText = selectedRepeatDaily.value
-} else if (routineData.value.frequencyType === 'weekly') {
-  routineData.value.repeatText = selectedRepeatWeekly.value
-}
   try {
     if (props.routineToEdit) {
       const routineRef = doc(db, 'routines', props.routineToEdit.id)
-      await updateDoc(routineRef, {
-        ...routineData.value,
-        userId: user.uid
-      })
+      await updateDoc(routineRef, { ...routineData.value, userId: user.uid })
       alert("다짐이 수정되었습니다!")
     } else {
-      await addDoc(collection(db, 'routines'), {
-        ...routineData.value,
-        createdAt: serverTimestamp(),
-        userId: user.uid
-      })
+      await addDoc(collection(db, 'routines'), { ...routineData.value, createdAt: serverTimestamp(), userId: user.uid })
       alert("다짐이 저장되었습니다!")
     }
-
     setTimeout(() => {
       emit('refresh')
       emit('close')
@@ -591,8 +508,11 @@ const togglePauseStatus = () => {
 }
 
 onMounted(async () => {
-  setupToggleBlocks({
-    resetRepeat: () => selectedRepeat.value = null,
+   setupToggleBlocks({
+    resetRepeat: () => {
+      selectedRepeatDaily.value = null
+      selectedRepeatWeekly.value = null
+    },
     resetMonthly: () => {
       selectedMonthOption.value = null
       selectedDates.value = []
@@ -601,7 +521,6 @@ onMounted(async () => {
   })
   setupCheckButtons()
   await nextTick()
-
   const dailyBtn = document.getElementById('v_detail01')
   const dailyBlock = document.getElementById('v_detail01_block')
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
@@ -611,47 +530,6 @@ onMounted(async () => {
     dailyBlock.style.display = 'block'
   }
 })
-
-const handleTabClick = (type) => {
-  routineData.value.frequencyType = type
-
-  // 탭 UI 전환
-  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
-  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
-
-  const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
-  const tabBlock = document.getElementById(`${tabBtn.id}_block`)
-  if (tabBtn && tabBlock) {
-    tabBtn.classList.add('on')
-    tabBlock.style.display = 'block'
-  }
-
-  // resetKey 증가로 휠 초기화 트리거
-  if (type === 'daily') {
-    resetDailyKey.value++
-    selectedRepeatDaily.value = null
-    selectedRepeatWeekly.value = null
-    routineData.value.days = []
-    selectedMonthOption.value = null
-    selectedDates.value = []
-    routineData.value.dates = []
-  } else if (type === 'weekly') {
-    resetWeeklyKey.value++
-    selectedRepeatDaily.value = null
-    selectedRepeatWeekly.value = null
-    routineData.value.days = []
-    selectedMonthOption.value = null
-    selectedDates.value = []
-    routineData.value.dates = []
-  } else if (type === 'monthly') {
-    selectedRepeatDaily.value = null
-    selectedRepeatWeekly.value = null
-    routineData.value.days = []
-    selectedMonthOption.value = null
-    selectedDates.value = []
-    routineData.value.dates = []
-  }
-}
 </script>
 
 
