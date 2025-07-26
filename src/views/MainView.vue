@@ -96,11 +96,11 @@
       <span>다짐 추가하기</span>
     </button>
     <AddRoutineSelector
-      v-if="isAddRoutineOpen"
-      :routine-to-edit="routineToEdit"
-      @close="isAddRoutineOpen = false"
-      @refresh="handleRoutineUpdated"
-    />
+        v-if="isAddRoutineOpen"
+        :routine-to-edit="routineToEdit"
+        @close="handleRoutinePopupClose"
+        @refresh="handleRoutineUpdated"
+      />
 
 
     <div class="popup_overlay" v-if="activePopupId === 'rut_status'">
@@ -218,6 +218,12 @@ const selectedStatusMap = ref({})
 const selectedStatusTemp = ref(null)
 const currentRoutineId = ref(null)
 const currentUserUid = ref(null)
+
+const handleRoutinePopupClose = () => {
+  isAddRoutineOpen.value = false        // 팝업 닫기
+  routineToEdit.value = null            // 수정 루틴 초기화
+  openedSettingId.value = null          // ✅ 설정 드롭다운 닫기
+}
 
 const {
   activePopupId,

@@ -13,16 +13,13 @@
 			</div>
 
 			<!-- 수정 모드일 때만 보여야 하므로 이거만 남기기 -->
-			<div v-if="routineToEdit" class="form_box_g rt_make">
-			<h3>이 다짐을 잠시 멈출까요?</h3>
-			<button
-				:class="{ on: routineData.status === 'paused' }"
-				@click="togglePauseStatus"
-			>
-				{{ routineData.status === 'paused' ? '다짐 다시 시작하기' : '일시정지 하기' }}
-			</button>
-			</div>
-			
+			<!-- 수정 모드일 때는 안 보이게 -->
+      <div v-if="!routineToEdit" class="form_box_g rt_make">
+        <h3>이 다짐을 잠시 멈출까요?</h3>
+        <p>
+          <button @click="pauseRoutine">일시정지 하기</button>
+        </p>
+      </div>
 			<!--다짐 주기 설정-->
 			<div class="form_box_g rt_make day_box">
 				<h3>얼마나 자주 지켜야해요?</h3>
@@ -258,6 +255,10 @@ const repeatOptionsDaily = ['매일', '2일마다', '3일마다', '4일마다', 
 const repeatOptionsWeekly = ['2주마다', '3주마다', '4주마다', '5주마다']
 const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 const colorCount = 10
+const handleClose = () => {
+  emit('close')
+}
+
 
 const today = new Date()
 const yyyy = today.getFullYear()
@@ -287,6 +288,32 @@ const startDateString = computed(() => {
   return `${s.year}-${String(s.month).padStart(2, '0')}-${String(s.date).padStart(2, '0')}`
 })
 
+const handleTabClick = (type) => {
+  routineData.value.frequencyType = type
+  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+  const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
+  const tabBlock = document.getElementById(`${tabBtn.id}_block`)
+  if (tabBtn && tabBlock) {
+    tabBtn.classList.add('on')
+    tabBlock.style.display = 'block'
+  }
+  // ✅ 조건 걸어서 새로 만드는 경우만 초기화
+  if (!props.routineToEdit) {
+    if (type === 'daily') {
+      resetDailyKey.value++
+      selectedRepeatDaily.value = null
+    } else if (type === 'weekly') {
+      resetWeeklyKey.value++
+      selectedRepeatWeekly.value = null
+    }
+    routineData.value.days = []
+    selectedMonthOption.value = null
+    selectedDates.value = []
+    routineData.value.dates = []
+  }
+}
+
 watch(() => props.routineToEdit, (newRoutine) => {
   if (newRoutine) {
     Object.assign(routineData.value, {
@@ -304,7 +331,12 @@ watch(() => props.routineToEdit, (newRoutine) => {
       status: newRoutine.status || 'active',
       pauseDate: newRoutine.pauseDate || null
     })
-
+    nextTick(() => {
+      if (newRoutine.frequencyType) {
+        handleTabClick(newRoutine.frequencyType)
+      }
+    })
+    
     const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
     selectedColorIndex.value = match ? Number(match[1]) - 1 : null
 
@@ -442,29 +474,6 @@ const handleColorClick = (index) => {
   routineData.value.color = `cchart${String(index + 1).padStart(2, '0')}`
 }
 
-const handleTabClick = (type) => {
-  routineData.value.frequencyType = type
-  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
-  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
-  const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
-  const tabBlock = document.getElementById(`${tabBtn.id}_block`)
-  if (tabBtn && tabBlock) {
-    tabBtn.classList.add('on')
-    tabBlock.style.display = 'block'
-  }
-  if (type === 'daily') {
-    resetDailyKey.value++
-  } else if (type === 'weekly') {
-    resetWeeklyKey.value++
-  }
-  selectedRepeatDaily.value = null
-  selectedRepeatWeekly.value = null
-  routineData.value.days = []
-  selectedMonthOption.value = null
-  selectedDates.value = []
-  routineData.value.dates = []
-}
-
 const saveRoutine = async () => {
   const user = auth.currentUser
   if (!user) return alert("로그인 후 다짐을 저장할 수 있어요!")
@@ -521,13 +530,16 @@ onMounted(async () => {
   })
   setupCheckButtons()
   await nextTick()
-  const dailyBtn = document.getElementById('v_detail01')
-  const dailyBlock = document.getElementById('v_detail01_block')
-  document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
-  document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
-  if (dailyBtn && dailyBlock) {
-    dailyBtn.classList.add('on')
-    dailyBlock.style.display = 'block'
+  if (!props.routineToEdit) {
+    // 새 다짐 만들기일 때만 디폴트로 daily 탭 열기
+    const dailyBtn = document.getElementById('v_detail01')
+    const dailyBlock = document.getElementById('v_detail01_block')
+    document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+    document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+    if (dailyBtn && dailyBlock) {
+      dailyBtn.classList.add('on')
+      dailyBlock.style.display = 'block'
+    }
   }
 })
 </script>
