@@ -260,7 +260,7 @@ const fetchRoutines = async (uid) => {
 
     routines.value = querySnapshot.docs.map(doc => {
       const data = doc.data()
-      console.log('🔥 다짐 데이터:', data) // ← 이 줄 추가!
+      
       return {
         id: doc.id,
         ...data

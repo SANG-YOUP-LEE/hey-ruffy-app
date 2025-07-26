@@ -52,7 +52,12 @@
   </div>
   <p class="check_btn">
     <button class="all" @click="routineData.days = ['일','월','화','수','목','금','토']">매일</button>
-    <button v-for="d in ['일','월','화','수','목','금','토']" :key="d + 'w'" @click="toggleDay(d)">
+    <button
+  v-for="d in ['일','월','화','수','목','금','토']"
+      :key="d + 'w'"
+      @click="toggleDay(d)"
+      :class="{ on: routineData.days.includes(d) }"
+    >
       {{ d }}
     </button>
   </p>
@@ -331,11 +336,20 @@ watch(() => props.routineToEdit, (newRoutine) => {
       status: newRoutine.status || 'active',
       pauseDate: newRoutine.pauseDate || null
     })
-    nextTick(() => {
+    ;(async () => {
+      await nextTick()
       if (newRoutine.frequencyType) {
         handleTabClick(newRoutine.frequencyType)
       }
-    })
+      if (newRoutine.frequencyType === 'daily') {
+        selectedRepeatDaily.value = newRoutine.repeatText || null
+      } else if (newRoutine.frequencyType === 'weekly') {
+        selectedRepeatWeekly.value = newRoutine.repeatText || null
+        routineData.value.days = newRoutine.days || []
+      } else if (newRoutine.frequencyType === 'monthly') {
+        selectedDates.value = newRoutine.dates || []
+      }
+    })()
     
     const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
     selectedColorIndex.value = match ? Number(match[1]) - 1 : null
@@ -475,6 +489,9 @@ const handleColorClick = (index) => {
 }
 
 const saveRoutine = async () => {
+  
+  console.log('💬 저장 직전 요일:', routineData.value.days)
+
   const user = auth.currentUser
   if (!user) return alert("로그인 후 다짐을 저장할 수 있어요!")
   if (!routineData.value.title) return alert("다짐명을 입력해주세요.")
