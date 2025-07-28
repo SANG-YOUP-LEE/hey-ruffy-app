@@ -2,7 +2,7 @@
   <div class="no-touch">
     <div class="container">
       <div class="join_wrap">
-          <h2 v-if="isResetMode">비밀번호를 잊으셨군요 😢</h2>
+          <h2 v-if="isResetMode">비밀번호를 잊으셨나요?</h2>
           <h2 v-else v-html="welcomeMessage"></h2>
 
           <div class="form">
@@ -38,7 +38,7 @@
           <!-- 비밀번호 재설정 모드: 아직 메세지 없음 -->
           <button
             v-if="isResetMode && !messageText"
-            class="b_blue"
+            class="b_basic"
             @click="handlePasswordReset"
             :disabled="!email"
           >
@@ -48,7 +48,7 @@
           <!-- 비밀번호 재설정 모드: 메일 전송 완료됨 -->
           <button
             v-else-if="isResetMode && messageText"
-            class="b_gray"
+            class="b_basic"
             @click="router.push('/login')"
           >
             로그인 페이지로 돌아가기
@@ -57,7 +57,7 @@
           <!-- 일반 로그인 모드 -->
           <button
             v-else
-            class="b_blue"
+            class="b_basic"
             @click="login"
            :disabled="!email"
           >
@@ -110,11 +110,11 @@ const route = useRoute()
 
 const welcomeMessage = computed(() => {
   if (route.query.from === 'signup') {
-    return '회원가입을 축하해요! 러피랑 잘 부탁드려요 😊'
+    return '친구가 된다니 기분 최고!'
   } else if (route.query.from === 'intro') {
-    return '다시 만나서 반가워요! 오늘도 러피랑 좋은 하루 보내요 ☀️'
+    return '다시 만나서 반가워요!'
   } else {
-    return '다시 만나서 반가워요! 오늘도 러피랑 좋은 하루 보내셔요.'
+    return '다시 만나서 반가워요!'
   }
 })
 

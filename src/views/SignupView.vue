@@ -1,5 +1,5 @@
 <template>
-  <div class="no-touch">
+  <div class="no-touch yscroll">
     <div class="container">
       <div class="join_wrap">
         <h2>러피랑 친구 할래요?</h2>
@@ -29,6 +29,43 @@
 
           <RuffySelectorSignup v-model="selectedOption" />
 
+          <div class="select_skin">
+            <div class="info_text light">산책을 부르는 행운의 색을 골라주세요.</div>
+            <div class="list">
+              <a
+                href="#none"
+                class="color blue"
+                :class="{ on: selectedColor === 'blue' }"
+                @click.prevent="selectColor('blue')"
+              >
+                <span></span>
+              </a>
+              <a
+                href="#none"
+                class="color red"
+                :class="{ on: selectedColor === 'red' }"
+                @click.prevent="selectColor('red')"
+              >
+                <span></span> 
+              </a>
+              <a
+                href="#none"
+                class="color green"
+                :class="{ on: selectedColor === 'green' }"
+                @click.prevent="selectColor('green')"
+              >
+                <span></span> 
+              </a>
+              <a
+                href="#none"
+                class="color bw"
+                :class="{ on: selectedColor === 'bw' }"
+                @click.prevent="selectColor('bw')"
+              >
+                <span></span>
+              </a>
+            </div>
+          </div>
 
           <!-- 유효성 경고 -->
           <div class="warn-message" v-if="!signupComplete && showWarning && warningText">
@@ -42,7 +79,7 @@
             <label class="checkbox-label">
               <input type="checkbox" v-model="isOver14" @change="clearMessages" />
               <span class="checkmark"></span>
-              <span><em>[필수]</em> 14세 이상입니다.</span>
+              <span><em class="t_red01">[필수]</em> 14세 이상입니다.</span>
             </label>
             <div class="agree">
               러피와 친구를 맺으면 '헤이, 러피'의<br />
@@ -54,7 +91,7 @@
           <!-- 버튼 -->
           <div :class="['button', { mt1: resendClicked }]">
             <button
-              class="b_blue"
+              class="b_basic"
               :disabled="loading || signupComplete"
               @click="handleSignup"
               v-if="!signupComplete"
@@ -69,15 +106,15 @@
             </button>
 
             <div class="button" v-else>
-              <button class="b_blue" @click="checkVerification">인증 확인</button>
-              <button class="b_white_br_blue" @click="resendVerification" :disabled="resendCooldown > 0">
+              <button class="b_basic" @click="checkVerification">인증 확인</button>
+              <button class="b_basic_white" @click="resendVerification" :disabled="resendCooldown > 0">
                 {{
                   resendCooldown > 0
                     ? `인증 메일 재전송 (${resendCooldown}초)`
                     : "인증 메일 다시 보내기"
                 }}
               </button>
-              <button class="b_white_br_blue" @click="editEmail">이메일 주소 수정하기</button>
+              <button class="b_basic_white" @click="editEmail">이메일 주소 수정하기</button>
             </div>
 
             <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
@@ -278,5 +315,18 @@ const clearMessages = () => {
   showWarning.value = false
   infoMessage.value = ""
   errorMessage.value = ""
+}
+
+const selectedColor = ref("blue")
+
+onMounted(() => {
+  document.body.classList.add("blue")
+})
+
+const selectColor = (colorName) => {
+  const body = document.body
+  body.classList.remove("blue", "red", "green", "bw")
+  body.classList.add(colorName)
+  selectedColor.value = colorName
 }
 </script>

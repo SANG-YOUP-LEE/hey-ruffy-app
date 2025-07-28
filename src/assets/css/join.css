@@ -4,11 +4,6 @@
   margin:0 auto;
 }
 
-.intro_wrap h1,
-.intro_wrap h1 em {
-  color:#0994ff;
-}
-
 .intro_wrap h1 {
   font-size:3rem;
   line-height:3.9rem;
@@ -48,7 +43,7 @@
 }
 
 .join_wrap .form {
-	margin:1rem 0 0 0;
+	margin:1rem 0 1rem 0;
 }
 
 .join_wrap .t_box {
@@ -61,15 +56,50 @@
   margin-top:0.5rem
 }
 
+.join_wrap .select_skin .list {
+  margin:1rem;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem; 
+  padding-bottom:0.5rem;
+}
+
+.join_wrap .select_skin .list .color {
+  width: 25%; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  color: #333;
+  background-color: #fff;
+  text-decoration: none;
+}
+
+.join_wrap .select_skin .list .color span {
+  width:2rem;
+  height:2rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-mask-image: url('/src/assets/images/step.png');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: url('/src/assets/images/step.png');
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
 .join_wrap .select_ruffy {
   margin:0.5rem 0 1.5rem 0;
 }
 
-.join_wrap .select_ruffy .info_text {
+.join_wrap .select_ruffy .info_text,
+.join_wrap .select_skin .info_text {
   font-size:0.9rem;
   padding:0.5rem;
   border-radius: 1rem;
-  background-color:#ddf2ff;
 }
 
 .join_wrap .select_ruffy .ruffys {
@@ -123,7 +153,6 @@
 
 
 .join_wrap .select_ruffy .ruffys a.on span.name {
-  background-color:#0994ff;
   color:#fff
 }
 

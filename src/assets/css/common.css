@@ -68,7 +68,7 @@ html, body {
 
 .no-touch.yscroll {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto !important;
   touch-action: pan-y;
@@ -82,7 +82,6 @@ h1 {
   font-family: 'Paperlogy-8ExtraBold';
   font-size:3.8rem;
   line-height:4.3rem;
-  color:#0994ff;
 }
 
 h2 {
@@ -90,7 +89,6 @@ h2 {
   font-weight: bold;
   font-size:2rem;
   line-height:2.3rem;
-  color:#0994ff
 }
 
 img, picture, video, canvas, svg {
@@ -139,15 +137,9 @@ ul, ol {
 }
 
 a {
-	color:#007fe1;
   text-decoration:underline;
   cursor: pointer;
-}
-
-em,
-.t_red01 {
-  font-style: normal;
-  color:#ff4c7f
+  color:#333
 }
 
 label {
@@ -174,22 +166,8 @@ button {
   text-decoration:none;
 }
 
-[class$="blue"] {
-  background-color: #0994ff;
-  border:0.1rem solid #0994ff;
-  color: #fff;
-}
-
-[class$="bgw_blue"] {
-  background-color: #5c92ff;
-  border:0.1rem solid #5c92ff;
-  color: #fff;
-}
-
-[class$="white_br_blue"] {
-  background-color: #fff;
-  border:0.1px solid #0994ff;
-  color: #0994ff;
+em {
+  font-style: normal;
 }
 
 .mt1 {margin-top:1rem;}
@@ -262,25 +240,12 @@ button {
 .checkbox-label .checkmark {
   width: 1.3rem;
   height: 1.3rem;
-  border: 0.1rem solid #0994ff; 
   border-radius: 0.3rem;
   background-color: #fff;
   position: relative;
   box-sizing: border-box;
+  border:0.1rem solid #666
 }
-
-.checkbox-label input:checked + .checkmark::after {
-  width: 0.6rem;
-  height: 1rem;
-  content: '';
-  position: absolute;
-  left: 0.4rem;
-  top:-0.3rem;
-  border: solid #0994ff; 
-  border-width: 0 0.2rem 0.2rem 0;
-  transform: rotate(45deg);
-}
-
 
 /* 라디오 박스 */
 .custom-radio-group {
@@ -333,7 +298,6 @@ button {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(to bottom right, #70c1ff, #0994ff);
   border-radius: 50%;
 }
 
@@ -344,7 +308,7 @@ button {
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: #fff;
-  border: 0.1rem solid #00b170;
+  border: 0.1rem solid #333;
   border-radius: 1rem;
   text-align: center;
   padding: 2rem;

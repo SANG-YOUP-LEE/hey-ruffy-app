@@ -201,7 +201,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, nextTick } from 'vue'
+import { ref, reactive, onMounted, watch, computed, nextTick } from 'vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 import InlineWheelPicker from '@/components/common/InlineWheelPicker.vue'
 import { setupToggleBlocks, setupCheckButtons } from '@/assets/js/ui.js'
@@ -214,7 +214,7 @@ const props = defineProps({ routineToEdit: Object })
 const resetDailyKey = ref(0)
 const resetWeeklyKey = ref(0)
 
-const routineData = ref({
+const routineData = reactive({
   title: '',
   comment: '',
   frequencyType: '',
@@ -252,10 +252,8 @@ const repeatOptionsDaily = ['매일', '2일마다', '3일마다', '4일마다', 
 const repeatOptionsWeekly = ['2주마다', '3주마다', '4주마다', '5주마다']
 const monthlyOptions = ['매월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 const colorCount = 10
-const handleClose = () => {
-  emit('close')
-}
 
+const handleClose = () => emit('close')
 
 const today = new Date()
 const yyyy = today.getFullYear()
@@ -263,11 +261,6 @@ const mm = String(today.getMonth() + 1).padStart(2, '0')
 const dd = String(today.getDate()).padStart(2, '0')
 const todayString = `${yyyy}-${mm}-${dd}`
 minEndDate.value = todayString
-
-const formatDateObjToStr = (dateObj) => {
-  if (!dateObj?.year || !dateObj?.month || !dateObj?.date) return '--'
-  return `${dateObj.year}-${String(dateObj.month).padStart(2, '0')}-${String(dateObj.date).padStart(2, '0')}`
-}
 
 const formatDatePreview = (dateObj) => {
   if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.date) return '--'
@@ -286,7 +279,7 @@ const startDateString = computed(() => {
 })
 
 const handleTabClick = (type) => {
-  routineData.value.frequencyType = type
+  routineData.frequencyType = type
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
   document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
   const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
@@ -295,7 +288,6 @@ const handleTabClick = (type) => {
     tabBtn.classList.add('on')
     tabBlock.style.display = 'block'
   }
-  // ✅ 조건 걸어서 새로 만드는 경우만 초기화
   if (!props.routineToEdit) {
     if (type === 'daily') {
       resetDailyKey.value++
@@ -304,16 +296,16 @@ const handleTabClick = (type) => {
       resetWeeklyKey.value++
       selectedRepeatWeekly.value = null
     }
-    routineData.value.days = []
+    routineData.days = []
     selectedMonthOption.value = null
     selectedDates.value = []
-    routineData.value.dates = []
+    routineData.dates = []
   }
 }
 
 watch(() => props.routineToEdit, (newRoutine) => {
   if (newRoutine) {
-    Object.assign(routineData.value, {
+    Object.assign(routineData, {
       title: newRoutine.title || '',
       comment: newRoutine.comment || '',
       frequencyType: newRoutine.frequencyType || '',
@@ -328,21 +320,17 @@ watch(() => props.routineToEdit, (newRoutine) => {
       status: newRoutine.status || 'active',
       pauseDate: newRoutine.pauseDate || null
     })
-    ;(async () => {
-      await nextTick()
-      if (newRoutine.frequencyType) {
-        handleTabClick(newRoutine.frequencyType)
-      }
+    nextTick(() => {
+      if (newRoutine.frequencyType) handleTabClick(newRoutine.frequencyType)
       if (newRoutine.frequencyType === 'daily') {
         selectedRepeatDaily.value = newRoutine.repeatText || null
       } else if (newRoutine.frequencyType === 'weekly') {
         selectedRepeatWeekly.value = newRoutine.repeatText || null
-        routineData.value.days = newRoutine.days || []
+        routineData.days = newRoutine.days || []
       } else if (newRoutine.frequencyType === 'monthly') {
         selectedDates.value = newRoutine.dates || []
       }
-    })()
-    
+    })
     const match = /^cchart(\d+)$/.exec(newRoutine.color || '')
     selectedColorIndex.value = match ? Number(match[1]) - 1 : null
 
@@ -360,13 +348,8 @@ watch(() => props.routineToEdit, (newRoutine) => {
       selectedAlarmTime.value = { ampm, hour, minute: Number(minute) }
       isAlarmOn.value = true
     }
-    if (newRoutine.frequencyType === 'daily') {
-      selectedRepeatDaily.value = newRoutine.repeatText || null
-    } else if (newRoutine.frequencyType === 'weekly') {
-      selectedRepeatWeekly.value = newRoutine.repeatText || null
-    }
   } else {
-    Object.assign(routineData.value, {
+    Object.assign(routineData, {
       title: '', comment: '', frequencyType: '', days: [], months: [], dates: [],
       startDate: '', endDate: '', time: '', goalCount: 0, color: 'cchart01',
       status: 'active', pauseDate: null
@@ -384,33 +367,27 @@ watch(() => props.routineToEdit, (newRoutine) => {
 }, { immediate: true })
 
 watch(isStartDateOn, (val) => {
-  if (val) {
-    isDatePopupOpen.value = true
-  } else {
+  isDatePopupOpen.value = val
+  if (!val) {
     selectedStartDateTime.value = null
-    routineData.value.startDate = { year: '', month: '', date: '' }
+    routineData.startDate = { year: '', month: '', date: '' }
   }
 })
 
 watch(selectedStartDateTime, (val) => {
-  if (val && val.year && val.month && val.date) {
+  if (val?.year && val.month && val.date) {
     minEndDate.value = `${val.year}-${String(val.month).padStart(2, '0')}-${String(val.date).padStart(2, '0')}`
-    routineData.value.startDate = { year: val.year, month: val.month, date: val.date }
+    routineData.startDate = { ...val }
   } else {
     minEndDate.value = todayString
   }
 })
 
 watch(isEndDateOn, (val) => {
-  const start = routineData.value.startDate
-  const isValidStart = start && start.year && start.month && start.date
-  minEndDate.value = isValidStart
-    ? `${start.year}-${String(start.month).padStart(2, '0')}-${String(start.date).padStart(2, '0')}`
-    : todayString
   isEndDatePopupOpen.value = val
   if (!val) {
     selectedEndDateTime.value = null
-    routineData.value.endDate = { year: '', month: '', date: '' }
+    routineData.endDate = { year: '', month: '', date: '' }
   }
 })
 
@@ -418,28 +395,27 @@ watch(isAlarmOn, (val) => {
   isAlarmPopupOpen.value = val
   if (!val) {
     selectedAlarmTime.value = null
-    routineData.value.time = ''
+    routineData.time = ''
   }
 })
 
 const onDateConfirm = (val) => {
   const day = val.date || 1
   selectedStartDateTime.value = { year: val.year, month: val.month, date: day }
-  routineData.value.startDate = { year: val.year, month: val.month, date: day }
+  routineData.startDate = { ...selectedStartDateTime.value }
   isDatePopupOpen.value = false
 }
 
 const onEndDateConfirm = (val) => {
   const day = val.date || 1
   selectedEndDateTime.value = { year: val.year, month: val.month, date: day }
-  routineData.value.endDate = { year: val.year, month: val.month, date: day }
+  routineData.endDate = { ...selectedEndDateTime.value }
   isEndDatePopupOpen.value = false
 }
 
 const onAlarmConfirm = (val) => {
   selectedAlarmTime.value = val
-  const paddedMinute = String(val.minute).padStart(2, '0')
-  routineData.value.time = `${val.ampm} ${val.hour}:${paddedMinute}`
+  routineData.time = `${val.ampm} ${val.hour}:${String(val.minute).padStart(2, '0')}`
   isAlarmPopupOpen.value = false
 }
 
@@ -447,58 +423,67 @@ const handleDatePopupClose = () => {
   isDatePopupOpen.value = false
   if (!selectedStartDateTime.value?.year) isStartDateOn.value = false
 }
-
 const handleEndDatePopupClose = () => {
   isEndDatePopupOpen.value = false
   if (!selectedEndDateTime.value?.year) isEndDateOn.value = false
 }
-
 const handleAlarmPopupClose = () => {
   isAlarmPopupOpen.value = false
   if (!selectedAlarmTime.value) isAlarmOn.value = false
 }
 
+const toggleDay = (day) => {
+  const days = routineData.days
+  const index = days.indexOf(day)
+  if (index > -1) {
+    days.splice(index, 1)
+  } else {
+    days.push(day)
+  }
+}
+
 const toggleDateSelection = (day) => {
-  if (selectedDates.value.includes(day)) {
-    selectedDates.value = selectedDates.value.filter(d => d !== day)
+  const index = selectedDates.value.indexOf(day)
+  if (index > -1) {
+    selectedDates.value.splice(index, 1)
   } else {
     selectedDates.value.push(day)
   }
-  routineData.value.dates = [...selectedDates.value]
-}
-
-const toggleDay = (day) => {
-  if (routineData.value.days.includes(day)) {
-    routineData.value.days = routineData.value.days.filter(d => d !== day)
-  } else {
-    routineData.value.days.push(day)
-  }
+  routineData.dates = [...selectedDates.value]
 }
 
 const handleColorClick = (index) => {
   selectedColorIndex.value = index
-  routineData.value.color = `cchart${String(index + 1).padStart(2, '0')}`
+  routineData.color = `cchart${String(index + 1).padStart(2, '0')}`
+}
+
+const togglePauseStatus = () => {
+  if (routineData.status === 'active') {
+    routineData.status = 'paused'
+    const now = new Date()
+    routineData.pauseDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  } else {
+    routineData.status = 'active'
+    routineData.pauseDate = null
+  }
 }
 
 const saveRoutine = async () => {
-  
-  console.log('💬 저장 직전 요일:', routineData.value.days)
-
   const user = auth.currentUser
   if (!user) return alert("로그인 후 다짐을 저장할 수 있어요!")
-  if (!routineData.value.title) return alert("다짐명을 입력해주세요.")
-  if (routineData.value.frequencyType === 'daily') {
-    routineData.value.repeatText = selectedRepeatDaily.value
-  } else if (routineData.value.frequencyType === 'weekly') {
-    routineData.value.repeatText = selectedRepeatWeekly.value
+  if (!routineData.title) return alert("다짐명을 입력해주세요.")
+  if (routineData.frequencyType === 'daily') {
+    routineData.repeatText = selectedRepeatDaily.value
+  } else if (routineData.frequencyType === 'weekly') {
+    routineData.repeatText = selectedRepeatWeekly.value
   }
   try {
     if (props.routineToEdit) {
       const routineRef = doc(db, 'routines', props.routineToEdit.id)
-      await updateDoc(routineRef, { ...routineData.value, userId: user.uid })
+      await updateDoc(routineRef, { ...routineData, userId: user.uid })
       alert("다짐이 수정되었습니다!")
     } else {
-      await addDoc(collection(db, 'routines'), { ...routineData.value, createdAt: serverTimestamp(), userId: user.uid })
+      await addDoc(collection(db, 'routines'), { ...routineData, createdAt: serverTimestamp(), userId: user.uid })
       alert("다짐이 저장되었습니다!")
     }
     setTimeout(() => {
@@ -511,22 +496,8 @@ const saveRoutine = async () => {
   }
 }
 
-const togglePauseStatus = () => {
-  if (routineData.value.status === 'active') {
-    routineData.value.status = 'paused'
-    const now = new Date()
-    const yyyy = now.getFullYear()
-    const mm = String(now.getMonth() + 1).padStart(2, '0')
-    const dd = String(now.getDate()).padStart(2, '0')
-    routineData.value.pauseDate = `${yyyy}-${mm}-${dd}`
-  } else {
-    routineData.value.status = 'active'
-    routineData.value.pauseDate = null
-  }
-}
-
-onMounted(async () => {
-   setupToggleBlocks({
+onMounted(() => {
+  setupToggleBlocks({
     resetRepeat: () => {
       selectedRepeatDaily.value = null
       selectedRepeatWeekly.value = null
@@ -534,24 +505,21 @@ onMounted(async () => {
     resetMonthly: () => {
       selectedMonthOption.value = null
       selectedDates.value = []
-      routineData.value.dates = []
+      routineData.dates = []
     }
   })
   setupCheckButtons()
-  await nextTick()
-  if (!props.routineToEdit) {
-    // 새 다짐 만들기일 때만 디폴트로 daily 탭 열기
-    const dailyBtn = document.getElementById('v_detail01')
-    const dailyBlock = document.getElementById('v_detail01_block')
-    document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
-    document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
-    if (dailyBtn && dailyBlock) {
-      dailyBtn.classList.add('on')
-      dailyBlock.style.display = 'block'
+  nextTick(() => {
+    if (!props.routineToEdit) {
+      const dailyBtn = document.getElementById('v_detail01')
+      const dailyBlock = document.getElementById('v_detail01_block')
+      document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
+      document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+      if (dailyBtn && dailyBlock) {
+        dailyBtn.classList.add('on')
+        dailyBlock.style.display = 'block'
+      }
     }
-  }
+  })
 })
 </script>
-
-
-
