@@ -1,124 +1,122 @@
 <template>
   <div class="no-touch yscroll">
-    <div class="container">
-      <div class="join_wrap">
-        <h2>러피랑 친구 할래요?</h2>
+    <div class="join_wrap">
+      <h2>러피랑 친구 할래요?</h2>
 
-        <div class="form">
-          <input
-            v-model="email"
-            type="email"
-            placeholder="이메일을 등록해 주세요."
-            :disabled="signupComplete"
+      <div class="form">
+        <input
+          v-model="email"
+          type="email"
+          placeholder="이메일을 등록해 주세요."
+          :disabled="signupComplete"
 
-          />
-          <input
-            v-model="password"
-            type="password"
-            placeholder="비밀번호를 등록해 주세요."
-            :disabled="signupComplete"
-           
-          />
-          <input
-            v-model="nickname"
-            type="text"
-            placeholder="닉네임을 입력해 주세요."
-            :disabled="signupComplete"
-           
-          />
+        />
+        <input
+          v-model="password"
+          type="password"
+          placeholder="비밀번호를 등록해 주세요."
+          :disabled="signupComplete"
+          
+        />
+        <input
+          v-model="nickname"
+          type="text"
+          placeholder="닉네임을 입력해 주세요."
+          :disabled="signupComplete"
+          
+        />
 
-          <RuffySelectorSignup v-model="selectedOption" />
+        <RuffySelectorSignup v-model="selectedOption" />
 
-          <div class="select_skin">
-            <div class="info_text light">산책을 부르는 행운의 색을 골라주세요.</div>
-            <div class="list">
-              <a
-                href="#none"
-                class="color blue"
-                :class="{ on: selectedColor === 'blue' }"
-                @click.prevent="selectColor('blue')"
-              >
-                <span></span>
-              </a>
-              <a
-                href="#none"
-                class="color red"
-                :class="{ on: selectedColor === 'red' }"
-                @click.prevent="selectColor('red')"
-              >
-                <span></span> 
-              </a>
-              <a
-                href="#none"
-                class="color green"
-                :class="{ on: selectedColor === 'green' }"
-                @click.prevent="selectColor('green')"
-              >
-                <span></span> 
-              </a>
-              <a
-                href="#none"
-                class="color bw"
-                :class="{ on: selectedColor === 'bw' }"
-                @click.prevent="selectColor('bw')"
-              >
-                <span></span>
-              </a>
-            </div>
-          </div>
-
-          <!-- 유효성 경고 -->
-          <div class="warn-message" v-if="!signupComplete && showWarning && warningText">
-            <p>{{ warningText }}</p>
-          </div>
-
-          <!-- 안내 메시지 -->
-          <div class="warn-message" v-if="infoMessage" v-html="infoMessage"></div>
-
-          <div class="t_box" v-if="!signupComplete">
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="isOver14" @change="clearMessages" />
-              <span class="checkmark"></span>
-              <span><em class="t_red01">[필수]</em> 14세 이상입니다.</span>
-            </label>
-            <div class="agree">
-              러피와 친구를 맺으면 '헤이, 러피'의<br />
-              <a href="/terms" target="_blank" rel="noopener noreferrer" @click="clearMessages">이용약관</a>과
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" @click="clearMessages">개인정보 정책</a>에 동의하게 됩니다.
-            </div>
-          </div>
-
-          <!-- 버튼 -->
-          <div :class="['button', { mt1: resendClicked }]">
-            <button
-              class="b_basic"
-              :disabled="loading || signupComplete"
-              @click="handleSignup"
-              v-if="!signupComplete"
+        <div class="select_skin">
+          <div class="info_text light">산책을 부르는 행운의 색을 골라주세요.</div>
+          <div class="list">
+            <a
+              href="#none"
+              class="color blue"
+              :class="{ on: selectedColor === 'blue' }"
+              @click.prevent="selectColor('blue')"
             >
+              <span></span>
+            </a>
+            <a
+              href="#none"
+              class="color red"
+              :class="{ on: selectedColor === 'red' }"
+              @click.prevent="selectColor('red')"
+            >
+              <span></span> 
+            </a>
+            <a
+              href="#none"
+              class="color green"
+              :class="{ on: selectedColor === 'green' }"
+              @click.prevent="selectColor('green')"
+            >
+              <span></span> 
+            </a>
+            <a
+              href="#none"
+              class="color bw"
+              :class="{ on: selectedColor === 'bw' }"
+              @click.prevent="selectColor('bw')"
+            >
+              <span></span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 유효성 경고 -->
+        <div class="warn-message" v-if="!signupComplete && showWarning && warningText">
+          <p>{{ warningText }}</p>
+        </div>
+
+        <!-- 안내 메시지 -->
+        <div class="warn-message" v-if="infoMessage" v-html="infoMessage"></div>
+
+        <div class="t_box" v-if="!signupComplete">
+          <label class="checkbox-label">
+            <input type="checkbox" v-model="isOver14" @change="clearMessages" />
+            <span class="checkmark"></span>
+            <span><em class="t_red01">[필수]</em> 14세 이상입니다.</span>
+          </label>
+          <div class="agree">
+            러피와 친구를 맺으면 '헤이, 러피'의<br />
+            <a href="/terms" target="_blank" rel="noopener noreferrer" @click="clearMessages">이용약관</a>과
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" @click="clearMessages">개인정보 정책</a>에 동의하게 됩니다.
+          </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div :class="['button', { mt1: resendClicked }]">
+          <button
+            class="b_basic"
+            :disabled="loading || signupComplete"
+            @click="handleSignup"
+            v-if="!signupComplete"
+          >
+            {{
+              loading
+                ? "메일을 보내고 있어요..."
+                : canStartSignup
+                  ? "이메일 인증하기"
+                  : "러피랑 친구하기"
+            }}
+          </button>
+
+          <div class="button" v-else>
+            <button class="b_basic" @click="checkVerification">인증 확인</button>
+            <button class="b_basic_white" @click="resendVerification" :disabled="resendCooldown > 0">
               {{
-                loading
-                  ? "메일을 보내고 있어요..."
-                  : canStartSignup
-                    ? "이메일 인증하기"
-                    : "러피랑 친구하기"
+                resendCooldown > 0
+                  ? `인증 메일 재전송 (${resendCooldown}초)`
+                  : "인증 메일 다시 보내기"
               }}
             </button>
-
-            <div class="button" v-else>
-              <button class="b_basic" @click="checkVerification">인증 확인</button>
-              <button class="b_basic_white" @click="resendVerification" :disabled="resendCooldown > 0">
-                {{
-                  resendCooldown > 0
-                    ? `인증 메일 재전송 (${resendCooldown}초)`
-                    : "인증 메일 다시 보내기"
-                }}
-              </button>
-              <button class="b_basic_white" @click="editEmail">이메일 주소 수정하기</button>
-            </div>
-
-            <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
+            <button class="b_basic_white" @click="editEmail">이메일 주소 수정하기</button>
           </div>
+
+          <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
         </div>
       </div>
     </div>
