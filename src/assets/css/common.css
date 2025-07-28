@@ -172,52 +172,6 @@ em {
 
 .mt1 {margin-top:1rem;}
 
-.warn-message,
-.info-message {
-  width:100%;
-  margin:1.2rem 0 1.2rem 0;
-  padding: 1rem 1.5rem 1rem 1.5rem;
-  border-radius: 1rem;
-  animation: fadeIn 0.3s ease-in-out;
-  text-align: center;
-  font-size:0.9rem;
-  line-height:1.2rem;
-  letter-spacing:-0.01rem;
-  background-color:#f9f9f9;
-  border:0.1rem solid #f1f1f1;
-}
-
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -60%);
-  }
-  10% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-  90% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -40%);
-  }
-}
-
 /* 체크 박스 */
 .checkbox-label {
   display: flex;
@@ -301,6 +255,52 @@ em {
   border-radius: 50%;
 }
 
+.warn-message,
+.info-message {
+  width:100%;
+  margin:1.2rem 0 1.2rem 0;
+  padding: 1rem 1.5rem 1rem 1.5rem;
+  border-radius: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+  text-align: center;
+  font-size:0.9rem;
+  line-height:1.2rem;
+  letter-spacing:-0.01rem;
+  background-color:#f9f9f9;
+  border:0.1rem solid #f1f1f1;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+}
+
 .error-box {
   min-width:70%;
   position: fixed;
@@ -314,6 +314,19 @@ em {
   padding: 2rem;
   z-index: 1000;
   animation: fadeInOut 3s ease forwards;
+
+}
+
+.warn-message,
+.info-message,
+.error-box {
+  pointer-events: none;
+}
+
+.warn-message p,
+.info-message p,
+.error-box p {
+  pointer-events: auto;
 }
 
 /* 토글 외형 */
