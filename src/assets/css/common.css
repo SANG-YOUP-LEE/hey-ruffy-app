@@ -66,7 +66,7 @@ html, body {
   transform: translate(-50%, -50%);
 }
 
-.no-touch.yscroll {
+.yscroll {
   width: 100vw;
   min-height: 100vh;
   overflow-x: hidden;
@@ -75,7 +75,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding:5rem 0 5rem 0;
+  padding:4rem 0 4rem 0;
 }
 
 h1 {
