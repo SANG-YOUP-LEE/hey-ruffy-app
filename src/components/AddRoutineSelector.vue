@@ -1,117 +1,117 @@
 <template>
 	<div class="popup_wrap">
-		<h2>{{ routineToEdit ? '다짐 수정하기' : '새 다짐 만들기' }}</h2>
+		<h2 v-html="routineToEdit ? '다짐 수정하기' : '새로운 다짐을<br />만들어 볼까요?<p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>'"></h2>
 
 		<div class="popup_inner">
 			<!-- 다짐명 적기 -->
-			<div class="form_box_g rt_make">
+			<div class="form_box_g">
 				<h3>다짐명을 적어주세요.</h3>
 				<p>
 					<label for="rt_name">새 다짐 명</label>
-					<input type="text" v-model="routineData.title" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기" />
+					<input type="text" v-model="routineData.title" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기" class="uline"/>
 				</p>
 			</div>
 			
       <!--다짐 주기 설정-->
-			<div class="form_box_g rt_make day_box">
-				<h3>얼마나 자주 지켜야해요?</h3>
+			<div class="form_box_g limit">
+				<h3>얼마나 자주 지켜야 하나요?</h3>
 				<p>
-  <button id="v_detail01" @click="handleTabClick('daily')">일간</button>
-  <button id="v_detail02" @click="handleTabClick('weekly')">주간</button>
-  <button id="v_detail03" @click="handleTabClick('monthly')">월간</button>
-</p>
+          <button id="v_detail01" @click="handleTabClick('daily')" class="b_basic">일간</button>
+          <button id="v_detail02" @click="handleTabClick('weekly')" class="b_basic">주간</button>
+          <button id="v_detail03" @click="handleTabClick('monthly')" class="b_basic">월간</button>
+        </p>
 				<!-- 일간 상세 -->
-<div class="rt_make_detail" id="v_detail01_block">
-  <div class="select_week">
-    <InlineWheelPicker
-  :items="repeatOptionsDaily"
-  v-model="selectedRepeatDaily"
-  :itemHeight="40"
-  :resetKey="resetDailyKey"
-/>
-  </div>
-</div>
+        <div class="detail_box" id="v_detail01_block">
+          <InlineWheelPicker
+          :items="repeatOptionsDaily"
+          v-model="selectedRepeatDaily"
+          :resetKey="resetDailyKey"
+          :key="`daily-${resetDailyKey}`"
+          />
+        </div>
 
-<!-- 주간 상세 -->
-<div class="rt_make_detail" id="v_detail02_block">
-  <div class="select_week">
-    <InlineWheelPicker
-  :items="repeatOptionsWeekly"
-  v-model="selectedRepeatWeekly"
-  :itemHeight="40"
-  :resetKey="resetWeeklyKey"
-/>
-  </div>
-  <p class="check_btn">
-    <button class="all" @click="routineData.days = ['일','월','화','수','목','금','토']">매일</button>
-    <button
+        <!-- 주간 상세 -->
+        <div class="detail_box" id="v_detail02_block">
+          <InlineWheelPicker
+            :items="repeatOptionsWeekly"
+            v-model="selectedRepeatWeekly"
+            :resetKey="resetWeeklyKey"
+          />
+          <p class="check_btn">
+            <!-- 매일 버튼 -->
+<button
+  class="all"
+  @click="toggleAllDays"
+  :class="{ light: isAllDaysSelected }"
+>매일</button>
+
+<!-- 요일 버튼들 -->
+<button
   v-for="d in ['일','월','화','수','목','금','토']"
-      :key="d + 'w'"
-      @click="toggleDay(d)"
-      :class="{ on: routineData.days.includes(d) }"
-    >
-      {{ d }}
-    </button>
-  </p>
-</div>
+  :key="d + 'w'"
+  @click="toggleDay(d)"
+  :class="{ light: routineData.days.includes(d) }"
+>
+  {{ d }}
+</button>
+          </p>
+        </div>
 
 				<!-- 월간 상세 -->
-				<div class="rt_make_detail" id="v_detail03_block">
-					<div class="">
-						<div class="monthly-grid">
-							<span
-								class="m_s_btn"
-								v-for="day in 31"
-								:key="day"
-								@click="toggleDateSelection(day)"
-								:class="{ selected: selectedDates.includes(day) }"
-							>
-								{{ day }}
-							</span>
-						</div>
-					</div>
+				<div class="detail_box" id="v_detail03_block">
+          <div class="monthly-grid">
+            <span
+              class="m_s_btn"
+              v-for="day in 31"
+              :key="day"
+              @click="toggleDateSelection(day)"
+              :class="{ selected: selectedDates.includes(day) }"
+            >
+              {{ day }}
+            </span>
+          </div>
 				</div>
 			</div>
 
       <!-- 다짐 시작일 설정 -->
-    <div class="form_box_g rt_make start_alarm_box">
-      <h3>시작일과 알람도 지정할까요?</h3>
+      <div class="form_box_g rt_make start_alarm_box">
+        <h3>시작일과 알람도 지정할까요?</h3>
 
-      <!-- 시작일 toggle -->
-      <div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-          <span class="slider"></span>
-        </label>
-        시작일 지정
-        <p class="start_date_preview">{{ formatDatePreview(selectedStartDateTime) }}</p>
-      </div>
+        <!-- 시작일 toggle -->
+        <div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
+            <span class="slider"></span>
+          </label>
+          시작일 지정
+          <p class="start_date_preview">{{ formatDatePreview(selectedStartDateTime) }}</p>
+        </div>
 
-      <!-- 종료일 toggle -->
-      <div>
-        <label class="toggle-switch">
-          <input type="checkbox" v-model="isEndDateOn" />
-          <span class="slider"></span>
-        </label>
-        종료일 지정
-        <p class="start_date_preview">{{ formatDatePreview(selectedEndDateTime) }}</p>
-      </div>
+        <!-- 종료일 toggle -->
+        <div>
+          <label class="toggle-switch">
+            <input type="checkbox" v-model="isEndDateOn" />
+            <span class="slider"></span>
+          </label>
+          종료일 지정
+          <p class="start_date_preview">{{ formatDatePreview(selectedEndDateTime) }}</p>
+        </div>
 
-      <!-- 알람 toggle -->
-      <div>
-        <label class="toggle-switch">
-          <input type="checkbox" v-model="isAlarmOn" />
-          <span class="slider"></span>
-        </label>
-        알람 설정
-        <p class="start_date_preview">
-          {{ formatAlarmPreview(selectedAlarmTime) }}
-        </p>
+        <!-- 알람 toggle -->
+        <div>
+          <label class="toggle-switch">
+            <input type="checkbox" v-model="isAlarmOn" />
+            <span class="slider"></span>
+          </label>
+          알람 설정
+          <p class="start_date_preview">
+            {{ formatAlarmPreview(selectedAlarmTime) }}
+          </p>
+        </div>
       </div>
-    </div>
 
 			<!-- 러피 산책 설정 -->
-			<div class="form_box_g rt_make">
+			<div class="form_box_g">
 				<h3>최소 달성 횟수를 선택해주세요.</h3>
 				<p class="comment">최소 목표를 달성할때마다<br />러피가 즐거운 산책을 다녀올 수 있어요.</p>
 				<div class="custom-radio-group">
@@ -125,7 +125,7 @@
 			</div>
 
 			<!-- 다짐 중요도 설정 -->
-			<div class="form_box_g rt_make">
+			<div class="form_box_g">
 				<h3>얼마나 중요한 다짐인가요?</h3>
 				<p class="comment">중요한 정도를 컬러로 표현해주세요.</p>
 				<div class="color_chart">
@@ -139,14 +139,14 @@
 			</div>
 
 			<!-- 메세지 설정 -->
-			<div class="form_box_g rt_make">
+			<div class="form_box_g">
 				<h3>소곤소곤 더 얘기해줄건 없나요?</h3>
 				<p><textarea maxlength="100" placeholder="최대 100자까지 적을 수 있어요." v-model="routineData.comment"></textarea></p>
 			</div>
 		</div>
 
 		<div class="popup_btm">
-			<button class="save_btn" @click="saveRoutine">{{ routineToEdit ? '다짐 수정하기' : '다짐 저장하기' }}</button>
+			<button class="b_basic" @click="saveRoutine">{{ routineToEdit ? '다짐 수정하기' : '다짐 저장하기' }}</button>
 		</div>
 		<button class="close_btn" @click="handleClose"><span>팝업 닫기</span></button>
 
@@ -184,19 +184,19 @@
 			/>
 					
 			<!-- 알람시간 팝업 -->
-		<DateTimePickerPopup
-			v-if="isAlarmPopupOpen"
-			title="알람시간을 선택하세요"
-			:showYear="false"
-			:showMonth="false"
-			:showDate="false"
-			:showAmPm="true"
-			:showHour="true"
-			:showMinute="true"
-			:showSecond="false"
-			@confirm="onAlarmConfirm"
-			@close="handleAlarmPopupClose"
-		/>
+      <DateTimePickerPopup
+        v-if="isAlarmPopupOpen"
+        title="알람시간을 선택하세요"
+        :showYear="false"
+        :showMonth="false"
+        :showDate="false"
+        :showAmPm="true"
+        :showHour="true"
+        :showMinute="true"
+        :showSecond="false"
+        @confirm="onAlarmConfirm"
+        @close="handleAlarmPopupClose"
+      />
 	</div>
 </template>
 
@@ -280,26 +280,37 @@ const startDateString = computed(() => {
 
 const handleTabClick = (type) => {
   routineData.frequencyType = type
+
   document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
   document.querySelectorAll("div[id$='_block']").forEach(d => d.style.display = 'none')
+
   const tabBtn = document.getElementById(`v_detail0${type === 'daily' ? '1' : type === 'weekly' ? '2' : '3'}`)
   const tabBlock = document.getElementById(`${tabBtn.id}_block`)
+
   if (tabBtn && tabBlock) {
     tabBtn.classList.add('on')
     tabBlock.style.display = 'block'
   }
+
   if (!props.routineToEdit) {
-    if (type === 'daily') {
-      resetDailyKey.value++
-      selectedRepeatDaily.value = null
-    } else if (type === 'weekly') {
-      resetWeeklyKey.value++
-      selectedRepeatWeekly.value = null
-    }
+    // 🔁 선택 상태 초기화
+    selectedRepeatDaily.value = null
+    selectedRepeatWeekly.value = null
     routineData.days = []
-    selectedMonthOption.value = null
     selectedDates.value = []
     routineData.dates = []
+    isAllDaysSelected.value = false
+
+    // ✅ 기본값 설정 (새 다짐일 때만)
+    if (type === 'daily') {
+      selectedRepeatDaily.value = repeatOptionsDaily[0]
+      resetDailyKey.value = Date.now()
+    } else if (type === 'weekly') {
+      selectedRepeatWeekly.value = repeatOptionsWeekly[0]
+    } else if (type === 'monthly') {
+      selectedDates.value = [1]
+      routineData.dates = [1]
+    }
   }
 }
 
@@ -432,16 +443,6 @@ const handleAlarmPopupClose = () => {
   if (!selectedAlarmTime.value) isAlarmOn.value = false
 }
 
-const toggleDay = (day) => {
-  const days = routineData.days
-  const index = days.indexOf(day)
-  if (index > -1) {
-    days.splice(index, 1)
-  } else {
-    days.push(day)
-  }
-}
-
 const toggleDateSelection = (day) => {
   const index = selectedDates.value.indexOf(day)
   if (index > -1) {
@@ -508,9 +509,17 @@ onMounted(() => {
       routineData.dates = []
     }
   })
+
   setupCheckButtons()
+
   nextTick(() => {
     if (!props.routineToEdit) {
+      routineData.frequencyType = 'daily'
+      selectedRepeatDaily.value = repeatOptionsDaily[0]
+      selectedRepeatWeekly.value = repeatOptionsWeekly[0]
+      selectedDates.value = [1]
+      routineData.dates = [...selectedDates.value]
+
       const dailyBtn = document.getElementById('v_detail01')
       const dailyBlock = document.getElementById('v_detail01_block')
       document.querySelectorAll("button[id^='v_detail']").forEach(b => b.classList.remove('on'))
@@ -518,8 +527,33 @@ onMounted(() => {
       if (dailyBtn && dailyBlock) {
         dailyBtn.classList.add('on')
         dailyBlock.style.display = 'block'
+        dailyBtn.focus()
       }
     }
   })
 })
+
+const isAllDaysSelected = ref(false)  // 매일 버튼 상태용
+
+const toggleAllDays = () => {
+  if (isAllDaysSelected.value) {
+    routineData.days = []
+    isAllDaysSelected.value = false
+  } else {
+    routineData.days = ['일','월','화','수','목','금','토']
+    isAllDaysSelected.value = true
+  }
+}
+
+const toggleDay = (day) => {
+  const index = routineData.days.indexOf(day)
+  if (index > -1) {
+    routineData.days.splice(index, 1)
+  } else {
+    routineData.days.push(day)
+  }
+
+  // 모든 요일이 선택됐는지 확인
+  isAllDaysSelected.value = routineData.days.length === 7
+}
 </script>

@@ -5,7 +5,7 @@
         v-for="(item, index) in items"
         :key="index"
         class="inline-wheel-item"
-        :class="{ selected: index === selectedIndex }"
+        :class="{ selected: item === props.modelValue }"
         @click="handleItemClick(index)"
       >
         {{ item }}
@@ -70,7 +70,7 @@ watch(() => props.modelValue, () => {
     isUserClicking.value = false
     return // 클릭 시에는 scrollToIndex 하지 않음
   }
-
+   updateSelectedIndexFromModel()
   if (isResetting.value) {
     // resetKey로 인해 초기화될 경우에도 scrollToIndex 하지 않음
     return
@@ -86,7 +86,7 @@ watch(() => props.resetKey, async () => {
   scrollToTop()
 
   await nextTick()
-  selectedIndex.value = -1
+  updateSelectedIndexFromModel()
 
   setTimeout(() => {
     isResetting.value = false
@@ -115,43 +115,3 @@ const handleItemClick = (index) => {
   emit('update:modelValue', props.items[index])
 }
 </script>
-
-<style scoped>
-.inline-wheel-wrapper {
-  height: 120px;
-  overflow: hidden;
-  position: relative;
-}
-
-.inline-wheel-list {
-  height: 100%;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-  padding-top: 40px;
-  padding-bottom: 40px;
-}
-
-.inline-wheel-item {
-  height: 40px;
-  line-height: 40px;
-  text-align: center;
-  font-size: 1rem;
-  color: #666;
-  transition: background-color 0.2s;
-}
-
-.inline-wheel-item.selected {
-  color: #000;
-  font-weight: bold;
-  background-color: #ffe08a;
-}
-
-.highlight-overlay {
-  position: absolute;
-  top: 40px;
-  height: 40px;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-</style>
