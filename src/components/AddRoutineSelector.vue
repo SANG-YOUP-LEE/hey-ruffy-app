@@ -5,7 +5,7 @@
 		<div class="popup_inner">
 			<!-- 다짐명 적기 -->
 			<div class="form_box_g">
-				<h3>다짐해야 할 일을 적어주세요.</h3>
+				<h3>새롭게 다짐할 일을 적어주세요.</h3>
 				<p>
 					<label for="rt_name">새 다짐 명</label>
 					<input type="text" v-model="routineData.title" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기" class="uline"/>
