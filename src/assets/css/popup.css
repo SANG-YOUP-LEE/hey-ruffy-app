@@ -56,7 +56,8 @@
 	width:100%;
 	font-size:1.6rem;
 	line-height:1.8rem;
-	height:8rem;
+  display:inline-block;
+	height:7rem;
   background-color:red;
   padding:2.2rem 0 2.2rem 0;
 	position:fixed;
