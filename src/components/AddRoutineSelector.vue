@@ -76,39 +76,31 @@
       <!-- 다짐 시작일 설정 -->
       <div class="form_box_g s_e_date">
         <!-- 시작일 toggle -->
-        <div class="custom-radio-group">
-          <label class="custom-radio">
-            <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-            <span class="circle"></span>
-          </label>
-          시작일 지정
-        </div>
-
+        <label class="custom-radio">
+          <input type="radio" id="my_toggle" v-model="isStartDateOn" />
+          <span class="circle"></span>
+        </label>
+        시작일 지정
         <!-- 종료일 toggle -->
-        <div class="custom-radio-group">
-          <label class="custom-radio">
-            <input type="checkbox" v-model="isEndDateOn" />
-            <span class="circle"></span>
-          </label>
-          종료일 지정
-        </div>
+        <label class="custom-radio">
+          <input type="radio" v-model="isEndDateOn" />
+          <span class="circle"></span>
+        </label>
+        종료일 지정
         <div>
-          <p class="start_date_preview">{{ formatDatePreview(selectedStartDateTime) }}</p>
-          <p class="start_date_preview">{{ formatDatePreview(selectedEndDateTime) }}</p>
+          {{ formatDatePreview(selectedStartDateTime) }}
+          {{ formatDatePreview(selectedEndDateTime) }}
         </div>
       </div>
 
       <div class="form_box_g alram">
         <!-- 알람 toggle -->
-        <div class="custom-radio-group">
-          <label class="custom-radio">
-            <input type="checkbox" v-model="isAlarmOn" />
-            <span class="circle"></span>
-          </label>
+        <label class="custom-radio">
+          <input type="radio" v-model="isAlarmOn" />
+          <span class="circle"></span>
+        </label>
           알람 설정
-          <p class="start_date_preview">
-            {{ formatAlarmPreview(selectedAlarmTime) }}
-          </p>
+          {{ formatAlarmPreview(selectedAlarmTime) }}
         </div>
       </div>
 
