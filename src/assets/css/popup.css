@@ -9,7 +9,7 @@
 .popup_wrap .popup_inner,
 .popup_wrap input[type="text"] {
 	height:auto;
-	font-size:0.9rem;
+	font-size:1rem;
 	line-height:1.4rem;
 }
 
@@ -53,8 +53,8 @@
 
 .popup_wrap h2 {
 	width:100%;
-	font-size:1.3rem;
-	line-height:1.5rem;
+	font-size:1.4rem;
+	line-height:1.6rem;
 	padding-top:2rem;
 	position:fixed;
 	top:0;
@@ -74,7 +74,7 @@
 }
 
 .popup_wrap h3 {
-	font-size:1rem;
+	font-size:1.2rem;
 	margin-bottom:0.5rem;
 }
 
@@ -107,7 +107,7 @@
 	border:1px solid #eee;
 	border-top:none;
 	padding:1rem 1rem 0 1rem;
-	font-size:0.8rem;
+	font-size:1rem;
 
 }
 
