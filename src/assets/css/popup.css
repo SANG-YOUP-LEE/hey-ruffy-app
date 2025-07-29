@@ -53,9 +53,9 @@
 
 .popup_wrap h2 {
 	width:100%;
-	font-size:1.5rem;
-	line-height:1.7rem;
-	padding-top:2rem;
+	font-size:1.6rem;
+	line-height:1.8rem;
+	padding-top:2.2rem;
 	position:fixed;
 	top:0;
 	left:0;
@@ -66,11 +66,11 @@
 }
 
 .popup_wrap h2 p {
-	font-size:1rem;
-	line-height:1.3rem;
+	font-size:1.1rem;
+	line-height:1.4rem;
 	color:#666;
 	font-weight:300;
-	margin-top:0.5rem;
+	margin-top:0.7rem;
 }
 
 .popup_wrap h3 {
@@ -102,9 +102,9 @@
 .form_box_g.limit .detail_box {
 	height:16rem;
 	border-radius: 0;
-	border-bottom-right-radius: 0.7rem;
-	border-bottom-left-radius: 0.7rem;
-	border:1px solid #ddd;
+	border-bottom-right-radius: 1.5rem;
+	border-bottom-left-radius: 1.5rem;
+	border:1px solid #eee;
 	border-top:none;
 	padding:1rem 1rem 0 1rem;
 	font-size:1rem;
@@ -114,31 +114,31 @@
 /* 일주월 탭 */
 .form_box_g.limit p button.b_basic {
 	width:33.3%;
-	font-size:1rem;
-	line-height:2rem;
+	font-size:1.2rem;
+	line-height:2.5rem;
 	border-radius: 0;
 	background-color:#f5f5f5;
-	border:1px solid #ddd;
+	border:1px solid #eee;
 	border-right:none;
 	border-left:none;
 	color:#333;
 }
 
 .form_box_g.limit p button.b_basic:first-child {
-	border-top-left-radius: 0.7rem;
-	border-left:1px solid #ddd;
+	border-top-left-radius: 1.5rem;
+	border-left:1px solid #eee;
 }
 
 .form_box_g.limit p button.b_basic:last-child {
-	border-top-right-radius: 0.7rem;
-	border-right:1px solid #ddd;
+	border-top-right-radius: 1.5rem;
+	border-right:1px solid #eee;
 }
 
 .form_box_g.s_e_date,
 .form_box_g.alram {
-  border-radius:1rem;
+  border-radius:1.5rem;
   padding:1rem;
-  border:1px solid #ddd
+  border:1px solid #eee
 }
 
 
