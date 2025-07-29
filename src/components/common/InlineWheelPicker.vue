@@ -41,14 +41,14 @@ const itemHeight = 40
 
 const scrollToIndex = (index) => {
   if (listRef.value) {
-    listRef.value.scrollTop = index * itemHeight
+    const offset = index * itemHeight
+    const centerOffset = offset - (listRef.value.clientHeight / 2) + (itemHeight / 2)
+    listRef.value.scrollTop = centerOffset
   }
 }
 
 const scrollToTop = () => {
-  if (listRef.value) {
-    listRef.value.scrollTop = 0
-  }
+  scrollToIndex(0)
 }
 
 const updateSelectedIndexFromModel = () => {
