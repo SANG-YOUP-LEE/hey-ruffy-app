@@ -61,7 +61,8 @@
 	left:0;
 	z-index:888;
 	color:#333;
-	font-family: Freesentation-9Black;
+	font-family: Pretendard-Regular;
+  font-weight:800
 }
 
 .popup_wrap h2 p {
@@ -74,7 +75,7 @@
 
 .popup_wrap h3 {
 	font-size:1.2rem;
-	margin-bottom:0.5rem;
+	margin-bottom:1rem;
 }
 
 .popup_wrap .popup_btm {
