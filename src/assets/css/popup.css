@@ -134,6 +134,13 @@
 	border-right:1px solid #ddd;
 }
 
+.form_box_g.s_e_date,
+.form_box_g.alram {
+  border-radius:1rem;
+  padding:1rem;
+  border:1px solid #ddd
+}
+
 
 /* 달력 */
 .monthly-grid {
