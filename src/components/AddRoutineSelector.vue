@@ -76,19 +76,19 @@
       <!-- 다짐 시작일 설정 -->
       <div class="form_box_g s_e_date">
         <!-- 시작일 toggle -->
-        <div>
-          <label class="toggle-switch">
+        <div class="custom-radio-group">
+          <label class="custom-radio">
             <input type="checkbox" id="my_toggle" v-model="isStartDateOn" />
-            <span class="slider"></span>
+            <span class="circle"></span>
           </label>
           시작일 지정
         </div>
 
         <!-- 종료일 toggle -->
-        <div>
-          <label class="toggle-switch">
+        <div class="custom-radio-group">
+          <label class="custom-radio">
             <input type="checkbox" v-model="isEndDateOn" />
-            <span class="slider"></span>
+            <span class="circle"></span>
           </label>
           종료일 지정
         </div>
@@ -100,10 +100,10 @@
 
       <div class="form_box_g alram">
         <!-- 알람 toggle -->
-        <div>
-          <label class="toggle-switch">
+        <div class="custom-radio-group">
+          <label class="custom-radio">
             <input type="checkbox" v-model="isAlarmOn" />
-            <span class="slider"></span>
+            <span class="circle"></span>
           </label>
           알람 설정
           <p class="start_date_preview">
