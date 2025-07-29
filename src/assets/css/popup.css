@@ -87,6 +87,11 @@
 	z-index:888;
 }
 
+.popup_wrap .popup_btm button {
+  font-size:1.8rem;
+  line-height:3rem
+}
+
 .form_box_g {
 	margin-bottom:1rem;
 }
