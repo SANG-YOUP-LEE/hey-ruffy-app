@@ -5,7 +5,7 @@
 		<div class="popup_inner">
 			<!-- 다짐명 적기 -->
 			<div class="form_box_g">
-				<h3>다짐명을 적어주세요.</h3>
+				<h3>다짐해야 할 일을 적어주세요.</h3>
 				<p>
 					<label for="rt_name">새 다짐 명</label>
 					<input type="text" v-model="routineData.title" placeholder="ex)외로워도 슬퍼도 탄수화물 끊기" class="uline"/>
@@ -39,21 +39,21 @@
           />
           <p class="check_btn">
             <!-- 매일 버튼 -->
-<button
-  class="all"
-  @click="toggleAllDays"
-  :class="{ light: isAllDaysSelected }"
->매일</button>
-
-<!-- 요일 버튼들 -->
-<button
-  v-for="d in ['일','월','화','수','목','금','토']"
-  :key="d + 'w'"
-  @click="toggleDay(d)"
-  :class="{ light: routineData.days.includes(d) }"
->
-  {{ d }}
-</button>
+            <button
+              class="all"
+              @click="toggleAllDays"
+              :class="{ light: isAllDaysSelected }"
+            >매일</button>
+            
+            <!-- 요일 버튼들 -->
+            <button
+              v-for="d in ['일','월','화','수','목','금','토']"
+              :key="d + 'w'"
+              @click="toggleDay(d)"
+              :class="{ light: routineData.days.includes(d) }"
+            >
+              {{ d }}
+            </button>
           </p>
         </div>
 
@@ -74,9 +74,7 @@
 			</div>
 
       <!-- 다짐 시작일 설정 -->
-      <div class="form_box_g rt_make start_alarm_box">
-        <h3>시작일과 알람도 지정할까요?</h3>
-
+      <div class="form_box_g s_e_date">
         <!-- 시작일 toggle -->
         <div>
           <label class="toggle-switch">
@@ -84,7 +82,6 @@
             <span class="slider"></span>
           </label>
           시작일 지정
-          <p class="start_date_preview">{{ formatDatePreview(selectedStartDateTime) }}</p>
         </div>
 
         <!-- 종료일 toggle -->
@@ -94,9 +91,14 @@
             <span class="slider"></span>
           </label>
           종료일 지정
+        </div>
+        <div>
+          <p class="start_date_preview">{{ formatDatePreview(selectedStartDateTime) }}</p>
           <p class="start_date_preview">{{ formatDatePreview(selectedEndDateTime) }}</p>
         </div>
+      </div>
 
+      <div class="form_box_g alram">
         <!-- 알람 toggle -->
         <div>
           <label class="toggle-switch">
