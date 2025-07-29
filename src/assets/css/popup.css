@@ -176,36 +176,50 @@
 }
 
 .inline-wheel-list {
-  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow-y: scroll;
+  padding-top: 2.5rem; /* itemHeight */
+  padding-bottom: 2.5rem;
   scroll-snap-type: y mandatory;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;  
-  -ms-overflow-style: none; 
+  scrollbar-width: none;
 }
 
 .inline-wheel-list::-webkit-scrollbar {
-  display: none;  
+  display: none;
 }
 
 .inline-wheel-item {
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   scroll-snap-align: center;
-	height:2.5rem;
-  text-align: center;
-	border-bottom:1px solid #f5f5f5;
-  transition: background-color 0.2s;
-}
-
-.inline-wheel-item:last-child {
-	border-bottom:none
+  font-size: 1.1rem;
+  color: #999;
 }
 
 .inline-wheel-item.selected {
-	border-radius: 0.7rem;
-	border:0;
+  font-weight: bold;
+  color: #000;
+}
+
+.highlight-overlay {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  height: 2.5rem;
+  transform: translateY(-50%);
+  left: 0;
+  right: 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  background: rgba(255, 255, 255, 0.4);
+  z-index: 1;
 }
 
 /* 주간 휠일경우*/
@@ -231,16 +245,6 @@
 
 #v_detail02_block .check_btn button.light {
 }
-
-.highlight-overlay {
-  height:2.5rem;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-
 
 /*mini wheel*/
 .mini-wheel {
