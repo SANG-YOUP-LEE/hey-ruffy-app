@@ -37,7 +37,7 @@
 	position:fixed;
 	top:0;
 	left:0;
-	padding:7rem 1.5rem 3rem 1.5rem;
+	padding:8rem 2rem 3rem 2rem;
 	overflow-y:auto;
 	z-index:888;
 }
@@ -61,7 +61,7 @@
 	left:0;
 	z-index:888;
 	color:#333;
-	font-family: Pretendard-Regular;
+	font-family: Fresentation;
   font-weight:900
 }
 
