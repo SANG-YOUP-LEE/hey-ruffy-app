@@ -101,7 +101,6 @@
         </label>
           알람 설정
           {{ formatAlarmPreview(selectedAlarmTime) }}
-        </div>
       </div>
 
 			<!-- 러피 산책 설정 -->
