@@ -3,6 +3,7 @@
     <div class="popup_tit">
       <h2>새로운 다짐을<br />만들어 볼까요?</h2>
       <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
+      <div class="note"></div>
     </div>
 
     <div class="popup_inner">
