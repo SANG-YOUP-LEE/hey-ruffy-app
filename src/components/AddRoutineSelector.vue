@@ -22,21 +22,12 @@
         </p>
 				<!-- 일간 상세 -->
         <div class="detail_box" id="v_detail01_block">
-          <InlineWheelPicker
-          :items="repeatOptionsDaily"
-          v-model="selectedRepeatDaily"
-          :resetKey="resetDailyKey"
-          :key="`daily-${resetDailyKey}`"
-          />
+         aa
         </div>
 
         <!-- 주간 상세 -->
         <div class="detail_box" id="v_detail02_block">
-          <InlineWheelPicker
-            :items="repeatOptionsWeekly"
-            v-model="selectedRepeatWeekly"
-            :resetKey="resetWeeklyKey"
-          />
+         bb
           <p class="check_btn">
             <!-- 매일 버튼 -->
             <button
@@ -72,6 +63,7 @@
           </div>
 				</div>
 			</div>
+    </div>
 
      
 	</div>
