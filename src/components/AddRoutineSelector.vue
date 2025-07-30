@@ -72,22 +72,26 @@
         </div>
       </div>
     </div>
+
+    <!-- ✅ 다짐 저장하기 버튼 누르면 팝업 닫힘 -->
     <div class="popup_btm">
-      <button class="b_basic">다짐 저장하기</button>
+      <button class="b_basic" @click="handleSave">다짐 저장하기</button>
     </div>
-    <div class="close_btn"><span>닫기</span></div>
+
+    <!-- ✅ 닫기 버튼 -->
+    <div class="close_btn" @click="$emit('close')"><span>닫기</span></div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
 
+const emit = defineEmits(['close'])
+
 const routineData = reactive({
   title: '',
   days: []
 })
-
-const routineToEdit = null // 수정 모드일 경우 객체로 전달되도록 연결 가능
 
 const selectedTab = ref('daily')
 const selectedDates = ref([])
@@ -120,5 +124,11 @@ const toggleDateSelection = (day) => {
   } else {
     selectedDates.value.push(day)
   }
+}
+
+const handleSave = () => {
+  // ✅ 저장 로직 필요 시 여기에 작성
+  console.log('다짐 저장:', routineData)
+  emit('close')   // 저장 후 팝업 닫기
 }
 </script>
