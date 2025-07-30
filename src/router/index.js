@@ -3,7 +3,6 @@ import IntroView from "../views/IntroView.vue"
 import SignupView from "../views/SignupView.vue"
 import LoginView from "../views/LoginView.vue"
 import MainView from "../views/MainView.vue"
-import SettingsView from "../views/SettingsView.vue" // ✅ 추가된 설정 뷰
 
 const routes = [
   { path: "/", name: "intro", component: IntroView },
