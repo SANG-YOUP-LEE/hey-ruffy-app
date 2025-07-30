@@ -54,10 +54,12 @@
 
 .popup_wrap .popup_tit {
   height:4.2rem;
-  background-color:red
+  border:1px solid red
+  background:url('../images/note.png') no-repeat 0 0 /100%;
 }
 
 .popup_wrap .popup_tit h2 {
+  border:1px solid green;
 	width:100%;
 	font-size:1.6rem;
 	line-height:1.8rem;
@@ -65,10 +67,10 @@
   padding:2.2rem 0 0 0;
 	font-family: Freesentation-7Black;
   font-weight:700;
-  background:url('../images/note.png') no-repeat 0 0 /100%;
 }
 
 .popup_wrap .popup_tit p {
+  border:1px solid blue;
 	font-size:1.1rem;
 	line-height:1.4rem;
 	color:#666;
