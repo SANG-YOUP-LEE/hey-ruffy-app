@@ -54,7 +54,7 @@
 
 .popup_wrap .popup_tit {
   height:4.2rem;
-  border:1px solid red
+  border:1px solid red;
   background:url('../images/note.png') no-repeat 0 0 /100%;
 }
 
