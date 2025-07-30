@@ -1,11 +1,10 @@
 <template>
   <div calss="close_btn"><span>닫기</span></div>
   <div class="popup_wrap">
-    <h2 v-if="routineToEdit">다짐 수정하기</h2>
-    <h2 v-else>
-      새로운 다짐을<br />만들어 볼까요?
+    <div class="popup_tit">
+      <h2>새로운 다짐을<br />만들어 볼까요?</h2>
       <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
-    </h2>
+    </div>
 
     <div class="popup_inner">
       <!-- 다짐명 적기 -->
@@ -73,7 +72,7 @@
         </div>
       </div>
     </div>
-    <div class="pop_btm">
+    <div class="popup_btm">
       <button>다짐 저장하기</button>
     </div>
   </div>
