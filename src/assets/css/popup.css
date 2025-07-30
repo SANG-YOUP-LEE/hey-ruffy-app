@@ -59,7 +59,7 @@
 
 .popup_wrap .popup_tit .note {
   width:100%;
-  height:3rem;
+  height:2rem;
   position:absolute;
   bottom:0;
   border:1px solid red;
@@ -67,9 +67,8 @@
  }
 
 .popup_wrap .popup_tit h2 {
-  border:1px solid green;
 	width:100%;
-  height:7rem;
+  background-color:blue;
 	font-size:1.6rem;
 	line-height:1.8rem;
   display:inline-block;
@@ -79,9 +78,8 @@
 }
 
 .popup_wrap .popup_tit p {
-  height:3rem;
-  border:1px solid blue;
-	font-size:1.1rem;
+  background-color:pink;
+  font-size:1.1rem;
 	line-height:1.4rem;
 	color:#666;
 	font-weight:300;
