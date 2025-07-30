@@ -3,7 +3,6 @@
     <div class="popup_tit">
       <h2>새로운 다짐을<br />만들어 볼까요?</h2>
       <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
-      <div class="note"></div>
     </div>
 
     <div class="popup_inner">
@@ -73,12 +72,10 @@
       </div>
     </div>
 
-    <!-- ✅ 다짐 저장하기 버튼 누르면 팝업 닫힘 -->
     <div class="popup_btm">
       <button class="b_basic" @click="handleSave">다짐 저장하기</button>
     </div>
 
-    <!-- ✅ 닫기 버튼 -->
     <div class="close_btn" @click="$emit('close')"><span>닫기</span></div>
   </div>
 </template>
@@ -127,7 +124,6 @@ const toggleDateSelection = (day) => {
 }
 
 const handleSave = () => {
-  // ✅ 저장 로직 필요 시 여기에 작성
   console.log('다짐 저장:', routineData)
   emit('close')   // 저장 후 팝업 닫기
 }
