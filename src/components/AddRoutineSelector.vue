@@ -24,9 +24,26 @@
       <div class="form_box_g limit">
         <h3>얼마나 자주 지켜야 하나요?</h3>
         <p>
-          <button id="v_detail01" @click="handleTabClick('daily')" class="b_basic">일간</button>
-          <button id="v_detail02" @click="handleTabClick('weekly')" class="b_basic">주간</button>
-          <button id="v_detail03" @click="handleTabClick('monthly')" class="b_basic">월간</button>
+          <button
+            id="v_detail01"
+            @click="handleTabClick('daily')"
+            class="b_basic"
+            :class="{ on: selectedTab === 'daily' }"
+          >일간</button>
+
+          <button
+            id="v_detail02"
+            @click="handleTabClick('weekly')"
+            class="b_basic"
+            :class="{ on: selectedTab === 'weekly' }"
+          >주간</button>
+
+          <button
+            id="v_detail03"
+            @click="handleTabClick('monthly')"
+            class="b_basic"
+            :class="{ on: selectedTab === 'monthly' }"
+          >월간</button>
         </p>
 
         <!-- 일간 상세 -->
@@ -81,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 
 const emit = defineEmits(['close'])
 
@@ -90,7 +107,7 @@ const routineData = reactive({
   days: []
 })
 
-const selectedTab = ref('daily')
+const selectedTab = ref('daily')  // ✅ 기본값 일간
 const selectedDates = ref([])
 const isAllDaysSelected = ref(false)
 
@@ -127,4 +144,9 @@ const handleSave = () => {
   console.log('다짐 저장:', routineData)
   emit('close')   // 저장 후 팝업 닫기
 }
+
+// ✅ 팝업 열릴 때 기본 탭을 'daily'로 설정
+onMounted(() => {
+  selectedTab.value = 'daily'
+})
 </script>
