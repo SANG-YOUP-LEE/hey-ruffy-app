@@ -138,7 +138,7 @@ import {
   serverTimestamp
 } from "firebase/firestore"
 import { getFirebaseErrorMessage } from "@/utils/firebaseErrorMessage"
-import RuffySelectorSignup from '@/components/RuffySelectorSignup.vue'
+import RuffySelectorSignup from '@/components/common/RuffySelectorSignup.vue'
 // 폼 관련
 const email = ref("")
 const password = ref("")
