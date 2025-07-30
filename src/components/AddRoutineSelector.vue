@@ -1,7 +1,9 @@
 <template>
 	<div class="popup_wrap">
 		<h2 v-html="routineToEdit ? '다짐 수정하기' : '새로운 다짐을<br />만들어 볼까요?<p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>'"></h2>
-
+    <div class="notebook">
+      <div class="holes"></div>
+    </div>
 		<div class="popup_inner">
 			<!-- 다짐명 적기 -->
 			<div class="form_box_g">
