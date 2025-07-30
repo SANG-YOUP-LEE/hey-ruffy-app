@@ -16,7 +16,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import AddRoutineSelector from '@/AddRoutineSelector.vue'
+import AddRoutineSelector from './AddRoutineSelector.vue'
 
 const isAddRoutineOpen = ref(false)
 
