@@ -65,7 +65,9 @@
 	z-index:888;
 	color:#333;
 	font-family: Freesentation-7Black;
-  font-weight:700
+  font-weight:700;
+  background:url('../images/note.png') no-repeat 0 0/cover;
+  
 }
 
 .popup_wrap h2 p {
@@ -91,8 +93,8 @@
 }
 
 .popup_wrap .popup_btm button {
-  font-size:1.5rem;
-  line-height:3.5rem;
+  font-size:1.4rem;
+  line-height:3.3rem;
   letter-spacing:-0.01rem;
 }
 
