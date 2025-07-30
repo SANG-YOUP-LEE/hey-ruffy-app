@@ -75,7 +75,7 @@
     <div class="popup_btm">
       <button class="b_basic">다짐 저장하기</button>
     </div>
-    <div calss="close_btn"><span>닫기</span></div>
+    <div class="close_btn"><span>닫기</span></div>
   </div>
 </template>
 
