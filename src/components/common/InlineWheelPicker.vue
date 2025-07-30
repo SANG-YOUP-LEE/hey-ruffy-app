@@ -2,11 +2,11 @@
   <div class="inline-wheel-wrapper">
     <div class="inline-wheel-list" ref="listRef" @scroll="onScroll">
       <div
-        v-for="(item, index) in items"
+        v-for="(item, index) in paddedItems"
         :key="index"
         class="inline-wheel-item"
-        :class="{ selected: item === props.modelValue }"
-        @click="handleItemClick(index)"
+        :class="{ selected: index === selectedIndex + paddingCount }"
+        @click="handleItemClick(index - paddingCount)"
       >
         {{ item }}
       </div>
@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick, computed } from 'vue'
 
 const props = defineProps({
   items: {
@@ -33,22 +33,28 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const listRef = ref(null)
+const itemHeight = 40 // 2.5rem
+const paddingCount = 3
 const selectedIndex = ref(-1)
 const isResetting = ref(false)
 const isUserClicking = ref(false)
 
-const itemHeight = 40
+// ✅ 위아래에 padding 추가된 리스트
+const paddedItems = computed(() => {
+  const padding = Array(paddingCount).fill('')
+  return [...padding, ...props.items, ...padding]
+})
 
 const scrollToIndex = (index) => {
   if (listRef.value) {
-    const offset = index * itemHeight
+    const offset = (index + paddingCount) * itemHeight
     const centerOffset = offset - (listRef.value.clientHeight / 2) + (itemHeight / 2)
     listRef.value.scrollTop = centerOffset
   }
 }
 
 const scrollToTop = () => {
-  scrollToIndex(0)
+  listRef.value.scrollTop = 0
 }
 
 const updateSelectedIndexFromModel = () => {
@@ -68,18 +74,11 @@ onMounted(() => {
 watch(() => props.modelValue, () => {
   if (isUserClicking.value) {
     isUserClicking.value = false
-    return // 클릭 시에는 scrollToIndex 하지 않음
-  }
-   updateSelectedIndexFromModel()
-  if (isResetting.value) {
-    // resetKey로 인해 초기화될 경우에도 scrollToIndex 하지 않음
     return
   }
-
-  updateSelectedIndexFromModel()
+  if (!isResetting.value) updateSelectedIndexFromModel()
 })
 
-// ✅ 탭 전환 시: 초기화 (선택 제거 + 스크롤 맨 위)
 watch(() => props.resetKey, async () => {
   isResetting.value = true
   selectedIndex.value = -1
@@ -95,9 +94,8 @@ watch(() => props.resetKey, async () => {
 
 const onScroll = () => {
   if (isResetting.value) return
-
   const scrollTop = listRef.value.scrollTop
-  const index = Math.round(scrollTop / itemHeight)
+  const index = Math.round(scrollTop / itemHeight) - paddingCount
 
   if (
     index >= 0 &&
@@ -110,6 +108,7 @@ const onScroll = () => {
 }
 
 const handleItemClick = (index) => {
+  if (index < 0 || index >= props.items.length) return
   isUserClicking.value = true
   selectedIndex.value = index
   emit('update:modelValue', props.items[index])
