@@ -1,5 +1,4 @@
 <template>
-  <div calss="close_btn"><span>닫기</span></div>
   <div class="popup_wrap">
     <div class="popup_tit">
       <h2>새로운 다짐을<br />만들어 볼까요?</h2>
@@ -73,8 +72,9 @@
       </div>
     </div>
     <div class="popup_btm">
-      <button>다짐 저장하기</button>
+      <button class="b_basic">다짐 저장하기</button>
     </div>
+    <div calss="close_btn"><span>닫기</span></div>
   </div>
 </template>
 
