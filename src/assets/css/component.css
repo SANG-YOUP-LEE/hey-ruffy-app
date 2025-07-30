@@ -1,5 +1,47 @@
 /*inline wheel*/
 .inline-wheel-wrapper {
+  position: relative;
+  height: 240px; /* itemHeight * (visible items count) */
+  overflow: hidden;
+}
+
+.inline-wheel-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.inline-wheel-item {
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 1rem;
+  scroll-snap-align: center;
+  color: #999;
+  transition: color 0.2s;
+}
+
+.inline-wheel-item.selected {
+  color: #000;
+  font-weight: bold;
+}
+
+.highlight-overlay {
+  position: absolute;
+  top: 100px; /* center = (height - itemHeight) / 2 */
+  height: 40px;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  pointer-events: none;
+}
+/*
+.inline-wheel-wrapper {
   height: 13rem;
   margin: 1rem 0 0 0;
   overflow: hidden;
@@ -49,7 +91,7 @@
   border-radius: 1rem;
   z-index: 10;
   background: transparent; /* 필요 시 강조선 영역 배경 */
-}
+}*/
 
 /* 주간 휠일경우*/
 #v_detail02_block .inline-wheel-wrapper {
