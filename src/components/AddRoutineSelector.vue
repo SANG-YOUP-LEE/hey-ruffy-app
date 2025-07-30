@@ -1,4 +1,5 @@
 <template>
+  <div calss="close_btn"><span>닫기</span></div>
   <div class="popup_wrap">
     <h2 v-if="routineToEdit">다짐 수정하기</h2>
     <h2 v-else>
@@ -71,6 +72,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="pop_btm">
+      <button>다짐 저장하기</button>
     </div>
   </div>
 </template>
