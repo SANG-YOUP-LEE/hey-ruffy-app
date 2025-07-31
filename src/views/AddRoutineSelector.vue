@@ -46,14 +46,13 @@
           >월간</button>
         </p>
 
-        <!-- ✅ 일간 상세 -->
+        <!-- 일간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'daily'">
           <ScrollPicker
             v-model="selectedItem"
             :options="items"
             class="custom-picker"
           />
-          <p>선택값: {{ selectedItem }}</p>
         </div>
 
         <!-- 주간 상세 -->
