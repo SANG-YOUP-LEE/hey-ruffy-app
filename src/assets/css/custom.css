@@ -1,4 +1,4 @@
-/*  공통 스타일 */
+/*  공통 스타일  */
 .scroll-picker {
   position: relative;
   width: 100%;
@@ -11,8 +11,8 @@
 .scroll-picker-list {
   height: 100%;
   max-height: 100%;
-  touch-action: auto !important;
-} display: flex;
+  touch-action: auto !important; 
+  display: flex;
   flex-direction: column;
   align-items: center;
   overflow-y: scroll;
