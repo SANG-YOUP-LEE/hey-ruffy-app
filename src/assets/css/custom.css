@@ -9,8 +9,8 @@
   border:1px solid red;
 }
 
-detail_box.daily.scroll-picker {
-  height:200px;
+detail_box.daily .scroll-picker {
+  height:15rem;
   border:1px solid black;
 }
 
