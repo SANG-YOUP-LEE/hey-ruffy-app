@@ -1,91 +1,54 @@
 /*  공통 스타일 */
 .scroll-picker {
   position: relative;
-  overflow: hidden;
   width: 100%;
-  height: 120px;
+  height: 160px;
+  overflow: hidden;
   user-select: none;
+  touch-action: pan-y;
 }
 
 .scroll-picker-list {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  padding: 10px 0;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-picker-list::-webkit-scrollbar {
+  display: none;
 }
 
 .scroll-picker-item {
   flex-shrink: 0;
+  height: 40px;
+  line-height: 40px;
   font-size: 1.2rem;
-  line-height: 2.4rem;
-  padding: 5px 15px;
-  cursor: pointer;
   color: #999;
-  transition: color 0.2s, transform 0.2s;
+  text-align: center;
+  transition: transform 0.2s, color 0.2s;
+  width: 100%;
 }
 
-.scroll-picker-item.selected {
+.scroll-picker-item.in-focus {
   color: #222;
   font-weight: bold;
-  transform: scale(1.1);
+  transform: scale(1.2);
 }
 
-/*  중앙 선택 영역 (하이라이트 박스) */
+/* 중앙 선택 영역 */
 .scroll-picker::after {
   content: '';
   position: absolute;
   top: 50%;
   left: 0;
-  transform: translateY(-50%);
   width: 100%;
   height: 40px;
+  transform: translateY(-50%);
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
   pointer-events: none;
-}
-
-/* ==============================
-   1) 세로형 (기본)
-   ============================== */
-.scroll-picker.vertical .scroll-picker-list {
-  flex-direction: column;
-  overflow-y: auto;
-  height: 100%;
-}
-
-/* ==============================
-   2) 가로형
-   ============================== */
-.scroll-picker.horizontal {
-  width: 100%;
-  height: auto;
-}
-
-.scroll-picker.horizontal .scroll-picker-list {
-  flex-direction: row;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-}
-
-.scroll-picker.horizontal .scroll-picker-item {
-  display: inline-block;
-  padding: 10px 20px;
-  font-size: 1.2rem;
-}
-
-.scroll-picker.horizontal::after {
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 100%;
-  border-top: none;
-  border-bottom: none;
-  border-left: 1px solid #ddd;
-  border-right: 1px solid #ddd;
 }
 
 
