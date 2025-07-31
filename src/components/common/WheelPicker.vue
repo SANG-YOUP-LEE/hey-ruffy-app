@@ -44,7 +44,7 @@ onMounted(() => {
     items.forEach((item, index) => {
       const itemCenter = item.offsetTop + item.clientHeight / 2
       const distance = Math.abs(center - itemCenter)
-      item.classList.toggle('in-focus', distance < 20)
+      item.classList.toggle('light', distance < 20)
       if (distance < minDistance) {
         minDistance = distance
         closestItem = item
