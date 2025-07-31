@@ -23,7 +23,6 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  background-color:#fff;
   touch-action: pan-y !important;  
 }
 
@@ -51,8 +50,7 @@
 .scroll-picker-item.light {
   font-weight: bold;
   color:#333;
-  border-radius:1.5rem!important;
-  transform: scale(1.2);
+  border-radius:1.5rem
 }
 
 /* 중앙 선택 영역 */
