@@ -9,6 +9,11 @@
   border:1px solid red;
 }
 
+detail_box.daily.scroll-picker {
+  height:16rem;
+  border:1px solid black;
+}
+
 .scroll-picker-list {
   border:1px solid green;
   height: 100%;
