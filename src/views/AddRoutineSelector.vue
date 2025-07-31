@@ -104,7 +104,6 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import '@/assets/scroll-picker.css'
 
 const emit = defineEmits(['close'])
 
