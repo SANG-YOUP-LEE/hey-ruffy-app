@@ -1,12 +1,10 @@
 /*  공통 스타일  */
 .scroll-picker {
   width: 100%;  
-  height:120px;
   position: relative;
   overflow: hidden;
   user-select: none;
   touch-action: pan-y;
-  border:1px solid red;
 }
 
 .detail_box.daily .scroll-picker {
@@ -56,6 +54,7 @@
   color:#333;
   border-radius:1.5rem;
   transform: scale(1.2);
+  background-color:#fff;
 }
 
 /* 중앙 선택 영역 */
