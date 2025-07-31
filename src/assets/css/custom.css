@@ -10,7 +10,6 @@
 .detail_box.daily .scroll-picker {
   height: 13rem;
   position: relative;
-  border:1px solid red;
 }
 
 /* 스크롤 리스트 */
@@ -52,6 +51,7 @@
   font-weight: bold;
   color:#333;
   border-radius:1.5rem;
+  background-color:#fff;
   transform: scale(1.2);
 }
 
