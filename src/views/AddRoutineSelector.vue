@@ -48,7 +48,12 @@
 
         <!-- 일간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'daily'">
-          aa
+          <ScrollPicker 
+            v-model="selectedItem" 
+            :options="items"
+            class="custom-picker"
+          />
+          <p>선택값: {{ selectedItem }}</p>
         </div>
 
         <!-- 주간 상세 -->
@@ -149,5 +154,11 @@ const handleSave = () => {
 onMounted(() => {
   selectedTab.value = 'daily'
 })
+
+import { ScrollPicker } from 'vue3-scroll-picker'
+import 'vue3-scroll-picker/dist/style.css'   // ✅ CSS 꼭 import
+
+const selectedItem = ref('2주')
+const items = ref(['1주', '2주', '3주', '4주'])
 </script>
 
