@@ -4,7 +4,7 @@
   font-weight: 400;
   font-style: normal;
 }
-/**/
+
 @font-face {
   font-family: 'Paperlogy-8ExtraBold';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
@@ -179,89 +179,6 @@ em {
 
 .mt1 {margin-top:1rem;}
 
-/* 체크 박스 */
-.checkbox-label {
-  display: flex;
-  justify-content: center; 
-  align-items: center;  
-  gap: 0.5rem;
-  margin:0 auto;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: 1.2rem;
-  height: 1.2rem;
-  display: none;
-  margin: 0;
-  appearance: auto !important;
-  position: static !important;
-  opacity: 1 !important;
-}
-
-.checkbox-label .checkmark {
-  width: 1.3rem;
-  height: 1.3rem;
-  border-radius: 0.3rem;
-  background-color: #fff;
-  position: relative;
-  box-sizing: border-box;
-  border:0.1rem solid #666
-}
-
-/* 라디오 박스 */
-.custom-radio-group {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
-  flex-wrap: wrap; 
-}
-
-.custom-radio-group .custom-radio { 
-  width:1.4rem;
-  height:1.4rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.custom-radio {
-  width: 1.4em;
-  height: 1.4rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.custom-radio input[type="radio"] {
-  display: none;
-}
-
-.custom-radio .circle {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  position: relative;
-  box-sizing: border-box;
-  border:1px solid #ddd;
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.custom-radio input[type="radio"]:checked + .circle::after {
-  width: 0.8rem;
-  height: 0.8rem;
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-}
-
 .warn-message,
 .info-message {
   width:100%;
@@ -276,7 +193,6 @@ em {
   background-color:#f9f9f9;
   border:0.1rem solid #f1f1f1;
 }
-
 
 @keyframes fadeIn {
   from {
@@ -336,119 +252,5 @@ em {
   pointer-events: auto;
 }
 
-/* 슬라이더 영역 */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 2rem;
-}
 
-/* 달력 */
-.calendar-container {
-  width: 100%;
-	border-radius:1rem;
-  padding:3rem 2rem 3rem 2rem;
-	margin-bottom:1rem;
-  font-family: 'Freesentation-9Black';
-  background-color:#fff;
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.calendar-header button img {
-  width:1.5rem;
-  height:1.5rem
-}
-
-.calendar-header button span {
-  display:none
-}
-
-.prev-btn,
-.next-btn,
-.edit-btn {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.month-year {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.calendar-weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin: 2rem 0 1rem 0;
-  font-size: 1.2rem;
-
-}
-
-.calendar-weekdays .sunday,
-.calendar-grid .day.sunday {
-  color: #ec6862; /* 빨강 */
-}
-
-.calendar-weekdays .saturday,
-.calendar-grid .day.saturday {
-  color: #438EDB; /* 파랑 */
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0rem;
-}
-
-.day.today {
-  background-color: #eee;
-  font-weight: bold;
-  text-decoration:underline;
-  border-radius:1rem;
-}
-
-.day {
-  width: 100%;
-  height: 100%;
-  line-height: 4.2rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.h {
-	display:none
-}
-
-
-a.temp {
-	width:2rem;
-	height:2rem;
-	display:inline-block
-}
-
-a.temp span {
-	display:none
-}
-
-a.temp img,
-span.icon.temp {
-	width:100%;
-	height:100%;
-}
 
