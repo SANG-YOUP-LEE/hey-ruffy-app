@@ -35,19 +35,10 @@ const itemHeight = 30
 const highlight = () => {
   const index = Math.round(list.scrollTop / itemHeight)
   items.forEach(item => item.classList.remove('light'))
-
   if (items[index]) {
     items[index].classList.add('light')
     emit('update:modelValue', props.options[index])
   }
-}
-
-const snap = () => {
-  clearTimeout(snap.timeout)
-  snap.timeout = setTimeout(() => {
-    const index = Math.round(list.scrollTop / itemHeight)
-    list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
-  }, 100)
 }
 
 const handleClick = (index) => {
@@ -70,13 +61,11 @@ onMounted(() => {
     })
   }
 
-  list.addEventListener('scroll', () => {
-    highlight()
-    snap()
-  })
+  list.addEventListener('scroll', highlight)
 
   nextTick(() => {
     highlight()
   })
 })
 </script>
+
