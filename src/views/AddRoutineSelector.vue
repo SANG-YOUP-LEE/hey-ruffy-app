@@ -46,9 +46,9 @@
           >월간</button>
         </p>
 
-        <!-- 일간 상세 -->
+        <!-- ✅ 일간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'daily'">
-           <ScrollPicker
+          <ScrollPicker
             v-model="selectedItem"
             :options="items"
             class="custom-picker"
@@ -58,7 +58,6 @@
 
         <!-- 주간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'weekly'">
-          bb
           <p class="check_btn">
             <button
               class="all"
@@ -104,6 +103,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import ScrollPicker from 'vue3-scroll-picker'
 
 const emit = defineEmits(['close'])
 
@@ -112,9 +112,11 @@ const routineData = reactive({
   days: []
 })
 
-const selectedTab = ref('daily')  // ✅ 기본값 일간
+const selectedTab = ref('daily')
 const selectedDates = ref([])
 const isAllDaysSelected = ref(false)
+const selectedItem = ref('2주')
+const items = ref(['1주', '2주', '3주', '4주'])
 
 const handleTabClick = (tab) => {
   selectedTab.value = tab
@@ -147,15 +149,10 @@ const toggleDateSelection = (day) => {
 
 const handleSave = () => {
   console.log('다짐 저장:', routineData)
-  emit('close')   // 저장 후 팝업 닫기
+  emit('close')
 }
 
-// ✅ 팝업 열릴 때 기본 탭을 'daily'로 설정
 onMounted(() => {
   selectedTab.value = 'daily'
 })
-import ScrollPicker from 'vue-scroll-picker'
-const selectedItem = ref('2주')
-const items = ref(['1주', '2주', '3주', '4주'])
 </script>
-
