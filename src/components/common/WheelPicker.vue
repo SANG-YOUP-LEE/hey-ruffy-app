@@ -34,16 +34,24 @@ onMounted(() => {
   const items = picker.value.querySelectorAll('.scroll-picker-item')
   const itemHeight = 40
 
-  // 선택 강조
- const highlight = () => {
-  const index = Math.round(list.scrollTop / itemHeight)
-  items.forEach(item => item.classList.remove('light'))
-
-  if (items[index]) {
-    items[index].classList.add('light')
-    emit('update:modelValue', props.options[index])
+  // 기본값 위치로 스크롤
+  const defaultIndex = props.options.indexOf(props.modelValue)
+  if (defaultIndex !== -1) {
+    nextTick(() => {
+      list.scrollTo({ top: defaultIndex * itemHeight, behavior: 'auto' })
+    })
   }
-}
+
+  // 선택 강조
+  const highlight = () => {
+    const index = Math.round(list.scrollTop / itemHeight)
+    items.forEach(item => item.classList.remove('light'))
+
+    if (items[index]) {
+      items[index].classList.add('light')
+      emit('update:modelValue', props.options[index])
+    }
+  }
 
   // 스냅
   let timeout
