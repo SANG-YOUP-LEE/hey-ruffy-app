@@ -6,11 +6,12 @@
   overflow: hidden;
   user-select: none;
   touch-action: pan-y;
+  border:1px solid red;
 }
 
 .detail_box.daily .scroll-picker {
   height: 13rem;
-  margin-top:1.5rem;
+  margin-top:1rem;
   position: relative;
   overflow: hidden;
 }
@@ -50,9 +51,9 @@
   transition: transform 0.2s, color 0.2s;
 }
 
-.scroll-picker-item.in-focus {
+.scroll-picker-item.light {
   font-weight: bold;
-  color:#333;
+  color:#333!;
   transform: scale(1.2);
 }
 
