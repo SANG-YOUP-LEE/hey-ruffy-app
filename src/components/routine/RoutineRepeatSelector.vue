@@ -25,7 +25,7 @@
     </p>
 
     <!-- 일간 상세 -->
-    <div class="detail_box" v-show="selectedTab === 'daily'">
+    <div class="detail_box daily" v-show="selectedTab === 'daily'">
       <WheelPicker
         v-model="selectedInterval"
         :options="['매일','2일마다','3일마다','4일마다','5일마다','6일마다']"
@@ -33,7 +33,7 @@
     </div>
 
     <!-- 주간 상세 -->
-    <div class="detail_box" v-show="selectedTab === 'weekly'">
+    <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
       <p class="check_btn">
         <button
           class="all"
@@ -53,7 +53,7 @@
     </div>
 
     <!-- 월간 상세 -->
-    <div class="detail_box" v-show="selectedTab === 'monthly'">
+    <div class="detail_box monthly" v-show="selectedTab === 'monthly'">
       <div class="monthly-grid">
         <span
           class="m_s_btn"
