@@ -80,7 +80,12 @@ const routineData = reactive({
 const selectedTab = ref('daily')
 const selectedDates = ref([])
 const isAllDaysSelected = ref(false)
-const selectedInterval = ref('매일')
+const selectedInterval = ref('3일마다')
+
+onMounted(() => {
+  selectedTab.value = 'daily'
+  selectedInterval.value = '3일마다' // 기본 중앙값
+})
 
 const handleTabClick = (tab) => {
   selectedTab.value = tab
