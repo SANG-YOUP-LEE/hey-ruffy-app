@@ -2,13 +2,13 @@
 .scroll-picker {
   width: 100%;  
   border-radius:1.5rem;
-  border:1px solid #ddd;
   position: relative;
   overflow: visible;
   user-select: none;
   touch-action: pan-y;
-  margin:1.5rem 0 1.5rem 0;
+  margin:1rem 0 1rem 0;
   position: relative;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .detail_box.daily .scroll-picker {
