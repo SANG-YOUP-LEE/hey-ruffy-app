@@ -34,6 +34,10 @@
 
     <!-- 주간 상세 -->
     <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
+      <WheelPicker
+        v-model="selectedWeeklyInterval"
+        :options="['2주마다','3주마다','4주마다','5주마다']"
+      />
       <p class="check_btn">
         <button
           class="all"
