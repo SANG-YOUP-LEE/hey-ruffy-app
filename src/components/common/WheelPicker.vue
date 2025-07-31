@@ -35,32 +35,15 @@ onMounted(() => {
   const itemHeight = 40
 
   // 선택 강조
-  const highlight = () => {
-    const center = list.scrollTop + list.clientHeight / 2
-    let closestItem = null
-    let closestIndex = 0
-    let minDistance = Infinity
+ const highlight = () => {
+  const index = Math.round(list.scrollTop / itemHeight)
+  items.forEach(item => item.classList.remove('light'))
 
-    items.forEach((item, index) => {
-      const itemCenter = item.offsetTop + item.clientHeight / 2
-      const distance = Math.abs(center - itemCenter)
-
-      if (distance < minDistance) {
-        minDistance = distance
-        closestItem = item
-        closestIndex = index
-      }
-    })
-
-    // 모든 아이템에서 강조 제거
-    items.forEach(item => item.classList.remove('light'))
-
-    // 가장 가까운 아이템만 강조
-    if (closestItem) {
-      closestItem.classList.add('light')
-      emit('update:modelValue', props.options[closestIndex])
-    }
+  if (items[index]) {
+    items[index].classList.add('light')
+    emit('update:modelValue', props.options[index])
   }
+}
 
   // 스냅
   let timeout
