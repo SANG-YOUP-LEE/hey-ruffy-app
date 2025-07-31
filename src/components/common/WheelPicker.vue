@@ -44,14 +44,20 @@ onMounted(() => {
     items.forEach((item, index) => {
       const itemCenter = item.offsetTop + item.clientHeight / 2
       const distance = Math.abs(center - itemCenter)
-      item.classList.toggle('light', distance < 20)
+
       if (distance < minDistance) {
         minDistance = distance
         closestItem = item
         closestIndex = index
       }
     })
+
+    // 모든 아이템에서 강조 제거
+    items.forEach(item => item.classList.remove('light'))
+
+    // 가장 가까운 아이템만 강조
     if (closestItem) {
+      closestItem.classList.add('light')
       emit('update:modelValue', props.options[closestIndex])
     }
   }
