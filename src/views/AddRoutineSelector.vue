@@ -5,19 +5,50 @@
       <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
     </div>
     <div class="popup_inner">
-      <!-- 다짐명 입력-->
+      <!-- 다짐명 입력 -->
       <RoutineTitleInput />
+
       <!-- 다짐 주기 설정 -->
       <RoutineRepeatSelector />
+
+      <!-- 시작일·종료일 설정 -->
+      <RoutineDateSelector />
+
+      <!-- 알람 설정 -->
+      <RoutineAlarmSelector />
+
+      <!-- 러피 선택 -->
+      <RoutineRuffySelector />
+
+      <!-- 산책코스 선택 -->
+      <RoutineCourseSelector />
+
+      <!-- 최소달성횟수 선택 -->
+      <RoutineGoalCountSelector />
+
+      <!-- 중요도 선택 -->
+      <RoutinePrioritySelector />
+
+      <!-- 코멘트 작성 -->
+      <RoutineCommentInput />
     </div>
+
     <div class="popup_btm">
-      <button class="b_basic" @click="handleSave">다짐 저장하기</button>
+      <button class="b_basic">다짐 저장하기</button>
     </div>
-    <div class="close_btn" @click="$emit('close')"><span>닫기</span></div>
+
+    <div class="close_btn"><span>닫기</span></div>
   </div>
 </template>
 
 <script setup>
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
+import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
+import RoutineAlarmSelector from '@/components/routine/RoutineAlarmSelector.vue'
+import RoutineRuffySelector from '@/components/routine/RoutineRuffySelector.vue'
+import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vue'
+import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
+import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
+import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 </script>
