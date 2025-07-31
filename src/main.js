@@ -6,6 +6,7 @@ import "./assets/css/join.css";
 import "./assets/css/main.css";
 import "./assets/css/popup.css";
 import "./assets/css/color.css";
+import "./assets/css/custom.css";
 import "./assets/js/common.js";
 
 const app = createApp(App);
