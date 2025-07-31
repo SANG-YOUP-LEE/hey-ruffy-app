@@ -41,7 +41,7 @@
 }
 
 .scroll-picker-item.in-focus {
-  color: #222;
+  border-radius:1.5rem;
   font-weight: bold;
   transform: scale(1.2);
 }
