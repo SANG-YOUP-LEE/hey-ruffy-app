@@ -9,9 +9,7 @@
 
 .detail_box.daily .scroll-picker {
   height: 13rem;
-  margin-top:1rem;
   position: relative;
-  overflow: hidden;
   border:1px solid red;
 }
 
