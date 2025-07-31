@@ -48,11 +48,16 @@
 
         <!-- 일간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'daily'">
-          <ScrollPicker
-            v-model="selectedItem"
-            :options="items"
-            class="custom-picker"
-          />
+          <div class="scroll-picker">
+            <div class="scroll-picker-list">
+              <div class="scroll-picker-item selected">매일</div>
+              <div class="scroll-picker-item">2일마다</div>
+              <div class="scroll-picker-item">3일마다</div>
+              <div class="scroll-picker-item">4일마다</div>
+              <div class="scroll-picker-item">5일마다</div>
+              <div class="scroll-picker-item">6일마다</div>
+            </div>
+          </div>
         </div>
 
         <!-- 주간 상세 -->
