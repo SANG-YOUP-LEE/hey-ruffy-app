@@ -10,6 +10,10 @@
       <!-- 다짐 주기 설정 -->
       <RoutineRepeatSelector />
     </div>
+    <div class="popup_btm">
+      <button class="b_basic" @click="handleSave">다짐 저장하기</button>
+    </div>
+    <div class="close_btn" @click="$emit('close')"><span>닫기</span></div>
   </div>
 </template>
 
