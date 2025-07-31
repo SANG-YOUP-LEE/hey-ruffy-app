@@ -104,6 +104,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import 'vue3-scroll-picker/style.css'
 
 const emit = defineEmits(['close'])
 
@@ -156,7 +157,7 @@ onMounted(() => {
 })
 
 import { ScrollPicker } from 'vue3-scroll-picker'
-import 'vue3-scroll-picker/dist/style.css'   // ✅ CSS 꼭 import
+import 'vue3-scroll-picker/style.css'   // ✅ CSS 꼭 import
 
 const selectedItem = ref('2주')
 const items = ref(['1주', '2주', '3주', '4주'])
