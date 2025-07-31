@@ -154,11 +154,5 @@ const handleSave = () => {
 onMounted(() => {
   selectedTab.value = 'daily'
 })
-
-import { ScrollPicker } from 'vue3-scroll-picker'
-import 'vue3-scroll-picker/dist/style.css'   // ✅ CSS 꼭 import
-
-const selectedItem = ref('2주')
-const items = ref(['1주', '2주', '3주', '4주'])
 </script>
 
