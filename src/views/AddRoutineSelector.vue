@@ -48,7 +48,7 @@
 
         <!-- 일간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'daily'">
-          <div class="scroll-picker">
+          <div class="scroll-picker horizontal">
             <div class="scroll-picker-list">
               <div class="scroll-picker-item selected">매일</div>
               <div class="scroll-picker-item">2일마다</div>
