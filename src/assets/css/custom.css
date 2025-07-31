@@ -11,7 +11,7 @@
   background-color:#f9f9f9;
   box-shadow:
     inset -4px -4px 8px rgba(0, 0, 0, 0.05), 
-    inset 2px 2px 4px rgba(0, 0, 0, 0.15); 
+    inset 1px 1px 2px rgba(0, 0, 0, 0.15); 
 }
 
 .detail_box.daily .scroll-picker {
@@ -47,8 +47,8 @@
 .scroll-picker-item {
   width: 100%;
   flex-shrink: 0;
-  height: 35px;
-  line-height: 35px;
+  height: 30px;
+  line-height: 30px;
   font-size: 1rem;
   color: #999;
   text-align: center;
