@@ -154,8 +154,7 @@ const handleSave = () => {
 onMounted(() => {
   selectedTab.value = 'daily'
 })
-  import { ScrollPicker } from 'vue-scroll-picker'
-
+import ScrollPicker from 'vue-scroll-picker'
 const selectedItem = ref('2주')
 const items = ref(['1주', '2주', '3주', '4주'])
 </script>
