@@ -30,7 +30,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list, items
-const itemHeight = 40
+const itemHeight = 35
 
 const highlight = () => {
   const index = Math.round(list.scrollTop / itemHeight)
