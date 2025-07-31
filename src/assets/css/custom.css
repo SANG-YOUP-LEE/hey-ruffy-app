@@ -1,7 +1,7 @@
 /*  공통 스타일  */
 .scroll-picker {
   width: 100%;  
-  height:14rem;
+  height:100px;
   position: relative;
   overflow: hidden;
   user-select: none;
@@ -21,7 +21,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   touch-action: pan-y !important;  
-  padding-top:2.5rem;
+  padding-top:40px;
 }
 
 .scroll-picker-list::-webkit-scrollbar {
@@ -30,8 +30,8 @@
 
 .scroll-picker-item,
 .scroll-picker::after {
-  height:2.5rem;
-  line-height:2.5rem;
+  height:40px;
+  line-height:40px;
 }
 
 .scroll-picker-item {
