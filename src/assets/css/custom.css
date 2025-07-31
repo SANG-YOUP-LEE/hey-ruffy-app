@@ -5,11 +5,16 @@
   overflow: visible;
   user-select: none;
   touch-action: pan-y;
+  margin:1.5rem 0 1.5rem 0;
+  position: relative;
 }
 
 .detail_box.daily .scroll-picker {
-  height: 13rem;
-  position: relative;
+  height: 10rem;
+}
+.detail_box.weekly .scroll-picker {
+  height: 5rem;
+  border:1px solid green;
 }
 
 /* 스크롤 리스트 */
