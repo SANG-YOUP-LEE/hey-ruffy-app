@@ -9,7 +9,7 @@
   border:1px solid red;
 }
 
-detail_box.daily .scroll-picker {
+.detail_box.daily .scroll-picker {
   height:15rem;
   display: flex;
   justify-content: center;   /* 가로 가운데 정렬 */
