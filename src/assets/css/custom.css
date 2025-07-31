@@ -1,0 +1,147 @@
+/*  공통 스타일  */
+.scroll-picker {
+  width: 100%;  
+  height:100px;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  touch-action: pan-y;
+  border:1px solid red;
+}
+
+.scroll-picker-list {
+  border:1px solid green;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-y !important;  
+  padding-top:40px;
+}
+
+.scroll-picker-list::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-picker-item,
+.scroll-picker::after {
+  height:40px;
+  line-height:40px;
+}
+
+.scroll-picker-item {
+  width: 100%;
+  border:1px solid yellow;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+  color: #999;
+  text-align: center;
+  border-radius:1.5rem;
+  transition: transform 0.2s, color 0.2s;
+  
+}
+
+.scroll-picker-item.in-focus {
+  font-weight: bold;
+  color:#333;
+  transform: scale(1.2);
+}
+
+/* 중앙 선택 영역 */
+.scroll-picker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+
+/* 체크 박스 */
+.checkbox-label {
+  display: flex;
+  justify-content: center; 
+  align-items: center;  
+  gap: 0.5rem;
+  margin:0 auto;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  display: none;
+  margin: 0;
+  appearance: auto !important;
+  position: static !important;
+  opacity: 1 !important;
+}
+
+.checkbox-label .checkmark {
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 0.3rem;
+  background-color: #fff;
+  position: relative;
+  box-sizing: border-box;
+  border:0.1rem solid #666
+}
+
+/* 라디오 박스 */
+.custom-radio-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap; 
+}
+
+.custom-radio-group .custom-radio { 
+  width:1.4rem;
+  height:1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.custom-radio {
+  width: 1.4em;
+  height: 1.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.custom-radio input[type="radio"] {
+  display: none;
+}
+
+.custom-radio .circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  box-sizing: border-box;
+  border:1px solid #ddd;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.custom-radio input[type="radio"]:checked + .circle::after {
+  width: 0.8rem;
+  height: 0.8rem;
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
