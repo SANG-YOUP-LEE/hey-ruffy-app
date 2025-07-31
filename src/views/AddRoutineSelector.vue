@@ -48,16 +48,10 @@
 
         <!-- 일간 상세 -->
         <div class="detail_box" v-show="selectedTab === 'daily'">
-          <div class="scroll-picker">
-            <div class="scroll-picker-list">
-              <div class="scroll-picker-item selected">매일</div>
-              <div class="scroll-picker-item">2일마다</div>
-              <div class="scroll-picker-item">3일마다</div>
-              <div class="scroll-picker-item">4일마다</div>
-              <div class="scroll-picker-item">5일마다</div>
-              <div class="scroll-picker-item">6일마다</div>
-            </div>
-          </div>
+          <WheelPicker
+            v-model="selectedInterval"
+            :options="['매일','2일마다','3일마다','4일마다','5일마다','6일마다']"
+          />
         </div>
 
         <!-- 주간 상세 -->
@@ -107,7 +101,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import ScrollPicker from 'vue3-scroll-picker'
+import WheelPicker from '@/components/common/WheelPicker.vue'  
 
 const emit = defineEmits(['close'])
 
@@ -119,9 +113,7 @@ const routineData = reactive({
 const selectedTab = ref('daily')
 const selectedDates = ref([])
 const isAllDaysSelected = ref(false)
-const selectedItem = ref('2주')
-const items = ref(['1주', '2주', '3주', '4주'])
-
+const selectedInterval = ref('매일')  
 const handleTabClick = (tab) => {
   selectedTab.value = tab
 }
@@ -152,7 +144,11 @@ const toggleDateSelection = (day) => {
 }
 
 const handleSave = () => {
-  console.log('다짐 저장:', routineData)
+  console.log('다짐 저장:', {
+    ...routineData,
+    interval: selectedInterval.value,
+    dates: selectedDates.value
+  })
   emit('close')
 }
 
