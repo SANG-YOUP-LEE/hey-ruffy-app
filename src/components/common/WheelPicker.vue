@@ -31,9 +31,10 @@ const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list, items
 const itemHeight = 30
-let scrollFrame
+let scrollFrame = null
+let scrollEndTimer = null
 
-// 실시간 하이라이트
+// 실시간 하이라이트 업데이트
 const updateHighlight = () => {
   const index = Math.round(list.scrollTop / itemHeight)
   items.forEach(item => item.classList.remove('light'))
@@ -43,18 +44,20 @@ const updateHighlight = () => {
   }
 }
 
-// 스크롤 중 실시간 업데이트
+// 스크롤 중 프레임 단위로 하이라이트
 const handleScroll = () => {
   if (scrollFrame) cancelAnimationFrame(scrollFrame)
   scrollFrame = requestAnimationFrame(updateHighlight)
+
+  // 스크롤이 멈춘 뒤 자동 스냅
+  if (scrollEndTimer) clearTimeout(scrollEndTimer)
+  scrollEndTimer = setTimeout(() => {
+    const index = Math.round(list.scrollTop / itemHeight)
+    list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
+  }, 120)
 }
 
-// 스크롤 멈췄을 때 스냅
-const handleScrollEnd = () => {
-  const index = Math.round(list.scrollTop / itemHeight)
-  list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
-}
-
+// 클릭 시 해당 아이템으로 스냅
 const handleClick = (index) => {
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
 }
@@ -63,6 +66,7 @@ onMounted(() => {
   list = picker.value.querySelector('.scroll-picker-list')
   items = picker.value.querySelectorAll('.scroll-picker-item')
 
+  // 초기값 세팅
   const defaultIndex = props.options.indexOf(props.modelValue)
   if (defaultIndex !== -1) {
     nextTick(() => {
@@ -71,12 +75,9 @@ onMounted(() => {
   }
 
   list.addEventListener('scroll', handleScroll)
-  list.addEventListener('touchend', handleScrollEnd)
-  list.addEventListener('mouseup', handleScrollEnd)
 
   nextTick(() => {
     updateHighlight()
   })
 })
 </script>
-
