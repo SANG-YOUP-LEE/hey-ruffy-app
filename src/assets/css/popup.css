@@ -108,23 +108,17 @@
 	margin-bottom:-1rem
 }
 
-.form_box_g.limit .detail_box {
-	height:16rem;
-	border-radius: 0;
-	border-bottom-right-radius: 1.5rem;
-	border-bottom-left-radius: 1.5rem;
+.form_box_g .detail_box {
+	border-radius:1.5rem;
 	border:1px solid #eee;
-	border-top:none;
-	padding:1rem 1rem 0 1rem;
+	padding:1rem;
 	font-size:1rem;
 
 }
 
-.form_box_g.s_e_date,
-.form_box_g.alram {
-  border-radius:1.5rem;
-  padding:1rem;
-  border:1px solid #eee
+.form_box_g.limit .detail_box {
+  height:15rem;
+  margin-top:1rem;
 }
 
 
@@ -133,7 +127,6 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.4rem;
-  margin:1rem 0 1rem 0;
 }
 
 .monthly-grid span.m_s_btn {
@@ -145,6 +138,12 @@
   border-radius:50%;
   text-align: center;
   cursor: pointer;
+}
+
+.monthly-grid span.m_s_btn.light {
+  width:2rem;
+	height:2rem;
+  font-weight:bold
 }
 
 /* 알럿 팝업 */
