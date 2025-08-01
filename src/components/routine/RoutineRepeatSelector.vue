@@ -162,7 +162,7 @@ const selectWeeklyMain = (btn) => {
 
 const toggleWeeklyDay = (btn) => {
   if (btn === '매일') {
-    if (selectedWeeklyDays.value.includes('매일')) {
+    if (selectedWeeklyDays.value.includes('')) {
       selectedWeeklyDays.value = []
     } else {
       selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']
