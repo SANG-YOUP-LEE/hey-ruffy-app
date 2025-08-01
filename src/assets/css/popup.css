@@ -121,6 +121,11 @@
   display: flex;
   gap: 0.2rem;
   width: 100%;
+  margin-bottom:0.5rem;
+}
+
+.form_box_g .detail_box .s_group:last-child {
+  margin-bottom:0
 }
 
 .form_box_g .detail_box.daily [class$="s_btn"],
@@ -132,6 +137,11 @@
   padding: 0.5rem;
   cursor: pointer;
   border-radius:1.5rem;
+}
+
+.form_box_g .detail_box.daily .on_w,
+.form_box_g .detail_box.weekly .on_w {
+  font-weight:bold;
 }
 
 .form_box_g .detail_box.daily [class$="s_btn"],
