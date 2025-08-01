@@ -63,23 +63,25 @@
           @click="selectWeeklyBtn2(btn)"
         >{{ btn }}</span>
        </div>
-       <div class="s_group">
-        <span
-          v-for="(btn, index) in weeklyButtons3"
-          :key="'w3-'+index"
-          class="d_s_btn"
-          :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
-          @click="selectWeeklyDay(btn)"
-        >{{ btn }}</span>
-      </div>
-      <div class="s_group">
-        <span
-          v-for="(btn, index) in weeklyButtons4"
-          :key="'w4-'+index"
-          class="d_s_btn"
-          :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
-          @click="selectWeeklyDay(btn)"
-        >{{ btn }}</span>
+       <div class="s_group_wrap">
+         <div class="s_group">
+          <span
+            v-for="(btn, index) in weeklyButtons3"
+            :key="'w3-'+index"
+            class="d_s_btn"
+            :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
+            @click="selectWeeklyDay(btn)"
+          >{{ btn }}</span>
+        </div>
+        <div class="s_group">
+          <span
+            v-for="(btn, index) in weeklyButtons4"
+            :key="'w4-'+index"
+            class="d_s_btn"
+            :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
+            @click="selectWeeklyDay(btn)"
+          >{{ btn }}</span>
+        </div>
       </div>
     </div>
 
