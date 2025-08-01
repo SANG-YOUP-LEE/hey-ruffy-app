@@ -128,9 +128,10 @@
   margin-bottom:0
 }
 
-.form_box_g .detail_box .weekly .s_group_wrap {
+.form_box_g .detail_box.weekly .s_group_wrap {
   background-color:#f5f5f5;
   padding:1rem;
+  margin-top:0.5rem;
 }
 
 .form_box_g .detail_box.daily [class$="s_btn"],
