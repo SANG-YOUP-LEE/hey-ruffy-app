@@ -164,6 +164,14 @@
 
 
 /* 달력 */
+.form_box_g .detail_box.monthly {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 세로 중앙 정렬 */
+  align-items: center;     /* 가로 중앙 정렬 */
+  min-height: 20rem;       /* 높이를 확보 (필요 시 조절) */
+}
+
 .monthly-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
