@@ -252,5 +252,26 @@ em {
   pointer-events: auto;
 }
 
+.tab {
+  display: flex;
+  background: #f9f9f9;
+  border-radius: 2rem;
+  padding: 0.3rem;
+  width: fit-content;
+}
 
+.tab button {
+  flex: 1;
+  padding: 0.6rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 2rem;
+  transition: all 0.3s ease;
+}
 
+.tab button + .tab button {
+  margin-left: 0.3rem;
