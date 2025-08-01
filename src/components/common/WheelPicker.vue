@@ -10,7 +10,6 @@
         {{ option }}
       </div>
     </div>
-    <div class="highlight-overlay"></div>
   </div>
 </template>
 
@@ -31,12 +30,19 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list
+let items
 const itemHeight = 30
 let scrollEndTimer = null
 
-// 스크롤 멈췄을 때만 하이라이트 갱신
+// 스크롤 멈춘 뒤 하이라이트 적용
 const handleScrollEnd = () => {
   const index = Math.round(list.scrollTop / itemHeight)
+  if (items.length) {
+    items.forEach(item => item.classList.remove('light'))
+    if (items[index]) {
+      items[index].classList.add('light')
+    }
+  }
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
   emit('update:modelValue', props.options[index])
 }
@@ -49,18 +55,28 @@ const handleScroll = () => {
 
 // 클릭 시 즉시 스냅
 const handleClick = (index) => {
+  if (items.length) {
+    items.forEach(item => item.classList.remove('light'))
+    if (items[index]) {
+      items[index].classList.add('light')
+    }
+  }
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
   emit('update:modelValue', props.options[index])
 }
 
 onMounted(() => {
   list = picker.value.querySelector('.scroll-picker-list')
+  items = picker.value.querySelectorAll('.scroll-picker-item')
 
-  // 초기값
+  // 초기값 위치 지정
   const defaultIndex = props.options.indexOf(props.modelValue)
   if (defaultIndex !== -1) {
     nextTick(() => {
       list.scrollTo({ top: defaultIndex * itemHeight, behavior: 'auto' })
+      if (items[defaultIndex]) {
+        items[defaultIndex].classList.add('light')
+      }
     })
   }
 
