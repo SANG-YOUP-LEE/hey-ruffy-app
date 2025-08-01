@@ -124,15 +124,20 @@
 }
 
 .form_box_g .detail_box.daily [class$="s_btn"],
-.form_box_g .detail_box.weekly [class$="s_btn"]{
+.form_box_g .detail_box.weekly [class$="s_btn"],
+.form_box_g .detail_box.daily .on_w,
+.form_box_g .detail_box.weekly .on_w {
   flex: 1;  
   text-align: center;
   padding: 0.5rem;
   cursor: pointer;
   border-radius:1.5rem;
-  border:1px solid #eee;
 }
 
+.form_box_g .detail_box.daily [class$="s_btn"],
+.form_box_g .detail_box.weekly [class$="s_btn"]{
+  border:1px solid #eee;
+}
 
 /* 달력 */
 .monthly-grid {
