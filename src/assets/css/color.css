@@ -67,7 +67,8 @@ body.blue [class$="basic"]  {
 }
 
 body [class$="white"],
-body.blue [class$="white"]  {
+body.blue [class$="white"],
+body.blue .on_w  {
   background-color: #fff;
   border:0.1px solid #0994ff;
   color: #0994ff;
@@ -92,8 +93,8 @@ body.blue .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body .form_box_g.limit .tab button.on,
-body.blue .form_box_g.limit .tab button.on {
+body .on,
+body.blue .on {
     background-color:#0994ff;
     color:#fff;
 }
@@ -119,13 +120,14 @@ body.red .uline {
     border-bottom:1px solid #ff5450
 }
 
-body.red [class$="basic"]  {
+body.red [class$="basic"] {
   background-color: #ff4160;
   border:0.1rem solid #ff4160;
   color: #fff;
 }
 
-body.red [class$="white"]  {
+body.red [class$="white"],
+body.red .on_w {
   background-color: #fff;
   border:0.1px solid #ff4160;
   color: #ff4160;
@@ -147,7 +149,7 @@ body.red .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body.red .form_box_g.limit .tab button.on  {
+body.red .on  {
     background-color:#ff4160;
     color:#fff;
     border:1px solid #ff4160;
@@ -176,7 +178,8 @@ body.green [class$="basic"]  {
   color: #fff;
 }
 
-body.green [class$="white"]  {
+body.green [class$="white"],
+body.green .on_w {
   background-color: #fff;
   border:0.1px solid #00ac6d;
   color: #00ac6d;
@@ -198,7 +201,7 @@ body.green .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body.green .form_box_g.limit .tab button.on  {
+body.green .on  {
     background-color:#00ac6d;
     color:#fff;
     border:1px solid #00ac6d;
@@ -228,7 +231,8 @@ body.bw [class$="basic"]  {
 }
 
 
-body.bw [class$="white"]  {
+body.bw [class$="white"],
+body.bw .on_w {
   background-color: #fff;
   border:0.1px solid #333;
   color: #333;
@@ -250,7 +254,7 @@ body.bw .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body.bw .form_box_g.limit .tab button.on  {
+body.bw .on  {
     background-color:#ccc;
     color:#fff;
     border:1px solid #ccc;
