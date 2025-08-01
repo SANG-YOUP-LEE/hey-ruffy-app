@@ -33,6 +33,19 @@ let list
 const itemHeight = 30
 let scrollEndTimer = null
 
+// 글자색 그라데이션 효과
+const highlightFont = () => {
+  const items = picker.value.querySelectorAll('.scroll-picker-item')
+  const center = list.scrollTop + list.clientHeight / 2
+
+  items.forEach((item, i) => {
+    const itemCenter = i * itemHeight + itemHeight / 2
+    const distance = Math.abs(itemCenter - center)
+    const opacity = Math.max(0.3, 1 - distance / 60)
+    item.style.color = `rgba(255,255,255,${opacity})`
+  })
+}
+
 // 스크롤 멈췄을 때 가장 가까운 아이템 선택
 const handleScrollEnd = () => {
   const index = Math.round(list.scrollTop / itemHeight)
@@ -40,8 +53,9 @@ const handleScrollEnd = () => {
   emit('update:modelValue', props.options[index])
 }
 
-// 스크롤 이벤트 (멈춤 감지)
+// 스크롤 이벤트 (멈춤 감지 + 글자색 변경)
 const handleScroll = () => {
+  highlightFont()
   if (scrollEndTimer) clearTimeout(scrollEndTimer)
   scrollEndTimer = setTimeout(handleScrollEnd, 100)
 }
@@ -60,7 +74,10 @@ onMounted(() => {
   if (defaultIndex !== -1) {
     nextTick(() => {
       list.scrollTo({ top: defaultIndex * itemHeight, behavior: 'auto' })
+      highlightFont()
     })
+  } else {
+    highlightFont()
   }
 
   // 스크롤 이벤트 등록
