@@ -261,6 +261,7 @@ em {
 }
 
 .tab button {
+  width:auto;
   flex: 1;
   padding: 0.6rem 1.5rem;
   background: transparent;
