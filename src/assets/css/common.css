@@ -253,11 +253,11 @@ em {
 }
 
 .tab {
+  width:100%;
   display: flex;
   background: #f9f9f9;
+  border:1px solid #ddd;
   border-radius: 2rem;
-  padding: 0.3rem;
-  width: fit-content;
 }
 
 .tab button {
@@ -266,7 +266,7 @@ em {
   padding: 0.6rem 1.5rem;
   background: transparent;
   border: none;
-  color: white;
+  color: #333;
   font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
