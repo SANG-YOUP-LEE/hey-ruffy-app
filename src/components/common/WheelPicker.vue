@@ -32,19 +32,20 @@ const picker = ref(null)
 let list
 const itemHeight = 30
 let scrollEndTimer = null
+let highlightOffset = 0
 
 // 글자 크기 + 투명도 효과 적용
 const updateFontEffects = () => {
   const items = picker.value.querySelectorAll('.scroll-picker-item')
-  const center = list.scrollTop + list.clientHeight / 2
+  const center = list.scrollTop + list.clientHeight / 2 - highlightOffset
 
   items.forEach((item, i) => {
     const itemCenter = i * itemHeight + itemHeight / 2
     const distance = Math.abs(itemCenter - center)
 
-    // 중앙에 가까울수록 글자가 커지고, 멀어질수록 작아짐 (1.2rem ~ 0.8rem)
+    // 중앙 가까울수록 글자 크기 커지고(최대 1.2rem), 멀어질수록 작아짐(최소 0.8rem)
     const size = Math.max(0.8, 1.2 - distance / 100)
-    // 중앙에 가까울수록 불투명, 멀어질수록 흐려짐 (1 ~ 0.3)
+    // 중앙 가까울수록 불투명, 멀어질수록 흐려짐
     const opacity = Math.max(0.3, 1 - distance / 60)
 
     item.style.fontSize = `${size}rem`
@@ -74,6 +75,12 @@ const handleClick = (index) => {
 
 onMounted(() => {
   list = picker.value.querySelector('.scroll-picker-list')
+
+  // 하이라이트 요소 높이를 동적으로 계산
+  const highlightEl = picker.value.querySelector('.scroll-picker::after')
+  const highlightHeight = 30 // 기본값
+  // 가상요소는 직접 접근 불가 → CSS 값 그대로 사용 (또는 별도 요소로 두면 읽기 가능)
+  highlightOffset = highlightHeight / 2
 
   // 초기값 위치 세팅
   const defaultIndex = props.options.indexOf(props.modelValue)
