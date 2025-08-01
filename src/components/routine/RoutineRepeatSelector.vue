@@ -28,7 +28,7 @@
           v-for="(btn, index) in dailyButtonsGroup1"
           :key="'d1-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedDaily.includes(btn) }"
+          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
           @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
@@ -37,7 +37,7 @@
           v-for="(btn, index) in dailyButtonsGroup2"
           :key="'d2-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedDaily.includes(btn) }"
+          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
           @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
@@ -50,7 +50,7 @@
           v-for="(btn, index) in weeklyButtons1"
           :key="'w1-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeekly1 === btn }"
+          :class="{ on_w: selectedWeekly1 === btn, light: selectedWeekly1 === btn }"
           @click="selectWeeklyBtn1(btn)"
         >{{ btn }}</span>
        </div>
@@ -59,7 +59,7 @@
           v-for="(btn, index) in weeklyButtons2"
           :key="'w2-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeekly2 === btn }"
+          :class="{ on_w: selectedWeekly2 === btn, light: selectedWeekly2 === btn }"
           @click="selectWeeklyBtn2(btn)"
         >{{ btn }}</span>
        </div>
@@ -68,7 +68,7 @@
           v-for="(btn, index) in weeklyButtons3"
           :key="'w3-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeeklyDays.includes(btn) }"
+          :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
           @click="selectWeeklyDay(btn)"
         >{{ btn }}</span>
       </div>
@@ -77,7 +77,7 @@
           v-for="(btn, index) in weeklyButtons4"
           :key="'w4-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeeklyDays.includes(btn) }"
+          :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
           @click="selectWeeklyDay(btn)"
         >{{ btn }}</span>
       </div>
@@ -159,7 +159,6 @@ const selectWeeklyDay = (btn) => {
       selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']
     }
   } else {
-    // 매일이 이미 선택돼있으면 해제하고 단일 선택
     if (selectedWeeklyDays.value.includes('매일')) {
       selectedWeeklyDays.value = [btn]
     } else {
