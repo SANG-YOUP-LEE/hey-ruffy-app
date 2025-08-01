@@ -39,7 +39,22 @@ const handleScrollEnd = () => {
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
   emit('update:modelValue', props.options[index])
 }
+const highlightFont = () => {
+  const items = picker.value.querySelectorAll('.scroll-picker-item')
+  const center = list.scrollTop + list.clientHeight / 2
 
+  items.forEach((item, i) => {
+    const itemCenter = i * itemHeight + itemHeight / 2
+    if (Math.abs(itemCenter - center) < itemHeight / 2) {
+      item.style.color = '#fff'  // 중앙 아이템 글자색 흰색
+    } else {
+      item.style.color = '#999'  // 나머지 기본 색상
+    }
+  })
+}
+
+list.addEventListener('scroll', highlightFont)
+  
 // 스크롤 이벤트 (멈춤 감지)
 const handleScroll = () => {
   if (scrollEndTimer) clearTimeout(scrollEndTimer)
