@@ -39,7 +39,7 @@
           v-for="day in 31"
           :key="day"
           @click="toggleDateSelection(day)"
-          :class="{ selected: selectedDates.includes(day) }"
+          :class="{ light: selectedDates.includes(day) }"
         >
           {{ day }}
         </span>
