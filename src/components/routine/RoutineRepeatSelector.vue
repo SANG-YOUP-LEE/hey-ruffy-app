@@ -1,7 +1,7 @@
 <template>
   <div class="form_box_g limit">
     <h3>얼마나 자주 지켜야 하나요?</h3>
-    <p>
+    <div class="tab">
       <button
         id="v_detail01"
         @click="handleTabClick('daily')"
@@ -22,7 +22,7 @@
         class="b_basic"
         :class="{ on: selectedTab === 'monthly' }"
       >월간</button>
-    </p>
+    </div>
 
     <!-- 일간 상세 -->
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
