@@ -47,8 +47,8 @@
 	background-color:#fff;
 	padding:2rem;
   border-radius:1.5rem;
-  border:1px solid #eee;
-	/*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
+  /*border:1px solid #eee;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
 }
 
 .popup_wrap .popup_tit {
@@ -117,8 +117,7 @@
 }
 
 .form_box_g.limit .detail_box {
-  height:16rem;
-  margin-top:0.5rem;
+  margin-top:0.1rem;
 }
 
 
