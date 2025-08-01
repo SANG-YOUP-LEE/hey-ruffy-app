@@ -31,10 +31,10 @@ const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list, items
 const itemHeight = 30
-let scrollTimeout = null
+let scrollFrame
 
-// 스크롤이 멈춘 뒤에만 하이라이트 적용
-const highlight = () => {
+// 실시간 하이라이트
+const updateHighlight = () => {
   const index = Math.round(list.scrollTop / itemHeight)
   items.forEach(item => item.classList.remove('light'))
   if (items[index]) {
@@ -43,21 +43,20 @@ const highlight = () => {
   }
 }
 
+// 스크롤 중 실시간 업데이트
 const handleScroll = () => {
-  if (scrollTimeout) clearTimeout(scrollTimeout)
-  scrollTimeout = setTimeout(() => {
-    highlight()
-  }, 80)
+  if (scrollFrame) cancelAnimationFrame(scrollFrame)
+  scrollFrame = requestAnimationFrame(updateHighlight)
 }
 
-// 클릭 시 부드러운 스크롤 대신 즉시 이동
+// 스크롤 멈췄을 때 스냅
+const handleScrollEnd = () => {
+  const index = Math.round(list.scrollTop / itemHeight)
+  list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
+}
+
 const handleClick = (index) => {
-  list.scrollTo({ top: index * itemHeight, behavior: 'auto' })
-  items.forEach(item => item.classList.remove('light'))
-  if (items[index]) {
-    items[index].classList.add('light')
-    emit('update:modelValue', props.options[index])
-  }
+  list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
 }
 
 onMounted(() => {
@@ -72,9 +71,12 @@ onMounted(() => {
   }
 
   list.addEventListener('scroll', handleScroll)
+  list.addEventListener('touchend', handleScrollEnd)
+  list.addEventListener('mouseup', handleScrollEnd)
 
   nextTick(() => {
-    highlight()
+    updateHighlight()
   })
 })
 </script>
+
