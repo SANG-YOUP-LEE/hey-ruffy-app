@@ -41,9 +41,8 @@ const highlightFont = () => {
   items.forEach((item, i) => {
     const itemCenter = i * itemHeight + itemHeight / 2
     const distance = Math.abs(itemCenter - center)
-    // 가까울수록 opacity = 1, 멀수록 최소 0.3까지 떨어짐
     const opacity = Math.max(0.3, 1 - distance / 60)
-    item.style.color = `rgba(255, 255, 255, ${opacity})`
+    item.style.color = `rgba(51, 51, 51, ${opacity})` // #333을 RGBA로
   })
 }
 
