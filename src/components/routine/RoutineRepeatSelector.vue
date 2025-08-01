@@ -28,7 +28,7 @@
           v-for="(btn, index) in dailyButtonsGroup1"
           :key="'d1-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
+          :class="getDailyClasses(btn)"
           @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
@@ -37,7 +37,7 @@
           v-for="(btn, index) in dailyButtonsGroup2"
           :key="'d2-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
+          :class="getDailyClasses(btn)"
           @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
@@ -45,31 +45,31 @@
 
     <!-- 주간 상세 -->
     <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
-       <div class="s_group">
+      <div class="s_group">
         <span
           v-for="(btn, index) in weeklyButtons1"
           :key="'w1-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeekly1 === btn, light: selectedWeekly1 === btn }"
+          :class="getSingleClasses(selectedWeekly1 === btn)"
           @click="selectWeeklyBtn1(btn)"
         >{{ btn }}</span>
-       </div>
-       <div class="s_group">
+      </div>
+      <div class="s_group">
         <span
           v-for="(btn, index) in weeklyButtons2"
           :key="'w2-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeekly2 === btn, light: selectedWeekly2 === btn }"
+          :class="getSingleClasses(selectedWeekly2 === btn)"
           @click="selectWeeklyBtn2(btn)"
         >{{ btn }}</span>
-       </div>
-       <div class="s_group_wrap">
-         <div class="s_group">
+      </div>
+      <div class="s_group_wrap">
+        <div class="s_group">
           <span
             v-for="(btn, index) in weeklyButtons3"
             :key="'w3-'+index"
             class="d_s_btn"
-            :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
+            :class="getWeeklyClasses(btn)"
             @click="selectWeeklyDay(btn)"
           >{{ btn }}</span>
         </div>
@@ -78,7 +78,7 @@
             v-for="(btn, index) in weeklyButtons4"
             :key="'w4-'+index"
             class="d_s_btn"
-            :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
+            :class="getWeeklyClasses(btn)"
             @click="selectWeeklyDay(btn)"
           >{{ btn }}</span>
         </div>
@@ -108,7 +108,6 @@ import { ref, onMounted } from 'vue'
 const selectedTab = ref('daily')
 const selectedDates = ref([])
 
-// 버튼 그룹 데이터
 const dailyButtonsGroup1 = ['매일','월','화','수']
 const dailyButtonsGroup2 = ['목','금','토','일']
 
@@ -117,7 +116,6 @@ const weeklyButtons2 = ['4주마다','5주마다','6주마다']
 const weeklyButtons3 = ['매일','월','화','수']
 const weeklyButtons4 = ['목','금','토','일']
 
-// 선택 상태
 const selectedDaily = ref([])
 const selectedWeekly1 = ref('')
 const selectedWeekly2 = ref('')
@@ -127,13 +125,11 @@ onMounted(() => {
   resetSelections('daily')
 })
 
-// 탭 전환 시 초기화
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   resetSelections(tab)
 }
 
-// daily 선택 로직
 const selectDailyBtn = (btn) => {
   if (btn === '매일') {
     if (selectedDaily.value.includes('매일')) {
@@ -146,7 +142,6 @@ const selectDailyBtn = (btn) => {
   }
 }
 
-// weekly 선택 로직
 const selectWeeklyBtn1 = (btn) => {
   selectedWeekly1.value = btn
 }
@@ -161,15 +156,10 @@ const selectWeeklyDay = (btn) => {
       selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']
     }
   } else {
-    if (selectedWeeklyDays.value.includes('매일')) {
-      selectedWeeklyDays.value = [btn]
-    } else {
-      selectedWeeklyDays.value = [btn]
-    }
+    selectedWeeklyDays.value = [btn]
   }
 }
 
-// 월간 선택
 const toggleDateSelection = (day) => {
   if (selectedDates.value.includes(day)) {
     selectedDates.value = selectedDates.value.filter(d => d !== day)
@@ -178,7 +168,6 @@ const toggleDateSelection = (day) => {
   }
 }
 
-// 탭별 초기화
 const resetSelections = (tab) => {
   if (tab === 'daily') {
     selectedDaily.value = ['월']
@@ -189,5 +178,15 @@ const resetSelections = (tab) => {
   } else if (tab === 'monthly') {
     selectedDates.value = []
   }
+}
+
+const getDailyClasses = (btn) => {
+  return selectedDaily.value.includes(btn) ? ['on_w', 'light'] : []
+}
+const getWeeklyClasses = (btn) => {
+  return selectedWeeklyDays.value.includes(btn) ? ['on_w', 'light'] : []
+}
+const getSingleClasses = (condition) => {
+  return condition ? ['on_w', 'light'] : []
 }
 </script>
