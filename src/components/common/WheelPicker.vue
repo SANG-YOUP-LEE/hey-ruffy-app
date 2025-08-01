@@ -1,4 +1,3 @@
-<!--버셀-->
 <template>
   <div class="scroll-picker vertical" ref="picker">
     <div class="scroll-picker-list">
@@ -32,7 +31,9 @@ const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list, items
 const itemHeight = 30
+let scrollTimeout = null
 
+// 스크롤이 멈춘 뒤에만 하이라이트 적용
 const highlight = () => {
   const index = Math.round(list.scrollTop / itemHeight)
   items.forEach(item => item.classList.remove('light'))
@@ -42,8 +43,16 @@ const highlight = () => {
   }
 }
 
+const handleScroll = () => {
+  if (scrollTimeout) clearTimeout(scrollTimeout)
+  scrollTimeout = setTimeout(() => {
+    highlight()
+  }, 80)
+}
+
+// 클릭 시 부드러운 스크롤 대신 즉시 이동
 const handleClick = (index) => {
-  list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
+  list.scrollTo({ top: index * itemHeight, behavior: 'auto' })
   items.forEach(item => item.classList.remove('light'))
   if (items[index]) {
     items[index].classList.add('light')
@@ -62,11 +71,10 @@ onMounted(() => {
     })
   }
 
-  list.addEventListener('scroll', highlight)
+  list.addEventListener('scroll', handleScroll)
 
   nextTick(() => {
     highlight()
   })
 })
 </script>
-
