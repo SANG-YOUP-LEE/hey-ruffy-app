@@ -51,7 +51,7 @@
   color: #999;
   text-align: center;
   border-radius: 1.5rem;
-  transition: all 0.2s ease;
+  transition: transform 0.2s, color 0.2s;
 }
 
 /* 중앙 선택 영역 (고정 하이라이트) */
@@ -64,19 +64,9 @@
   height: 30px;
   background-color: rgba(0, 0, 0, 0.08); /* 흐린 하이라이트 박스 */
   border-radius: 1.5rem;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%); /* 오타 수정 */
   pointer-events: none;
   z-index: 5;
-}
-
-/* 선택된 아이템 강조 */
-.scroll-picker-item.light {
-  background-color: #333;
-  color: #fff !important;
-  font-size: 1.2rem;         /* 글자 크기 확대 */
-  font-weight: bold;
-  transform: scale(1.15);    /* 살짝 확대 효과 */
-  transition: all 0.2s ease;
 }
 
 /* 체크 박스 */
