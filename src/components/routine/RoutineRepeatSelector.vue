@@ -25,19 +25,19 @@
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
       <div class="s_group">
         <span
-          v-for="(btn, index) in dailyButtonsGroup1"
-          :key="'d1-'+index"
+          v-for="btn in dailyButtonsGroup1"
+          :key="'d1-'+btn"
           class="d_s_btn"
-          :class="getDailyClasses(btn)"
+          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
           @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
       <div class="s_group">
         <span
-          v-for="(btn, index) in dailyButtonsGroup2"
-          :key="'d2-'+index"
+          v-for="btn in dailyButtonsGroup2"
+          :key="'d2-'+btn"
           class="d_s_btn"
-          :class="getDailyClasses(btn)"
+          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
           @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
@@ -47,38 +47,38 @@
     <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
       <div class="s_group">
         <span
-          v-for="(btn, index) in weeklyButtons1"
-          :key="'w1-'+index"
+          v-for="btn in weeklyButtons1"
+          :key="'w1-'+btn"
           class="d_s_btn"
-          :class="getSingleClasses(selectedWeekly1 === btn)"
+          :class="{ on_w: selectedWeekly1 === btn, light: selectedWeekly1 === btn }"
           @click="selectWeeklyBtn1(btn)"
         >{{ btn }}</span>
       </div>
       <div class="s_group">
         <span
-          v-for="(btn, index) in weeklyButtons2"
-          :key="'w2-'+index"
+          v-for="btn in weeklyButtons2"
+          :key="'w2-'+btn"
           class="d_s_btn"
-          :class="getSingleClasses(selectedWeekly2 === btn)"
+          :class="{ on_w: selectedWeekly2 === btn, light: selectedWeekly2 === btn }"
           @click="selectWeeklyBtn2(btn)"
         >{{ btn }}</span>
       </div>
       <div class="s_group_wrap">
         <div class="s_group">
           <span
-            v-for="(btn, index) in weeklyButtons3"
-            :key="'w3-'+index"
+            v-for="btn in weeklyButtons3"
+            :key="'w3-'+btn"
             class="d_s_btn"
-            :class="getWeeklyClasses(btn)"
+            :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
             @click="selectWeeklyDay(btn)"
           >{{ btn }}</span>
         </div>
         <div class="s_group">
           <span
-            v-for="(btn, index) in weeklyButtons4"
-            :key="'w4-'+index"
+            v-for="btn in weeklyButtons4"
+            :key="'w4-'+btn"
             class="d_s_btn"
-            :class="getWeeklyClasses(btn)"
+            :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
             @click="selectWeeklyDay(btn)"
           >{{ btn }}</span>
         </div>
@@ -144,10 +144,13 @@ const selectDailyBtn = (btn) => {
 
 const selectWeeklyBtn1 = (btn) => {
   selectedWeekly1.value = btn
+  // 다른 버튼 선택 시 on_w.light 제거
 }
+
 const selectWeeklyBtn2 = (btn) => {
   selectedWeekly2.value = btn
 }
+
 const selectWeeklyDay = (btn) => {
   if (btn === '매일') {
     if (selectedWeeklyDays.value.includes('매일')) {
@@ -178,15 +181,5 @@ const resetSelections = (tab) => {
   } else if (tab === 'monthly') {
     selectedDates.value = []
   }
-}
-
-const getDailyClasses = (btn) => {
-  return selectedDaily.value.includes(btn) ? ['on_w', 'light'] : []
-}
-const getWeeklyClasses = (btn) => {
-  return selectedWeeklyDays.value.includes(btn) ? ['on_w', 'light'] : []
-}
-const getSingleClasses = (condition) => {
-  return condition ? ['on_w', 'light'] : []
 }
 </script>
