@@ -50,8 +50,8 @@
           v-for="btn in weeklyButtons1"
           :key="'w1-'+btn"
           class="d_s_btn"
-          :class="{ on_w: selectedWeekly1 === btn, light: selectedWeekly1 === btn }"
-          @click="selectWeeklyBtn1(btn)"
+          :class="{ on_w: selectedWeeklyMain === btn, light: selectedWeeklyMain === btn }"
+          @click="selectWeeklyMain(btn)"
         >{{ btn }}</span>
       </div>
       <div class="s_group">
@@ -59,8 +59,8 @@
           v-for="btn in weeklyButtons2"
           :key="'w2-'+btn"
           class="d_s_btn"
-          :class="{ on_w: selectedWeekly2 === btn, light: selectedWeekly2 === btn }"
-          @click="selectWeeklyBtn2(btn)"
+          :class="{ on_w: selectedWeeklyMain === btn, light: selectedWeeklyMain === btn }"
+          @click="selectWeeklyMain(btn)"
         >{{ btn }}</span>
       </div>
       <div class="s_group_wrap">
@@ -117,8 +117,7 @@ const weeklyButtons3 = ['매일','월','화','수']
 const weeklyButtons4 = ['목','금','토','일']
 
 const selectedDaily = ref([])
-const selectedWeekly1 = ref('')
-const selectedWeekly2 = ref('')
+const selectedWeeklyMain = ref('')
 const selectedWeeklyDays = ref([])
 
 onMounted(() => {
@@ -142,13 +141,8 @@ const selectDailyBtn = (btn) => {
   }
 }
 
-const selectWeeklyBtn1 = (btn) => {
-  selectedWeekly1.value = btn
-  // 다른 버튼 선택 시 on_w.light 제거
-}
-
-const selectWeeklyBtn2 = (btn) => {
-  selectedWeekly2.value = btn
+const selectWeeklyMain = (btn) => {
+  selectedWeeklyMain.value = btn
 }
 
 const selectWeeklyDay = (btn) => {
@@ -175,8 +169,7 @@ const resetSelections = (tab) => {
   if (tab === 'daily') {
     selectedDaily.value = ['월']
   } else if (tab === 'weekly') {
-    selectedWeekly1.value = '매주'
-    selectedWeekly2.value = ''
+    selectedWeeklyMain.value = '매주'
     selectedWeeklyDays.value = ['월']
   } else if (tab === 'monthly') {
     selectedDates.value = []
