@@ -70,7 +70,7 @@
             :key="'w3-'+btn"
             class="d_s_btn"
             :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
-            @click="selectWeeklyDay(btn)"
+            @click="toggleWeeklyDay(btn)"
           >{{ btn }}</span>
         </div>
         <div class="s_group">
@@ -79,7 +79,7 @@
             :key="'w4-'+btn"
             class="d_s_btn"
             :class="{ on_w: selectedWeeklyDays.includes(btn), light: selectedWeeklyDays.includes(btn) }"
-            @click="selectWeeklyDay(btn)"
+            @click="toggleWeeklyDay(btn)"
           >{{ btn }}</span>
         </div>
       </div>
@@ -129,15 +129,20 @@ const handleTabClick = (tab) => {
   resetSelections(tab)
 }
 
+// 다중 선택 가능하도록 수정
 const selectDailyBtn = (btn) => {
   if (btn === '매일') {
     if (selectedDaily.value.includes('매일')) {
-      selectedDaily.value = ['월']
+      selectedDaily.value = []
     } else {
       selectedDaily.value = ['매일','월','화','수','목','금','토','일']
     }
   } else {
-    selectedDaily.value = [btn]
+    if (selectedDaily.value.includes(btn)) {
+      selectedDaily.value = selectedDaily.value.filter(d => d !== btn)
+    } else {
+      selectedDaily.value.push(btn)
+    }
   }
 }
 
@@ -145,15 +150,19 @@ const selectWeeklyMain = (btn) => {
   selectedWeeklyMain.value = btn
 }
 
-const selectWeeklyDay = (btn) => {
+const toggleWeeklyDay = (btn) => {
   if (btn === '매일') {
     if (selectedWeeklyDays.value.includes('매일')) {
-      selectedWeeklyDays.value = ['월']
+      selectedWeeklyDays.value = []
     } else {
       selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']
     }
   } else {
-    selectedWeeklyDays.value = [btn]
+    if (selectedWeeklyDays.value.includes(btn)) {
+      selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== btn)
+    } else {
+      selectedWeeklyDays.value.push(btn)
+    }
   }
 }
 
@@ -167,10 +176,10 @@ const toggleDateSelection = (day) => {
 
 const resetSelections = (tab) => {
   if (tab === 'daily') {
-    selectedDaily.value = ['월']
+    selectedDaily.value = []
   } else if (tab === 'weekly') {
     selectedWeeklyMain.value = '매주'
-    selectedWeeklyDays.value = ['월']
+    selectedWeeklyDays.value = []
   } else if (tab === 'monthly') {
     selectedDates.value = []
   }
