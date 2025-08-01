@@ -68,7 +68,8 @@ body.blue [class$="basic"]  {
 
 body [class$="white"],
 body.blue [class$="white"],
-body.blue .on_w  {
+body .on_w,
+body.blue .on_w {
   background-color: #fff;
   border:0.1px solid #0994ff;
   color: #0994ff;
