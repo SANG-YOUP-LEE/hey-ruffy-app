@@ -197,7 +197,7 @@ const resetSelections = (tab) => {
   if (tab === 'daily') {
     selectedDaily.value = []
   } else if (tab === 'weekly') {
-    selectedWeeklyMain.value = '매주'
+    selectedWeeklyMain.value = ''      
     selectedWeeklyDays.value = []
   } else if (tab === 'monthly') {
     selectedDates.value = []
