@@ -5,7 +5,7 @@
         class="scroll-picker-item"
         v-for="(option, index) in options"
         :key="option"
-        :style="getItemStyle(index)"
+        :class="{ light: index === currentIndex }"
         @click="handleClick(index)"
       >
         {{ option }}
@@ -33,40 +33,21 @@ const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list
 const itemHeight = 30
-const scrollTop = ref(0)
 const currentIndex = ref(0)
 let scrollEndTimer = null
 
-// 아이템별 실시간 스타일 계산
-const getItemStyle = (index) => {
-  const distance = Math.abs(scrollTop.value / itemHeight - index)
-  const scale = Math.max(1, 1.2 - distance * 0.1)
-  const opacity = Math.max(0.4, 1 - distance * 0.3)
-  const color = distance < 0.5 ? '#fff' : '#999'
-  const background = distance < 0.5 ? '#333' : 'transparent'
-  return {
-    transform: `scale(${scale})`,
-    opacity: opacity,
-    color: color,
-    fontWeight: distance < 0.5 ? 'bold' : 'normal',
-    backgroundColor: background,
-    transition: 'transform 0.1s, color 0.1s, opacity 0.1s'
-  }
-}
-
-// 스크롤 이벤트
-const handleScroll = () => {
-  scrollTop.value = list.scrollTop
-  if (scrollEndTimer) clearTimeout(scrollEndTimer)
-  scrollEndTimer = setTimeout(handleScrollEnd, 100)
-}
-
-// 스크롤 멈춘 뒤 자동 스냅
+// 스크롤 멈추면 중앙 아이템 선택
 const handleScrollEnd = () => {
   const index = Math.round(list.scrollTop / itemHeight)
   currentIndex.value = index
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
   emit('update:modelValue', props.options[index])
+}
+
+// 스크롤 이벤트 (실시간 처리 최소화)
+const handleScroll = () => {
+  if (scrollEndTimer) clearTimeout(scrollEndTimer)
+  scrollEndTimer = setTimeout(handleScrollEnd, 120)
 }
 
 // 클릭 시 선택
@@ -82,7 +63,6 @@ onMounted(() => {
   nextTick(() => {
     const startIndex = defaultIndex !== -1 ? defaultIndex : 0
     currentIndex.value = startIndex
-    scrollTop.value = startIndex * itemHeight
     list.scrollTo({ top: startIndex * itemHeight, behavior: 'auto' })
   })
   list.addEventListener('scroll', handleScroll)
