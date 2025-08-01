@@ -55,10 +55,10 @@
 }
 
 .scroll-picker-item.light {
-  color: #fff !important;   /* 글자 색상 */
-  font-size: 1.2rem;        /* 글자 크기 확대 */
-  font-weight: bold;
   background-color: #333;
+  color: #fff !important;
+  font-size: 1.2rem;
+  font-weight: bold;
   transform: scale(1.15);
   transition: all 0.2s ease;
 }
@@ -71,8 +71,6 @@
   left: 50%;
   width: 80%;
   height: 30px;
-  background-color:#333;
-  font-size:1.4rem;
   border-radius: 1.5rem;
   transform: translate(-50%, -50%); /* 오타 수정 */
   pointer-events: none;
