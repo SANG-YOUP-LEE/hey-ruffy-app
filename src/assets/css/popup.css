@@ -131,7 +131,7 @@
 .form_box_g .detail_box.weekly .s_group_wrap {
   background-color:#f9f9f9;
   border:1px solid #eee;
-  padding:1.5rem;
+  padding:1rem;
   margin-top:0.5rem;
   border-radius:1.5rem;
  }
@@ -187,6 +187,10 @@
   border-radius:50%;
   text-align: center;
   cursor: pointer;
+}
+
+.monthly-grid span.m_s_btn:last-child {
+  margin-bottom:0
 }
 
 .monthly-grid span.m_s_btn.light {
