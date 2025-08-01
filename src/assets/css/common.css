@@ -7,9 +7,9 @@
 }
 
 @font-face {
-  font-family: 'Freesentation-9Black';
-  src: url('../fonts/Freesentation-9Black.woff2') format('woff2');
-  font-weight: 900;
+  font-family: 'Freesentation-7Bold';
+  src: url('../fonts/Freesentation-7Bold.woff2') format('woff2');
+  font-weight: 700;
   font-style: normal;
 }
 
@@ -79,7 +79,7 @@ h1 {
 }
 
 h2 {
-  font-family: 'Freesentation-9Black';
+  font-family: 'Freesentation-7Bold';
   font-size:2rem;
   line-height:2.3rem;
 }
