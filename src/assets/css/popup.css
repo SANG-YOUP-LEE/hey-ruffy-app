@@ -99,6 +99,7 @@
 .form_box_g {
 	margin-bottom:1rem;
 }
+
 .form_box_g input[type="text"] {
 	width:100%;
 	text-align:center;
@@ -114,6 +115,21 @@
 
 .form_box_g.limit .detail_box {
   margin-top:0.5rem;
+}
+
+.form_box_g .detail_box .s_group {
+  display: flex;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.form_box_g .detail_box [class$="s_btn"] {
+  flex: 1;  
+  text-align: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius:1.5rem;
+  border:1px solid #ddd;
 }
 
 
