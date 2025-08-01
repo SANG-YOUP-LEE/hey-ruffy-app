@@ -33,6 +33,25 @@ let list
 const itemHeight = 30
 let scrollEndTimer = null
 
+// 글자 크기 + 투명도 효과 적용
+const updateFontEffects = () => {
+  const items = picker.value.querySelectorAll('.scroll-picker-item')
+  const center = list.scrollTop + list.clientHeight / 2
+
+  items.forEach((item, i) => {
+    const itemCenter = i * itemHeight + itemHeight / 2
+    const distance = Math.abs(itemCenter - center)
+
+    // 중앙에 가까울수록 글자가 커지고, 멀어질수록 작아짐 (1.2rem ~ 0.8rem)
+    const size = Math.max(0.8, 1.2 - distance / 100)
+    // 중앙에 가까울수록 불투명, 멀어질수록 흐려짐 (1 ~ 0.3)
+    const opacity = Math.max(0.3, 1 - distance / 60)
+
+    item.style.fontSize = `${size}rem`
+    item.style.opacity = opacity
+  })
+}
+
 // 스크롤 멈췄을 때 가장 가까운 아이템 선택
 const handleScrollEnd = () => {
   const index = Math.round(list.scrollTop / itemHeight)
@@ -40,8 +59,9 @@ const handleScrollEnd = () => {
   emit('update:modelValue', props.options[index])
 }
 
-// 스크롤 이벤트 (멈춤 감지)
+// 스크롤 이벤트 (효과 적용 + 멈춤 감지)
 const handleScroll = () => {
+  updateFontEffects()
   if (scrollEndTimer) clearTimeout(scrollEndTimer)
   scrollEndTimer = setTimeout(handleScrollEnd, 100)
 }
@@ -60,7 +80,10 @@ onMounted(() => {
   if (defaultIndex !== -1) {
     nextTick(() => {
       list.scrollTo({ top: defaultIndex * itemHeight, behavior: 'auto' })
+      updateFontEffects()
     })
+  } else {
+    updateFontEffects()
   }
 
   // 스크롤 이벤트 등록
