@@ -117,7 +117,7 @@ const weeklyButtons4 = ['목','금','토','일']
 
 // 선택 상태
 const selectedDaily = ref([])
-const selectedWeekly1 = ref('매주')
+const selectedWeekly1 = ref('')
 const selectedWeekly2 = ref('')
 const selectedWeeklyDays = ref([])
 
@@ -135,16 +135,12 @@ const handleTabClick = (tab) => {
 const selectDailyBtn = (btn) => {
   if (btn === '매일') {
     if (selectedDaily.value.includes('매일')) {
-      selectedDaily.value = ['월'] // 매일 해제 시 기본값 '월'
+      selectedDaily.value = ['월']
     } else {
       selectedDaily.value = ['매일','월','화','수','목','금','토','일']
     }
   } else {
-    if (selectedDaily.value.includes('매일')) {
-      selectedDaily.value = [btn]
-    } else {
-      selectedDaily.value = [btn]
-    }
+    selectedDaily.value = [btn]
   }
 }
 
@@ -156,10 +152,19 @@ const selectWeeklyBtn2 = (btn) => {
   selectedWeekly2.value = btn
 }
 const selectWeeklyDay = (btn) => {
-  if (selectedWeeklyDays.value.includes(btn)) {
-    selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== btn)
+  if (btn === '매일') {
+    if (selectedWeeklyDays.value.includes('매일')) {
+      selectedWeeklyDays.value = ['월']
+    } else {
+      selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']
+    }
   } else {
-    selectedWeeklyDays.value.push(btn)
+    // 매일이 이미 선택돼있으면 해제하고 단일 선택
+    if (selectedWeeklyDays.value.includes('매일')) {
+      selectedWeeklyDays.value = [btn]
+    } else {
+      selectedWeeklyDays.value = [btn]
+    }
   }
 }
 
