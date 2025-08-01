@@ -130,6 +130,7 @@
 
 .form_box_g .detail_box.weekly .s_group_wrap {
   background-color:#f9f9f9;
+  border:1px solid #ddd;
   padding:1rem;
   margin-top:0.5rem;
   border-radius:1.5rem;
@@ -140,6 +141,7 @@
 .form_box_g .detail_box.daily .on_w,
 .form_box_g .detail_box.weekly .on_w {
   height:2.2rem;
+  line-height:2.2rem;
   flex: 1;  
   text-align: center;
   padding: 0.5rem;
@@ -156,6 +158,11 @@
 .form_box_g .detail_box.weekly [class$="s_btn"]{
   border:1px solid #eee;
 }
+
+.form_box_g .detail_box .s_group_wrap [class$="s_btn"] {
+  border:1px solid #ddd;
+}
+
 
 /* 달력 */
 .monthly-grid {
