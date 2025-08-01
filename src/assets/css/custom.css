@@ -63,8 +63,8 @@
   left: 50%;
   width: 80%;
   height: 30px;
-  border-color:#ff2762;
-  background-color: rgba(255, 231, 98, 0.5);
+  border-color:#333;
+  background-color: rgba(255, 231, 98, 0.1);
   border-radius: 1.5rem;
   transform: translate(-50%, -50%);
   pointer-events: none;
