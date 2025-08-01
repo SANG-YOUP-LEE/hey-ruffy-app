@@ -1,6 +1,6 @@
 <template>
   <div class="form_box_g">
-    <h3>지켜야할 새로운 다짐을 적어주세요.</h3>
+    <h3>다짐 제목을 적어주세요.</h3>
     <p>
       <label for="rt_name">새 다짐 명</label>
       <input
