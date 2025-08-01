@@ -59,13 +59,9 @@
 
 .popup_wrap .popup_tit h2 {
 	width:100%;
-	font-size:1.6rem;
-	line-height:1.8rem;
   display:inline-block;
-  margin:2.2rem 0 0 0;
+  margin:3rem 0 0 0;
   color:#333;
-	font-family: Freesentation-7Black;
-  font-weight:700;
 }
 
 .popup_wrap .popup_tit p {
