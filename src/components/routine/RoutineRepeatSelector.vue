@@ -23,12 +23,37 @@
 
     <!-- 일간 상세 -->
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
-      일
+      <div class="s_group">
+        <span
+          v-for="(btn, index) in dailyButtons"
+          :key="index"
+          class="d_s_btn"
+          :class="{ on_w: selectedDailyIndex === index }"
+          @click="selectDailyBtn(index)"
+        >{{ btn }}</span>
+      </div>
     </div>
 
     <!-- 주간 상세 -->
     <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
-      월
+       <div class="s_group">
+        <span
+          v-for="(btn, index) in weeklyButtons1"
+          :key="index"
+          class="d_s_btn"
+          :class="{ on_w: selectedWeeklyIndex1 === index }"
+          @click="selectWeeklyBtn1(index)"
+        >{{ btn }}</span>
+       </div>
+       <div class="s_group">
+        <span
+          v-for="(btn, index) in weeklyButtons2"
+          :key="index"
+          class="d_s_btn"
+          :class="{ on_w: selectedWeeklyIndex2 === index }"
+          @click="selectWeeklyBtn2(index)"
+        >{{ btn }}</span>
+      </div>
     </div>
 
     <!-- 월간 상세 -->
@@ -54,12 +79,35 @@ import { ref, onMounted } from 'vue'
 const selectedTab = ref('daily')
 const selectedDates = ref([])
 
+const dailyButtons = ['매일','일','월','화','수','목','금','토']
+const weeklyButtons1 = ['매주','2주마다','3주마다','4주마다','5주마다']
+const weeklyButtons2 = ['일','월','화','수','목','금','토']
+
+const selectedDailyIndex = ref(0)
+const selectedWeeklyIndex1 = ref(0)
+const selectedWeeklyIndex2 = ref(0)
+
 onMounted(() => {
   selectedTab.value = 'daily'
+  selectedDailyIndex.value = 0
+  selectedWeeklyIndex1.value = 0
+  selectedWeeklyIndex2.value = 0
 })
 
 const handleTabClick = (tab) => {
   selectedTab.value = tab
+}
+
+const selectDailyBtn = (index) => {
+  selectedDailyIndex.value = index
+}
+
+const selectWeeklyBtn1 = (index) => {
+  selectedWeeklyIndex1.value = index
+}
+
+const selectWeeklyBtn2 = (index) => {
+  selectedWeeklyIndex2.value = index
 }
 
 const toggleDateSelection = (day) => {
