@@ -109,7 +109,7 @@
 }
 
 .form_box_g.limit .detail_box {
-	height:16rem;
+	/*height:16rem;*/
 	border-radius: 0;
 	border-bottom-right-radius: 1.5rem;
 	border-bottom-left-radius: 1.5rem;
