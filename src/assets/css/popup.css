@@ -129,15 +129,17 @@
 }
 
 .form_box_g .detail_box.weekly .s_group_wrap {
-  background-color:#f5f5f5;
+  background-color:#f9f9f9;
   padding:1rem;
   margin-top:0.5rem;
+  border-radius:1.5rem;
 }
 
 .form_box_g .detail_box.daily [class$="s_btn"],
 .form_box_g .detail_box.weekly [class$="s_btn"],
 .form_box_g .detail_box.daily .on_w,
 .form_box_g .detail_box.weekly .on_w {
+  height:2.2rem;
   flex: 1;  
   text-align: center;
   padding: 0.5rem;
