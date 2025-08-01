@@ -47,7 +47,8 @@
 	background-color:#fff;
 	padding:2rem;
   border-radius:1.5rem;
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border:1px solid #eee;
+	/*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
 }
 
 .popup_wrap .popup_tit {
@@ -110,7 +111,7 @@
 
 .form_box_g .detail_box {
 	border-radius:1.5rem;
-	border:1px solid #eee;
+	border:1px solid #ddd;
 	padding:1rem;
 	font-size:1rem;
 }
@@ -127,7 +128,6 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 0.2rem;
   margin:0 auto;
-  border:1px solid red
 }
 
 .monthly-grid span.m_s_btn {
@@ -145,236 +145,4 @@
   width:2.2rem;
 	height:2.2rem;
   font-weight:bold
-}
-
-/* 알럿 팝업 */
-.alert p.comment {
-	line-height:1.4rem;
-	letter-spacing:-0.01rem;
-	padding:2rem;
-	margin:1rem;
-	color:#777
-}
-
-.alert p.comment strong {
-	width:100%;
-	color:#333;
-	font-size:1.2rem;
-	display:inline-block;
-	margin-bottom:0.5rem;
-}
-
-.alert p.sns {
-	display:flex;
-	gap:1rem;
-	justify-content: center;
-	align-items: center;
-	margin:1rem
-}
-
-.alert p.sns img {
-	width:3rem;
-	height:3rem
-}
-
-.alert p.sns img:last-child {
-	width:2rem;
-	height:2rem
-}
-
-.full_popup {
-  z-index: 99999; /* 다른 팝업보다 높게 */
-}
-
-body.popup-open {
-  overflow: hidden !important;
-  height: 100%;
-  position: fixed;
-  width: 100%;
-  overscroll-behavior: none;
-  touch-action: none;
-}
-
-.popup_overlay,
-.wheel-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.popup_box,
-.wheel-popup {
-	min-width:70%;
-  background-color: #fff;
-	position:relative;
-  padding: 2rem;
-  border-radius: 1.5rem;
-  max-width: 90%;
-  box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.3);
-}
-
-.popup_box h2,
-.wheel-popup h2 {
-	display:inline-block;
-	text-align:center;
-	margin-bottom:1rem;
-  z-index:10;
-}
-
-.popup_box  button.pop_btm,
-.wheel-popup button.pop_btm {
-	width:100%;
-	height:3rem;
-	background-color:#333;
-	color:#fff;
-	font-weight:bold;
-	border-radius:1rem;
-	line-height:1.5rem;
-	padding:0 2rem 0 2rem;
-	margin-top:1rem;
-  z-index:10;
-}
-
-.popup_box  button.pop_btm.white,
-.wheel-popup  button.pop_btm.white,
-.wbtn {
-	background-color:#fff;
-	color:#333;
-	border:0.1rem solid #333;
-	margin-top:0.5rem;
-}
-
-/* 다짐 만들기 */
-
-.form_box_g  button:disabled {
-	border-color:#eee;
-	color:#ccc;
-	background-color:#f9f9f9
-}
-
-.form_box_g p em {
-	color:#438EDB;
-	font-weight:bold;
-	display:inlien-block;
-	margin-right:0.5rem;
-}
-
-.form_box_g  p span {
-	color:#333
-}
-
-.form_box_g h3 {
-	text-align:center
-}
-.form_box_g p.button button {
-	width: 100%;
-	line-height: 2rem;
-	color: #333;
-	background-color: #fff282;
-	border: 0.1rem solid #fff282;
-	border-radius: 1rem;
-}
-
-.start_date_preview {
-	float:right
-}
-
-.form_box_g .comment {
-	font-size:0.8rem;
-	line-height:1rem;
-	color:#666;
-	margin:0 0 0.5rem 0;
-}
-
-.form_box_g .walking_goal input {
-	width:5rem!important;
-	text-align:right!important;
-	border:0.1rem solid #aaa;
-	border-radius:1rem;
-}
-
-.form_box_g .color_chart {
-	width:100%!important;
-	margin:0 auto;
-	margin-top:0.5rem;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.2rem;
-	align-items: center;
-	justify-content: center;
-}
-
-span[class^='cchart'] {
-	width:7%;
-	aspect-ratio: 1 / 1;
-	margin-right:1%;
-	border-radius:50%;
-	display:inline-block;
-}
-
-span[class^='cchart'].on {
-	border:0.2rem solid #333;
-}
-
-.cchart01 {
-	background-color:#ff4f4f
-}
-
-.cchart02 {
-	background-color:#ff7a32
-}
-
-.cchart03 {
-	background-color:#ff6792
-}
-
-.cchart04 {
-	background-color:#ffc24d
-}
-
-.cchart05 {
-	background-color:#a1d156
-}
-
-.cchart06 {
-	background-color:#56d1b0
-}
-
-.cchart07 {
-	background-color:#36b9c9
-}
-
-.cchart08 {
-	background-color:#3f6ed8
-}
-
-.cchart09 {
-	background-color:#9b6dd4
-}
-
-.cchart10 {
-	background-color:#5a5a5a
-}
-
-.form_box_g textarea{
-	width:100%;
-	border:0.1rem solid #aaa;
-	padding:0.5rem;
-	border-radius:1rem;
-	margin-top:0.5rem;
-}
-
-.pop_btm {
-  background: #222;
-  color: #fff;
-  padding: 0.8rem 2rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
 }
