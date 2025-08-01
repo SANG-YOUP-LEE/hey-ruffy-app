@@ -103,7 +103,7 @@
 .form_box_g input[type="text"] {
 	width:100%;
 	text-align:center;
-  border-bottom:1px solid #ddd;
+  border-bottom:1px solid #333;
 }
 
 .form_box_g .detail_box {
