@@ -33,7 +33,6 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   touch-action: pan-y !important;  
-  scroll-snap-type: y mandatory;
 }
 
 /* 위아래 더미 공간 추가 */
@@ -55,7 +54,6 @@
   text-align: center;
   border-radius: 1.5rem;
   transition: transform 0.2s, color 0.2s;
-  scroll-snap-align: center;
 }
 
 .scroll-picker-item.light {
@@ -73,7 +71,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translateY(-50% -50%);
+  transform: translateY(-50%, -50%);
   pointer-events: none;
   height: 30px; 
 }
