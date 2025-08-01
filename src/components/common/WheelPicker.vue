@@ -1,15 +1,17 @@
 <template>
   <div class="scroll-picker vertical" ref="picker">
     <div class="scroll-picker-list">
-      <div 
+      <div
         class="scroll-picker-item"
         v-for="(option, index) in options"
         :key="option"
+        :class="{ light: index === currentIndex }"
         @click="handleClick(index)"
       >
         {{ option }}
       </div>
     </div>
+    <div class="highlight-overlay"></div>
   </div>
 </template>
 
@@ -30,62 +32,42 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const picker = ref(null)
 let list
-let items
 const itemHeight = 30
+const currentIndex = ref(0)
 let scrollEndTimer = null
 
-// 스크롤 중 실시간으로 .light 적용
-const handleScrollLive = () => {
-  const index = Math.round(list.scrollTop / itemHeight)
-  if (items && items.length > 0) {
-    items.forEach(item => item.classList.remove('light'))
-    if (items[index]) {
-      items[index].classList.add('light')
-    }
-  }
+// 스크롤 시 현재 인덱스 갱신
+const updateIndex = () => {
+  currentIndex.value = Math.round(list.scrollTop / itemHeight)
 }
 
-// 스크롤 멈춘 뒤 자동 스냅
+// 스크롤 멈추면 스냅
 const handleScrollEnd = () => {
-  const index = Math.round(list.scrollTop / itemHeight)
-  list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
-  emit('update:modelValue', props.options[index])
+  list.scrollTo({ top: currentIndex.value * itemHeight, behavior: 'smooth' })
+  emit('update:modelValue', props.options[currentIndex.value])
 }
 
-// 스크롤 이벤트
 const handleScroll = () => {
-  handleScrollLive()
+  updateIndex()
   if (scrollEndTimer) clearTimeout(scrollEndTimer)
   scrollEndTimer = setTimeout(handleScrollEnd, 100)
 }
 
-// 클릭 시 스냅 및 .light 적용
+// 클릭 시 선택
 const handleClick = (index) => {
-  if (items && items.length > 0) {
-    items.forEach(item => item.classList.remove('light'))
-    if (items[index]) {
-      items[index].classList.add('light')
-    }
-  }
+  currentIndex.value = index
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
   emit('update:modelValue', props.options[index])
 }
 
 onMounted(() => {
   list = picker.value.querySelector('.scroll-picker-list')
-  items = picker.value.querySelectorAll('.scroll-picker-item')
-
-  // 초기값 위치 세팅
   const defaultIndex = props.options.indexOf(props.modelValue)
   nextTick(() => {
     const startIndex = defaultIndex !== -1 ? defaultIndex : 0
+    currentIndex.value = startIndex
     list.scrollTo({ top: startIndex * itemHeight, behavior: 'auto' })
-    if (items[startIndex]) {
-      items[startIndex].classList.add('light')
-    }
   })
-
-  // 스크롤 이벤트 등록
   list.addEventListener('scroll', handleScroll)
 })
 </script>
