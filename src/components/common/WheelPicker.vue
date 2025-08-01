@@ -45,6 +45,8 @@ const getItemStyle = (index) => {
   const color = distance < 0.5 ? '#fff' : '#999'
   const background = distance < 0.5 ? '#333' : 'transparent'
   return {
+    width: '80%',
+    borderRadius: '1.5rem',
     transform: `scale(${scale})`,
     opacity: opacity,
     color: color,
