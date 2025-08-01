@@ -13,7 +13,10 @@
     inset 1px 1px 2px rgba(0, 0, 0, 0.15); */
 }
 
-.detail_box.daily .scroll-picker,
+.detail_box.daily .scroll-picker {
+  height:5rem
+}
+
 .detail_box.weekly .scroll-picker {
   height: 10rem;
 }
@@ -60,8 +63,8 @@
   left: 50%;
   width: 80%;
   height: 30px;
-  background-color:#ffe762;
-  /*background-color: rgba(0, 0, 0, 0.04);*/
+  border-color:#ff2762;
+  background-color: rgba(255, 231, 98, 0.5);
   border-radius: 1.5rem;
   transform: translate(-50%, -50%);
   pointer-events: none;
