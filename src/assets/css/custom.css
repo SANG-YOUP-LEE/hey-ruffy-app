@@ -62,7 +62,9 @@
   left: 50%;
   width: 80%;
   height: 30px;
-  background-color: rgba(0, 0, 0, 0.08); /* 흐린 하이라이트 박스 */
+  color:#fff;
+  background-color:#333;
+  font-size:1.4rem;
   border-radius: 1.5rem;
   transform: translate(-50%, -50%); /* 오타 수정 */
   pointer-events: none;
