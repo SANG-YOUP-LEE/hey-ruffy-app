@@ -25,11 +25,20 @@
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
       <div class="s_group">
         <span
-          v-for="(btn, index) in dailyButtons"
-          :key="index"
+          v-for="(btn, index) in dailyButtonsGroup1"
+          :key="'d1-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyIndex === index }"
-          @click="selectDailyBtn(index)"
+          :class="{ on_w: selectedDaily.includes(btn) }"
+          @click="selectDailyBtn(btn)"
+        >{{ btn }}</span>
+      </div>
+      <div class="s_group">
+        <span
+          v-for="(btn, index) in dailyButtonsGroup2"
+          :key="'d2-'+index"
+          class="d_s_btn"
+          :class="{ on_w: selectedDaily.includes(btn) }"
+          @click="selectDailyBtn(btn)"
         >{{ btn }}</span>
       </div>
     </div>
@@ -39,19 +48,37 @@
        <div class="s_group">
         <span
           v-for="(btn, index) in weeklyButtons1"
-          :key="index"
+          :key="'w1-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeeklyIndex1 === index }"
-          @click="selectWeeklyBtn1(index)"
+          :class="{ on_w: selectedWeekly1 === btn }"
+          @click="selectWeeklyBtn1(btn)"
         >{{ btn }}</span>
        </div>
        <div class="s_group">
         <span
           v-for="(btn, index) in weeklyButtons2"
-          :key="index"
+          :key="'w2-'+index"
           class="d_s_btn"
-          :class="{ on_w: selectedWeeklyIndex2 === index }"
-          @click="selectWeeklyBtn2(index)"
+          :class="{ on_w: selectedWeekly2 === btn }"
+          @click="selectWeeklyBtn2(btn)"
+        >{{ btn }}</span>
+       </div>
+       <div class="s_group">
+        <span
+          v-for="(btn, index) in weeklyButtons3"
+          :key="'w3-'+index"
+          class="d_s_btn"
+          :class="{ on_w: selectedWeeklyDays.includes(btn) }"
+          @click="selectWeeklyDay(btn)"
+        >{{ btn }}</span>
+      </div>
+      <div class="s_group">
+        <span
+          v-for="(btn, index) in weeklyButtons4"
+          :key="'w4-'+index"
+          class="d_s_btn"
+          :class="{ on_w: selectedWeeklyDays.includes(btn) }"
+          @click="selectWeeklyDay(btn)"
         >{{ btn }}</span>
       </div>
     </div>
@@ -79,42 +106,82 @@ import { ref, onMounted } from 'vue'
 const selectedTab = ref('daily')
 const selectedDates = ref([])
 
-const dailyButtons = ['매일','일','월','화','수','목','금','토']
-const weeklyButtons1 = ['매주','2주마다','3주마다','4주마다','5주마다']
-const weeklyButtons2 = ['일','월','화','수','목','금','토']
+// 버튼 그룹 데이터
+const dailyButtonsGroup1 = ['매일','월','화','수']
+const dailyButtonsGroup2 = ['목','금','토','일']
 
-const selectedDailyIndex = ref(0)
-const selectedWeeklyIndex1 = ref(0)
-const selectedWeeklyIndex2 = ref(0)
+const weeklyButtons1 = ['매주','2주마다','3주마다']
+const weeklyButtons2 = ['4주마다','5주마다','6주마다']
+const weeklyButtons3 = ['매일','월','화','수']
+const weeklyButtons4 = ['목','금','토','일']
+
+// 선택 상태
+const selectedDaily = ref([])
+const selectedWeekly1 = ref('매주')
+const selectedWeekly2 = ref('')
+const selectedWeeklyDays = ref([])
 
 onMounted(() => {
-  selectedTab.value = 'daily'
-  selectedDailyIndex.value = 0
-  selectedWeeklyIndex1.value = 0
-  selectedWeeklyIndex2.value = 0
+  resetSelections('daily')
 })
 
+// 탭 전환 시 초기화
 const handleTabClick = (tab) => {
   selectedTab.value = tab
+  resetSelections(tab)
 }
 
-const selectDailyBtn = (index) => {
-  selectedDailyIndex.value = index
+// daily 선택 로직
+const selectDailyBtn = (btn) => {
+  if (btn === '매일') {
+    if (selectedDaily.value.includes('매일')) {
+      selectedDaily.value = ['월'] // 매일 해제 시 기본값 '월'
+    } else {
+      selectedDaily.value = ['매일','월','화','수','목','금','토','일']
+    }
+  } else {
+    if (selectedDaily.value.includes('매일')) {
+      selectedDaily.value = [btn]
+    } else {
+      selectedDaily.value = [btn]
+    }
+  }
 }
 
-const selectWeeklyBtn1 = (index) => {
-  selectedWeeklyIndex1.value = index
+// weekly 선택 로직
+const selectWeeklyBtn1 = (btn) => {
+  selectedWeekly1.value = btn
+}
+const selectWeeklyBtn2 = (btn) => {
+  selectedWeekly2.value = btn
+}
+const selectWeeklyDay = (btn) => {
+  if (selectedWeeklyDays.value.includes(btn)) {
+    selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== btn)
+  } else {
+    selectedWeeklyDays.value.push(btn)
+  }
 }
 
-const selectWeeklyBtn2 = (index) => {
-  selectedWeeklyIndex2.value = index
-}
-
+// 월간 선택
 const toggleDateSelection = (day) => {
   if (selectedDates.value.includes(day)) {
     selectedDates.value = selectedDates.value.filter(d => d !== day)
   } else {
     selectedDates.value.push(day)
+  }
+}
+
+// 탭별 초기화
+const resetSelections = (tab) => {
+  if (tab === 'daily') {
+    selectedDaily.value = ['월']
+  } else if (tab === 'weekly') {
+    selectedWeekly1.value = '매주'
+    selectedWeekly2.value = ''
+    selectedWeeklyDays.value = ['월']
+  } else if (tab === 'monthly') {
+    selectedDates.value = []
   }
 }
 </script>
