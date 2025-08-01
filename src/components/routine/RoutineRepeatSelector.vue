@@ -129,7 +129,6 @@ const handleTabClick = (tab) => {
   resetSelections(tab)
 }
 
-// 다중 선택 가능하도록 수정
 const selectDailyBtn = (btn) => {
   if (btn === '매일') {
     if (selectedDaily.value.includes('매일')) {
@@ -140,8 +139,19 @@ const selectDailyBtn = (btn) => {
   } else {
     if (selectedDaily.value.includes(btn)) {
       selectedDaily.value = selectedDaily.value.filter(d => d !== btn)
+      // 매일 선택된 상태에서 특정 요일이 빠지면 '매일'도 해제
+      if (selectedDaily.value.includes('매일') && selectedDaily.value.length < 8) {
+        selectedDaily.value = selectedDaily.value.filter(d => d !== '매일')
+      }
     } else {
       selectedDaily.value.push(btn)
+      // 모든 요일이 선택되면 자동으로 '매일' 추가
+      const allDays = ['월','화','수','목','금','토','일']
+      if (allDays.every(day => selectedDaily.value.includes(day))) {
+        if (!selectedDaily.value.includes('매일')) {
+          selectedDaily.value.unshift('매일')
+        }
+      }
     }
   }
 }
@@ -160,8 +170,17 @@ const toggleWeeklyDay = (btn) => {
   } else {
     if (selectedWeeklyDays.value.includes(btn)) {
       selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== btn)
+      if (selectedWeeklyDays.value.includes('매일') && selectedWeeklyDays.value.length < 8) {
+        selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== '매일')
+      }
     } else {
       selectedWeeklyDays.value.push(btn)
+      const allDays = ['월','화','수','목','금','토','일']
+      if (allDays.every(day => selectedWeeklyDays.value.includes(day))) {
+        if (!selectedWeeklyDays.value.includes('매일')) {
+          selectedWeeklyDays.value.unshift('매일')
+        }
+      }
     }
   }
 }
