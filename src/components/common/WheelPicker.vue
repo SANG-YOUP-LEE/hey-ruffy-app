@@ -34,28 +34,32 @@ let items
 const itemHeight = 30
 let scrollEndTimer = null
 
-// 스크롤 멈췄을 때 가장 가까운 아이템 선택 및 .light 적용
-const handleScrollEnd = () => {
+// 스크롤 중 실시간으로 .light 적용
+const handleScrollLive = () => {
   const index = Math.round(list.scrollTop / itemHeight)
-
   if (items && items.length > 0) {
     items.forEach(item => item.classList.remove('light'))
     if (items[index]) {
       items[index].classList.add('light')
     }
   }
+}
 
+// 스크롤 멈춘 뒤 자동 스냅
+const handleScrollEnd = () => {
+  const index = Math.round(list.scrollTop / itemHeight)
   list.scrollTo({ top: index * itemHeight, behavior: 'smooth' })
   emit('update:modelValue', props.options[index])
 }
 
-// 스크롤 이벤트 (멈춤 감지)
+// 스크롤 이벤트
 const handleScroll = () => {
+  handleScrollLive()
   if (scrollEndTimer) clearTimeout(scrollEndTimer)
   scrollEndTimer = setTimeout(handleScrollEnd, 100)
 }
 
-// 아이템 클릭 시 해당 위치로 스냅 및 .light 적용
+// 클릭 시 스냅 및 .light 적용
 const handleClick = (index) => {
   if (items && items.length > 0) {
     items.forEach(item => item.classList.remove('light'))
