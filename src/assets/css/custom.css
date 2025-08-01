@@ -1,16 +1,16 @@
 /*  공통 스타일 */
 .scroll-picker {
   width: 100%;  
-  border-radius: 1.5rem;
   position: relative;
   overflow: hidden;
   user-select: none;
   touch-action: pan-y;
   margin: 1rem 0;
-  background-color: #f9f9f9;
+  /*background-color: #f9f9f9;
+  border-radius: 1.5rem;
   box-shadow:
     inset -4px -4px 8px rgba(0, 0, 0, 0.05), 
-    inset 1px 1px 2px rgba(0, 0, 0, 0.15); 
+    inset 1px 1px 2px rgba(0, 0, 0, 0.15); */
 }
 
 .detail_box.daily .scroll-picker {
@@ -48,7 +48,7 @@
   height: 30px;
   line-height: 30px;
   font-size: 1rem;
-  color: #999;
+  color: #333;
   text-align: center;
   border-radius: 1.5rem;
   transition: transform 0.2s, color 0.2s;
@@ -62,9 +62,9 @@
   left: 50%;
   width: 80%;
   height: 30px;
-  background-color: rgba(0, 0, 0, 0.08); /* 흐린 하이라이트 박스 */
+  background-color: rgba(0, 0, 0, 0.04); /* 흐린 하이라이트 박스 */
   border-radius: 1.5rem;
-  transform: translate(-50%, -50%); /* 오타 수정 */
+  /*transform: translate(-50%, -50%);*/
   pointer-events: none;
   z-index: 5;
 }
