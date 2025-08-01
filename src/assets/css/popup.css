@@ -166,6 +166,7 @@
 /* 달력 */
 .form_box_g .detail_box.monthly {
   display: flex;
+  padding-bottom:0.5rem;
   flex-direction: column;
   justify-content: center; /* 세로 중앙 정렬 */
   align-items: center;     /* 가로 중앙 정렬 */
@@ -187,10 +188,6 @@
   border-radius:50%;
   text-align: center;
   cursor: pointer;
-}
-
-.monthly-grid span.m_s_btn:last-child {
-  margin-bottom:0
 }
 
 .monthly-grid span.m_s_btn.light {
