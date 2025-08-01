@@ -92,8 +92,8 @@ body.blue .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body .form_box_g.limit p button.b_basic.on,
-body.blue .form_box_g.limit p button.b_basic.on {
+body .form_box_g.limit .tab button.on,
+body.blue .form_box_g.limit .tab button.on {
     background-color:#0994ff;
     color:#fff;
     border:1px solid #0994ff;
@@ -148,7 +148,7 @@ body.red .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body.red .form_box_g.limit p button.b_basic.on  {
+body.red .form_box_g.limit .tab button.on  {
     background-color:#ff4160;
     color:#fff;
     border:1px solid #ff4160;
@@ -199,7 +199,7 @@ body.green .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body.green .form_box_g.limit p button.b_basic.on  {
+body.green .form_box_g.limit .tab button.on  {
     background-color:#00ac6d;
     color:#fff;
     border:1px solid #00ac6d;
@@ -251,7 +251,7 @@ body.bw .checkbox-label input:checked + .checkmark::after {
   transform: rotate(45deg);
 }
 
-body.bw .form_box_g.limit p button.b_basic.on  {
+body.bw .form_box_g.limit .tab button.on  {
     background-color:#ccc;
     color:#fff;
     border:1px solid #ccc;
