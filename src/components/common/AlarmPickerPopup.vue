@@ -5,7 +5,7 @@
         <h2>알람 시간 설정</h2>
       </div>
       <div class="title date light">
-        <span>오전/오후</span><span>시</span><span>분</span>
+        <span>AM/PM</span><span>시</span><span>분</span>
       </div>
       <div class="popup_body picker_group">
         <WheelPicker v-model="localValue.ampm" :options="ampmOptions" />
