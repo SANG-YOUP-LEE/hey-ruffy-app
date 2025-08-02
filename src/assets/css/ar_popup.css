@@ -198,15 +198,19 @@
   align-self: center;    
 	margin-top:0
 }
+
 .form_box_g .detail_box .inner_fix01.date .toggle:last-child {
 	align-self: center;    
 	margin-right:0;
 }
 
-
 .form_box_g .goal_select {
 	width:95%;
 	margin:0 auto;
+}
+
+.form_box_g textarea.comment {
+	height:8rem
 }
 
 /* 달력 */
