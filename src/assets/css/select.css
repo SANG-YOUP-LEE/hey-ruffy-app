@@ -32,25 +32,34 @@
   text-align:center;
 }
 
-.select_ruffy .ruffys a span.img,
-.select_course .course a span img {
+/* 러피즈 컨테이너 */
+.select_ruffy .ruffys a span.img {
   width: 100%;
-  height: 3.5rem;
+  height: 2.5rem;
   display: flex; 
   align-items: center; 
   justify-content: center; 
   text-align: center;
+  margin-bottom:0.5rem
 }
 
-.select_course .course a span img {
-  height:5rem!important;
+/* 코스 컨테이너 (높이만 다르게) */
+.select_course .course a span.img {
+  width: 100%;
+  height: 5rem; /* 러피보다 높게 */
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  text-align: center;
+  margin-bottom:0.2rem
+}
+
+/* 실제 이미지 */
+.select_ruffy .ruffys a span.img img,
+.select_course .course a span.img img {
+  max-height: 100%;
+  width: auto;
   border-radius: 1.5rem;
-  margin-bottom:0.5rem;
-}
-
-.select_ruffy .ruffys img,
-.select_course .course img {
-  width:3rem;
 }
 
 .select_ruffy .ruffys a span.name,

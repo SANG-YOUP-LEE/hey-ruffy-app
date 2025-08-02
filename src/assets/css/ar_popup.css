@@ -203,6 +203,12 @@
 	margin-right:0;
 }
 
+
+.form_box_g .goal_select {
+	width:95%;
+	margin:0 auto;
+}
+
 /* 달력 */
 .form_box_g .detail_box.monthly {
   display: flex;
