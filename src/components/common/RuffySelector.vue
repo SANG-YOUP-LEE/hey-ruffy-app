@@ -1,6 +1,5 @@
 <template>
   <div class="select_ruffy">
-    <div class="info_text light">친구가 되고 싶은 러피를 선택해주세요.</div>
     <div class="ruffys" ref="ruffysRef">
       <a
         v-for="option in ruffyOptions"

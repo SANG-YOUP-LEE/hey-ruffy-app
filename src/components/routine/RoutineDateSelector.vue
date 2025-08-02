@@ -7,12 +7,12 @@
       </div>
 
       <div v-if="showWarning" class="t_red01">
-        먼저 시작일을 지정하세요
+        먼저 시작일을 지정해 주세요.
       </div>
 
       <div v-if="formattedDate" :class="{ data_fixed: formattedDate }">
         {{ formattedDate }}
-        <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
+        <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a> 
       </div>
     </div>
 
@@ -65,10 +65,15 @@ watch(isEndDateOn, (val) => {
 
 const closeDatePopup = () => {
   showDatePopup.value = false
+
   if (popupMode.value === 'start') {
-    isStartDateOn.value = false
+    if (!selectedStartDate.value.year) {
+      isStartDateOn.value = false
+    }
   } else {
-    isEndDateOn.value = false
+    if (!selectedEndDate.value.year) {
+      isEndDateOn.value = false
+    }
   }
 }
 

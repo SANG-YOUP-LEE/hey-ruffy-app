@@ -19,7 +19,6 @@
 	top:0;
 	left:0;
 	text-align:right;
-	background-color:red;
 	padding:1rem 1rem 0 0
 }
 
@@ -50,7 +49,7 @@
 
 .popup_wrap .popup_tit {
   width:100%;
-  height:10.5rem;
+  height:10rem;
  }
 
 .popup_wrap .popup_inner {
@@ -67,7 +66,6 @@
 	width:100%;
   display:inline-block;
   margin:3rem 0 0 0;
-  color:#333;
 }
 
 .popup_wrap .popup_tit p {
@@ -105,7 +103,6 @@
 .form_box_g input[type="text"] {
 	width:100%;
 	text-align:center;
-  border-bottom:1px solid #333;
 }
 
 .form_box_g .detail_box {

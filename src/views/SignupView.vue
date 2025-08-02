@@ -26,6 +26,8 @@
           
         />
 
+        <div class="info_text light">친구가 되고 싶은 러피를 선택해주세요.</div>
+        
         <RuffySelectorSignup v-model="selectedOption" />
 
         <div class="select_skin">
@@ -141,7 +143,7 @@ import {
   serverTimestamp
 } from "firebase/firestore"
 import { getFirebaseErrorMessage } from "@/utils/firebaseErrorMessage"
-import RuffySelectorSignup from '@/components/common/RuffySelectorSignup.vue'
+import RuffySelectorSignup from '@/components/common/RuffySelector.vue'
 // 폼 관련
 const email = ref("")
 const password = ref("")
