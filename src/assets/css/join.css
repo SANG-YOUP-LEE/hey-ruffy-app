@@ -30,6 +30,10 @@
 	margin-bottom:1rem
 }
 
+.intro_wrap .button a {
+  margin-bottom:0
+}
+
 .intro_wrap .button a:last-child {
 	margin-bottom:0
 }

@@ -4,6 +4,7 @@
       <h2>다짐을 만들어 볼까요?</h2>
       <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
     </div>
+
     <div class="popup_inner">
       <!-- 다짐명 입력 -->
       <RoutineTitleInput />
@@ -37,7 +38,10 @@
       <button class="b_basic">다짐 저장하기</button>
     </div>
 
-    <div class="close_btn_wrap"><div class="close_btn"><span>닫기</span></div></div>
+    <!-- 닫기 버튼 -->
+    <div class="close_btn_wrap">
+      <div class="close_btn"><span>닫기</span></div>
+    </div>
   </div>
 </template>
 
@@ -51,4 +55,6 @@ import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vu
 import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
+
 </script>
+

@@ -159,6 +159,21 @@ button {
   text-decoration:none;
 }
 
+[class^="p_"] {
+  width:100%;
+  line-height:2.2rem!important;
+  border-radius: 2rem;
+  font-size: 1rem!important;
+  font-weight: bold;
+  display:inline-block;
+  text-decoration:none;
+}
+
+[class^="b_"] + [class^="b_"],
+[class^="p_"] + [class^="p_"] {
+  margin-top:0.5rem
+}
+
 em {
   font-style: normal;
 }
