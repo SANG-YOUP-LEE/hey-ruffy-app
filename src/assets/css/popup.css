@@ -68,6 +68,7 @@
   text-align: right;
 	position:relative;
 	padding:0;
+	background-color:#fff;
 }
 
 .com_popup_wrap .popup_inner .close_btn {
