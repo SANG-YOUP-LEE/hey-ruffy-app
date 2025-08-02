@@ -1,0 +1,100 @@
+<template>
+  <div class="select_course">
+    <div class="course" ref="courseRef">
+      <a
+        v-for="option in courseOptions"
+        :key="option.value"
+        href="#none"
+        :class="{ on: modelValue === option.value }"
+        @click.prevent="selectCourse(option.value)"
+      >
+        <span class="img"><img :src="option.img" :alt="option.name" /></span>
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+            :name="uniqueName || 'choice-course'" 
+            :value="option.value" 
+            :checked="modelValue === option.value" 
+          />
+          <span class="circle"></span>
+        </label>
+        <span class="name" :class="{ on: modelValue === option.value }">
+          {{ option.name }}
+        </span>
+      </a>
+
+      <!-- 팝업 -->
+      <div class="speech-bubble-wrapper" v-if="showCoursePopup">
+        <div class="speech-bubble">
+          <button class="close-btn" @click="closeCoursePopup">
+            <img :src="closeIcon" alt="닫기" />
+          </button>
+          <div class="tail" :class="selectedOption"></div>
+
+          <div v-if="selectedOption === 'option1'" class="r_detail01">
+            <p><span>초록숲길 이미지</span><span>초록숲길</span></p>
+            초록숲길 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option2'" class="r_detail02">
+            <p><span>물빛공원 이미지</span><span>물빛공원</span></p>
+            물빛공원 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option3'" class="r_detail03">
+            <p><span>별빛강길 이미지</span><span>별빛강길</span></p>
+            별빛강길 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option4'" class="r_detail04">
+            <p><span>은빛호수길 이미지</span><span>은빛호수길</span></p>
+            은빛호수길 설명입니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const props = defineProps({
+  modelValue: String,
+  uniqueName: { type: String, default: '' }
+})
+const emit = defineEmits(['update:modelValue'])
+
+const closeIcon = new URL('@/assets/images/ico_close02.png', import.meta.url).href
+
+const courseOptions = [
+  { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+]
+
+const showCoursePopup = ref(false)
+const selectedOption = ref('')
+const courseRef = ref(null)
+
+const selectCourse = (value) => {
+  emit('update:modelValue', value)
+  selectedOption.value = value
+  showCoursePopup.value = true
+}
+
+const closeCoursePopup = () => {
+  showCoursePopup.value = false
+}
+
+const handleClickOutside = (e) => {
+  if (courseRef.value && !courseRef.value.contains(e.target)) {
+    showCoursePopup.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+</script>

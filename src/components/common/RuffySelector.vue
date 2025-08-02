@@ -10,7 +10,12 @@
       >
         <span class="img"><img :src="option.img" :alt="option.name" /></span>
         <label class="custom-radio">
-          <input type="radio" name="choice" :value="option.value" :checked="modelValue === option.value" />
+          <input 
+            type="radio" 
+            :name="uniqueName || 'choice'" 
+            :value="option.value" 
+            :checked="modelValue === option.value" 
+          />
           <span class="circle"></span>
         </label>
         <span
@@ -29,7 +34,7 @@
           </button>
           <div class="tail" :class="selectedOption"></div>
 
-          <div v-if="selectedOption === 'option1'" class="r_detail01">
+           <div v-if="selectedOption === 'option1'" class="r_detail01">
             <p><span>러피 이미지</span><span>Furry Ruffy</span></p>
             귀여운 잠보 퓨리예요. 움직이기 싫어해서 산책 한번 나가기 힘들지만 막상 나가면 날라날라~ 6개월째 생일날 받은 노란색 안대는 최애템!
           </div>
@@ -54,36 +59,20 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-// src/assets/images 내부 이미지 안전하게 불러오기
+const props = defineProps({
+  modelValue: String,
+  uniqueName: { type: String, default: '' }
+})
+const emit = defineEmits(['update:modelValue'])
+
 const closeIcon = new URL('@/assets/images/ico_close02.png', import.meta.url).href
 
 const ruffyOptions = [
-  {
-    value: 'option1',
-    name: '퓨리 러피',
-    img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href,
-  },
-  {
-    value: 'option2',
-    name: '빌리 러피',
-    img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href,
-  },
-  {
-    value: 'option3',
-    name: '마리 러피',
-    img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href,
-  },
-  {
-    value: 'option4',
-    name: '도리 러피',
-    img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href,
-  },
+  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href },
 ]
-
-const props = defineProps({
-  modelValue: String,
-})
-const emit = defineEmits(['update:modelValue'])
 
 const showRuffyPopup = ref(false)
 const selectedOption = ref('')

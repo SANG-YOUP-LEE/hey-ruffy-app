@@ -7,8 +7,8 @@ import "./assets/css/main.css";
 import "./assets/css/popup.css";
 import "./assets/css/color.css";
 import "./assets/css/custom.css";
-import "./assets/css/select_ruffys.css";
-import "./assets/css/add_routine_pop.css";
+import "./assets/css/select.css";
+import "./assets/css/ar_popup.css";
 import "./assets/js/ui.js";
 
 const app = createApp(App);

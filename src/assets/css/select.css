@@ -1,8 +1,10 @@
-.select_ruffy {
+.select_ruffy,
+.select_course {
   margin:0.5rem 0 1.5rem 0;
 }
 
-.select_ruffy .ruffys {
+.select_ruffy .ruffys,
+.select_course .course {
   position:relative;
   display: flex;
   flex-wrap: wrap;
@@ -11,7 +13,8 @@
   margin-top:0.5rem;
 }
 
-.select_ruffy .ruffys a {
+.select_ruffy .ruffys a,
+.select_course .course a {
   width: 25%;
   display: flex;
   flex-direction: column;
@@ -19,16 +22,18 @@
   justify-content: center;
   text-decoration: none;
   box-sizing: border-box;
-  padding: 0 0.2rem;
+  padding: 0 0.2rem; 
 }
 
-.select_ruffy .ruffys a span {
+.select_ruffy .ruffys a span,
+.select_course .course a span {
   width:100%;
   display:inline-block;
   text-align:center;
 }
 
-.select_ruffy .ruffys a span.img {
+.select_ruffy .ruffys a span.img,
+.select_course .course a span img {
   width: 100%;
   height: 3.5rem;
   display: flex; 
@@ -37,11 +42,19 @@
   text-align: center;
 }
 
-.select_ruffy .ruffys img {
+.select_course .course a span img {
+  height:5rem;
+  border-radius: 1.5rem;
+  margin-bottom:0.5rem;
+}
+
+.select_ruffy .ruffys img,
+.select_course .course img {
   width:3rem;
 }
 
-.select_ruffy .ruffys a span.name {
+.select_ruffy .ruffys a span.name,
+.select_course .course a span.name {
   width:100%;
   display:inline-block;
   border-radius:0.7rem;
@@ -52,28 +65,33 @@
 }
 
 
-.select_ruffy .ruffys a.on span.name {
+.select_ruffy .ruffys a.on span.name,
+.select_course .course a.on span.name {
   color:#fff
 }
 
-.select_ruffy .ruffys a .custom-radio {
+.select_ruffy .ruffys a .custom-radio,
+.select_course .course a .custom-radio {
   margin-bottom:0.5rem;
 }
 
-.select_ruffy .ruffys .ruffys_detail {
+.select_ruffy .ruffys .ruffys_detail,
+.select_course .course .ruffys_detail {
   width:100%;
   margin:0 0 1rem 0;
 }
 
 /* 말풍선 래퍼는 relative 기준점 */
-.select_ruffy .ruffys .speech-bubble-wrapper {
+.select_ruffy .ruffys .speech-bubble-wrapper,
+.select_course .course .speech-bubble-wrapper  {
   position: absolute;
   width: 100%;
   margin-top: -15rem;
 }
 
 /* 말풍선 */
-.select_ruffy .ruffys .speech-bubble {
+.select_ruffy .ruffys .speech-bubble,
+.select_course .course .speech-bubble {
   width: 100%;
   min-height:14rem;
   font-size:1rem;
@@ -84,7 +102,8 @@
   box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.25);
 }
 
-.select_ruffy .ruffys .speech-bubble [class^='r_detail'] {
+.select_ruffy .ruffys .speech-bubble [class^='r_detail'],
+.select_course .course .speech-bubble [class^='r_detail'] {
   display: flex;
   align-items: flex-start;
   gap: 1rem; 
@@ -93,7 +112,8 @@
   text-align:left;
 }
 
-.select_ruffy .ruffys .speech-bubble [class^='r_detail'] p {
+.select_ruffy .ruffys .speech-bubble [class^='r_detail'] p,
+.select_course .course .speech-bubble [class^='r_detail'] p  {
   width:5rem;
   text-align:center;
   margin: 0;
@@ -104,12 +124,14 @@
   font-family: 'Paperlogy-8ExtraBold';
 }
 
-.select_ruffy .ruffys .speech-bubble [class^='r_detail'] span {
+.select_ruffy .ruffys .speech-bubble [class^='r_detail'] span,
+.select_course .course .speech-bubble [class^='r_detail'] span  {
   display: flex;
   flex-direction: column;
 }
 
-.select_ruffy .ruffys .speech-bubble [class^='r_detail'] span:first-child {
+.select_ruffy .ruffys .speech-bubble [class^='r_detail'] span:first-child,
+.select_course .course .speech-bubble [class^='r_detail'] span:first-child {
   width:4rem;
   height:4rem;
   margin:0 auto;
@@ -133,7 +155,23 @@
   background-image: url('../images/hey_ruffy_temp04_b.png');
 }
 
-.select_ruffy .ruffys .tail {
+
+.select_course .course .speech-bubble .r_detail01 span:first-child {
+  background-image: url('../images/course_temp01.png');
+}
+.select_course .course .speech-bubble .r_detail02 span:first-child {
+  background-image: url('../images/course_temp02.png');
+}
+.select_course .course .speech-bubble .r_detail03 span:first-child {
+  background-image: url('../images/course_temp03.png');
+}
+.select_course .course .speech-bubble .r_detail04 span:first-child {
+  background-image: url('../images/course_temp04.png');
+}
+
+
+.select_ruffy .ruffys .tail,
+.select_course .course .tail {
   width: 0;
   height: 0;
   position: absolute;
@@ -143,12 +181,14 @@
   z-index: 1;
 }
 
-.select_ruffy .ruffys a.on {
+.select_ruffy .ruffys a.on,
+.select_course .course a.on  {
   background-color: #fff!important;
 }
 
 /* 회색 테두리 역할 (배경) - 아래 방향 */
-.select_ruffy .ruffys .tail::before {
+.select_ruffy .ruffys .tail::before,
+.select_course .course .tail::before  {
   content: "";
   position: absolute;
   bottom: 0; 
@@ -160,7 +200,8 @@
 }
 
 /* 흰색 꼬리 본체 - 아래 방향 */
-.select_ruffy .ruffys .tail::after {
+.select_ruffy .ruffys .tail::after,
+.select_course .course .tail::after  {
   content: "";
   position: absolute;
   bottom: 0.05rem;
@@ -172,24 +213,29 @@
 }
 
 /* 러피 카드 중앙 맞춰서 이동 */
-.select_ruffy .ruffys .tail.option1 {
+.select_ruffy .ruffys .tail.option1,
+.select_course .course .tail.option1 {
   left: 12.5%;
   transform: translateX(-50%);
 }
-.select_ruffy .ruffys .tail.option2 {
+.select_ruffy .ruffys .tail.option2,
+.select_course .course .tail.option2 {
   left: 37.5%;
   transform: translateX(-50%);
 }
-.select_ruffy .ruffys .tail.option3 {
+.select_ruffy .ruffys .tail.option3,
+.select_course .course .tail.option3 {
   left: 62.5%;
   transform: translateX(-50%);
 }
-.select_ruffy .ruffys .tail.option4 {
+.select_ruffy .ruffys .tail.option4,
+.select_course .course .tail.option4 {
   left: 87.5%;
   transform: translateX(-50%);
 }
 
-.select_ruffy .speech-bubble .close-btn {
+.select_ruffy .speech-bubble .close-btn,
+.select_course .course .close-btn {
   width: 1rem;
   height: 1rem;
   position: absolute;
@@ -201,7 +247,8 @@
   cursor: pointer;
 }
 
-.select_ruffy .speech-bubble .close-btn img {
+.select_ruffy .speech-bubble .close-btn img,
+.select_course .course .close-btn img {
   width: 100%;
   height: 100%;
   display: block;

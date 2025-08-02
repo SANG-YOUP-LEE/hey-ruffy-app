@@ -105,3 +105,7 @@
   padding:0.5rem;
   border-radius: 1rem;
 }
+
+.join_wrap .select_skin .list a.on {
+  background-color:#fff!important;
+}
