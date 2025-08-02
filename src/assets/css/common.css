@@ -184,6 +184,7 @@ textarea {
   padding:1rem;
   border:1px solid #ddd;
 }
+
 .textarea_count {
   text-align: right;
   font-size: 0.8rem;
@@ -311,4 +312,52 @@ textarea {
   font-size:0.8rem;
   letter-spacing:-0.01rem;
   line-height:1rem;
+}
+
+/*color picker*/
+[class^="color_picker"] {
+  display:inline-block;
+  font-size:0;
+  line-height:0;
+}
+
+/*빨*/
+.color_picker01 {
+  background: linear-gradient(135deg, #ff5454 0%, #ff7a7a 40%, #ffb3b3 100%);
+}
+/*주*/
+.color_picker02 {
+  background: linear-gradient(135deg, #ff7a00 0%, #ff9b33 40%, #ffd1a3 100%);
+}
+/*노*/
+.color_picker03 {
+  background: linear-gradient(135deg, #ffd000 0%, #ffe14d 40%, #fff2b3 100%);
+}
+/*초*/
+.color_picker04 {
+  background: linear-gradient(135deg, #00a854 0%, #33c46d 40%, #b3f0c8 100%);
+}
+/*파*/
+.color_picker05 {
+  background: linear-gradient(135deg, #007bff 0%, #3399ff 40%, #b3d9ff 100%);
+}
+/*남*/
+.color_picker06 {
+  background: linear-gradient(135deg, #002b80 0%, #334d99 40%, #667a99 100%);
+}
+/*보*/
+.color_picker07 {
+  background: linear-gradient(135deg, #8000ff 0%, #a64dff 40%, #d9b3ff 100%);
+}
+/*회*/
+.color_picker08 {
+  background: linear-gradient(135deg, #666666 0%, #999999 40%, #bbbbbb 100%);
+}
+/*검*/
+.color_picker09 {
+  background: linear-gradient(135deg, #000000 0%, #333333 40%, #666666 100%);
+}
+/*흰*/
+.color_picker10 {
+  background: linear-gradient(135deg, #f0f0f0 0%, #fafafa 40%, #ffffff 100%);
 }
