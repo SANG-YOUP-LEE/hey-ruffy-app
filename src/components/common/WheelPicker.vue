@@ -39,12 +39,15 @@ const updateIndexFromScroll = () => {
 }
 
 const handleScroll = () => {
+  // 1) 실시간으로 currentIndex 반영
+  updateIndexFromScroll()
+
+  // 2) 스크롤 멈춘 후 부드럽게 중앙 정렬
   if (scrollTimer) clearTimeout(scrollTimer)
   scrollTimer = setTimeout(() => {
     scrollToIndex(Math.round(container.value.scrollTop / itemHeight))
   }, 100)
 }
-
 const scrollToIndex = (index) => {
   const start = container.value.scrollTop
   const end = index * itemHeight

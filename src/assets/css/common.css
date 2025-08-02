@@ -278,3 +278,15 @@ em {
 .tab button + .tab button {
   margin-left: 0.3rem;
 }
+
+.noti_txt {
+
+}
+
+.noti {
+  text-align:center;
+  font-size:0.8rem;
+  background-color:#fff498;
+  border-radius: 1rem;
+  padding:1rem;
+}
