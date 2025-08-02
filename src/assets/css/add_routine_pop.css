@@ -171,7 +171,6 @@
 }
 .form_box_g .detail_box .t_red01 {
 	margin-top:1rem;
-	font-size:0.8rem;
 }
 
 .form_box_g .detail_box .data_fixed {
@@ -179,22 +178,21 @@
 }
 
 .form_box_g .detail_box a.txt {
-	font-size:0.9rem;
 	margin-top:0.5rem;
 	display:block;
 	width:100%;
 }
 
-.form_box_g .detail_box .inner_fix01.alarm {
+.form_box_g .detail_box .inner_fix01.alarm,
+.form_box_g .detail_box .inner_fix01.date {
  	display: flex;
   flex-direction: row;
   align-items: center;       
   justify-content: flex-start;
   gap: 0;
-  text-align: left;
 }
 
-.form_box_g .detail_box .inner_fix01.alarm .toggle {
+.form_box_g .detail_box .inner_fix01 .toggle {
 	margin-left:0
 }
 
@@ -202,6 +200,10 @@
 	width: auto !important;
   align-self: center;    
 	margin-top:0
+}
+.form_box_g .detail_box .inner_fix01.date .toggle:last-child {
+	align-self: center;    
+	margin-right:0;
 }
 
 /* 달력 */

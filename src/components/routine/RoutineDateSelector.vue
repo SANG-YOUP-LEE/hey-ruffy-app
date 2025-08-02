@@ -1,7 +1,7 @@
 <template>
   <div class="form_box_g">
     <div class="detail_box">
-      <div class="inner_fix01">
+      <div class="inner_fix01 date">
         <ToggleSwitch class="toggle" v-model="isStartDateOn" label="시작일 지정" />
         <ToggleSwitch class="toggle" v-model="isEndDateOn" label="종료일 지정" />
       </div>
