@@ -96,8 +96,8 @@ body.blue .checkbox-label input:checked + .checkmark::after {
 
 body .on,
 body.blue .on {
-    background-color:#0994ff;
-    color:#fff;
+    background-color:#0994ff!important;
+    color:#fff!important;
 }
 
 body .light,
@@ -158,9 +158,8 @@ body.red .checkbox-label input:checked + .checkmark::after {
 }
 
 body.red .on  {
-    background-color:#ff4160;
-    color:#fff;
-    border:1px solid #ff4160;
+    background-color:#ff4160!important;;
+    color:#fff!important;;
 }
 
 body.red .light,
@@ -216,9 +215,8 @@ body.green .checkbox-label input:checked + .checkmark::after {
 }
 
 body.green .on  {
-    background-color:#00ac6d;
-    color:#fff;
-    border:1px solid #00ac6d;
+    background-color:#00ac6d!important;;
+    color:#fff!important;;
 }
 
 body.green .light,
@@ -276,9 +274,8 @@ body.bw .checkbox-label input:checked + .checkmark::after {
 }
 
 body.bw .on  {
-    background-color:#ccc;
-    color:#fff;
-    border:1px solid #ccc;
+    background-color:#ccc!important;
+    color:#fff!important;
 }
 
 body.bw .light,
