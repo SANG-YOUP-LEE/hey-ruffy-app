@@ -1,5 +1,5 @@
 <template>
-  <div class="form_box_g limit">
+  <div class="form_box_g">
     <h3>얼마나 자주 지켜야 하나요?</h3>
     <div class="tab">
       <button
@@ -139,13 +139,11 @@ const selectDailyBtn = (btn) => {
   } else {
     if (selectedDaily.value.includes(btn)) {
       selectedDaily.value = selectedDaily.value.filter(d => d !== btn)
-      // 매일 선택된 상태에서 특정 요일이 빠지면 '매일'도 해제
       if (selectedDaily.value.includes('매일') && selectedDaily.value.length < 8) {
         selectedDaily.value = selectedDaily.value.filter(d => d !== '매일')
       }
     } else {
       selectedDaily.value.push(btn)
-      // 모든 요일이 선택되면 자동으로 '매일' 추가
       const allDays = ['월','화','수','목','금','토','일']
       if (allDays.every(day => selectedDaily.value.includes(day))) {
         if (!selectedDaily.value.includes('매일')) {
@@ -162,7 +160,7 @@ const selectWeeklyMain = (btn) => {
 
 const toggleWeeklyDay = (btn) => {
   if (btn === '매일') {
-    if (selectedWeeklyDays.value.includes('')) {
+    if (selectedWeeklyDays.value.includes('매일')) {
       selectedWeeklyDays.value = []
     } else {
       selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']

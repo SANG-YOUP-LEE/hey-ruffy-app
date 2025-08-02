@@ -152,3 +152,40 @@
   transform: translate(-50%, -50%);
   border-radius: 50%;
 }
+
+/*토글 라디오*/
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap:0.3rem;
+  margin:0 auto;
+}
+
+.toggle-label {
+  user-select: none;
+}
+
+.toggle-switch {
+  width:2.5rem;
+  height:1.6rem;
+  background-color: #ccc;
+  border-radius:2rem;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-circle {
+  width:1.2rem;
+  height:1.2rem;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top:0.2rem;
+  left: 0.2rem;
+  transition: transform 0.3s;
+}
+
+.toggle-switch.on .toggle-circle {
+  transform: translateX(0.9rem);
+}

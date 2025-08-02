@@ -7,7 +7,7 @@ import "./assets/css/main.css";
 import "./assets/css/popup.css";
 import "./assets/css/color.css";
 import "./assets/css/custom.css";
-import "./assets/js/common.js";
+import "./assets/js/ui.js";
 
 const app = createApp(App);
 app.use(router);
