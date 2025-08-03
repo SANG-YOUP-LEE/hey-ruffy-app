@@ -19,12 +19,13 @@
         먼저 시작일을 지정해 주세요.
       </div>
 
-      <div v-if="formattedDate" :class="{ data_fixed: formattedDate }">
+      <div v-if="formattedDate" class="data_fixed">
         {{ formattedDate }}
-        <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a> 
+        <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
       </div>
     </div>
 
+    <!-- 작은 팝업 -->
     <DateTimePickerPopup
       v-if="showDatePopup"
       :mode="popupMode"
@@ -36,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
@@ -45,11 +46,58 @@ const isEndDateOn = ref(false)
 const showDatePopup = ref(false)
 const popupMode = ref('start')
 
-const selectedStartDate = ref({ year: '', month: '', day: '' })
-const selectedEndDate = ref({ year: '', month: '', day: '' })
+const selectedStartDate = reactive({ year: '', month: '', day: '' })
+const selectedEndDate = reactive({ year: '', month: '', day: '' })
 const showWarning = ref(false)
 
-// 텍스트 클릭으로 토글 변경
+let scrollY = 0
+let activePopup = null
+
+const preventTouchMove = (e) => {
+  // 자식 팝업 영역 외부는 스크롤 차단
+  if (activePopup && !e.target.closest(activePopup)) {
+    e.preventDefault()
+  }
+}
+
+const lockScroll = (popupSelector) => {
+  activePopup = popupSelector
+  scrollY = window.scrollY
+
+  document.documentElement.classList.add('no-scroll')
+  document.body.classList.add('no-scroll')
+  document.body.style.top = `-${scrollY}px`
+  document.body.style.left = '0'
+  document.body.style.right = '0'
+  document.body.style.width = '100%'
+  document.body.style.position = 'fixed'
+
+  window.addEventListener('touchmove', preventTouchMove, { passive: false })
+}
+
+const unlockScroll = () => {
+  activePopup = null
+  document.documentElement.classList.remove('no-scroll')
+  document.body.classList.remove('no-scroll')
+  document.body.style.position = ''
+  document.body.style.top = ''
+  document.body.style.left = ''
+  document.body.style.right = ''
+  document.body.style.width = ''
+  document.body.style.overflow = ''
+  window.removeEventListener('touchmove', preventTouchMove)
+  window.scrollTo(0, scrollY)
+}
+
+const getTodayObject = () => {
+  const today = new Date()
+  return {
+    year: String(today.getFullYear()),
+    month: String(today.getMonth() + 1),
+    day: String(today.getDate())
+  }
+}
+
 const toggleStartDate = () => {
   isStartDateOn.value = !isStartDateOn.value
 }
@@ -57,71 +105,82 @@ const toggleEndDate = () => {
   isEndDateOn.value = !isEndDateOn.value
 }
 
-// 시작일 토글
 watch(isStartDateOn, (val) => {
   if (val) {
     popupMode.value = 'start'
+    if (!selectedStartDate.year) {
+      Object.assign(selectedStartDate, getTodayObject())
+    }
     showDatePopup.value = true
     showWarning.value = false
+    lockScroll('.com_popup_wrap .popup_inner')
   } else {
-    selectedStartDate.value = { year: '', month: '', day: '' }
+    Object.assign(selectedStartDate, { year: '', month: '', day: '' })
     isEndDateOn.value = false
-    selectedEndDate.value = { year: '', month: '', day: '' }
+    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
   }
 })
 
-// 종료일 토글
 watch(isEndDateOn, (val) => {
   if (val) {
-    if (!selectedStartDate.value.year) {
+    if (!selectedStartDate.year) {
       showWarning.value = true
       isEndDateOn.value = false
     } else {
       popupMode.value = 'end'
+      if (!selectedEndDate.year) {
+        Object.assign(selectedEndDate, { ...selectedStartDate })
+      }
       showDatePopup.value = true
       showWarning.value = false
+      lockScroll('.com_popup_wrap .popup_inner')
     }
   } else {
-    selectedEndDate.value = { year: '', month: '', day: '' }
+    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
   }
 })
 
 const closeDatePopup = () => {
   showDatePopup.value = false
-  if (popupMode.value === 'start' && !selectedStartDate.value.year) {
+  unlockScroll()
+  if (popupMode.value === 'start' && !selectedStartDate.year) {
     isStartDateOn.value = false
   }
-  if (popupMode.value === 'end' && !selectedEndDate.value.year) {
+  if (popupMode.value === 'end' && !selectedEndDate.year) {
     isEndDateOn.value = false
   }
 }
 
 const selectedDateModel = computed({
   get() {
-    return popupMode.value === 'start' ? selectedStartDate.value : selectedEndDate.value
+    return popupMode.value === 'start' ? selectedStartDate : selectedEndDate
   },
   set(val) {
     if (popupMode.value === 'start') {
-      selectedStartDate.value = val
+      Object.assign(selectedStartDate, val)
     } else {
-      selectedEndDate.value = val
+      Object.assign(selectedEndDate, val)
     }
   }
 })
 
 const formattedDate = computed(() => {
-  if (!selectedStartDate.value.year) return ''
-  const start = `${selectedStartDate.value.year}년 ${selectedStartDate.value.month}월 ${selectedStartDate.value.day}일`
-  const end = selectedEndDate.value.year
-    ? ` ~ ${selectedEndDate.value.year}년 ${selectedEndDate.value.month}월 ${selectedEndDate.value.day}일`
+  if (!selectedStartDate.year) return ''
+  const start = `${selectedStartDate.year}년 ${selectedStartDate.month}월 ${selectedStartDate.day}일`
+  const end = selectedEndDate.year
+    ? ` ~ ${selectedEndDate.year}년 ${selectedEndDate.month}월 ${selectedEndDate.day}일`
     : ''
   return start + end
 })
 
 const resetDates = () => {
-  selectedStartDate.value = { year: '', month: '', day: '' }
-  selectedEndDate.value = { year: '', month: '', day: '' }
+  Object.assign(selectedStartDate, { year: '', month: '', day: '' })
+  Object.assign(selectedEndDate, { year: '', month: '', day: '' })
   isStartDateOn.value = false
   isEndDateOn.value = false
 }
+
+onBeforeUnmount(() => {
+  unlockScroll()
+})
 </script>

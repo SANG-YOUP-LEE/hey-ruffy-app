@@ -113,12 +113,3 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
-
-<style>
-html.no-scroll,
-body.no-scroll {
-  overflow: hidden !important;
-  height: 100% !important;
-  touch-action: none !important;
-}
-</style>
