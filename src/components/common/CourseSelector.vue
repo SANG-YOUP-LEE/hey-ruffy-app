@@ -25,7 +25,11 @@
 
       <!-- 팝업 -->
       <div class="speech-bubble-wrapper" v-if="showCoursePopup">
-        <div class="speech-bubble">
+        <!-- 투명 닫기 영역 -->
+        <button class="popup-close-area" @click="closeCoursePopup"></button>
+
+        <!-- 실제 말풍선 -->
+        <div class="speech-bubble" @click.stop>
           <button class="close-btn" @click="closeCoursePopup">
             <img :src="closeIcon" alt="닫기" />
           </button>
@@ -54,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -73,7 +77,6 @@ const courseOptions = [
 
 const showCoursePopup = ref(false)
 const selectedOption = ref('')
-const courseRef = ref(null)
 
 const selectCourse = (value) => {
   emit('update:modelValue', value)
@@ -84,17 +87,4 @@ const selectCourse = (value) => {
 const closeCoursePopup = () => {
   showCoursePopup.value = false
 }
-
-const handleClickOutside = (e) => {
-  if (courseRef.value && !courseRef.value.contains(e.target)) {
-    showCoursePopup.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>

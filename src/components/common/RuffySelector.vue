@@ -1,12 +1,12 @@
 <template>
-  <div class="select_ruffy">
+  <div class="select_ruffy" ref="selectRuffyRef">
     <div class="ruffys" ref="ruffysRef">
       <a
         v-for="option in ruffyOptions"
         :key="option.value"
         href="#none"
         :class="{ on: modelValue === option.value }"
-        @click.prevent="selectRuffy(option.value)"
+        @click.prevent="selectRuffy(option.value, $event)"
       >
         <span class="img"><img :src="option.img" :alt="option.name" /></span>
         <label class="custom-radio">
@@ -27,14 +27,21 @@
       </a>
 
       <!-- 팝업 -->
-      <div class="speech-bubble-wrapper" v-if="showRuffyPopup">
-        <div class="speech-bubble">
+      <div 
+        class="speech-bubble-wrapper"
+        v-if="showRuffyPopup"
+      >
+        <!-- 투명 닫기 버튼 (전체 영역) -->
+        <button class="popup-close-area" @click="closeRuffyPopup"></button>
+
+        <!-- 말풍선 -->
+        <div class="speech-bubble" @click.stop>
           <button class="close-btn" @click="closeRuffyPopup">
             <img :src="closeIcon" alt="닫기" />
           </button>
           <div class="tail" :class="selectedOption"></div>
 
-           <div v-if="selectedOption === 'option1'" class="r_detail01">
+          <div v-if="selectedOption === 'option1'" class="r_detail01">
             <p><span>러피 이미지</span><span>Furry Ruffy</span></p>
             귀여운 잠보 퓨리예요. 움직이기 싫어해서 산책 한번 나가기 힘들지만 막상 나가면 날라날라~ 6개월째 생일날 받은 노란색 안대는 최애템!
           </div>
@@ -57,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -76,9 +83,9 @@ const ruffyOptions = [
 
 const showRuffyPopup = ref(false)
 const selectedOption = ref('')
-const ruffysRef = ref(null)
 
-const selectRuffy = (value) => {
+const selectRuffy = (value, event) => {
+  event.stopPropagation()
   emit('update:modelValue', value)
   selectedOption.value = value
   showRuffyPopup.value = true
@@ -87,17 +94,5 @@ const selectRuffy = (value) => {
 const closeRuffyPopup = () => {
   showRuffyPopup.value = false
 }
-
-const handleClickOutside = (e) => {
-  if (ruffysRef.value && !ruffysRef.value.contains(e.target)) {
-    showRuffyPopup.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
+

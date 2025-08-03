@@ -262,3 +262,20 @@
   height: 100%;
   display: block;
 }
+
+
+.popup-close-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:transparent;
+  border: none;
+  cursor: default;
+  z-index: 1000;
+}
+.speech-bubble {
+  position: relative;
+  z-index: 2;
+}

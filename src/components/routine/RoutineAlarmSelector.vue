@@ -38,6 +38,8 @@ watch(isAlarmOn, (val) => {
   if (val) {
     showAlarmPopup.value = true
   } else {
+    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
+    showDataFixed.value = false
     showAlarmPopup.value = false
   }
 })

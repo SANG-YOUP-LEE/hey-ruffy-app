@@ -46,6 +46,9 @@ watch(isStartDateOn, (val) => {
     popupMode.value = 'start'
     showDatePopup.value = true
     showWarning.value = false
+  } else {
+    // 토글 OFF 시 기존 시작일 삭제
+    selectedStartDate.value = { year: '', month: '', day: '' }
   }
 })
 
@@ -60,6 +63,9 @@ watch(isEndDateOn, (val) => {
       showDatePopup.value = true
       showWarning.value = false
     }
+  } else {
+    // 토글 OFF 시 기존 종료일 삭제
+    selectedEndDate.value = { year: '', month: '', day: '' }
   }
 })
 
