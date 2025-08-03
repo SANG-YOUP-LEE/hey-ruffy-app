@@ -6,26 +6,30 @@
     </div>
     <div class="goal_select">
       <div class="custom-radio-group row">
+        <!-- 5회 -->
         <label class="custom-radio">
-          <input type="radio" name="choice" value="goal1" />
+          <input type="radio" id="goal1" name="goal" value="goal1" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal1">5회</label>
 
-        <label class="custom-radio ">
-          <input type="radio" name="choice" value="goal2" />
+        <!-- 10회 -->
+        <label class="custom-radio">
+          <input type="radio" id="goal2" name="goal" value="goal2" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal2">10회</label>
 
+        <!-- 15회 -->
         <label class="custom-radio">
-          <input type="radio" name="choice" value="goal3" />
+          <input type="radio" id="goal3" name="goal" value="goal3" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal3">15회</label>
 
-         <label class="custom-radio">
-          <input type="radio" name="choice" value="goal4" />
+        <!-- 20회 -->
+        <label class="custom-radio">
+          <input type="radio" id="goal4" name="goal" value="goal4" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal4">20회</label>

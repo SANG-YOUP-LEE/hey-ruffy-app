@@ -39,31 +39,38 @@ const updateIndexFromScroll = () => {
 }
 
 const handleScroll = () => {
-  // 1) 실시간으로 currentIndex 반영
   updateIndexFromScroll()
 
-  // 2) 스크롤 멈춘 후 부드럽게 중앙 정렬
   if (scrollTimer) clearTimeout(scrollTimer)
   scrollTimer = setTimeout(() => {
     scrollToIndex(Math.round(container.value.scrollTop / itemHeight))
   }, 100)
 }
+
 const scrollToIndex = (index) => {
   const start = container.value.scrollTop
   const end = index * itemHeight
-  const duration = 300
-  let startTime = null
+  const distance = Math.abs(end - start)
 
-  const animateScroll = (time) => {
-    if (!startTime) startTime = time
-    const progress = Math.min((time - startTime) / duration, 1)
-    const ease = 0.5 - Math.cos(progress * Math.PI) / 2
-    container.value.scrollTop = start + (end - start) * ease
-    if (progress < 1) {
-      requestAnimationFrame(animateScroll)
+  // 멀리 이동할 때는 즉시 이동
+  if (distance > itemHeight * 3) {
+    container.value.scrollTop = end
+  } else {
+    // 가까운 이동만 부드럽게 스냅
+    const duration = 120
+    let startTime = null
+    const animateScroll = (time) => {
+      if (!startTime) startTime = time
+      const progress = Math.min((time - startTime) / duration, 1)
+      const ease = 0.5 - Math.cos(progress * Math.PI) / 2
+      container.value.scrollTop = start + (end - start) * ease
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll)
+      }
     }
+    requestAnimationFrame(animateScroll)
   }
-  requestAnimationFrame(animateScroll)
+
   currentIndex.value = index
   emit('update:modelValue', props.options[index])
 }

@@ -13,6 +13,7 @@
   scroll-snap-type: y mandatory;
   text-align: center;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto; /* 기본 스크롤 속도 빠르게 */
 }
 
 .wheel-container::-webkit-scrollbar {
@@ -93,7 +94,7 @@
 .custom-radio-group.row label.radio-desc {
   margin:0 0.5rem 0 0.5rem;
   display:flex;
-  margin-left:-0.2rem
+  margin-left:0rem
 }
 
 .custom-radio {

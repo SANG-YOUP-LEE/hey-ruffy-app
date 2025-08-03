@@ -67,8 +67,10 @@ const years = computed(() => {
 
 // 월 옵션
 const months = computed(() => {
-  const selectedYear = parseInt(localValue.value.year) || minYear.value
-  const startMonth = selectedYear === minYear.value ? minMonth.value : 1
+  const selectedYear = parseInt(localValue.value.year ?? minYear.value)
+  const startMonth = (props.mode === 'end' && selectedYear === minYear.value)
+    ? minMonth.value
+    : 1
   return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
 })
 
@@ -76,28 +78,32 @@ const months = computed(() => {
 const days = ref([])
 
 const updateDays = () => {
-  const y = parseInt(localValue.value.year) || minYear.value
-  const m = parseInt(localValue.value.month) || minMonth.value
+  const y = parseInt(localValue.value.year ?? minYear.value)
+  const m = parseInt(localValue.value.month ?? minMonth.value)
   const lastDay = new Date(y, m, 0).getDate()
-  const startDay = (y === minYear.value && m === minMonth.value) ? minDay.value : 1
+
+  // 시작일 모드일 경우 1일부터 허용
+  const startDay =
+    props.mode === 'end' && y === minYear.value && m === minMonth.value
+      ? minDay.value
+      : 1
+
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 유효하지 않은 날짜 자동 보정
+  // 유효하지 않은 날짜 선택 시 첫 값으로 보정
   if (!newDays.includes(localValue.value.day)) {
     localValue.value.day = newDays[0]
   }
 }
 
 watch([() => localValue.value.year, () => localValue.value.month], () => {
-  // 월 값 보정
   if (!months.value.includes(localValue.value.month)) {
     localValue.value.month = months.value[0]
   }
   updateDays()
 }, { immediate: true })
 
-// 연도 변경 시 월·일 값 보정
 watch(() => localValue.value.year, () => {
   if (!months.value.includes(localValue.value.month)) {
     localValue.value.month = months.value[0]
