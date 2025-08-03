@@ -11,9 +11,9 @@
       <!-- 다짐 주기 설정 -->
       <RoutineRepeatSelector />
       <!-- 시작일·종료일 설정 -->
-      <RoutineDateSelector />
+      <RoutineDateSelector @open-subpopup="handleSubPopupOpen" @close-subpopup="handleSubPopupClose" />
       <!-- 알람 설정 -->
-      <RoutineAlarmSelector />
+      <RoutineAlarmSelector @open-subpopup="handleSubPopupOpen" @close-subpopup="handleSubPopupClose" />
       <!-- 러피 선택 -->
       <RoutineRuffySelector />
       <!-- 산책코스 선택 -->
@@ -51,6 +51,7 @@ import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const emit = defineEmits(['close'])
 const popupInner = ref(null)
+const isSubPopupOpen = ref(false)
 
 /* 팝업 닫기 */
 const closePopup = () => {
@@ -62,33 +63,36 @@ const saveRoutine = () => {
   emit('close')
 }
 
-/* 큰 팝업 열릴 때 body 스크롤 막기 */
+/* body 스크롤 막기 */
+const lockScroll = (e) => {
+  if (isSubPopupOpen.value) {
+    e.preventDefault()
+  }
+}
+
 onMounted(() => {
   document.body.style.overflow = 'hidden'
+  document.addEventListener('touchmove', lockScroll, { passive: false })
 })
 
-/* 팝업이 완전히 닫히면 스크롤 복구 */
 onBeforeUnmount(() => {
   document.body.style.overflow = ''
+  document.removeEventListener('touchmove', lockScroll)
 })
 
-/* 작은 팝업 열릴 때 에드루틴셀렉터 스크롤 막기 */
-const disableScroll = () => {
+/* 작은 팝업 열릴 때 */
+const handleSubPopupOpen = () => {
+  isSubPopupOpen.value = true
   if (popupInner.value) {
     popupInner.value.style.overflow = 'hidden'
   }
 }
 
-const enableScroll = () => {
+/* 작은 팝업 닫힐 때 */
+const handleSubPopupClose = () => {
+  isSubPopupOpen.value = false
   if (popupInner.value) {
     popupInner.value.style.overflow = 'auto'
   }
 }
-
-/* 
-작은 팝업 컴포넌트에서 
-emit('open-subpopup') → disableScroll()
-emit('close-subpopup') → enableScroll()
-호출하도록 구현하면 됨
-*/
 </script>
