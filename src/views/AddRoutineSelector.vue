@@ -38,7 +38,8 @@
 </template>
 
 <script setup>
-import {onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
 import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
@@ -50,68 +51,30 @@ import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelecto
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const emit = defineEmits(['close'])
-let scrollY = 0
+const popupInner = ref(null)
 
-const preventScroll = (e) => {
-  // 팝업 영역 외부 터치 시 스크롤 차단
-  if (!e.target.closest('.popup_wrap')) {
-    e.preventDefault()
-  }
-}
-
-/* 스크롤 잠금 */
-const lockScroll = () => {
-  scrollY = window.scrollY
-
-  // iOS 크롬 대응
-  document.body.style.position = 'fixed'
-  document.body.style.top = `-${scrollY}px`
-  document.body.style.left = '0'
-  document.body.style.right = '0'
-  document.body.style.width = '100%'
-  document.body.style.overflow = 'hidden'
-  document.body.style.touchAction = 'none'
-  document.documentElement.style.overflow = 'hidden'
-  document.documentElement.style.touchAction = 'none'
-
-  // iOS 크롬 스크롤 완전 차단
-  window.addEventListener('touchmove', preventScroll, { passive: false })
-  window.addEventListener('wheel', preventScroll, { passive: false })
-}
-
-/* 스크롤 해제 */
-const unlockScroll = () => {
-  document.body.style.position = ''
-  document.body.style.top = ''
-  document.body.style.left = ''
-  document.body.style.right = ''
-  document.body.style.width = ''
-  document.body.style.overflow = ''
-  document.body.style.touchAction = ''
-  document.documentElement.style.overflow = ''
-  document.documentElement.style.touchAction = ''
-
-  window.removeEventListener('touchmove', preventScroll)
-  window.removeEventListener('wheel', preventScroll)
-
-  window.scrollTo(0, scrollY)
-}
-
+/* 팝업 닫기 */
 const closePopup = () => {
-  unlockScroll()
+  enableBodyScroll(popupInner.value)
   emit('close')
 }
 
+/* 다짐 저장하기 */
 const saveRoutine = () => {
-  unlockScroll()
+  enableBodyScroll(popupInner.value)
   emit('close')
 }
 
 onMounted(() => {
-  lockScroll()
+  if (popupInner.value) {
+    disableBodyScroll(popupInner.value, { reserveScrollBarGap: true })
+  }
 })
 
 onBeforeUnmount(() => {
-  unlockScroll()
+  if (popupInner.value) {
+    enableBodyScroll(popupInner.value)
+  }
+  clearAllBodyScrollLocks()
 })
 </script>
