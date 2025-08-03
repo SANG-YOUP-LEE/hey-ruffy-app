@@ -2,12 +2,15 @@
   <div class="form_box_g">
     <div class="detail_box">
       <div class="inner_fix01 alarm">
-        <ToggleSwitch class="toggle" v-model="isAlarmOn" label="알람 설정" />
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="isAlarmOn" />
+          <span class="toggle-text" @click="toggleAlarm">알람 설정</span>
+        </div>
         <a href="#none" class="txt">알람 먼저 허용하기</a>
       </div>
 
       <!-- 알람 시간과 삭제 버튼 -->
-      <div class="data_fixed" v-if="showDataFixed">
+      <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">
           {{ formattedAlarm }}
         </div>
@@ -34,6 +37,10 @@ const showAlarmPopup = ref(false)
 const selectedAlarm = ref({ ampm: '', hour: '', minute: '' })
 const showDataFixed = ref(false)
 
+const toggleAlarm = () => {
+  isAlarmOn.value = !isAlarmOn.value
+}
+
 watch(isAlarmOn, (val) => {
   if (val) {
     showAlarmPopup.value = true
@@ -46,9 +53,10 @@ watch(isAlarmOn, (val) => {
 
 const handlePopupClose = () => {
   showAlarmPopup.value = false
-  // 알람이 선택되어 있으면 data_fixed 표시
   if (selectedAlarm.value.hour) {
     showDataFixed.value = true
+  } else {
+    isAlarmOn.value = false
   }
 }
 

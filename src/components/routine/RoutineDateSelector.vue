@@ -2,8 +2,17 @@
   <div class="form_box_g">
     <div class="detail_box">
       <div class="inner_fix01 date">
-        <ToggleSwitch class="toggle" v-model="isStartDateOn" label="시작일 지정" />
-        <ToggleSwitch class="toggle" v-model="isEndDateOn" label="종료일 지정" />
+        <!-- 시작일 -->
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="isStartDateOn" />
+          <span class="toggle-text" @click="toggleStartDate">시작일 지정</span>
+        </div>
+
+        <!-- 종료일 -->
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="isEndDateOn" />
+          <span class="toggle-text" @click="toggleEndDate">종료일 지정</span>
+        </div>
       </div>
 
       <div v-if="showWarning" class="t_red01">
@@ -40,6 +49,14 @@ const selectedStartDate = ref({ year: '', month: '', day: '' })
 const selectedEndDate = ref({ year: '', month: '', day: '' })
 const showWarning = ref(false)
 
+// 텍스트 클릭으로 토글 변경
+const toggleStartDate = () => {
+  isStartDateOn.value = !isStartDateOn.value
+}
+const toggleEndDate = () => {
+  isEndDateOn.value = !isEndDateOn.value
+}
+
 // 시작일 토글
 watch(isStartDateOn, (val) => {
   if (val) {
@@ -47,8 +64,9 @@ watch(isStartDateOn, (val) => {
     showDatePopup.value = true
     showWarning.value = false
   } else {
-    // 토글 OFF 시 기존 시작일 삭제
     selectedStartDate.value = { year: '', month: '', day: '' }
+    isEndDateOn.value = false
+    selectedEndDate.value = { year: '', month: '', day: '' }
   }
 })
 
@@ -64,22 +82,17 @@ watch(isEndDateOn, (val) => {
       showWarning.value = false
     }
   } else {
-    // 토글 OFF 시 기존 종료일 삭제
     selectedEndDate.value = { year: '', month: '', day: '' }
   }
 })
 
 const closeDatePopup = () => {
   showDatePopup.value = false
-
-  if (popupMode.value === 'start') {
-    if (!selectedStartDate.value.year) {
-      isStartDateOn.value = false
-    }
-  } else {
-    if (!selectedEndDate.value.year) {
-      isEndDateOn.value = false
-    }
+  if (popupMode.value === 'start' && !selectedStartDate.value.year) {
+    isStartDateOn.value = false
+  }
+  if (popupMode.value === 'end' && !selectedEndDate.value.year) {
+    isEndDateOn.value = false
   }
 }
 
@@ -105,7 +118,6 @@ const formattedDate = computed(() => {
   return start + end
 })
 
-// 지정일 전체 초기화
 const resetDates = () => {
   selectedStartDate.value = { year: '', month: '', day: '' }
   selectedEndDate.value = { year: '', month: '', day: '' }

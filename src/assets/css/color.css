@@ -137,7 +137,7 @@ body.red [class$="basic"] {
 body.red [class$="white"],
 body.red .on_w {
   background-color: #fff;
-  border:0.1px solid #ff4160;
+  border:1px solid #ff4160;
   color: #ff4160;
 }
 
@@ -274,7 +274,7 @@ body.bw .checkbox-label input:checked + .checkmark::after {
 }
 
 body.bw .on  {
-    background-color:#ccc!important;
+    background-color:#333!important;
     color:#fff!important;
 }
 
