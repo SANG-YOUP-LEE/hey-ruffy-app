@@ -50,6 +50,17 @@ import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelec
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
+const today = new Date()
+const defaultDate = {
+  year: today.getFullYear().toString(),
+  month: (today.getMonth() + 1).toString(),
+  day: today.getDate().toString()
+}
+
+const startDate = ref({ ...defaultDate })
+const endDate = ref({ ...defaultDate })
+
+
 const emit = defineEmits(['close'])
 let scrollY = 0
 

@@ -6,9 +6,9 @@
       </div>
       <div class="title date light"><span>년</span><span>월</span><span>일</span></div>
       <div class="popup_body picker_group">
-        <WheelPicker v-model="localValue.year" :options="years" />
-        <WheelPicker v-model="localValue.month" :options="months" />
-        <WheelPicker v-model="localValue.day" :options="days" />
+        <VueScrollPicker v-model="localValue.year" :options="years" />
+        <VueScrollPicker v-model="localValue.month" :options="months" />
+        <VueScrollPicker v-model="localValue.day" :options="days" />
       </div>
       <div class="popup_btm">
         <button @click="confirmSelection" class="p_basic">확인</button>
@@ -20,7 +20,6 @@
 
 <script setup>
 import { ref, watch, computed, nextTick } from 'vue'
-import WheelPicker from './WheelPicker.vue'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -59,7 +58,7 @@ const popupTitle = computed(() => {
 })
 
 const years = computed(() => {
-  return Array.from({ length: 50 }, (_, i) => minYear.value + i).map(String)
+  return Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
 })
 
 const months = computed(() => {
@@ -78,16 +77,13 @@ const updateDays = () => {
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 자동 보정 시 오늘 날짜 우선 적용
-  const preferredDay = (y === baseYear && m === baseMonth) ? String(baseDay) : newDays[0]
+  // 선택된 날짜가 유효하지 않을 때만 보정
   if (!newDays.includes(localValue.value.day)) {
-    localValue.value.day = preferredDay
-
-    // emit을 지연 호출 (scrollTop → highlight 순서 보장)
+    localValue.value.day = (y === baseYear && m === baseMonth)
+      ? String(baseDay)
+      : newDays[newDays.length - 1] // 마지막 날짜로 보정
     nextTick(() => {
-      nextTick(() => {
-        emit('update:modelValue', { ...localValue.value })
-      })
+      emit('update:modelValue', { ...localValue.value })
     })
   }
 }

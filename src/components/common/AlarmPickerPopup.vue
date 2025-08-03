@@ -8,9 +8,9 @@
         <span>AM/PM</span><span>시</span><span>분</span>
       </div>
       <div class="popup_body picker_group">
-        <WheelPicker v-model="localValue.ampm" :options="ampmOptions" />
-        <WheelPicker v-model="localValue.hour" :options="hourOptions" />
-        <WheelPicker v-model="localValue.minute" :options="minuteOptions" />
+        <VueScrollPicker v-model="localValue.ampm" :options="ampmOptions" />
+        <VueScrollPicker v-model="localValue.hour" :options="hourOptions" />
+        <VueScrollPicker v-model="localValue.minute" :options="minuteOptions" />
       </div>
       <div class="popup_btm">
         <button @click="confirmSelection" class="p_basic">확인</button>
@@ -22,7 +22,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import WheelPicker from './WheelPicker.vue'
 
 const props = defineProps({
   modelValue: { 

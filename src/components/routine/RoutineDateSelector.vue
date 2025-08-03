@@ -41,13 +41,19 @@ import { ref, watch, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
+const props = defineProps({
+  startDate: { type: Object, default: () => ({ year:'', month:'', day:'' }) },
+  endDate: { type: Object, default: () => ({ year:'', month:'', day:'' }) }
+})
+const emit = defineEmits(['update:startDate', 'update:endDate'])
+
 const isStartDateOn = ref(false)
 const isEndDateOn = ref(false)
 const showDatePopup = ref(false)
 const popupMode = ref('start')
 
-const selectedStartDate = reactive({ year: '', month: '', day: '' })
-const selectedEndDate = reactive({ year: '', month: '', day: '' })
+const selectedStartDate = reactive({ ...props.startDate })
+const selectedEndDate = reactive({ ...props.endDate })
 const showWarning = ref(false)
 
 let scrollY = 0
