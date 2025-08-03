@@ -53,32 +53,35 @@ const emit = defineEmits(['close'])
 const popupInner = ref(null)
 const isSubPopupOpen = ref(false)
 
+let scrollY = 0
+
 /* 팝업 닫기 */
 const closePopup = () => {
+  unlockScroll()
   emit('close')
 }
 
 /* 다짐 저장하기 */
 const saveRoutine = () => {
+  unlockScroll()
   emit('close')
 }
 
-/* body 스크롤 막기 */
-const lockScroll = (e) => {
-  if (isSubPopupOpen.value) {
-    e.preventDefault()
-  }
+/* 스크롤 잠금 */
+const lockScroll = () => {
+  scrollY = window.scrollY
+  document.body.style.position = 'fixed'
+  document.body.style.top = `-${scrollY}px`
+  document.body.style.width = '100%'
 }
 
-onMounted(() => {
-  document.body.style.overflow = 'hidden'
-  document.addEventListener('touchmove', lockScroll, { passive: false })
-})
-
-onBeforeUnmount(() => {
-  document.body.style.overflow = ''
-  document.removeEventListener('touchmove', lockScroll)
-})
+/* 스크롤 해제 */
+const unlockScroll = () => {
+  document.body.style.position = ''
+  document.body.style.top = ''
+  document.body.style.width = ''
+  window.scrollTo(0, scrollY)
+}
 
 /* 작은 팝업 열릴 때 */
 const handleSubPopupOpen = () => {
@@ -95,4 +98,12 @@ const handleSubPopupClose = () => {
     popupInner.value.style.overflow = 'auto'
   }
 }
+
+onMounted(() => {
+  lockScroll()
+})
+
+onBeforeUnmount(() => {
+  unlockScroll()
+})
 </script>
