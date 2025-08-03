@@ -53,25 +53,43 @@ import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 const emit = defineEmits(['close'])
 let scrollY = 0
 
+// iOS에서 배경 터치 스크롤 차단
+const preventTouchMove = (e) => {
+  if (!e.target.closest('.popup_wrap')) {
+    e.preventDefault()
+  }
+}
+
 /* 스크롤 잠금 */
 const lockScroll = () => {
   scrollY = window.scrollY
-  document.body.style.position = 'fixed'
+
+  // html, body 모두 차단
+  document.documentElement.classList.add('no-scroll')
+  document.body.classList.add('no-scroll')
+
   document.body.style.top = `-${scrollY}px`
   document.body.style.left = '0'
   document.body.style.right = '0'
   document.body.style.width = '100%'
-  document.body.style.overflow = 'hidden'
+  document.body.style.position = 'fixed'
+
+  window.addEventListener('touchmove', preventTouchMove, { passive: false })
 }
 
 /* 스크롤 해제 */
 const unlockScroll = () => {
+  document.documentElement.classList.remove('no-scroll')
+  document.body.classList.remove('no-scroll')
+
   document.body.style.position = ''
   document.body.style.top = ''
   document.body.style.left = ''
   document.body.style.right = ''
   document.body.style.width = ''
   document.body.style.overflow = ''
+
+  window.removeEventListener('touchmove', preventTouchMove)
   window.scrollTo(0, scrollY)
 }
 
@@ -95,3 +113,12 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
+
+<style>
+html.no-scroll,
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+  touch-action: none !important;
+}
+</style>
