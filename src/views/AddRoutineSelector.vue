@@ -38,7 +38,16 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue'
+import {onMounted, onBeforeUnmount } from 'vue'
+import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
+import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
+import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
+import RoutineAlarmSelector from '@/components/routine/RoutineAlarmSelector.vue'
+import RoutineRuffySelector from '@/components/routine/RoutineRuffySelector.vue'
+import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vue'
+import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
+import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
+import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const emit = defineEmits(['close'])
 let scrollY = 0

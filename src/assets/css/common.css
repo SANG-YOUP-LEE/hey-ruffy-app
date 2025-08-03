@@ -37,6 +37,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   text-align: center;
+  overscroll-behavior: none;
 }
 
 .no-touch {
