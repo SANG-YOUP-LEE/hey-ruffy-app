@@ -11,9 +11,9 @@
       <!-- 다짐 주기 설정 -->
       <RoutineRepeatSelector />
       <!-- 시작일·종료일 설정 -->
-      <RoutineDateSelector @open-subpopup="handleSubPopupOpen" @close-subpopup="handleSubPopupClose" />
+      <RoutineDateSelector />
       <!-- 알람 설정 -->
-      <RoutineAlarmSelector @open-subpopup="handleSubPopupOpen" @close-subpopup="handleSubPopupClose" />
+      <RoutineAlarmSelector />
       <!-- 러피 선택 -->
       <RoutineRuffySelector />
       <!-- 산책코스 선택 -->
@@ -70,9 +70,11 @@ const saveRoutine = () => {
 /* 스크롤 잠금 */
 const lockScroll = () => {
   scrollY = window.scrollY
-  document.body.style.position = 'fixed'
   document.body.style.top = `-${scrollY}px`
+  document.body.style.position = 'fixed'
   document.body.style.width = '100%'
+  document.body.style.overflow = 'hidden'
+  document.documentElement.style.overflow = 'hidden'
 }
 
 /* 스크롤 해제 */
@@ -80,23 +82,9 @@ const unlockScroll = () => {
   document.body.style.position = ''
   document.body.style.top = ''
   document.body.style.width = ''
+  document.body.style.overflow = ''
+  document.documentElement.style.overflow = ''
   window.scrollTo(0, scrollY)
-}
-
-/* 작은 팝업 열릴 때 */
-const handleSubPopupOpen = () => {
-  isSubPopupOpen.value = true
-  if (popupInner.value) {
-    popupInner.value.style.overflow = 'hidden'
-  }
-}
-
-/* 작은 팝업 닫힐 때 */
-const handleSubPopupClose = () => {
-  isSubPopupOpen.value = false
-  if (popupInner.value) {
-    popupInner.value.style.overflow = 'auto'
-  }
 }
 
 onMounted(() => {

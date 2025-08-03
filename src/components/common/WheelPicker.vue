@@ -40,7 +40,6 @@ const updateIndexFromScroll = () => {
 
 const handleScroll = () => {
   updateIndexFromScroll()
-
   if (scrollTimer) clearTimeout(scrollTimer)
   scrollTimer = setTimeout(() => {
     scrollToIndex(Math.round(container.value.scrollTop / itemHeight))
@@ -48,31 +47,16 @@ const handleScroll = () => {
 }
 
 const scrollToIndex = (index) => {
-  const start = container.value.scrollTop
-  const end = index * itemHeight
-  const distance = Math.abs(end - start)
-
-  // 멀리 이동할 때는 즉시 이동
-  if (distance > itemHeight * 3) {
-    container.value.scrollTop = end
-  } else {
-    // 가까운 이동만 부드럽게 스냅
-    const duration = 120
-    let startTime = null
-    const animateScroll = (time) => {
-      if (!startTime) startTime = time
-      const progress = Math.min((time - startTime) / duration, 1)
-      const ease = 0.5 - Math.cos(progress * Math.PI) / 2
-      container.value.scrollTop = start + (end - start) * ease
-      if (progress < 1) {
-        requestAnimationFrame(animateScroll)
-      }
-    }
-    requestAnimationFrame(animateScroll)
-  }
-
+  if (index < 0 || index >= props.options.length) return
+  container.value.scrollTop = index * itemHeight
   currentIndex.value = index
   emit('update:modelValue', props.options[index])
+}
+
+const forceScrollEvent = () => {
+  requestAnimationFrame(() => {
+    updateIndexFromScroll()
+  })
 }
 
 onMounted(() => {
@@ -80,13 +64,17 @@ onMounted(() => {
     spacerHeight.value = (container.value.clientHeight - itemHeight) / 2
     const idx = props.options.indexOf(props.modelValue)
     scrollToIndex(idx !== -1 ? idx : 0)
+    forceScrollEvent()
   })
 })
 
 watch(() => props.modelValue, (val) => {
   const idx = props.options.indexOf(val)
   if (idx !== -1 && idx !== currentIndex.value) {
-    scrollToIndex(idx)
+    nextTick(() => {
+      scrollToIndex(idx)
+      forceScrollEvent()
+    })
   }
 })
 </script>

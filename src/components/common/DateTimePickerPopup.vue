@@ -19,25 +19,23 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import WheelPicker from './WheelPicker.vue'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
-  mode: { type: String, default: 'start' },   // start or end
-  minDate: { type: Object, default: () => ({}) } // 종료일용 최소 시작일
+  mode: { type: String, default: 'start' },
+  minDate: { type: Object, default: () => ({}) }
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
 const localValue = ref({ ...props.modelValue })
 
-// 오늘 날짜
 const today = new Date()
 const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
 const baseDay = today.getDate()
 
-// 종료일이면 시작일 이후를 최소값으로 지정
 const minYear = computed(() => {
   return props.mode === 'end' && props.minDate.year
     ? parseInt(props.minDate.year)
@@ -60,19 +58,16 @@ const popupTitle = computed(() => {
   return props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
 })
 
-// 연도 옵션
 const years = computed(() => {
   return Array.from({ length: 50 }, (_, i) => minYear.value + i).map(String)
 })
 
-// 월 옵션
 const months = computed(() => {
   const selectedYear = parseInt(localValue.value.year) || minYear.value
   const startMonth = selectedYear === minYear.value ? minMonth.value : 1
   return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
 })
 
-// 일 옵션
 const days = ref([])
 
 const updateDays = () => {
@@ -83,32 +78,29 @@ const updateDays = () => {
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 유효하지 않은 날짜 자동 보정
+  // 자동 보정 시 오늘 날짜 우선 적용
+  const preferredDay = (y === baseYear && m === baseMonth) ? String(baseDay) : newDays[0]
   if (!newDays.includes(localValue.value.day)) {
-    localValue.value.day = newDays[0]
+    localValue.value.day = preferredDay
+
+    // emit을 지연 호출 (scrollTop → highlight 순서 보장)
+    nextTick(() => {
+      nextTick(() => {
+        emit('update:modelValue', { ...localValue.value })
+      })
+    })
   }
 }
 
 watch([() => localValue.value.year, () => localValue.value.month], () => {
-  // 월 값 보정
   if (!months.value.includes(localValue.value.month)) {
     localValue.value.month = months.value[0]
   }
   updateDays()
 }, { immediate: true })
 
-// 연도 변경 시 월·일 값 보정
-watch(() => localValue.value.year, () => {
-  if (!months.value.includes(localValue.value.month)) {
-    localValue.value.month = months.value[0]
-  }
-  updateDays()
-})
-
 const confirmSelection = () => {
   emit('update:modelValue', { ...localValue.value })
   emit('close')
 }
-
-
 </script>

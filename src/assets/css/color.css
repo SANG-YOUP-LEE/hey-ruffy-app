@@ -194,7 +194,7 @@ body.green [class$="basic"]  {
 body.green [class$="white"],
 body.green .on_w {
   background-color: #fff;
-  border:0.1px solid #00ac6d;
+  border:1px solid #00ac6d;
   color: #00ac6d;
 }
 
@@ -253,7 +253,7 @@ body.bw [class$="basic"]  {
 body.bw [class$="white"],
 body.bw .on_w {
   background-color: #fff;
-  border:0.1px solid #333;
+  border:1px solid #333;
   color: #333;
 }
 
