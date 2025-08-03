@@ -10,7 +10,6 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
-    "body-scroll-lock": "^4.0.0-beta.0",
     "dayjs": "^1.11.13",
     "firebase": "^11.9.1",
     "pinia": "^3.0.1",
