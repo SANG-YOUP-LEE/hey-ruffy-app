@@ -25,7 +25,7 @@ import WheelPicker from './WheelPicker.vue'
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
   mode: { type: String, default: 'start' },   // start or end
-  minDate: { type: Object, default: () => ({}) } // 종료일용 최소 시작일
+  minDate: { type: Object, default: () => ({}) }
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
@@ -37,75 +37,90 @@ const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
 const baseDay = today.getDate()
 
-// 종료일이면 시작일 이후를 최소값으로 지정
+// 안전한 숫자 변환 (빈값만 기본값으로 대체)
+const safeNumber = (val, fallback) => {
+  return (val === undefined || val === null || val === '') ? fallback : Number(val)
+}
+
 const minYear = computed(() => {
-  return props.mode === 'end' && props.minDate.year
-    ? parseInt(props.minDate.year)
-    : baseYear
+  if (props.mode === 'end' && props.minDate.year) {
+    return Number(props.minDate.year)
+  }
+  return baseYear
 })
 
 const minMonth = computed(() => {
-  return props.mode === 'end' && props.minDate.month
-    ? parseInt(props.minDate.month)
-    : baseMonth
+  const selectedYear = safeNumber(localValue.value.year, minYear.value)
+  if (props.mode === 'end' && props.minDate.month) {
+    return selectedYear === Number(props.minDate.year) ? Number(props.minDate.month) : 1
+  }
+  if (props.mode === 'start') {
+    return selectedYear === baseYear ? baseMonth : 1
+  }
+  return 1
 })
 
 const minDay = computed(() => {
-  return props.mode === 'end' && props.minDate.day
-    ? parseInt(props.minDate.day)
-    : baseDay
+  const selectedYear = safeNumber(localValue.value.year, minYear.value)
+  const selectedMonth = safeNumber(localValue.value.month, minMonth.value)
+
+  if (props.mode === 'end' && props.minDate.day) {
+    if (
+      selectedYear === Number(props.minDate.year) &&
+      selectedMonth === Number(props.minDate.month)
+    ) {
+      return Number(props.minDate.day)
+    }
+  }
+
+  if (props.mode === 'start') {
+    if (selectedYear === baseYear && selectedMonth === baseMonth) {
+      return baseDay
+    }
+  }
+  return 1
 })
 
 const popupTitle = computed(() => {
   return props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
 })
 
-// 연도 옵션
 const years = computed(() => {
-  return Array.from({ length: 50 }, (_, i) => minYear.value + i).map(String)
+  return Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
 })
 
-// 월 옵션
 const months = computed(() => {
-  const selectedYear = parseInt(localValue.value.year ?? minYear.value)
-  const startMonth = (props.mode === 'end' && selectedYear === minYear.value)
-    ? minMonth.value
-    : 1
+  const selectedYear = safeNumber(localValue.value.year, minYear.value)
+  const startMonth = selectedYear === minYear.value ? minMonth.value : 1
   return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
 })
 
-// 일 옵션
 const days = ref([])
 
 const updateDays = () => {
-  const y = parseInt(localValue.value.year ?? minYear.value)
-  const m = parseInt(localValue.value.month ?? minMonth.value)
+  const y = safeNumber(localValue.value.year, minYear.value)
+  const m = safeNumber(localValue.value.month, minMonth.value)
   const lastDay = new Date(y, m, 0).getDate()
-
-  // 시작일 모드일 경우 1일부터 허용
-  const startDay =
-    props.mode === 'end' && y === minYear.value && m === minMonth.value
-      ? minDay.value
-      : 1
+  const startDay = minDay.value
 
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 유효하지 않은 날짜 선택 시 첫 값으로 보정
-  if (!newDays.includes(localValue.value.day)) {
+  // day 값이 없거나 유효하지 않을 때만 보정 (1은 정상 허용)
+  if (!localValue.value.day || !newDays.includes(String(localValue.value.day))) {
     localValue.value.day = newDays[0]
   }
 }
 
 watch([() => localValue.value.year, () => localValue.value.month], () => {
-  if (!months.value.includes(localValue.value.month)) {
+  if (!months.value.includes(String(localValue.value.month))) {
     localValue.value.month = months.value[0]
   }
   updateDays()
 }, { immediate: true })
 
 watch(() => localValue.value.year, () => {
-  if (!months.value.includes(localValue.value.month)) {
+  if (!months.value.includes(String(localValue.value.month))) {
     localValue.value.month = months.value[0]
   }
   updateDays()
