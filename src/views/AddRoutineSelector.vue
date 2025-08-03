@@ -50,21 +50,13 @@ import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelecto
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const emit = defineEmits(['close'])
-const popupInner = ref(null)
-const isSubPopupOpen = ref(false)
-
 let scrollY = 0
 
-/* 팝업 닫기 */
-const closePopup = () => {
-  unlockScroll()
-  emit('close')
-}
-
-/* 다짐 저장하기 */
-const saveRoutine = () => {
-  unlockScroll()
-  emit('close')
+const preventTouchMove = (e) => {
+  // 팝업 외부 스크롤 차단
+  if (!e.target.closest('.popup_wrap')) {
+    e.preventDefault()
+  }
 }
 
 /* 스크롤 잠금 */
@@ -74,7 +66,12 @@ const lockScroll = () => {
   document.body.style.position = 'fixed'
   document.body.style.width = '100%'
   document.body.style.overflow = 'hidden'
+  document.body.style.touchAction = 'none'
   document.documentElement.style.overflow = 'hidden'
+  document.documentElement.style.touchAction = 'none'
+
+  // 모바일에서 터치 스크롤 완전 차단
+  document.addEventListener('touchmove', preventTouchMove, { passive: false })
 }
 
 /* 스크롤 해제 */
@@ -83,8 +80,22 @@ const unlockScroll = () => {
   document.body.style.top = ''
   document.body.style.width = ''
   document.body.style.overflow = ''
+  document.body.style.touchAction = ''
   document.documentElement.style.overflow = ''
+  document.documentElement.style.touchAction = ''
+
+  document.removeEventListener('touchmove', preventTouchMove)
   window.scrollTo(0, scrollY)
+}
+
+const closePopup = () => {
+  unlockScroll()
+  emit('close')
+}
+
+const saveRoutine = () => {
+  unlockScroll()
+  emit('close')
 }
 
 onMounted(() => {
