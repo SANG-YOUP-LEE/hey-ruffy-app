@@ -66,33 +66,27 @@ const saveRoutine = () => {
   emit('close')
 }
 
-/* 큰 팝업 열릴 때 - body 스크롤 차단 */
 onMounted(() => {
-  if (popupInner.value) {
-    disableBodyScroll(popupInner.value, {
-      reserveScrollBarGap: true,
-      /* 작은 팝업(데이터피커 등) 스크롤 허용 */
-      allowTouchMove: (el) => {
-        while (el && el !== document.body) {
-          if (
-            el.classList.contains('popup_inner') ||
-            el.classList.contains('date_picker_popup') || 
-            el.classList.contains('wheel-container') || 
-            el.classList.contains('scrollable')
-          ) {
-            return true
-          }
-          el = el.parentElement
+  disableBodyScroll(document.body, {
+    reserveScrollBarGap: true,
+    allowTouchMove: (el) => {
+      while (el && el !== document.body) {
+        if (
+          el.classList.contains('popup_inner') || 
+          el.classList.contains('date_picker_popup') ||
+          el.classList.contains('wheel-container')
+        ) {
+          return true
         }
-        return false
+        el = el.parentElement
       }
-    })
-  }
+      return false
+    }
+  })
 })
 
-/* 닫힐 때 body 스크롤 복원 */
 onBeforeUnmount(() => {
-  if (popupInner.value) enableBodyScroll(popupInner.value)
+  enableBodyScroll(document.body)
   clearAllBodyScrollLocks()
 })
 </script>
