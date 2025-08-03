@@ -5,6 +5,7 @@
       <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
     </div>
 
+    <!-- 내부 스크롤 영역 -->
     <div class="popup_inner" ref="popupInner">
       <!-- 다짐명 입력 -->
       <RoutineTitleInput />
@@ -53,28 +54,45 @@ import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 const emit = defineEmits(['close'])
 const popupInner = ref(null)
 
-/* 팝업 닫기 */
+/* 닫기 버튼 */
 const closePopup = () => {
-  enableBodyScroll(popupInner.value)
+  if (popupInner.value) enableBodyScroll(popupInner.value)
   emit('close')
 }
 
-/* 다짐 저장하기 */
+/* 다짐 저장 버튼 */
 const saveRoutine = () => {
-  enableBodyScroll(popupInner.value)
+  if (popupInner.value) enableBodyScroll(popupInner.value)
   emit('close')
 }
 
+/* 큰 팝업 열릴 때 - body 스크롤 차단 */
 onMounted(() => {
   if (popupInner.value) {
-    disableBodyScroll(popupInner.value, { reserveScrollBarGap: true })
+    disableBodyScroll(popupInner.value, {
+      reserveScrollBarGap: true,
+      /* 작은 팝업(데이터피커 등) 스크롤 허용 */
+      allowTouchMove: (el) => {
+        while (el && el !== document.body) {
+          if (
+            el.classList.contains('popup_inner') ||
+            el.classList.contains('date_picker_popup') || 
+            el.classList.contains('wheel-container') || 
+            el.classList.contains('scrollable')
+          ) {
+            return true
+          }
+          el = el.parentElement
+        }
+        return false
+      }
+    })
   }
 })
 
+/* 닫힐 때 body 스크롤 복원 */
 onBeforeUnmount(() => {
-  if (popupInner.value) {
-    enableBodyScroll(popupInner.value)
-  }
+  if (popupInner.value) enableBodyScroll(popupInner.value)
   clearAllBodyScrollLocks()
 })
 </script>
