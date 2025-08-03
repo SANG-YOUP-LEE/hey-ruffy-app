@@ -1,3 +1,9 @@
+html.no-scroll,
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+  touch-action: none !important;
+}
 
 .com_popup_wrap {
   position: fixed;
@@ -10,8 +16,19 @@
   align-items: center;
   justify-content: center;
   z-index: 999;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
+/* 작은 팝업 내부 스크롤 허용 */
+.com_popup_wrap .popup_inner,
+.com_popup_wrap .popup_inner .date_picker_popup,
+.com_popup_wrap .popup_inner .wheel-container,
+.com_popup_wrap .popup_inner .scrollable {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  touch-action: auto;
+}
 
 .com_popup_wrap .popup_inner {
   width: 90%;
