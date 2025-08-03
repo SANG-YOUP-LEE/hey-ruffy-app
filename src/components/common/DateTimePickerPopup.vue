@@ -6,9 +6,27 @@
       </div>
       <div class="title date light"><span>년</span><span>월</span><span>일</span></div>
       <div class="popup_body picker_group">
-        <VueScrollPicker v-model="localValue.year" :options="years" />
-        <VueScrollPicker v-model="localValue.month" :options="months" />
-        <VueScrollPicker v-model="localValue.day" :options="days" />
+        <VueScrollPicker
+          v-model="localValue.year"
+          :options="years"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
+        />
+        <VueScrollPicker
+          v-model="localValue.month"
+          :options="months"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
+        />
+        <VueScrollPicker
+          v-model="localValue.day"
+          :options="days"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
+        />
       </div>
       <div class="popup_btm">
         <button @click="confirmSelection" class="p_basic">확인</button>

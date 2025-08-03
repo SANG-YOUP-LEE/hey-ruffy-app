@@ -8,9 +8,27 @@
         <span>AM/PM</span><span>시</span><span>분</span>
       </div>
       <div class="popup_body picker_group">
-        <VueScrollPicker v-model="localValue.ampm" :options="ampmOptions" />
-        <VueScrollPicker v-model="localValue.hour" :options="hourOptions" />
-        <VueScrollPicker v-model="localValue.minute" :options="minuteOptions" />
+        <VueScrollPicker
+          v-model="localValue.ampm"
+          :options="ampmOptions"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
+        />
+        <VueScrollPicker
+          v-model="localValue.hour"
+          :options="hourOptions"
+          :drag-sensitivity="4"
+          :touch-sensitivity="4"
+          :scroll-sensitivity="3"
+        />
+        <VueScrollPicker
+          v-model="localValue.minute"
+          :options="minuteOptions"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
+        />
       </div>
       <div class="popup_btm">
         <button @click="confirmSelection" class="p_basic">확인</button>
