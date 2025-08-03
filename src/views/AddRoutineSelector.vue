@@ -38,22 +38,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
-import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
-import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
-import RoutineAlarmSelector from '@/components/routine/RoutineAlarmSelector.vue'
-import RoutineRuffySelector from '@/components/routine/RoutineRuffySelector.vue'
-import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vue'
-import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
-import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
-import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
+import { onMounted, onBeforeUnmount } from 'vue'
 
 const emit = defineEmits(['close'])
 let scrollY = 0
 
-const preventTouchMove = (e) => {
-  // 팝업 외부 스크롤 차단
+const preventScroll = (e) => {
+  // 팝업 영역 외부 터치 시 스크롤 차단
   if (!e.target.closest('.popup_wrap')) {
     e.preventDefault()
   }
@@ -62,29 +53,38 @@ const preventTouchMove = (e) => {
 /* 스크롤 잠금 */
 const lockScroll = () => {
   scrollY = window.scrollY
-  document.body.style.top = `-${scrollY}px`
+
+  // iOS 크롬 대응
   document.body.style.position = 'fixed'
+  document.body.style.top = `-${scrollY}px`
+  document.body.style.left = '0'
+  document.body.style.right = '0'
   document.body.style.width = '100%'
   document.body.style.overflow = 'hidden'
   document.body.style.touchAction = 'none'
   document.documentElement.style.overflow = 'hidden'
   document.documentElement.style.touchAction = 'none'
 
-  // 모바일에서 터치 스크롤 완전 차단
-  document.addEventListener('touchmove', preventTouchMove, { passive: false })
+  // iOS 크롬 스크롤 완전 차단
+  window.addEventListener('touchmove', preventScroll, { passive: false })
+  window.addEventListener('wheel', preventScroll, { passive: false })
 }
 
 /* 스크롤 해제 */
 const unlockScroll = () => {
   document.body.style.position = ''
   document.body.style.top = ''
+  document.body.style.left = ''
+  document.body.style.right = ''
   document.body.style.width = ''
   document.body.style.overflow = ''
   document.body.style.touchAction = ''
   document.documentElement.style.overflow = ''
   document.documentElement.style.touchAction = ''
 
-  document.removeEventListener('touchmove', preventTouchMove)
+  window.removeEventListener('touchmove', preventScroll)
+  window.removeEventListener('wheel', preventScroll)
+
   window.scrollTo(0, scrollY)
 }
 
