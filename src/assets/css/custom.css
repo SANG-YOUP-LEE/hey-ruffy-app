@@ -72,15 +72,14 @@
 }
 
 .vue-scroll-picker-layer-selection {
-  top: calc(50% - 1.2rem); /* 띠 높이 조정 */
+  top: calc(50% - 1.2rem);
   bottom: calc(50% - 1.2rem);
-  background-color: #333; /* 바탕 회색 */
-  border-radius: 1rem;
-  z-index: 2;
-}
+ }
 
 
 .vue-scroll-picker-item[aria-selected='true'] {
+  color:#000!important;
+  font-weight:bold!important;
  }
 
 /* 체크 박스 */
