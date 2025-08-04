@@ -67,12 +67,12 @@
   top: 0;
   height: calc(50% - 1em);
   cursor: pointer;
-  background-color:red!important
 }
 
 .vue-scroll-picker-layer-selection {
   top: calc(50% - 1em);
   bottom: calc(50% - 1em);
+  background-color:#fff!important
 }
 
 .vue-scroll-picker-layer-bottom {
