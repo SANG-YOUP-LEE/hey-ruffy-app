@@ -74,6 +74,7 @@
 .vue-scroll-picker-layer-selection {
   top: calc(50% - 1em);
   bottom: calc(50% - 1em);
+  background: transparent !important;
 }
 
 
