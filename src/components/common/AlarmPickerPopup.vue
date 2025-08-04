@@ -16,15 +16,15 @@
           :scroll-sensitivity="2"
         />
         <VueScrollPicker
-          v-model="localValue.hour"
-          :options="hourOptions"
-          :drag-sensitivity="4"
-          :touch-sensitivity="4"
-          :scroll-sensitivity="3"
+          v-model="selectedHour"
+          :options="hourLoopOptions"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
         />
         <VueScrollPicker
-          v-model="localValue.minute"
-          :options="minuteOptions"
+          v-model="selectedMinute"
+          :options="minuteLoopOptions"
           :drag-sensitivity="3"
           :touch-sensitivity="3"
           :scroll-sensitivity="2"
@@ -39,44 +39,43 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
-  modelValue: { 
-    type: Object, 
-    default: () => ({ ampm: 'AM', hour: '7', minute: '00' }) 
+  modelValue: {
+    type: Object,
+    default: () => ({ ampm: 'AM', hour: '07', minute: '00' })
   }
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
 const localValue = ref({ ...props.modelValue })
 
-// 옵션
+// AM/PM 고정
 const ampmOptions = ['AM', 'PM']
-const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1))
-const minuteOptions = Array.from({ length: 60 }, (_, i) => i < 10 ? '0' + i : String(i))
 
-const preventScroll = (e) => {
-  e.preventDefault()
-}
-const lockBodyScroll = () => {
-  document.body.style.overflow = 'hidden'
-  document.body.addEventListener('touchmove', preventScroll, { passive: false })
-}
-const unlockBodyScroll = () => {
-  document.body.style.overflow = ''
-  document.body.removeEventListener('touchmove', preventScroll)
-}
+// 무한 스크롤용 반복 생성
+const rawHours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+const rawMinutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 
-onMounted(() => {
-  lockBodyScroll()
-})
-onBeforeUnmount(() => {
-  unlockBodyScroll()
-})
+const loopCount = 100
+const hourLoopOptions = Array.from({ length: rawHours.length * loopCount }, (_, i) => rawHours[i % 12])
+const minuteLoopOptions = Array.from({ length: rawMinutes.length * loopCount }, (_, i) => rawMinutes[i % 60])
 
+// 중앙값에서 시작
+const hourIndex = hourLoopOptions.findIndex((val, i) => i > hourLoopOptions.length / 2 && val === props.modelValue.hour.padStart(2, '0'))
+const minuteIndex = minuteLoopOptions.findIndex((val, i) => i > minuteLoopOptions.length / 2 && val === props.modelValue.minute.padStart(2, '0'))
+
+const selectedHour = ref(hourIndex !== -1 ? hourLoopOptions[hourIndex] : '07')
+const selectedMinute = ref(minuteIndex !== -1 ? minuteLoopOptions[minuteIndex] : '00')
+
+// 확인 → 안전하게 emit
 const confirmSelection = () => {
-  emit('update:modelValue', { ...localValue.value })
+  emit('update:modelValue', {
+    ampm: localValue.value.ampm || 'AM',
+    hour: selectedHour.value || '07',
+    minute: selectedMinute.value || '00'
+  })
   emit('close')
 }
 </script>
