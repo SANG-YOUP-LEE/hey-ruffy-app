@@ -1,20 +1,26 @@
 /*  휠피커 스타일 */
 .vue-scroll-picker {
-  background-color:#f9f9f9!important
+  border:1px solid red!important;
+  background-color:red!important
 }
 .vue-scroll-picker-wrapper {
+  border:1px solid green!important;
   background-color:green!important
 }
 .vue-scroll-picker-viewport {
+  border:1px solid yellow!important;
   background-color:yellow!important
 }
 .vue-scroll-picker-content {
+  border:1px solid pink!important;
   background-color:pink!important
 }
 .vue-scroll-picker-item {
+  border:1px solid light-blue!important;
   background-color:light-blue!important
 }
 .vue-scroll-picker-item-selected {
+  border:1px solid purple!important;
   background-color:purple!important
 }
 
