@@ -39,8 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center; 
-  font-family:'GongGothicMedium';
-  font-weight:lighter;
+  font-family:'S-CoreDream-3Light';
 }
 
 #header .title p span {
