@@ -1,7 +1,7 @@
 <template>
   <div id="main_wrap">
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
-    <LnbView v-if="showLnb" />
+    <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
   
     <!--main view-->
     <div id="main_body">
