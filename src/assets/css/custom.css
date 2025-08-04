@@ -22,25 +22,26 @@
   text-align: center;
   font-family: 'SUIT-Regular'!important;
   font-size: 1.2rem!important;
-  line-height: 1.8rem!important;
-  color: red!important;
+  line-height: 2rem!important;
+  color: #666!important;
   letter-spacing:-0.01rem!important;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
   color: #000!important;
+  font-weight:bold;
   font-size:1.4rem!important
   
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
-  color: purple!important;
+  color: #9a9a9a!important;
 }
 
 .vue-scroll-picker-item[data-value=''][aria-selected='true'],
 .vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
-  color: red!important;
+  color: #666!important;
 }
 
 .vue-scroll-picker-layer {
