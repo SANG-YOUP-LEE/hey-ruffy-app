@@ -59,7 +59,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
-const localValue = ref({ ...props.modelValue }) // 원본 유지용
+const localValue = ref({ ...props.modelValue }) // 원본 복사
 const skipEmit = ref(true) // 초기 emit 방지
 
 const today = new Date()
@@ -125,12 +125,14 @@ const updateDays = () => {
   }
 }
 
-// 초기 날짜가 비어있을 경우 기본 세팅
 onMounted(() => {
   const val = localValue.value
-  if (!val.year) localValue.value.year = String(minYear.value)
-  if (!val.month) localValue.value.month = String(minMonth.value)
-  if (!val.day) localValue.value.day = String(minDay.value)
+  const isEmpty = !val.year && !val.month && !val.day
+  if (isEmpty) {
+    localValue.value.year = String(minYear.value)
+    localValue.value.month = String(minMonth.value)
+    localValue.value.day = String(minDay.value)
+  }
   updateDays()
   nextTick(() => { skipEmit.value = false })
 })
@@ -151,6 +153,7 @@ const confirmSelection = () => {
 }
 
 const handleCancel = () => {
-  emit('close') // 값은 그대로 두고 팝업만 닫기
+  skipEmit.value = true // 혹시 이후 반응 방지
+  emit('close') // 값 변경 없이 닫기
 }
 </script>
