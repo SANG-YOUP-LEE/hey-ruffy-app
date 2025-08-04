@@ -39,9 +39,7 @@
 <script setup>
 import { ref, watch, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
-const preventScroll = (e) => {
-  e.preventDefault()
-}
+const preventScroll = (e) => e.preventDefault()
 const lockBodyScroll = () => {
   document.body.style.overflow = 'hidden'
   document.body.addEventListener('touchmove', preventScroll, { passive: false })
@@ -61,81 +59,91 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
-const localValue = ref({ ...props.modelValue })
-const skipEmit = ref(true) // 초기 로딩 시 emit 방지
+const localValue = ref({ ...props.modelValue }) // 원본 유지용
+const skipEmit = ref(true) // 초기 emit 방지
 
 const today = new Date()
 const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
 const baseDay = today.getDate()
 
-const minYear = computed(() => {
-  return props.mode === 'end' && props.minDate.year
+const minYear = computed(() =>
+  props.mode === 'end' && props.minDate.year
     ? parseInt(props.minDate.year)
     : baseYear
-})
-
-const minMonth = computed(() => {
-  return props.mode === 'end' && props.minDate.month
+)
+const minMonth = computed(() =>
+  props.mode === 'end' && props.minDate.month
     ? parseInt(props.minDate.month)
     : baseMonth
-})
-
-const minDay = computed(() => {
-  return props.mode === 'end' && props.minDate.day
+)
+const minDay = computed(() =>
+  props.mode === 'end' && props.minDate.day
     ? parseInt(props.minDate.day)
     : baseDay
-})
+)
 
-const popupTitle = computed(() => {
-  return props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
-})
+const popupTitle = computed(() =>
+  props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
+)
 
-const years = computed(() => {
-  return Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
-})
+const years = computed(() =>
+  Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
+)
 
 const months = computed(() => {
-  const selectedYear = parseInt(localValue.value.year) || minYear.value
-  const startMonth = selectedYear === minYear.value ? minMonth.value : 1
+  const selectedYear = parseInt(localValue.value.year)
+  const y = isNaN(selectedYear) ? minYear.value : selectedYear
+  const startMonth = y === minYear.value ? minMonth.value : 1
   return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
 })
 
 const days = ref([])
 
 const updateDays = () => {
-  const y = parseInt(localValue.value.year) || minYear.value
-  const m = parseInt(localValue.value.month) || minMonth.value
+  const y = parseInt(localValue.value.year)
+  const m = parseInt(localValue.value.month)
+
+  if (isNaN(y) || isNaN(m)) {
+    days.value = []
+    return
+  }
+
   const lastDay = new Date(y, m, 0).getDate()
   const startDay = (y === minYear.value && m === minMonth.value) ? minDay.value : 1
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
   if (!newDays.includes(localValue.value.day)) {
-    localValue.value.day = (y === baseYear && m === baseMonth)
-      ? String(baseDay)
-      : newDays[newDays.length - 1]
+    localValue.value.day = newDays[newDays.length - 1]
+  }
 
-    // 여기서 emit 방지
-    if (!skipEmit.value) {
-      nextTick(() => {
-        emit('update:modelValue', { ...localValue.value })
-      })
-    }
+  if (!skipEmit.value) {
+    nextTick(() => {
+      emit('update:modelValue', { ...localValue.value })
+    })
   }
 }
 
-watch([() => localValue.value.year, () => localValue.value.month], () => {
-  if (!months.value.includes(localValue.value.month)) {
-    localValue.value.month = months.value[0]
-  }
+// 초기 날짜가 비어있을 경우 기본 세팅
+onMounted(() => {
+  const val = localValue.value
+  if (!val.year) localValue.value.year = String(minYear.value)
+  if (!val.month) localValue.value.month = String(minMonth.value)
+  if (!val.day) localValue.value.day = String(minDay.value)
   updateDays()
+  nextTick(() => { skipEmit.value = false })
 })
 
-// 초기 emit 방지용
-nextTick(() => {
-  skipEmit.value = false
-})
+watch(
+  [() => localValue.value.year, () => localValue.value.month],
+  () => {
+    if (!months.value.includes(localValue.value.month)) {
+      localValue.value.month = months.value[0]
+    }
+    updateDays()
+  }
+)
 
 const confirmSelection = () => {
   emit('update:modelValue', { ...localValue.value })
@@ -143,6 +151,6 @@ const confirmSelection = () => {
 }
 
 const handleCancel = () => {
-  emit('close') // 그냥 닫기만
+  emit('close') // 값은 그대로 두고 팝업만 닫기
 }
 </script>
