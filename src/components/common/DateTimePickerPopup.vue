@@ -30,7 +30,7 @@
       </div>
       <div class="popup_btm">
         <button @click="confirmSelection" class="p_basic">확인</button>
-        <button @click="$emit('close')" class="p_white">취소</button>
+        <button @click="handleCancel" class="p_white">취소</button>
       </div>
     </div>
   </div>
@@ -51,12 +51,8 @@ const unlockBodyScroll = () => {
   document.body.removeEventListener('touchmove', preventScroll)
 }
 
-onMounted(() => {
-  lockBodyScroll()
-})
-onBeforeUnmount(() => {
-  unlockBodyScroll()
-})
+onMounted(lockBodyScroll)
+onBeforeUnmount(unlockBodyScroll)
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -66,6 +62,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'close'])
 
 const localValue = ref({ ...props.modelValue })
+const skipEmit = ref(true) // 초기 로딩 시 emit 방지
 
 const today = new Date()
 const baseYear = today.getFullYear()
@@ -114,14 +111,17 @@ const updateDays = () => {
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 선택된 날짜가 유효하지 않을 때만 보정
   if (!newDays.includes(localValue.value.day)) {
     localValue.value.day = (y === baseYear && m === baseMonth)
       ? String(baseDay)
-      : newDays[newDays.length - 1] // 마지막 날짜로 보정
-    nextTick(() => {
-      emit('update:modelValue', { ...localValue.value })
-    })
+      : newDays[newDays.length - 1]
+
+    // 여기서 emit 방지
+    if (!skipEmit.value) {
+      nextTick(() => {
+        emit('update:modelValue', { ...localValue.value })
+      })
+    }
   }
 }
 
@@ -130,10 +130,19 @@ watch([() => localValue.value.year, () => localValue.value.month], () => {
     localValue.value.month = months.value[0]
   }
   updateDays()
-}, { immediate: true })
+})
+
+// 초기 emit 방지용
+nextTick(() => {
+  skipEmit.value = false
+})
 
 const confirmSelection = () => {
   emit('update:modelValue', { ...localValue.value })
   emit('close')
+}
+
+const handleCancel = () => {
+  emit('close') // 그냥 닫기만
 }
 </script>
