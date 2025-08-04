@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   modelValue: { 
@@ -55,6 +55,25 @@ const localValue = ref({ ...props.modelValue })
 const ampmOptions = ['AM', 'PM']
 const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1))
 const minuteOptions = Array.from({ length: 60 }, (_, i) => i < 10 ? '0' + i : String(i))
+
+const preventScroll = (e) => {
+  e.preventDefault()
+}
+const lockBodyScroll = () => {
+  document.body.style.overflow = 'hidden'
+  document.body.addEventListener('touchmove', preventScroll, { passive: false })
+}
+const unlockBodyScroll = () => {
+  document.body.style.overflow = ''
+  document.body.removeEventListener('touchmove', preventScroll)
+}
+
+onMounted(() => {
+  lockBodyScroll()
+})
+onBeforeUnmount(() => {
+  unlockBodyScroll()
+})
 
 const confirmSelection = () => {
   emit('update:modelValue', { ...localValue.value })
