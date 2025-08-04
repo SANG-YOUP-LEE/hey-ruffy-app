@@ -10,6 +10,35 @@
   
       <!-- 다짐 추가 팝업 -->
       <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
+      a<br />a<br />a<br />
     </div>
     <!--/main view-->
   
