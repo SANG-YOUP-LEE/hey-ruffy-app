@@ -28,10 +28,12 @@
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-  color: #000!important;
-  font-weight:bold;
-  font-size:1.4rem!important
-  
+  color: #fff !important;
+  font-weight: bold!important;
+  font-size: 1.4rem !important;
+  background-color: #333 !important;
+  border-radius: 1rem !important;
+  padding: 0.2rem 0.5rem; /* 선택 영역 안쪽 여백 (필요에 따라 조절) */
 }
 
 .vue-scroll-picker-item[data-value=''],
@@ -72,6 +74,10 @@
 .vue-scroll-picker-layer-selection {
   top: calc(50% - 1em);
   bottom: calc(50% - 1em);
+  background-color: transparent; /* 배경 안 입힐 경우 */
+  border-radius: 1rem;
+  z-index: 1;
+  pointer-events: none; /* 클릭 막음 */
 }
 
 .vue-scroll-picker-layer-bottom {
