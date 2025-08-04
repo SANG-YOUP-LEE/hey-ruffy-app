@@ -70,4 +70,8 @@ const formattedAlarm = computed(() => {
   if (!selectedAlarm.value.hour) return ''
   return `${selectedAlarm.value.ampm} ${selectedAlarm.value.hour}시 ${selectedAlarm.value.minute}분`
 })
+
+defineExpose({
+  selectedAlarm
+})
 </script>

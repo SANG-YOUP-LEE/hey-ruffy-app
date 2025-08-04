@@ -8,7 +8,19 @@
         type="text"
         placeholder="ex)외로워도 슬퍼도 탄수화물 끊기"
         class="uline"
+        v-model="title"
       />
     </p>
   </div>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+
+const title = ref('')
+
+// 부모에서 접근할 수 있도록 노출
+defineExpose({
+  title
+})
+</script>

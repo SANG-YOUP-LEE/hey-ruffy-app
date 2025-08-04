@@ -189,4 +189,11 @@ const resetDates = () => {
 onBeforeUnmount(() => {
   unlockScroll()
 })
+
+defineExpose({
+  startDate: selectedStartDate,
+  endDate: selectedEndDate
+})
+
 </script>
+

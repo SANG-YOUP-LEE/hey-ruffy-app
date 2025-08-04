@@ -37,3 +37,23 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref } from 'vue'
+
+const goalCount = ref(0)
+
+const handleChange = (event) => {
+  const map = {
+    goal1: 5,
+    goal2: 10,
+    goal3: 15,
+    goal4: 20
+  }
+  goalCount.value = map[event.target.value] || 0
+}
+
+defineExpose({
+  goalCount
+})
+</script>

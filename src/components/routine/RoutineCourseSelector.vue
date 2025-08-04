@@ -10,4 +10,9 @@ import { ref } from 'vue'
 import CourseSelector from '@/components/common/CourseSelector.vue'
 
 const selectedCourse = ref('')
+
+defineExpose({
+  course: selectedCourse
+})
+
 </script>

@@ -10,4 +10,9 @@ import { ref } from 'vue'
 import RuffySelector from '@/components/common/RuffySelector.vue'
 
 const selectedRuffy = ref('')
+
+defineExpose({
+  ruffy: selectedRuffy
+})
+
 </script>
