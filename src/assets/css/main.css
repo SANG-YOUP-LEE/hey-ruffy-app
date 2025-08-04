@@ -44,13 +44,12 @@
 }
 
 #header .title p span {
-  width:1.8rem;
-  height:1.8rem;
-  margin-right:0.2rem;
+  width:2rem;
+  height:2rem;
+  margin-right:0.3rem;
   display:inline-block;
   font-size:0;
   line-hgith:0;
-  border:1px solid red;
 }
 
 #header .title p span.ruffy01 {
