@@ -49,11 +49,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
+
 
 const isAddRoutineOpen = ref(false)
 
@@ -61,17 +62,17 @@ function openAddRoutine() {
   isAddRoutineOpen.value = true
 }
 
-/*main body height*/
+function setVh() {
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+
 onMounted(() => {
-  const setVh = () => {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-  }
-  setVh();
-  window.addEventListener('resize', setVh);
-});
+  setVh()
+  window.addEventListener('resize', setVh)
+})
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', setVh);
-});
+  window.removeEventListener('resize', setVh)
+})
 </script>
