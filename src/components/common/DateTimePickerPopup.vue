@@ -48,15 +48,19 @@ onBeforeUnmount(unlockBodyScroll)
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
-  mode: { type: String, default: 'start' },
-  minDate: { type: Object, default: () => ({}) }
+  mode: { type: String, default: 'start' }, // 'start' 또는 'end'
+  minDate: { type: Object, default: () => ({}) } // 종료일 팝업일 때는 시작일 정보가 들어옴
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
-// 최초 데이터 복사
-const localValue = ref({ ...props.modelValue })
-
 const today = new Date()
+const localValue = ref({ ...props.modelValue })
+const originalValue = { ...props.modelValue }
+
+const popupTitle = computed(() =>
+  props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
+)
+
 const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
 const baseDay = today.getDate()
@@ -75,10 +79,6 @@ const minDay = computed(() =>
   props.mode === 'end' && props.minDate.day
     ? parseInt(props.minDate.day)
     : baseDay
-)
-
-const popupTitle = computed(() =>
-  props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
 )
 
 const years = computed(() =>
@@ -113,9 +113,12 @@ const updateDays = () => {
 }
 
 onMounted(() => {
-  if (!localValue.value.year) localValue.value.year = String(minYear.value)
-  if (!localValue.value.month) localValue.value.month = String(minMonth.value)
-  if (!localValue.value.day) localValue.value.day = String(minDay.value)
+  const v = localValue.value
+  if (!v.year || !v.month || !v.day) {
+    localValue.value.year = String(minYear.value)
+    localValue.value.month = String(minMonth.value)
+    localValue.value.day = String(minDay.value)
+  }
   updateDays()
 })
 
@@ -135,6 +138,7 @@ const confirmSelection = () => {
 }
 
 const handleCancel = () => {
+  localValue.value = { ...originalValue } // 값 복구
   emit('close')
 }
 </script>
