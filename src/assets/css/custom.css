@@ -5,6 +5,7 @@
   height: 10em;
   overflow: hidden;
   user-select: none;
+  background-color:#f9f9f9;
 }
 
 .vue-scroll-picker-rotator {
@@ -23,18 +24,18 @@
   font-family: 'SUIT-Regular'!important;
   font-size: 1.2rem!important;
   line-height: 2rem!important;
-  color: #666!important;
+  color: #aaa!important;
   letter-spacing:-0.01rem!important;
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
-  color: #9a9a9a!important;
+  color: #aaa!important;
 }
 
 .vue-scroll-picker-item[data-value=''][aria-selected='true'],
 .vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
-  color: #666!important;
+  color: #aaa!important;
 }
 
 .vue-scroll-picker-layer {
@@ -58,7 +59,7 @@
   border-bottom:none!important;
   background: linear-gradient(180deg,transparent 50%,#fff)!important;
   top: 0;
-  height: calc(50% - 1.2em);
+  height: calc(50% - 1.4em);
   cursor: pointer;
 }
 
@@ -67,13 +68,13 @@
   border-top:none!important;
   background: linear-gradient(0deg,transparent 50%,#fff)!important;
   bottom: 0;
-  height: calc(50% - 1.2em);
+  height: calc(50% - 1.4em);
   cursor: pointer;
 }
 
 .vue-scroll-picker-layer-selection {
-  top: calc(50% - 1.2rem);
-  bottom: calc(50% - 1.2rem);
+  top: calc(50% - 1.4rem);
+  bottom: calc(50% - 1.4rem);
  }
 
 
