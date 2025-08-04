@@ -58,7 +58,7 @@
   border-bottom:none!important;
   background: linear-gradient(180deg,transparent 50%,#fff)!important;
   top: 0;
-  height: calc(50% - 1em);
+  height: calc(50% - 1.2em);
   cursor: pointer;
 }
 
@@ -67,14 +67,16 @@
   border-top:none!important;
   background: linear-gradient(0deg,transparent 50%,#fff)!important;
   bottom: 0;
-  height: calc(50% - 1em);
+  height: calc(50% - 1.2em);
   cursor: pointer;
 }
 
 .vue-scroll-picker-layer-selection {
-  top: calc(50% - 1em);
-  bottom: calc(50% - 1em);
-  background: transparent !important;
+  top: calc(50% - 1.2rem); /* 띠 높이 조정 */
+  bottom: calc(50% - 1.2rem);
+  background-color: #333; /* 바탕 회색 */
+  border-radius: 1rem;
+  z-index: 2;
 }
 
 
