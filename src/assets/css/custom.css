@@ -21,14 +21,15 @@
 .vue-scroll-picker-item {
   text-align: center;
   font-family: 'SUIT-Regular'!important;
-  font-size: 1rem!important;
-  line-height: 1.5rem!important;
+  font-size: 1.2rem!important;
+  line-height: 1.8rem!important;
   color: red!important;
   letter-spacing:-0.01rem!important;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-  color: green!important;
+  color: #000!important;
+  font-size:1.4rem!important(
 }
 
 .vue-scroll-picker-item[data-value=''],
