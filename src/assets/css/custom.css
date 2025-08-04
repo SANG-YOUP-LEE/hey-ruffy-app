@@ -1,27 +1,47 @@
 /*  휠피커 스타일 */
 .vue-scroll-picker {
-  border:1px solid red!important;
-  background-color:red!important
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
 }
+
 .vue-scroll-picker-wrapper {
-  border:1px solid green!important;
-  background-color:green!important
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
 }
+
 .vue-scroll-picker-viewport {
-  border:1px solid yellow!important;
-  background-color:yellow!important
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
 }
+
 .vue-scroll-picker-content {
-  border:1px solid pink!important;
-  background-color:pink!important
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
+
 .vue-scroll-picker-item {
-  border:1px solid light-blue!important;
-  background-color:light-blue!important
+  height: 40px;
+  line-height: 40px;
+  font-size: 16px;
+  text-align: center;
+  color: #999;
+  scroll-snap-align: center;
 }
+
 .vue-scroll-picker-item-selected {
-  border:1px solid purple!important;
-  background-color:purple!important
+  color: #000;
+  font-weight: bold;
+  font-size: 18px;
 }
 
 /* 체크 박스 */
