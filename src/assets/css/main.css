@@ -13,6 +13,7 @@
   align-items: center;
   padding: 0 1rem; 
   box-sizing: border-box;
+  border-bottom:1px solid #ddd
 }
 
 #header .left,
@@ -28,15 +29,16 @@
 
 #header .title h1 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 2rem;
 }
 
 #header .title p {
   margin: 0;
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 1.2rem;
 }
 
+#lnb {
+}
 #footer {
   height: 50px;
   flex-shrink: 0;
