@@ -23,12 +23,12 @@
   font-family: 'SUIT-Regular', 'Apple SD Gothic Neo', sans-serif;
   font-size: 1rem;
   line-height: 1.5rem;
-  color: red;
+  color: red!important;
   letter-spacing:-0.01rem;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-  color: #007bff;
+  color: green;
 }
 
 .vue-scroll-picker-item[data-value=''],
