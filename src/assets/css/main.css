@@ -37,6 +37,15 @@
   margin: 0;
   font-size: 0.8rem;
   letter-spacing:-0.02rem;
+  display: flex;
+  align-items: center;
+}
+
+#header .title p span {
+  width:1rem;
+  height:1rem;
+  background-color:red;
+  display:inline-block;
 }
 
 #lnb {
