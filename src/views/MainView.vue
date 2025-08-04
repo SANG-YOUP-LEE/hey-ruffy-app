@@ -60,4 +60,18 @@ const isAddRoutineOpen = ref(false)
 function openAddRoutine() {
   isAddRoutineOpen.value = true
 }
+
+/*main body height*/
+onMounted(() => {
+  const setVh = () => {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  setVh();
+  window.addEventListener('resize', setVh);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', setVh);
+});
 </script>
