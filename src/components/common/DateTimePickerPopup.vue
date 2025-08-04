@@ -61,10 +61,6 @@ const unlockBodyScroll = () => {
 onMounted(lockBodyScroll)
 onBeforeUnmount(unlockBodyScroll)
 
-// 날짜 상태
-const localValue = ref({ year: '', month: '', day: '' })
-const originalValue = ref({ year: '', month: '', day: '' })
-
 const today = new Date()
 const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
@@ -89,6 +85,8 @@ const minDay = computed(() =>
     ? parseInt(props.minDate.day)
     : baseDay
 )
+
+const localValue = ref({ year: '', month: '', day: '' })
 
 const years = computed(() =>
   Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
@@ -116,28 +114,26 @@ const updateDays = () => {
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 현재 day가 리스트에 없으면 마지막 날로 설정
   if (!newDays.includes(localValue.value.day)) {
     localValue.value.day = newDays[newDays.length - 1]
   }
 }
 
-// 최초 진입 시 값 세팅
+// modelValue를 안전하게 초기화
 watch(
   () => props.modelValue,
   (val) => {
     localValue.value = {
-      year: val.year || String(minYear.value),
-      month: val.month || String(minMonth.value),
-      day: val.day || String(minDay.value)
+      year: val?.year || String(minYear.value),
+      month: val?.month || String(minMonth.value),
+      day: val?.day || String(minDay.value)
     }
-    originalValue.value = { ...localValue.value }
     updateDays()
   },
   { immediate: true }
 )
 
-// 월/년 바뀔 때 일자 갱신
+// 월/년 변경 시 일 리스트 갱신
 watch(
   [() => localValue.value.year, () => localValue.value.month],
   () => {
@@ -149,12 +145,11 @@ watch(
 )
 
 const confirmSelection = () => {
-  emit('update:modelValue', { ...localValue.value })
+  emit('update:modelValue', { ...localValue.value }) // 확인 시 값 전달
   emit('close')
 }
 
 const handleCancel = () => {
-  emit('update:modelValue', { ...originalValue.value }) // 원래 값 복구
-  emit('close')
+  emit('close') // 취소 시 값 전달 없음
 }
 </script>
