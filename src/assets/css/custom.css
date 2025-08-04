@@ -1,6 +1,21 @@
 /*  휠피커 스타일 */
 .vue-scroll-picker {
-   border:1px solid red!important
+  background-color:red!important
+}
+.vue-scroll-picker-wrapper {
+  background-color:green!important
+}
+.vue-scroll-picker-viewport {
+  background-color:yellow!important
+}
+.vue-scroll-picker-content {
+  background-color:pink!important
+}
+.vue-scroll-picker-item {
+  background-color:light-blue!important
+}
+.vue-scroll-picker-item-selected {
+  background-color:purple!important
 }
 
 /* 체크 박스 */
