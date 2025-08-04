@@ -65,16 +65,6 @@ onBeforeUnmount(unlockBodyScroll)
 const localValue = ref({ year: '', month: '', day: '' })
 const originalValue = ref({ year: '', month: '', day: '' })
 
-watch(
-  () => props.modelValue,
-  (val) => {
-    localValue.value = { ...val }
-    originalValue.value = { ...val }
-    updateDays()
-  },
-  { immediate: true }
-)
-
 const today = new Date()
 const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
@@ -126,11 +116,28 @@ const updateDays = () => {
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
+  // 현재 day가 리스트에 없으면 마지막 날로 설정
   if (!newDays.includes(localValue.value.day)) {
     localValue.value.day = newDays[newDays.length - 1]
   }
 }
 
+// 최초 진입 시 값 세팅
+watch(
+  () => props.modelValue,
+  (val) => {
+    localValue.value = {
+      year: val.year || String(minYear.value),
+      month: val.month || String(minMonth.value),
+      day: val.day || String(minDay.value)
+    }
+    originalValue.value = { ...localValue.value }
+    updateDays()
+  },
+  { immediate: true }
+)
+
+// 월/년 바뀔 때 일자 갱신
 watch(
   [() => localValue.value.year, () => localValue.value.month],
   () => {
@@ -147,6 +154,7 @@ const confirmSelection = () => {
 }
 
 const handleCancel = () => {
-  emit('close') // 저장 없이 닫기만
+  emit('update:modelValue', { ...originalValue.value }) // 원래 값 복구
+  emit('close')
 }
 </script>
