@@ -40,6 +40,8 @@
   align-items: center;
   justify-content: center; 
   font-family:'GongGothicMedium';
+  font-weight:lighter;
+  color:#666;
 }
 
 #header .title p span {
@@ -48,6 +50,8 @@
   margin-right:0.2rem;
   background-color:red;
   display:inline-block;
+  font-size:0;
+  line-hgith:0;
 }
 
 #lnb {
