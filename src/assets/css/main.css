@@ -1,23 +1,26 @@
 #main_wrap {
   display: flex;
   flex-direction: column;
-  height: 100vh; 
-  background-color:#fafafa;
+  min-height: 100vh;
+  max-height: 100vh; /* 뷰포트 기준 고정 */
+  overflow: hidden;
+  background-color: #fafafa;
 }
 
 #header {
-  height: 60px; /* 원하는 높이로 설정 */
+  height: 60px;
   flex-shrink: 0;
-  background-color:Red
+  background-color: red;
 }
 
 #footer {
-  height: 50px; /* 원하는 높이로 설정 */
+  height: 50px;
   flex-shrink: 0;
-  background-color:blue
+  background-color: blue;
 }
 
 #main_body {
-  flex-grow: 1; /* 나머지 공간 차지 */
-  overflow-y: auto; /* 내용 넘치면 스크롤 */
+  flex-grow: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
