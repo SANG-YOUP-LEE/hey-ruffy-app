@@ -2,47 +2,83 @@
 .vue-scroll-picker {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 10em;
   overflow: hidden;
-  touch-action: pan-y;
-  background-color:#f9f9f9
+  user-select: none;
+  font-family: 'SUIT-Regular', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: red;
+  letter-spacing:-0.01rem;
 }
 
-.vue-scroll-picker-wrapper {
-  width: 100%;
-  height: 100%;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
+.vue-scroll-picker-rotator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - .6em);
 }
 
-.vue-scroll-picker-viewport {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  scroll-snap-align: center;
-}
-
-.vue-scroll-picker-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.vue-scroll-picker-rotator-transition {
+  transition: top ease 150ms;
 }
 
 .vue-scroll-picker-item {
-  height: 40px;
-  line-height: 40px;
-  font-size: 16px;
   text-align: center;
-  color: #999;
-  scroll-snap-align: center;
+  line-height: 1.2em;
+  color: #333;
 }
 
-.vue-scroll-picker-item-selected {
-  color: #000;
-  font-weight: bold;
-  font-size: 18px;
+.vue-scroll-picker-item[aria-selected='true'] {
+  color: #007bff;
+}
+
+.vue-scroll-picker-item[data-value=''],
+.vue-scroll-picker-item[aria-disabled='true'] {
+  color: #ccc;
+}
+
+.vue-scroll-picker-item[data-value=''][aria-selected='true'],
+.vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
+  color: #aaa;
+}
+
+.vue-scroll-picker-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.vue-scroll-picker-layer-top,
+.vue-scroll-picker-layer-selection,
+.vue-scroll-picker-layer-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.vue-scroll-picker-layer-top {
+  box-sizing: border-box;
+  border-bottom: 1px solid #c8c7cc;
+  background: linear-gradient(180deg,#fff 10%,rgba(255, 255, 255, .7));
+  top: 0;
+  height: calc(50% - 1em);
+  cursor: pointer;
+}
+
+.vue-scroll-picker-layer-selection {
+  top: calc(50% - 1em);
+  bottom: calc(50% - 1em);
+}
+
+.vue-scroll-picker-layer-bottom {
+  border-top: 1px solid #c8c7cc;
+  background: linear-gradient(0deg,#fff 10%,rgba(255, 255, 255, .7));
+  bottom: 0;
+  height: calc(50% - 1em);
+  cursor: pointer;
 }
 
 /* 체크 박스 */
