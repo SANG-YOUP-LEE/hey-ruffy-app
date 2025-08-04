@@ -5,13 +5,13 @@
         <!-- 시작일 -->
         <div class="toggle-label-wrapper">
           <ToggleSwitch class="toggle" v-model="isStartDateOn" />
-          <span class="toggle-text" @click="openStartDate">시작일 지정</span>
+          <span class="toggle-text" @click="toggleStartDate">시작일 지정</span>
         </div>
 
         <!-- 종료일 -->
         <div class="toggle-label-wrapper">
           <ToggleSwitch class="toggle" v-model="isEndDateOn" />
-          <span class="toggle-text" @click="openEndDate">종료일 지정</span>
+          <span class="toggle-text" @click="toggleEndDate">종료일 지정</span>
         </div>
       </div>
 
@@ -25,40 +25,42 @@
       </div>
     </div>
 
+    <!-- 작은 팝업 -->
     <DateTimePickerPopup
       v-if="showDatePopup"
       :mode="popupMode"
       :minDate="popupMode === 'end' ? selectedStartDate : {}"
-      v-model="tempDateModel"
-      @confirm="applyDateSelection"
-      @close="cancelDateSelection"
+      v-model="selectedDateModel"
+      @close="closeDatePopup"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
-const selectedStartDate = reactive({ year: '', month: '', day: '' })
-const selectedEndDate = reactive({ year: '', month: '', day: '' })
-
-const tempStartDate = ref({ year: '', month: '', day: '' })
-const tempEndDate = ref({ year: '', month: '', day: '' })
-
-const showDatePopup = ref(false)
-const popupMode = ref('start')
+const props = defineProps({
+  startDate: { type: Object, default: () => ({ year:'', month:'', day:'' }) },
+  endDate: { type: Object, default: () => ({ year:'', month:'', day:'' }) }
+})
+const emit = defineEmits(['update:startDate', 'update:endDate'])
 
 const isStartDateOn = ref(false)
 const isEndDateOn = ref(false)
+const showDatePopup = ref(false)
+const popupMode = ref('start')
 
+const selectedStartDate = reactive({ ...props.startDate })
+const selectedEndDate = reactive({ ...props.endDate })
 const showWarning = ref(false)
 
 let scrollY = 0
 let activePopup = null
 
 const preventTouchMove = (e) => {
+  // 자식 팝업 영역 외부는 스크롤 차단
   if (activePopup && !e.target.closest(activePopup)) {
     e.preventDefault()
   }
@@ -93,66 +95,85 @@ const unlockScroll = () => {
   window.scrollTo(0, scrollY)
 }
 
-const isDateEmpty = (obj) => {
-  return !obj.year || !obj.month || !obj.day
-}
-
-const openStartDate = () => {
-  popupMode.value = 'start'
-  tempStartDate.value = { ...selectedStartDate }
-  showDatePopup.value = true
-  lockScroll('.com_popup_wrap .popup_inner')
-}
-
-const openEndDate = () => {
-  if (isDateEmpty(selectedStartDate)) {
-    showWarning.value = true
-    isEndDateOn.value = false
-    return
+const getTodayObject = () => {
+  const today = new Date()
+  return {
+    year: String(today.getFullYear()),
+    month: String(today.getMonth() + 1),
+    day: String(today.getDate())
   }
-  popupMode.value = 'end'
-  tempEndDate.value = { ...selectedEndDate }
-  showDatePopup.value = true
-  lockScroll('.com_popup_wrap .popup_inner')
 }
 
-const applyDateSelection = () => {
-  if (popupMode.value === 'start') {
-    Object.assign(selectedStartDate, tempStartDate.value)
-    isStartDateOn.value = true
+const toggleStartDate = () => {
+  isStartDateOn.value = !isStartDateOn.value
+}
+const toggleEndDate = () => {
+  isEndDateOn.value = !isEndDateOn.value
+}
+
+watch(isStartDateOn, (val) => {
+  if (val) {
+    popupMode.value = 'start'
+    if (!selectedStartDate.year) {
+      Object.assign(selectedStartDate, getTodayObject())
+    }
+    showDatePopup.value = true
+    showWarning.value = false
+    lockScroll('.com_popup_wrap .popup_inner')
   } else {
-    Object.assign(selectedEndDate, tempEndDate.value)
-    isEndDateOn.value = true
+    Object.assign(selectedStartDate, { year: '', month: '', day: '' })
+    isEndDateOn.value = false
+    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
   }
-}
-const cancelDateSelection = () => {
+})
+
+watch(isEndDateOn, (val) => {
+  if (val) {
+    if (!selectedStartDate.year) {
+      showWarning.value = true
+      isEndDateOn.value = false
+    } else {
+      popupMode.value = 'end'
+      if (!selectedEndDate.year) {
+        Object.assign(selectedEndDate, { ...selectedStartDate })
+      }
+      showDatePopup.value = true
+      showWarning.value = false
+      lockScroll('.com_popup_wrap .popup_inner')
+    }
+  } else {
+    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
+  }
+})
+
+const closeDatePopup = () => {
   showDatePopup.value = false
   unlockScroll()
-  if (popupMode.value === 'start' && isDateEmpty(selectedStartDate)) {
+  if (popupMode.value === 'start' && !selectedStartDate.year) {
     isStartDateOn.value = false
   }
-  if (popupMode.value === 'end' && isDateEmpty(selectedEndDate)) {
+  if (popupMode.value === 'end' && !selectedEndDate.year) {
     isEndDateOn.value = false
   }
 }
 
-const tempDateModel = computed({
+const selectedDateModel = computed({
   get() {
-    return popupMode.value === 'start' ? tempStartDate.value : tempEndDate.value
+    return popupMode.value === 'start' ? selectedStartDate : selectedEndDate
   },
   set(val) {
     if (popupMode.value === 'start') {
-      tempStartDate.value = val
+      Object.assign(selectedStartDate, val)
     } else {
-      tempEndDate.value = val
+      Object.assign(selectedEndDate, val)
     }
   }
 })
 
 const formattedDate = computed(() => {
-  if (isDateEmpty(selectedStartDate)) return ''
+  if (!selectedStartDate.year) return ''
   const start = `${selectedStartDate.year}년 ${selectedStartDate.month}월 ${selectedStartDate.day}일`
-  const end = !isDateEmpty(selectedEndDate)
+  const end = selectedEndDate.year
     ? ` ~ ${selectedEndDate.year}년 ${selectedEndDate.month}월 ${selectedEndDate.day}일`
     : ''
   return start + end
@@ -169,4 +190,3 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
-
