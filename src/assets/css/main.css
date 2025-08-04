@@ -11,7 +11,7 @@
   width: 100%;
   height: 5rem;
   align-items: center;
-  padding: 0 1rem; 
+  padding: 1.5rem; 
   box-sizing: border-box;
   border-bottom:1px solid #ddd
 }
@@ -29,12 +29,13 @@
 
 #header .title h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size:1.4rem;
 }
 
 #header .title p {
   margin: 0;
   font-size: 1.2rem;
+  letter-spacing:-0.02rem;
 }
 
 #lnb {
