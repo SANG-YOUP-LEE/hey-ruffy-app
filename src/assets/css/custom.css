@@ -20,25 +20,25 @@
 
 .vue-scroll-picker-item {
   text-align: center;
-  font-family: 'SUIT-Regular', 'Apple SD Gothic Neo', sans-serif;
-  font-size: 1rem;
-  line-height: 1.5rem;
+  font-family: 'SUIT-Regular'!important;
+  font-size: 1rem!important;
+  line-height: 1.5rem!important;
   color: red!important;
-  letter-spacing:-0.01rem;
+  letter-spacing:-0.01rem!important;
 }
 
 .vue-scroll-picker-item[aria-selected='true'] {
-  color: green;
+  color: green!important;
 }
 
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
-  color: #ccc;
+  color: purple!important;
 }
 
 .vue-scroll-picker-item[data-value=''][aria-selected='true'],
 .vue-scroll-picker-item[aria-disabled='true'][aria-selected='true'] {
-  color: #aaa;
+  color: red!important;
 }
 
 .vue-scroll-picker-layer {
@@ -59,8 +59,8 @@
 
 .vue-scroll-picker-layer-top {
   box-sizing: border-box;
-  border-bottom: 1px solid #c8c7cc;
-  background: linear-gradient(180deg,#fff 10%,rgba(255, 255, 255, .7));
+  border-bottom:none!important;
+  background: linear-gradient(180deg,red 10%,blue)!important;
   top: 0;
   height: calc(50% - 1em);
   cursor: pointer;
@@ -72,8 +72,8 @@
 }
 
 .vue-scroll-picker-layer-bottom {
-  border-top: 1px solid #c8c7cc;
-  background: linear-gradient(0deg,#fff 10%,rgba(255, 255, 255, .7));
+  border-top:none!important;
+  background: linear-gradient(0deg,green 10%,yellow)!important;
   bottom: 0;
   height: calc(50% - 1em);
   cursor: pointer;
