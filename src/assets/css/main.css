@@ -39,6 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center; 
+  font-family:'GongGothicMedium';
 }
 
 #header .title p span {
