@@ -10,7 +10,7 @@
   display: flex;
   width: 100%;
   align-items: center;
-  padding:2rem 2rem 1.5rem 2rem; 
+  padding:1.5rem; 
   box-sizing: border-box;
   border-bottom:1px solid #ddd
 }
@@ -28,8 +28,8 @@
 
 #header .title h1 {
   margin: 0;
-  font-size:1.8rem;
-  line-height:2.4rem;
+  font-size:1.9rem;
+  line-height:2.6rem;
 }
 
 #header .title p {
