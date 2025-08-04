@@ -78,14 +78,8 @@
 
 
 .vue-scroll-picker-item[aria-selected='true'] {
-  color: #fff !important;
-  background-color: #333 !important;
-  font-weight: bold;
-  font-size: 1.4rem !important;
-  line-height: 2.2rem !important;
-  height: 2.4rem !important;
-  border-radius: 0.6rem;
-}
+ }
+
 /* 체크 박스 */
 .checkbox-label {
   display: flex;
