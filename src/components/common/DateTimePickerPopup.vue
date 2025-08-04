@@ -41,13 +41,12 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
-  mode: { type: String, default: 'start' }, // 'start' 또는 'end'
+  mode: { type: String, default: 'start' },
   minDate: { type: Object, default: () => ({}) }
 })
 
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue', 'close', 'confirm'])
 
-// 스크롤 잠금
 const preventScroll = (e) => e.preventDefault()
 const lockBodyScroll = () => {
   document.body.style.overflow = 'hidden'
@@ -119,7 +118,6 @@ const updateDays = () => {
   }
 }
 
-// modelValue를 안전하게 초기화
 watch(
   () => props.modelValue,
   (val) => {
@@ -133,7 +131,6 @@ watch(
   { immediate: true }
 )
 
-// 월/년 변경 시 일 리스트 갱신
 watch(
   [() => localValue.value.year, () => localValue.value.month],
   () => {
@@ -145,11 +142,12 @@ watch(
 )
 
 const confirmSelection = () => {
-  emit('update:modelValue', { ...localValue.value }) // 확인 시 값 전달
+  emit('update:modelValue', { ...localValue.value })
+  emit('confirm') // 확인 완료 알림
   emit('close')
 }
 
 const handleCancel = () => {
-  emit('close') // 취소 시 값 전달 없음
+  emit('close') // 값 반영 없이 단순 닫기
 }
 </script>
