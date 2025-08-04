@@ -1,20 +1,22 @@
 <template>
-  <HeaderView />
-  <LnbView />
-
-  <!--main view-->
   <div id="main_wrap">
-    <!-- 다짐 추가 버튼 -->
-    <button @click="openAddRoutine">다짐 추가하기</button>
-
-    <!-- 다짐 추가 팝업 -->
-    <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
-  </div>
-  <!--/main view-->
-
+    <HeaderView />
+    <LnbView />
   
-
-  <FooterView />
+    <!--main view-->
+    <div id="main_body">
+      <!-- 다짐 추가 버튼 -->
+      <button @click="openAddRoutine">다짐 추가하기</button>
+  
+      <!-- 다짐 추가 팝업 -->
+      <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
+    </div>
+    <!--/main view-->
+  
+    
+  
+    <FooterView />
+  </div>
 </template>
 
 <script setup>
