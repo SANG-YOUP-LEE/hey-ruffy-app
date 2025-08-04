@@ -1,6 +1,6 @@
 <template>
   <HeaderView />
-  <!--LnbView /-->
+  <LnbView />
 
   <!--main view-->
   <div id="main_wrap">
