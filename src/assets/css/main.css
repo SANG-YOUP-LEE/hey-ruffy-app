@@ -38,7 +38,11 @@
 }
 
 #lnb {
+  width:30%;
+  background-color:#fff;
+  padding:2rem;
 }
+
 #footer {
   height: 50px;
   flex-shrink: 0;
