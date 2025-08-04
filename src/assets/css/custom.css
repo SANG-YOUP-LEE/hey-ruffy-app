@@ -29,7 +29,8 @@
 
 .vue-scroll-picker-item[aria-selected='true'] {
   color: #000!important;
-  font-size:1.4rem!important(
+  font-size:1.4rem!important
+  
 }
 
 .vue-scroll-picker-item[data-value=''],
