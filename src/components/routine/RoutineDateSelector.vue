@@ -149,10 +149,16 @@ watch(isEndDateOn, (val) => {
 const closeDatePopup = () => {
   showDatePopup.value = false
   unlockScroll()
-  if (popupMode.value === 'start' && !selectedStartDate.year) {
+
+  //시작일 모드일 때 취소 누르면 selectedStartDate를 초기화
+  if (popupMode.value === 'start') {
+    Object.assign(selectedStartDate, { year: '', month: '', day: '' })
     isStartDateOn.value = false
   }
-  if (popupMode.value === 'end' && !selectedEndDate.year) {
+
+  // 종료일도 마찬가지
+  if (popupMode.value === 'end') {
+    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
     isEndDateOn.value = false
   }
 }
@@ -190,3 +196,4 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
+
