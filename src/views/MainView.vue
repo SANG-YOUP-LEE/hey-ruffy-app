@@ -8,8 +8,6 @@
       <!-- 다짐 추가 버튼 -->
       <button @click="openAddRoutine">다짐 추가하기</button>
   
-      <!-- 다짐 추가 팝업 -->
-      <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
       bbb<br />a<br />a<br />
       c<br />a<br />a<br />
       a<br />a<br />a<br />
@@ -46,6 +44,9 @@
   
     <FooterView />
   </div>
+  <!-- 다짐 추가 팝업 -->
+  <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
+  
 </template>
 
 <script setup>
