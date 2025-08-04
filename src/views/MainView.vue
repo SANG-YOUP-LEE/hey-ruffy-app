@@ -1,6 +1,6 @@
 <template>
   <HeaderView />
-  <LnbView />
+  <!--LnbView /-->
 
   <!-- 다짐 추가 버튼 -->
   <button class="add_rout" @click="openAddRoutine">
