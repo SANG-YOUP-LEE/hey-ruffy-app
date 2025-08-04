@@ -1,10 +1,23 @@
-#header,
-#footer,
-#lnb,
 #main_wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; 
   background-color:#fafafa;
 }
 
-#lnb {
-  display:none
+#header {
+  height: 60px; /* 원하는 높이로 설정 */
+  flex-shrink: 0;
+  background-color:Red
+}
+
+#footer {
+  height: 50px; /* 원하는 높이로 설정 */
+  flex-shrink: 0;
+  background-color:blue
+}
+
+#main_body {
+  flex-grow: 1; /* 나머지 공간 차지 */
+  overflow-y: auto; /* 내용 넘치면 스크롤 */
 }
