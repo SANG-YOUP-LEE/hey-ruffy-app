@@ -41,8 +41,8 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 30%;
-  height: calc(var(--vh, 1vh) * 100); /* 전체 높이 */
+  width: 70%;
+  height: calc(var(--vh, 1vh) * 100);
   background-color: #fff;
   padding: 2rem;
   z-index: 1000; 
