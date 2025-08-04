@@ -7,19 +7,25 @@
       <div class="title date light"><span>년</span><span>월</span><span>일</span></div>
       <div class="popup_body picker_group">
         <VueScrollPicker
-          :value="localValue.year"
+          v-model="localValue.year"
           :options="years"
-          @change="(val) => (localValue.year = val)"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
         />
         <VueScrollPicker
-          :value="localValue.month"
+          v-model="localValue.month"
           :options="months"
-          @change="(val) => (localValue.month = val)"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
         />
         <VueScrollPicker
-          :value="localValue.day"
+          v-model="localValue.day"
           :options="days"
-          @change="(val) => (localValue.day = val)"
+          :drag-sensitivity="3"
+          :touch-sensitivity="3"
+          :scroll-sensitivity="2"
         />
       </div>
       <div class="popup_btm">
@@ -31,8 +37,17 @@
 </template>
 
 <script setup>
-import { reactive, watch, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
+const props = defineProps({
+  modelValue: { type: Object, default: () => ({}) },
+  mode: { type: String, default: 'start' }, // 'start' 또는 'end'
+  minDate: { type: Object, default: () => ({}) }
+})
+
+const emit = defineEmits(['update:modelValue', 'close'])
+
+// 스크롤 잠금
 const preventScroll = (e) => e.preventDefault()
 const lockBodyScroll = () => {
   document.body.style.overflow = 'hidden'
@@ -46,17 +61,28 @@ const unlockBodyScroll = () => {
 onMounted(lockBodyScroll)
 onBeforeUnmount(unlockBodyScroll)
 
-const props = defineProps({
-  modelValue: { type: Object, default: () => ({}) },
-  mode: { type: String, default: 'start' },
-  minDate: { type: Object, default: () => ({}) }
-})
-const emit = defineEmits(['update:modelValue', 'close'])
+// 날짜 상태
+const localValue = ref({ year: '', month: '', day: '' })
+const originalValue = ref({ year: '', month: '', day: '' })
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    localValue.value = { ...val }
+    originalValue.value = { ...val }
+    updateDays()
+  },
+  { immediate: true }
+)
 
 const today = new Date()
 const baseYear = today.getFullYear()
 const baseMonth = today.getMonth() + 1
 const baseDay = today.getDate()
+
+const popupTitle = computed(() =>
+  props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
+)
 
 const minYear = computed(() =>
   props.mode === 'end' && props.minDate.year
@@ -74,61 +100,53 @@ const minDay = computed(() =>
     : baseDay
 )
 
-const localValue = reactive({
-  year: props.modelValue.year || String(minYear.value),
-  month: props.modelValue.month || String(minMonth.value),
-  day: props.modelValue.day || String(minDay.value)
-})
-
-const originalValue = {
-  year: props.modelValue.year || '',
-  month: props.modelValue.month || '',
-  day: props.modelValue.day || ''
-}
-
-const popupTitle = computed(() =>
-  props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
-)
-
 const years = computed(() =>
   Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
 )
 
 const months = computed(() => {
-  const y = parseInt(localValue.year)
+  const y = parseInt(localValue.value.year)
   const startMonth = y === minYear.value ? minMonth.value : 1
   return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
 })
 
-const days = computed(() => {
-  const y = parseInt(localValue.year)
-  const m = parseInt(localValue.month)
-  if (isNaN(y) || isNaN(m)) return []
+const days = ref([])
+
+const updateDays = () => {
+  const y = parseInt(localValue.value.year)
+  const m = parseInt(localValue.value.month)
+
+  if (isNaN(y) || isNaN(m)) {
+    days.value = []
+    return
+  }
 
   const lastDay = new Date(y, m, 0).getDate()
   const startDay = (y === minYear.value && m === minMonth.value) ? minDay.value : 1
-  return Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
-})
+  const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
+  days.value = newDays
 
-watch([() => localValue.year, () => localValue.month], () => {
-  const currentMonth = localValue.month
-  if (!months.value.includes(currentMonth)) {
-    localValue.month = months.value[0]
+  if (!newDays.includes(localValue.value.day)) {
+    localValue.value.day = newDays[newDays.length - 1]
   }
-  if (!days.value.includes(localValue.day)) {
-    localValue.day = days.value[days.value.length - 1]
+}
+
+watch(
+  [() => localValue.value.year, () => localValue.value.month],
+  () => {
+    if (!months.value.includes(localValue.value.month)) {
+      localValue.value.month = months.value[0]
+    }
+    updateDays()
   }
-})
+)
 
 const confirmSelection = () => {
-  emit('update:modelValue', { ...localValue })
+  emit('update:modelValue', { ...localValue.value })
   emit('close')
 }
 
 const handleCancel = () => {
-  localValue.year = originalValue.year
-  localValue.month = originalValue.month
-  localValue.day = originalValue.day
-  emit('close')
+  emit('close') // 저장 없이 닫기만
 }
 </script>
