@@ -165,7 +165,8 @@
 }
 
 
-.select_course .course .speech-bubble .r_detail01 span:first-child {
+.select_course .course .speech-bubble .r_detail01 span:first-child,
+#header .title p span {
   background-image: url('../images/course_temp01.png');
 }
 .select_course .course .speech-bubble .r_detail02 span:first-child {
