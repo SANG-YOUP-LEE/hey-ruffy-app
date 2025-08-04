@@ -27,13 +27,6 @@
   letter-spacing:-0.01rem!important;
 }
 
-.vue-scroll-picker-item[aria-selected='true'] {
-  color: #fff!important;
-  font-weight:bold;
-  font-size:1.4rem!important;
-  height:2rem!important;  
-}
-
 .vue-scroll-picker-item[data-value=''],
 .vue-scroll-picker-item[aria-disabled='true'] {
   color: #9a9a9a!important;
@@ -69,14 +62,6 @@
   cursor: pointer;
 }
 
-.vue-scroll-picker-layer-selection {
-  top: calc(50% - 1em);
-  bottom: calc(50% - 1em);
-  background-color:#333!important;
-  color:#fff!important;
-  border-radius:0.5rem!important;
-  height:2rem!important;
-}
 
 .vue-scroll-picker-layer-bottom {
   border-top:none!important;
@@ -86,6 +71,25 @@
   cursor: pointer;
 }
 
+.vue-scroll-picker-layer-selection {
+  top: calc(50% - 1em);
+  bottom: calc(50% - 1em);
+  background-color:#333!important;
+  color:#fff!important;
+  border-radius:0.5rem!important;
+  height:2rem!important;
+}
+
+
+.vue-scroll-picker-item[aria-selected='true'] {
+  color: #fff !important;
+  background-color: #333 !important;
+  font-weight: bold;
+  font-size: 1.4rem !important;
+  line-height: 2.2rem !important;
+  height: 2.4rem !important;
+  border-radius: 0.6rem;
+}
 /* 체크 박스 */
 .checkbox-label {
   display: flex;
