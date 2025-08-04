@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, reactive, onBeforeUnmount } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
@@ -54,13 +54,13 @@ const popupMode = ref('start')
 
 const selectedStartDate = reactive({ ...props.startDate })
 const selectedEndDate = reactive({ ...props.endDate })
+
 const showWarning = ref(false)
 
 let scrollY = 0
 let activePopup = null
 
 const preventTouchMove = (e) => {
-  // 자식 팝업 영역 외부는 스크롤 차단
   if (activePopup && !e.target.closest(activePopup)) {
     e.preventDefault()
   }
@@ -104,6 +104,10 @@ const getTodayObject = () => {
   }
 }
 
+const isDateEmpty = (obj) => {
+  return !obj.year || !obj.month || !obj.day
+}
+
 const toggleStartDate = () => {
   isStartDateOn.value = !isStartDateOn.value
 }
@@ -114,29 +118,23 @@ const toggleEndDate = () => {
 watch(isStartDateOn, (val) => {
   if (val) {
     popupMode.value = 'start'
-    if (!selectedStartDate.year) {
-      Object.assign(selectedStartDate, getTodayObject())
-    }
     showDatePopup.value = true
     showWarning.value = false
     lockScroll('.com_popup_wrap .popup_inner')
   } else {
     Object.assign(selectedStartDate, { year: '', month: '', day: '' })
-    isEndDateOn.value = false
     Object.assign(selectedEndDate, { year: '', month: '', day: '' })
+    isEndDateOn.value = false
   }
 })
 
 watch(isEndDateOn, (val) => {
   if (val) {
-    if (!selectedStartDate.year) {
+    if (isDateEmpty(selectedStartDate)) {
       showWarning.value = true
       isEndDateOn.value = false
     } else {
       popupMode.value = 'end'
-      if (!selectedEndDate.year) {
-        Object.assign(selectedEndDate, { ...selectedStartDate })
-      }
       showDatePopup.value = true
       showWarning.value = false
       lockScroll('.com_popup_wrap .popup_inner')
@@ -149,10 +147,12 @@ watch(isEndDateOn, (val) => {
 const closeDatePopup = () => {
   showDatePopup.value = false
   unlockScroll()
-  if (popupMode.value === 'start' && !selectedStartDate.year) {
+
+  // 날짜 선택 안 했으면 토글 자동 해제
+  if (popupMode.value === 'start' && isDateEmpty(selectedStartDate)) {
     isStartDateOn.value = false
   }
-  if (popupMode.value === 'end' && !selectedEndDate.year) {
+  if (popupMode.value === 'end' && isDateEmpty(selectedEndDate)) {
     isEndDateOn.value = false
   }
 }
@@ -164,16 +164,18 @@ const selectedDateModel = computed({
   set(val) {
     if (popupMode.value === 'start') {
       Object.assign(selectedStartDate, val)
+      emit('update:startDate', val)
     } else {
       Object.assign(selectedEndDate, val)
+      emit('update:endDate', val)
     }
   }
 })
 
 const formattedDate = computed(() => {
-  if (!selectedStartDate.year) return ''
+  if (isDateEmpty(selectedStartDate)) return ''
   const start = `${selectedStartDate.year}년 ${selectedStartDate.month}월 ${selectedStartDate.day}일`
-  const end = selectedEndDate.year
+  const end = !isDateEmpty(selectedEndDate)
     ? ` ~ ${selectedEndDate.year}년 ${selectedEndDate.month}월 ${selectedEndDate.day}일`
     : ''
   return start + end
