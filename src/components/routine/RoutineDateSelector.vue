@@ -25,25 +25,26 @@
       </div>
     </div>
 
-    <!-- 작은 팝업 -->
+    <!-- 팝업 -->
     <DateTimePickerPopup
       v-if="showDatePopup"
       :mode="popupMode"
       :minDate="popupMode === 'end' ? selectedStartDate : {}"
-      v-model="selectedDateModel"
-      @close="closeDatePopup"
+      :modelValue="popupMode === 'start' ? selectedStartDate : selectedEndDate"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, reactive, onBeforeUnmount } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
 const props = defineProps({
-  startDate: { type: Object, default: () => ({ year:'', month:'', day:'' }) },
-  endDate: { type: Object, default: () => ({ year:'', month:'', day:'' }) }
+  startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
+  endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) }
 })
 const emit = defineEmits(['update:startDate', 'update:endDate'])
 
@@ -60,7 +61,6 @@ let scrollY = 0
 let activePopup = null
 
 const preventTouchMove = (e) => {
-  // 자식 팝업 영역 외부는 스크롤 차단
   if (activePopup && !e.target.closest(activePopup)) {
     e.preventDefault()
   }
@@ -69,7 +69,6 @@ const preventTouchMove = (e) => {
 const lockScroll = (popupSelector) => {
   activePopup = popupSelector
   scrollY = window.scrollY
-
   document.documentElement.classList.add('no-scroll')
   document.body.classList.add('no-scroll')
   document.body.style.top = `-${scrollY}px`
@@ -77,7 +76,6 @@ const lockScroll = (popupSelector) => {
   document.body.style.right = '0'
   document.body.style.width = '100%'
   document.body.style.position = 'fixed'
-
   window.addEventListener('touchmove', preventTouchMove, { passive: false })
 }
 
@@ -146,35 +144,31 @@ watch(isEndDateOn, (val) => {
   }
 })
 
-const closeDatePopup = () => {
+// 확인 버튼 눌렀을 때 날짜 반영하고 팝업 닫기
+const handleConfirm = (val) => {
+  if (popupMode.value === 'start') {
+    Object.assign(selectedStartDate, val)
+    isStartDateOn.value = true
+  } else {
+    Object.assign(selectedEndDate, val)
+    isEndDateOn.value = true
+  }
   showDatePopup.value = false
   unlockScroll()
+}
 
-  //시작일 모드일 때 취소 누르면 selectedStartDate를 초기화
+// 취소 버튼 눌렀을 때 초기화하고 팝업 닫기
+const handleCancel = () => {
   if (popupMode.value === 'start') {
     Object.assign(selectedStartDate, { year: '', month: '', day: '' })
     isStartDateOn.value = false
-  }
-
-  // 종료일도 마찬가지
-  if (popupMode.value === 'end') {
+  } else {
     Object.assign(selectedEndDate, { year: '', month: '', day: '' })
     isEndDateOn.value = false
   }
+  showDatePopup.value = false
+  unlockScroll()
 }
-
-const selectedDateModel = computed({
-  get() {
-    return popupMode.value === 'start' ? selectedStartDate : selectedEndDate
-  },
-  set(val) {
-    if (popupMode.value === 'start') {
-      Object.assign(selectedStartDate, val)
-    } else {
-      Object.assign(selectedEndDate, val)
-    }
-  }
-})
 
 const formattedDate = computed(() => {
   if (!selectedStartDate.year) return ''
@@ -196,4 +190,3 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
-
