@@ -1,8 +1,7 @@
 #main_wrap {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  max-height: 100vh; /* 뷰포트 기준 고정 */
+  height: 100dvh;
   overflow: hidden;
   background-color: #fafafa;
 }
