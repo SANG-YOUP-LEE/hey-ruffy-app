@@ -1,7 +1,7 @@
 <template>
   <div id="main_wrap">
-    <HeaderView />
-    <LnbView />
+    <HeaderView @toggle-lnb="showLnb = !showLnb" />
+    <LnbView v-if="showLnb" />
   
     <!--main view-->
     <div id="main_body">
@@ -56,8 +56,8 @@ import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
 
-
 const isAddRoutineOpen = ref(false)
+const showLnb = ref(false)
 
 function openAddRoutine() {
   isAddRoutineOpen.value = true
