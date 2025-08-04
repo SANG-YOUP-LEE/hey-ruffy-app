@@ -124,10 +124,7 @@ const applyDateSelection = () => {
     Object.assign(selectedEndDate, tempEndDate.value)
     isEndDateOn.value = true
   }
-  showDatePopup.value = false
-  unlockScroll()
 }
-
 const cancelDateSelection = () => {
   showDatePopup.value = false
   unlockScroll()
@@ -172,3 +169,4 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
+
