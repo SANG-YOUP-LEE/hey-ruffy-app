@@ -12,7 +12,6 @@
   align-items: center;
   padding:1rem; 
   box-sizing: border-box;
-  border-bottom:1px solid #ddd
 }
 
 #header .left,
@@ -81,9 +80,8 @@
 }
 
 #footer {
-  height: 50px;
+  height: 3rem;
   flex-shrink: 0;
-  background-color: blue;
 }
 
 #main_body {
