@@ -5,6 +5,7 @@
   height: 100%;
   overflow: hidden;
   touch-action: pan-y;
+  background-color:red!important
 }
 
 .vue-scroll-picker-wrapper {
