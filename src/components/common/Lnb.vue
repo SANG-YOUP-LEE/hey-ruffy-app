@@ -1,9 +1,10 @@
 <template>
- <div id="lnb">
-   <div>
-     <a href="#none">닫기</a>
+  <div id="lnb">
+    <div>
+      <a href="#none" @click.prevent="$emit('close-lnb')">닫기</a>
     </div>
- </div>
+    <!-- 메뉴 내용들 추가 -->
+  </div>
 </template>
 
 
