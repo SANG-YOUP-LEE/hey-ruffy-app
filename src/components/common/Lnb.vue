@@ -1,5 +1,7 @@
 <template>
- lnb
+ <div id="lnb">
+   lnb
+ </div>
 </template>
 
 
