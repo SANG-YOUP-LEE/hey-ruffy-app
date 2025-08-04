@@ -7,25 +7,19 @@
       <div class="title date light"><span>년</span><span>월</span><span>일</span></div>
       <div class="popup_body picker_group">
         <VueScrollPicker
-          v-model="localValue.year"
+          :value="localValue.year"
           :options="years"
-          :drag-sensitivity="3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
+          @change="(val) => (localValue.year = val)"
         />
         <VueScrollPicker
-          v-model="localValue.month"
+          :value="localValue.month"
           :options="months"
-          :drag-sensitivity="3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
+          @change="(val) => (localValue.month = val)"
         />
         <VueScrollPicker
-          v-model="localValue.day"
+          :value="localValue.day"
           :options="days"
-          :drag-sensitivity="3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
+          @change="(val) => (localValue.day = val)"
         />
       </div>
       <div class="popup_btm">
@@ -59,8 +53,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 
-const localValue = ref({ ...props.modelValue }) // 원본 복사
-const skipEmit = ref(true) // 초기 emit 방지
+// 최초 데이터 복사
+const localValue = ref({ ...props.modelValue })
 
 const today = new Date()
 const baseYear = today.getFullYear()
@@ -92,8 +86,7 @@ const years = computed(() =>
 )
 
 const months = computed(() => {
-  const selectedYear = parseInt(localValue.value.year)
-  const y = isNaN(selectedYear) ? minYear.value : selectedYear
+  const y = parseInt(localValue.value.year)
   const startMonth = y === minYear.value ? minMonth.value : 1
   return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
 })
@@ -117,24 +110,13 @@ const updateDays = () => {
   if (!newDays.includes(localValue.value.day)) {
     localValue.value.day = newDays[newDays.length - 1]
   }
-
-  if (!skipEmit.value) {
-    nextTick(() => {
-      emit('update:modelValue', { ...localValue.value })
-    })
-  }
 }
 
 onMounted(() => {
-  const val = localValue.value
-  const isEmpty = !val.year && !val.month && !val.day
-  if (isEmpty) {
-    localValue.value.year = String(minYear.value)
-    localValue.value.month = String(minMonth.value)
-    localValue.value.day = String(minDay.value)
-  }
+  if (!localValue.value.year) localValue.value.year = String(minYear.value)
+  if (!localValue.value.month) localValue.value.month = String(minMonth.value)
+  if (!localValue.value.day) localValue.value.day = String(minDay.value)
   updateDays()
-  nextTick(() => { skipEmit.value = false })
 })
 
 watch(
@@ -153,7 +135,6 @@ const confirmSelection = () => {
 }
 
 const handleCancel = () => {
-  skipEmit.value = true // 혹시 이후 반응 방지
-  emit('close') // 값 변경 없이 닫기
+  emit('close')
 }
 </script>
