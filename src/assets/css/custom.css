@@ -62,7 +62,7 @@
 .vue-scroll-picker-layer-top {
   box-sizing: border-box;
   border-bottom:none!important;
-  background: linear-gradient(180deg,red 10%,blue)!important;
+  background: linear-gradient(180deg,red 10%,#f9f9f9)!important;
   top: 0;
   height: calc(50% - 1em);
   cursor: pointer;
@@ -75,7 +75,7 @@
 
 .vue-scroll-picker-layer-bottom {
   border-top:none!important;
-  background: linear-gradient(0deg,green 10%,yellow)!important;
+  background: linear-gradient(0deg,green 10%,#f9f9f9)!important;
   bottom: 0;
   height: calc(50% - 1em);
   cursor: pointer;
