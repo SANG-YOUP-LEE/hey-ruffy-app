@@ -1,4 +1,3 @@
-
 <template>
   <div class="com_popup_wrap">
     <div class="popup_inner">
@@ -31,7 +30,7 @@
       </div>
       <div class="popup_btm">
         <button @click="confirmSelection" class="p_basic">확인</button>
-        <button @click="$emit('close')" class="p_white">취소</button>
+        <button @click="cancelSelection" class="p_white">취소</button>
       </div>
     </div>
   </div>
@@ -64,7 +63,7 @@ const props = defineProps({
   mode: { type: String, default: 'start' },
   minDate: { type: Object, default: () => ({}) }
 })
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['confirm', 'cancel'])
 
 const localValue = ref({ ...props.modelValue })
 
@@ -115,14 +114,10 @@ const updateDays = () => {
   const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
   days.value = newDays
 
-  // 선택된 날짜가 유효하지 않을 때만 보정
   if (!newDays.includes(localValue.value.day)) {
     localValue.value.day = (y === baseYear && m === baseMonth)
       ? String(baseDay)
-      : newDays[newDays.length - 1] // 마지막 날짜로 보정
-    nextTick(() => {
-      emit('update:modelValue', { ...localValue.value })
-    })
+      : newDays[newDays.length - 1]
   }
 }
 
@@ -134,7 +129,10 @@ watch([() => localValue.value.year, () => localValue.value.month], () => {
 }, { immediate: true })
 
 const confirmSelection = () => {
-  emit('update:modelValue', { ...localValue.value })
-  emit('close')
+  emit('confirm', { ...localValue.value })
+}
+
+const cancelSelection = () => {
+  emit('cancel')
 }
 </script>
