@@ -10,6 +10,7 @@
   
       <!-- 다짐 추가 팝업 -->
       <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
+      bbb<br />a<br />a<br />
       a<br />a<br />a<br />
       a<br />a<br />a<br />
       a<br />a<br />a<br />
@@ -37,8 +38,7 @@
       a<br />a<br />a<br />
       a<br />a<br />a<br />
       a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
+      a<br />a<br />ccc<br />
     </div>
     <!--/main view-->
   
