@@ -8,16 +8,13 @@
       <!--상단 날짜 휠-->
       <div class="date_scroll">
         <div class="date_group">
-          <span class="on"><i>일</i>1</span>
-          <span><i>월</i>2</span>
-          <span class="on"><i>화</i>3</span>
-          <span><i>수</i>4</span>
-          <span class="on"><i>목</i>5</span>
-          <span><i>금</i>6</span>
-          <span class="on"><i>토</i>7</span>
-          <span><i>일</i>8</span>
-          <span class="on"><i>월</i>9</span>
-          <span><i>화</i>10</span>
+          <span
+            v-for="(date, index) in dateList"
+            :key="index"
+            :class="{ today: isToday(date) }"
+          >
+            <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
+          </span>
         </div>
       </div>
       <!--//상단 날짜 휠-->
@@ -66,4 +63,26 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
 })
+
+const today = new Date()
+
+const dateList = Array.from({ length: 30 }, (_, i) => {
+  const d = new Date()
+  d.setDate(today.getDate() + i)
+  return d
+})
+
+const getDayLabel = (date) => {
+  const days = ['일', '월', '화', '수', '목', '금', '토']
+  return days[date.getDay()]
+}
+
+const isToday = (date) => {
+  const now = new Date()
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  )
+}
 </script>
