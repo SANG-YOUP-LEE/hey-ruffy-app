@@ -7,7 +7,8 @@
 }
 
 #main_wrap button {
-  display:inline-block
+  display:inline-block;
+  border:1px solid red;
 }
 
 #main_wrap button span {
