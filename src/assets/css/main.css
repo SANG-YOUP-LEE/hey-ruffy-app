@@ -21,7 +21,6 @@
   padding:1rem; 
   box-sizing: border-box;
   background-color:#fff;
-  border-bottom:1px solid #ececec
 }
 
 #header .left,
@@ -118,6 +117,29 @@
   -webkit-overflow-scrolling: touch;
 }
 
+#main_body .date_scroll {
+  background-color: #fff;
+  padding: 0 2rem;
+  border-bottom: 1px solid #ececec;
+}
+
+#main_body .date_scroll .date_group {
+  width: 100%;
+  display: flex;
+  justify-content: center;    
+  align-items: center;        
+  gap: 0.5rem;                
+}
+
+#main_body .date_scroll .date_group span {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 1rem;
+  display: inline-flex;       
+  align-items: center;        
+  justify-content: center;    
+}
 
 button.lnb {
   background: url('../images/ico_lnb.png') no-repeat 0 0/100%;
