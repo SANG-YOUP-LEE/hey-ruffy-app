@@ -15,7 +15,7 @@
   </div>
 
   <!-- 다짐 추가 버튼 -->
-  <button @click="openAddRoutine" class="ad"><span>다짐 추가하기</span></button>
+  <button @click="openAddRoutine" class="add"><span>다짐 추가하기</span></button>
       
   <!-- 다짐 추가 팝업 -->
   <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
