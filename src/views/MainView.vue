@@ -3,7 +3,7 @@
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
-    <!--main view-->
+    <!--main view--> 
     <div id="main_body">
       <!--상단 날짜 휠-->
       <div class="date_scroll">
