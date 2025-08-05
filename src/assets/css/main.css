@@ -143,7 +143,8 @@
 #main_body .date_scroll .date_group span {
   border: 1px solid #ddd;
   border-radius: 0.5rem;
-  padding:1rem;
+  padding:0 1rem 0 1rem;
+  line-height:2rem;
   display: inline-block;       
   align-items: center;        
   justify-content: center; 
@@ -161,6 +162,12 @@
   font-weight:bold;
   background-color:none;
 }
+#main_body .date_scroll .date_group span.o {
+  color:red;
+  font-weight:bold;
+  background-color:none;
+}
+
 
 button.lnb {
   background: url('../images/ico_lnb.png') no-repeat 0 0/100%;
