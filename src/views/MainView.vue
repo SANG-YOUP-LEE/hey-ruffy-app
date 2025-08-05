@@ -58,6 +58,9 @@ function setVh() {
 onMounted(() => {
   setVh()
   window.addEventListener('resize', setVh)
+
+  // 초기 선택을 오늘 날짜로
+  selectedIndex.value = dateList.findIndex((date) => isToday(date))
 })
 
 onBeforeUnmount(() => {
@@ -81,5 +84,14 @@ const dateList = Array.from({ length: 30 }, (_, i) => {
 const getDayLabel = (date) => {
   const days = ['일', '월', '화', '수', '목', '금', '토']
   return days[date.getDay()]
+}
+
+const isToday = (date) => {
+  const now = new Date()
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  )
 }
 </script>
