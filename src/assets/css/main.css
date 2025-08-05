@@ -119,7 +119,7 @@
 
 #main_body .date_scroll {
   background-color: #fff;
-  padding: 0 6rem 2rem 6rem;
+  padding: 0 2rem 2rem 2rem;
   border-bottom: 1px solid #ececec;
 }
 
@@ -154,7 +154,8 @@
 #main_body .date_scroll .date_group i {
   display:block;
   color:#666;
-  text-decoration:normal;
+  line-height:1rem;
+  font-style:normal;
   font-size:0.8rem;
 }
 #main_body .date_scroll .date_group span.today {
@@ -162,7 +163,7 @@
   font-weight:bold;
   background-color:none;
 }
-#main_body .date_scroll .date_group span.o {
+#main_body .date_scroll .date_group span.on {
   color:red;
   font-weight:bold;
   background-color:none;
