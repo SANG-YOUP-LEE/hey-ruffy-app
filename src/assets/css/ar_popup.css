@@ -19,7 +19,7 @@
 	top:0;
 	left:0;
 	text-align:right;
-	padding:0.5rem 0.5rem 0 0
+	padding:0.2rem 0.2rem 0 0
 }
 
 
@@ -70,14 +70,14 @@
 
 .popup_wrap .popup_tit p {
   font-size:1.2rem;
-	line-height:1.4rem;
+	line-height:1.3rem;
 	color:#666;
 	font-weight:300;
 	margin-top:0.7rem;
 }
 
 .popup_wrap h3 {
-	font-size:1.1rem;
+	font-size:1.2rem;
 	margin:2rem 0 1rem 0;
 }
 
