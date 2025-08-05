@@ -21,6 +21,7 @@
   padding:1rem; 
   box-sizing: border-box;
   background-color:#fff;
+  border-bottom: 1px solid #ececec;
 }
 
 #header .left,
@@ -118,9 +119,7 @@
 }
 
 #main_body .date_scroll {
-  /*background-color: #fff;*/
-  padding:0.5rem 1rem 1rem 1rem;
-  /*border-bottom: 1px solid #ececec;*/
+  padding:1rem 2rem 1rem 2rem;
 }
 
 #main_body .date_scroll .date_group {
@@ -162,14 +161,14 @@
 }
 #main_body .date_scroll .date_group span.today,
 #main_body .date_scroll .date_group span.on {
-  color:#333;
+  color:#333!important;
   font-weight:bold;
-  background-color:none!important;
+  background-color:#fff!important;
   border:1px solid #333
 }
 #main_body .date_scroll .date_group span.on {
-  color:red;
-  background-color:none!important
+  color:#333!important;
+  background-color:#fff!important
 }
 
 
