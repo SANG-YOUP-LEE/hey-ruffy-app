@@ -115,7 +115,6 @@
                   : "인증 메일 다시 보내기"
               }}
             </button>
-            <button class="b_basic_white" @click="editEmail">이메일 주소 수정하기</button>
           </div>
 
           <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
@@ -292,15 +291,6 @@ const startResendCooldown = () => {
       resendTimer = null
     }
   }, 1000)
-}
-
-const editEmail = () => {
-  clearMessages()
-  signupComplete.value = false
-  email.value = ""
-  password.value = ""
-  nickname.value = ""
-  isOver14.value = false
 }
 
 const canStartSignup = computed(() => {
