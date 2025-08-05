@@ -126,7 +126,7 @@
 #main_body .date_scroll .date_group {
   width: 100%;
   display: flex;
-  justify-content: center;    
+  justify-content: flex-start;    
   align-items: center;        
   gap: 0.2rem;      
   overflow-x: auto;
