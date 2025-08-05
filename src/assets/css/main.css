@@ -116,6 +116,19 @@
   flex-grow: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#main_body .no_data {
+  font-size:1.6rem;
+  line-height:1.6rem;
+}
+
+#main_body .no_data span {
+  color:#666;
+  font-size:1rem
 }
 
 #main_body .date_scroll {
