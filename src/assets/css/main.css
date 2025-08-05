@@ -159,7 +159,7 @@
   font-style:normal;
   font-size:0.6rem;
 }
-#main_body .date_scroll .date_group span.today,
+#main_body .date_scroll .date_group span.light,
 #main_body .date_scroll .date_group span.on {
   color:#333!important;
   font-weight:bold;
