@@ -2,7 +2,7 @@
   <div id="main_wrap">
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
-  
+
     <!--main view-->
     <div id="main_body">
       <!--상단 날짜 휠-->
@@ -11,7 +11,8 @@
           <span
             v-for="(date, index) in dateList"
             :key="index"
-            :class="{ today: isToday(date) }"
+            :class="{ today: isToday(date), on: selectedIndex === index }"
+            @click="selectDate(index)"
           >
             <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
           </span>
@@ -20,20 +21,20 @@
       <!--//상단 날짜 휠-->
     </div>
     <!--/main view-->
-  
-    
-  
-    <FooterView />
-    
-    
-    <!-- 다짐 추가 버튼 -->
-    <button @click="openAddRoutine" class="add"><span>다짐 추가하기</span></button>
-    
-  </div>
 
-  <!-- 다짐 추가 팝업 -->
-  <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" />
-  
+    <FooterView />
+
+    <!-- 다짐 추가 버튼 -->
+    <button @click="openAddRoutine" class="add">
+      <span>다짐 추가하기</span>
+    </button>
+
+    <!-- 다짐 추가 팝업 -->
+    <AddRoutineSelector
+      v-if="isAddRoutineOpen"
+      @close="isAddRoutineOpen = false"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -63,6 +64,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
 })
+
+const selectedIndex = ref(null)
+
+const selectDate = (index) => {
+  selectedIndex.value = index
+}
 
 const today = new Date()
 
