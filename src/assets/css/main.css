@@ -169,3 +169,18 @@ button.share {
 button.setting {
   background: url('../images/ico_setting.png') no-repeat 0 0/100%;
 }
+button.user {
+  background: url('../images/ico_user.png') no-repeat 0 0/100%;
+}
+button.shop {
+  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
+}
+button.say {
+  background: url('../images/ico_say.png') no-repeat 0 0/100%;
+}
+button.graph {
+  background: url('../images/ico_graph.png') no-repeat 0 0/100%;
+}
+button.control {
+  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
+}
