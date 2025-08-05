@@ -21,7 +21,7 @@
   padding:1rem; 
   box-sizing: border-box;
   background-color:#fff;
-  border-bottom:1px solid #ececec
+  border-bottom: 1px solid #ececec;
 }
 
 #header .left,
@@ -32,8 +32,8 @@
 
 #header button,
 #footer button {
-  width:2rem;
-  height:2rem
+  width:1.5rem;
+  height:1.5rem
 }
 
 #header .title {
@@ -97,18 +97,19 @@
 
 #footer {
   height: 4rem;
-  flex-shrink: 0;
   background-color: #fff;
   border-top: 1px solid #ececec;
+  display: flex;
+  }
+
+#footer .button {
+  width:90%;
+  margin:0 auto;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-around; 
   align-items: center;   
   gap:1.5rem
-}
-
-#footer .button {
-  width:80%;
-  margin:0 auto;
 }
 
 #main_body {
@@ -116,6 +117,56 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+#main_body .date_scroll {
+  padding:1rem 2rem 1rem 2rem;
+}
+
+#main_body .date_scroll .date_group {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;    
+  align-items: center;        
+  gap: 0.2rem;      
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+  -ms-overflow-style: none; 
+  scrollbar-width: none;
+}
+
+#main_body .date_scroll::-webkit-scrollbar {
+  display: none;
+}
+
+#main_body .date_scroll .date_group span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ececec;
+  border-radius: 1rem;
+  padding: 0.4rem 1rem;
+  line-height: 1.1rem;
+  font-size: 1rem;
+  color: #999;
+  box-sizing: border-box;
+}
+#main_body .date_scroll .date_group i {
+  display:block;
+  color:#666;
+  line-height:0.8rem;
+  font-style:normal;
+  font-size:0.6rem;
+}
+
+#main_body .date_scroll .date_group span.on {
+  color:#333!important;
+  font-weight:bold;
+  background-color:#fff!important;
+  border:1px solid #333
+}
+
 
 
 button.lnb {
@@ -130,17 +181,34 @@ button.add {
   position:fixed;
   right:1rem;
   bottom:5rem;
+  border-radius:50%;
   background: url('../images/ico_add.png') no-repeat 0 0/100%;
+  background-color:#fff;
 }
 button.home {
   background: url('../images/ico_home.png') no-repeat 0 0/100%;
 }
 button.like {
-  background: url('../images/ico_share.png') no-repeat 0 0/100%;
+  background: url('../images/ico_like.png') no-repeat 0 0/100%;
 }
 button.share {
   background: url('../images/ico_share.png') no-repeat 0 0/100%;
 }
 button.setting {
   background: url('../images/ico_setting.png') no-repeat 0 0/100%;
+}
+button.user {
+  background: url('../images/ico_user.png') no-repeat 0 0/100%;
+}
+button.shop {
+  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
+}
+button.say {
+  background: url('../images/ico_say.png') no-repeat 0 0/100%;
+}
+button.graph {
+  background: url('../images/ico_graph.png') no-repeat 0 0/100%;
+}
+button.control {
+  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
 }

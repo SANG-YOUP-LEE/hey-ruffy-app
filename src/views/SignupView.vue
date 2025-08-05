@@ -324,3 +324,4 @@ const selectColor = (colorName) => {
   selectedColor.value = colorName
 }
 </script>
+
