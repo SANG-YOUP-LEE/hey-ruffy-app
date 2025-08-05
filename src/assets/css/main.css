@@ -126,9 +126,17 @@
   transform: translate(-50%, -50%);
   text-align: center;
   border:1px solid red;
+  font-size:1.4rem;
+  font-weight:bold;
+  line-height:1.6rem;
+  background-image: url('../images/ico_crying.png');
+  background-repeat: no-repeat;
+  background-size: 2rem 2rem;
+  background-position: top center;
 }
 
 #main_body .no_data span {
+  display:block;
   color:#666;
   font-size:1rem
 }
