@@ -119,7 +119,7 @@
 
 #main_body .date_scroll {
   background-color: #fff;
-  padding: 0 2rem;
+  padding: 0 2rem 2rem 2rem;
   border-bottom: 1px solid #ececec;
 }
 
@@ -128,17 +128,28 @@
   display: flex;
   justify-content: center;    
   align-items: center;        
-  gap: 0.5rem;                
+  gap: 0.5rem;      
 }
 
 #main_body .date_scroll .date_group span {
-  width: 2rem;
-  height: 2rem;
+  width: 3rem;
+  height: 4rem;
   border: 1px solid #ddd;
   border-radius: 1rem;
-  display: inline-flex;       
+  display: inline-block;       
   align-items: center;        
-  justify-content: center;    
+  justify-content: center; 
+  color:#666;
+  font-size:1.2rem;
+}
+#main_body .date_scroll .date_group i {
+  display:inline-block;
+  color:#666;
+  font-size:0.8rem;
+}
+#main_body .date_scroll .date_group span.on {
+  color:#333;
+  font-weight:bold
 }
 
 button.lnb {
