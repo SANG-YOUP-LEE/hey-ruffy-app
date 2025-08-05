@@ -201,4 +201,13 @@ const resetSelections = (tab) => {
     selectedDates.value = []
   }
 }
+
+defineExpose({
+  selectedTab,
+  selectedDaily,
+  selectedWeeklyMain,
+  selectedWeeklyDays,
+  selectedDates
+})
+
 </script>

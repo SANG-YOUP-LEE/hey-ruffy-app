@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const colors = [
   'color_picker01',
@@ -34,9 +34,16 @@ const toggleColor = (index) => {
   selectedColor.value = selectedColor.value === index ? null : index
 }
 
-defineExpose({
-  selectedColor
+// priority 계산: 0~3 = low, 4~6 = medium, 7~9 = high
+const priority = computed(() => {
+  if (selectedColor.value === null) return null
+  if (selectedColor.value <= 3) return 'low'
+  if (selectedColor.value <= 6) return 'medium'
+  return 'high'
 })
 
+defineExpose({
+  selectedColor,
+  priority
+})
 </script>
-

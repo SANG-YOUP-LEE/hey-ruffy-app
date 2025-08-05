@@ -80,6 +80,7 @@ const defaultDate = {
   day: today.getDate().toString()
 }
 
+const alarmSelectorRef = ref(null)
 const startDate = ref({ ...defaultDate })
 const endDate = ref({ ...defaultDate })
 
@@ -152,7 +153,7 @@ const saveRoutine = async () => {
       repeatMonthDays: repeatRef.value.selectedTab === 'monthly' ? [...repeatRef.value.selectedDates] : [],
       startDate: dateRef.value.startDate,
       endDate: dateRef.value.endDate,
-      alarmTime: alarmRef.value.alarmTime,
+      alarmTime: alarmRef.value?.selectedAlarm ?? null,
       ruffy: ruffyRef.value.ruffy,
       course: courseRef.value.course,
       goalCount: goalRef.value.goalCount,

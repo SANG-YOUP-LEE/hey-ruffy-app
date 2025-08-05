@@ -16,6 +16,9 @@ const colorSelectorRef = ref(null)
 defineExpose({
   get selectedColor() {
     return colorSelectorRef.value?.selectedColor ?? null
+  },
+  get priority() {
+    return colorSelectorRef.value?.priority ?? null
   }
 })
 </script>
