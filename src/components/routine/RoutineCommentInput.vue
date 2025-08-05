@@ -16,8 +16,13 @@ import { ref } from 'vue'
 
 const text = ref('')
 
+const setFromRoutine = (routine) => {
+  text.value = routine?.comment || ''
+}
+
 defineExpose({
-  comment: text
+  comment: text,
+  setFromRoutine
 })
 
 </script>

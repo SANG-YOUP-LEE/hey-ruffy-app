@@ -190,9 +190,21 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 
+const setFromRoutine = (routine) => {
+  if (routine?.startDate) {
+    Object.assign(selectedStartDate, routine.startDate)
+    isStartDateOn.value = true
+  }
+  if (routine?.endDate) {
+    Object.assign(selectedEndDate, routine.endDate)
+    isEndDateOn.value = true
+  }
+}
+
 defineExpose({
   startDate: selectedStartDate,
-  endDate: selectedEndDate
+  endDate: selectedEndDate,
+  setFromRoutine
 })
 
 </script>

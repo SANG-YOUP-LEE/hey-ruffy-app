@@ -71,7 +71,29 @@ const formattedAlarm = computed(() => {
   return `${selectedAlarm.value.ampm} ${selectedAlarm.value.hour}시 ${selectedAlarm.value.minute}분`
 })
 
+const setFromRoutine = (routine) => {
+  if (
+    routine?.alarmTime &&
+    routine.alarmTime.ampm &&
+    routine.alarmTime.hour &&
+    routine.alarmTime.minute
+  ) {
+    selectedAlarm.value = {
+      ampm: routine.alarmTime.ampm,
+      hour: routine.alarmTime.hour,
+      minute: routine.alarmTime.minute
+    }
+    isAlarmOn.value = true
+    showDataFixed.value = true
+  } else {
+    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
+    isAlarmOn.value = false
+    showDataFixed.value = false
+  }
+}
+
 defineExpose({
-  selectedAlarm
+  selectedAlarm,
+  setFromRoutine
 })
 </script>

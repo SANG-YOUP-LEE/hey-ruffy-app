@@ -8,28 +8,56 @@
       <div class="custom-radio-group row">
         <!-- 5회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal1" name="goal" value="goal1" @change="handleChange" />
+          <input
+            type="radio"
+            id="goal1"
+            name="goal"
+            value="goal1"
+            :checked="goalCount === 5"
+            @change="handleChange"
+          />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal1">5회</label>
 
         <!-- 10회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal2" name="goal" value="goal2" @change="handleChange" />
+          <input
+            type="radio"
+            id="goal2"
+            name="goal"
+            value="goal2"
+            :checked="goalCount === 10"
+            @change="handleChange"
+          />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal2">10회</label>
 
         <!-- 15회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal3" name="goal" value="goal3" @change="handleChange" />
+          <input
+            type="radio"
+            id="goal3"
+            name="goal"
+            value="goal3"
+            :checked="goalCount === 15"
+            @change="handleChange"
+          />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal3">15회</label>
 
         <!-- 20회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal4" name="goal" value="goal4" @change="handleChange" />
+          <input
+            type="radio"
+            id="goal4"
+            name="goal"
+            value="goal4"
+            :checked="goalCount === 20"
+            @change="handleChange"
+          />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal4">20회</label>
@@ -37,7 +65,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref } from 'vue'
@@ -54,7 +81,12 @@ const handleChange = (event) => {
   goalCount.value = map[event.target.value] || 0
 }
 
+const setFromRoutine = (routine) => {
+  goalCount.value = routine?.goalCount || 0
+}
+
 defineExpose({
-  goalCount
+  goalCount,
+  setFromRoutine
 })
 </script>

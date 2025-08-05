@@ -1,9 +1,18 @@
 <template>
   <div class="popup_wrap">
     <div class="popup_tit">
-      <h2>다짐을 만들어 볼까요?</h2>
-      <p>다짐을 달성할때마다<br />러피의 산책이 총총총 계속됩니다.</p>
-    </div>
+        <h2>{{ isEditMode ? '다짐을 수정할까요?' : '다짐을 만들어 볼까요?' }}</h2>
+        <p>
+          <template v-if="isEditMode">
+            다짐을 변경해보아요.<br />
+            러피의 산책을 이어갑니다.
+          </template>
+          <template v-else>
+            다짐을 달성할 때마다<br />
+            러피의 산책이 총총총 계속됩니다.
+          </template>
+        </p>
+      </div>
     
     <!-- 내부 스크롤 영역 -->
     <div class="popup_inner" ref="popupInner">
@@ -47,10 +56,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 
 import { db } from '@/firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
@@ -62,6 +71,16 @@ import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vu
 import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
+
+//  edit mode  //
+const props = defineProps({
+  routineToEdit: {
+    type: Object,
+    default: null
+  }
+})
+
+const isEditMode = computed(() => props.routineToEdit !== null)
 
 const titleRef = ref()
 const repeatRef = ref()
@@ -157,13 +176,18 @@ const saveRoutine = async () => {
       ruffy: ruffyRef.value.ruffy,
       course: courseRef.value.course,
       goalCount: goalRef.value.goalCount,
-      priority: priorityRef.value.priority,
       colorIndex: priorityRef.value.selectedColor,
       comment: commentRef.value.comment,
-      createdAt: serverTimestamp()
     }
 
-    await addDoc(collection(db, 'users', user.uid, 'routines'), routine)
+    if (isEditMode.value && props.routineToEdit?.id) {
+        routine.updatedAt = serverTimestamp()        // 수정 시 updatedAt 추가
+        await updateDoc(doc(db, 'users', user.uid, 'routines', props.routineToEdit.id), routine)
+      } else {
+        routine.createdAt = serverTimestamp()        // 생성 시 createdAt 추가
+        await addDoc(collection(db, 'users', user.uid, 'routines'), routine)
+      }
+
     unlockScroll()
     emit('close')
   } catch (err) {
@@ -174,6 +198,18 @@ const saveRoutine = async () => {
 
 onMounted(() => {
   lockScroll()
+
+  if (props.routineToEdit) {
+        titleRef.value.setFromRoutine?.(props.routineToEdit)
+        repeatRef.value.setFromRoutine?.(props.routineToEdit)
+        dateRef.value.setFromRoutine?.(props.routineToEdit)
+        alarmRef.value.setFromRoutine?.(props.routineToEdit)
+        ruffyRef.value.setFromRoutine?.(props.routineToEdit)
+        courseRef.value.setFromRoutine?.(props.routineToEdit)
+        goalRef.value.setFromRoutine?.(props.routineToEdit)
+        priorityRef.value.setFromRoutine?.(props.routineToEdit)
+        commentRef.value.setFromRoutine?.(props.routineToEdit)
+      }
 })
 
 onBeforeUnmount(() => {

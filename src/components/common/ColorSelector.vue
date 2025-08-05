@@ -42,8 +42,14 @@ const priority = computed(() => {
   return 'high'
 })
 
+const setSelectedColor = (index) => {
+  selectedColor.value = index
+}
+
 defineExpose({
   selectedColor,
+  setSelectedColor,
   priority
 })
+
 </script>

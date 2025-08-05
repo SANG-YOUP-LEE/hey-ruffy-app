@@ -13,12 +13,19 @@ import ColorSelector from '@/components/common/ColorSelector.vue'
 
 const colorSelectorRef = ref(null)
 
+const setFromRoutine = (routine) => {
+  if (routine?.colorIndex !== undefined && colorSelectorRef.value?.setSelectedColor) {
+    colorSelectorRef.value.setSelectedColor(routine.colorIndex)
+  }
+}
+
 defineExpose({
   get selectedColor() {
     return colorSelectorRef.value?.selectedColor ?? null
   },
   get priority() {
     return colorSelectorRef.value?.priority ?? null
-  }
+  },
+  setFromRoutine
 })
 </script>

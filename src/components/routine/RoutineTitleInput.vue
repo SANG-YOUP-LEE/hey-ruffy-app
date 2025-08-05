@@ -19,8 +19,14 @@ import { ref } from 'vue'
 
 const title = ref('')
 
+// 수정모드일 때 기존 제목 세팅용
+const setFromRoutine = (routine) => {
+  title.value = routine?.title || ''
+}
 // 부모에서 접근할 수 있도록 노출
 defineExpose({
-  title
+  title,
+  setFromRoutine
 })
+
 </script>

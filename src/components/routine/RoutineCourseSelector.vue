@@ -11,8 +11,13 @@ import CourseSelector from '@/components/common/CourseSelector.vue'
 
 const selectedCourse = ref('')
 
+const setFromRoutine = (routine) => {
+  selectedCourse.value = routine?.course || ''
+}
+
 defineExpose({
-  course: selectedCourse
+  course: selectedCourse,
+  setFromRoutine
 })
 
 </script>

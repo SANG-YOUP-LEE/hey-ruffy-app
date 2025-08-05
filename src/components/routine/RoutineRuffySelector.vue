@@ -11,8 +11,13 @@ import RuffySelector from '@/components/common/RuffySelector.vue'
 
 const selectedRuffy = ref('')
 
+const setFromRoutine = (routine) => {
+  selectedRuffy.value = routine?.ruffy || ''
+}
+
 defineExpose({
-  ruffy: selectedRuffy
+  ruffy: selectedRuffy,
+  setFromRoutine
 })
 
 </script>

@@ -202,12 +202,32 @@ const resetSelections = (tab) => {
   }
 }
 
+const setFromRoutine = (routine) => {
+  if (!routine || !routine.repeatType) return
+
+  selectedTab.value = routine.repeatType
+
+  if (routine.repeatType === 'daily') {
+    selectedDaily.value = [...routine.repeatDays]
+  }
+
+  if (routine.repeatType === 'weekly') {
+    selectedWeeklyMain.value = routine.repeatWeeks || ''
+    selectedWeeklyDays.value = [...routine.repeatWeekDays]
+  }
+
+  if (routine.repeatType === 'monthly') {
+    selectedDates.value = [...routine.repeatMonthDays]
+  }
+}
+
 defineExpose({
   selectedTab,
   selectedDaily,
   selectedWeeklyMain,
   selectedWeeklyDays,
-  selectedDates
+  selectedDates,
+  setFromRoutine
 })
 
 </script>
