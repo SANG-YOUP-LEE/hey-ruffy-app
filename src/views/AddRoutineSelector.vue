@@ -14,7 +14,7 @@
         </p>
       </div>
     
-    <!-- 내부 스크롤 영역 -->
+      <!-- 내부 스크롤 영역 -->
     <div class="popup_inner" ref="popupInner">
       <!-- 다짐명 입력 -->
       <RoutineTitleInput ref="titleRef" />
