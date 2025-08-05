@@ -107,15 +107,21 @@
           </button>
 
           <div class="button" v-else>
-            <button class="b_basic" @click="checkVerification">인증 확인</button>
-            <!-- 인증 메일 재전송 쿨다운 중일 때만 버튼 보이게 -->
-          <button
-            v-if="resendCooldown > 0"
-            class="b_basic_white"
-            disabled
-          >
-            인증 메일 재전송 ({{ resendCooldown }}초)
-          </button>
+           <button class="b_basic" @click="checkVerification">인증 확인</button>
+
+            <!-- 인증 메일 재전송 버튼 -->
+            <button
+              class="b_basic_white"
+              @click="resendVerification"
+              :disabled="resendCooldown > 0"
+              style="margin-top: 0.5rem"
+            >
+              {{
+                resendCooldown > 0
+                  ? `인증 메일 재전송 (${resendCooldown}초)`
+                  : "인증 메일 다시 보내기"
+              }}
+            </button>
           </div>
 
           <div class="error-box" v-if="errorMessage" v-html="errorMessage"></div>
@@ -235,6 +241,7 @@ const checkVerification = async () => {
         email: auth.currentUser.email,
         nickname: nickname.value,
         selectedRuffy: selectedOption.value, // ✅ 러피 저장 추가
+        selectedColor: selectedColor.value,
         createdAt: serverTimestamp(),
         verified: true
         })
