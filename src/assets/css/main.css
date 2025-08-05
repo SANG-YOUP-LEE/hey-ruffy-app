@@ -129,6 +129,10 @@
   justify-content: center;    
   align-items: center;        
   gap: 0.2rem;      
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
 }
 
 #main_body .date_scroll .date_group span {
