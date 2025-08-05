@@ -141,15 +141,17 @@
 }
 
 #main_body .date_scroll .date_group span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   border: 1px solid #ececec;
   border-radius: 1rem;
-  padding:0.5rem 1rem 0.5rem 1rem;
-  line-height:1.2rem;
-  display: inline-block;       
-  align-items: center;        
-  justify-content: center; 
-  color:#999;
-  font-size:1rem;
+  padding: 0.4rem 1rem;
+  line-height: 1.1rem;
+  font-size: 1rem;
+  color: #999;
+  box-sizing: border-box;
 }
 #main_body .date_scroll .date_group i {
   display:block;
@@ -162,7 +164,7 @@
 #main_body .date_scroll .date_group span.on {
   color:#333;
   font-weight:bold;
-  background-color:none;
+  background-color:none!important;
   border:1px solid #333
 }
 #main_body .date_scroll .date_group span.on {
