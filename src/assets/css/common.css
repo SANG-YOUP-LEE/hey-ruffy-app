@@ -40,6 +40,19 @@
    font-style: 400;
 }
 
+@font-face {
+   font-family: 'S-CoreDream-5Regular';
+   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Regular.woff') format('woff');
+   font-weight: 500;
+   font-style: 500;
+}
+
+@font-face {
+   font-family: 'S-CoreDream-6Bold';
+   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff');
+   font-weight: 600;
+   font-style: 600;
+}
 * {
   margin: 0;
   padding: 0;
@@ -100,7 +113,7 @@ h1 {
 }
 
 h2 {
-  font-family: 'Freesentation-7Bold';
+  font-family: 'S-CoreDream-5Regular';
   font-size:2rem;
   line-height:2.3rem;
 }
