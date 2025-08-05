@@ -1,3 +1,9 @@
+@font-face {
+    font-family: 'ONE-Mobile-POP';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 
 @font-face {
   font-family: 'Paperlogy-8ExtraBold';
@@ -81,13 +87,13 @@ html, body {
 }
 
 h1 {
-  font-family: 'Paperlogy-8ExtraBold';
+  font-family: 'ONE-Mobile-POP';
   font-size:3.8rem;
   line-height:4.3rem;
 }
 
 h2 {
-  font-family: 'Freesentation-7Bold';
+  font-family: 'ONE-Mobile-POP';
   font-size:2rem;
   line-height:2.3rem;
 }
