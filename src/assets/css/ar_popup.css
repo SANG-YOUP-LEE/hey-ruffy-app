@@ -28,7 +28,7 @@
 	height:1.5rem;
 	border-radius:50%;
 	display: inline-block;
-	background:url('@/assets/images/ico_close01.png') no-repeat 0 0/cover;
+	background:url('@/assets/images/ico_close.png') no-repeat 0 0/cover;
 }
 
 .close_btn span {
