@@ -5,7 +5,22 @@
   
     <!--main view-->
     <div id="main_body">
-      
+      <!--상단 날짜 휠-->
+      <div class="date_scroll">
+        <div class="date_group">
+          <span><i class="on">일</i>1</span>
+          <span><i>월</i>2</span>
+          <span><i class="on">화</i>3</span>
+          <span><i>수</i>4</span>
+          <span><i class="on">목</i>5</span>
+          <span><i>금</i>6</span>
+          <span><i class="on">토</i>7</span>
+          <span><i>일</i>8</span>
+          <span><i class="on">월</i>9</span>
+          <span><i>화</i>10</span>
+        </div>
+      </div>
+      <!--//상단 날짜 휠-->
     </div>
     <!--/main view-->
   
