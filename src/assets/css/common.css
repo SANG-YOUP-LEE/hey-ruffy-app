@@ -108,8 +108,12 @@ h1 {
 
 h2 {
   font-family: 'S-CoreDream-6Bold';
-  font-size:1.8rem;
+  font-size:1.6rem;
   line-height:2.3rem;
+}
+
+h3 {
+  font-family: 'S-CoreDream-6Bold';
 }
 
 img, picture, video, canvas, svg {
