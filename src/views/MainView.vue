@@ -11,7 +11,7 @@
           <span
             v-for="(date, index) in dateList"
             :key="index"
-            :class="{ today: isToday(date), on: selectedIndex === index }"
+            :class="{ light: isToday(date), on: selectedIndex === index }"
             @click="selectDate(index)"
           >
             <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
