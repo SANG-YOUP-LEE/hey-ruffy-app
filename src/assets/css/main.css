@@ -32,8 +32,8 @@
 
 #header button,
 #footer button {
-  width:2rem;
-  height:2rem
+  width:1.5rem;
+  height:1.5rem
 }
 
 #header .title {
@@ -97,18 +97,19 @@
 
 #footer {
   height: 4rem;
-  flex-shrink: 0;
   background-color: #fff;
   border-top: 1px solid #ececec;
   display: flex;
-  justify-content: space-around; 
-  align-items: center;   
-  gap:1.5rem
-}
+  }
 
 #footer .button {
   width:80%;
   margin:0 auto;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-around; 
+  align-items: center;   
+  gap:1.5rem
 }
 
 #main_body {
@@ -136,7 +137,7 @@ button.home {
   background: url('../images/ico_home.png') no-repeat 0 0/100%;
 }
 button.like {
-  background: url('../images/ico_share.png') no-repeat 0 0/100%;
+  background: url('../images/ico_like.png') no-repeat 0 0/100%;
 }
 button.share {
   background: url('../images/ico_share.png') no-repeat 0 0/100%;
