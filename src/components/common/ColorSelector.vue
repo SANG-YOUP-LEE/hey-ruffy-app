@@ -33,4 +33,10 @@ const selectedColor = ref(null)
 const toggleColor = (index) => {
   selectedColor.value = selectedColor.value === index ? null : index
 }
+
+defineExpose({
+  selectedColor
+})
+
 </script>
+

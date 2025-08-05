@@ -8,28 +8,28 @@
       <div class="custom-radio-group row">
         <!-- 5회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal1" name="goal" value="goal1" />
+          <input type="radio" id="goal1" name="goal" value="goal1" @change="handleChange" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal1">5회</label>
 
         <!-- 10회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal2" name="goal" value="goal2" />
+          <input type="radio" id="goal2" name="goal" value="goal2" @change="handleChange" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal2">10회</label>
 
         <!-- 15회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal3" name="goal" value="goal3" />
+          <input type="radio" id="goal3" name="goal" value="goal3" @change="handleChange" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal3">15회</label>
 
         <!-- 20회 -->
         <label class="custom-radio">
-          <input type="radio" id="goal4" name="goal" value="goal4" />
+          <input type="radio" id="goal4" name="goal" value="goal4" @change="handleChange" />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal4">20회</label>
@@ -37,6 +37,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref } from 'vue'

@@ -128,6 +128,8 @@ const unlockScroll = () => {
 }
 
 
+
+
 /* 닫기 버튼 */
 const closePopup = () => {
   unlockScroll()
@@ -155,6 +157,7 @@ const saveRoutine = async () => {
       course: courseRef.value.course,
       goalCount: goalRef.value.goalCount,
       priority: priorityRef.value.priority,
+      colorIndex: priorityRef.value.selectedColor,
       comment: commentRef.value.comment,
       createdAt: serverTimestamp()
     }
