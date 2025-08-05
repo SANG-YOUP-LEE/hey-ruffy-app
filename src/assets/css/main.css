@@ -8,7 +8,6 @@
 
 #main_wrap button {
   display:inline-block;
-  border:1px solid red;
 }
 
 #main_wrap button span {
@@ -31,8 +30,8 @@
   text-align: center;
 }
 
-#header boutton,
-#footer boutton {
+#header button,
+#footer button {
   width:2.5rem;
   height:2.5rem
 }
