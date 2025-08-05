@@ -11,7 +11,7 @@
           <span
             v-for="(date, index) in dateList"
             :key="index"
-            :class="{ light: isToday(date), on: selectedIndex === index }"
+            :class="{ on: selectedIndex === index }"
             @click="selectDate(index)"
           >
             <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
@@ -20,7 +20,6 @@
       </div>
       <!--//상단 날짜 휠-->
     </div>
-    <!--/main view-->
 
     <FooterView />
 
@@ -82,14 +81,5 @@ const dateList = Array.from({ length: 30 }, (_, i) => {
 const getDayLabel = (date) => {
   const days = ['일', '월', '화', '수', '목', '금', '토']
   return days[date.getDay()]
-}
-
-const isToday = (date) => {
-  const now = new Date()
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  )
 }
 </script>
