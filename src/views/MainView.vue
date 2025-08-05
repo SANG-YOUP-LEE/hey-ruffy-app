@@ -6,36 +6,8 @@
     <!--main view-->
     <div id="main_body">
       <!-- 다짐 추가 버튼 -->
-      <button @click="openAddRoutine" style="position:absolute;bottom:5rem;right:2rem;padding:1rem;color:#fff;font-weight:bold;background-color:#333;border-radius:1rem">다짐 추가하기</button>
-      bbb<br />a<br />a<br />
-      c<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />a<br />
-      a<br />a<br />ccc<br />
+      <button @click="openAddRoutine" class="ad"><span>다짐 추가하기</span></button>
+      
     </div>
     <!--/main view-->
   
