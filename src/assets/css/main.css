@@ -128,7 +128,7 @@
   text-align: center;
   font-size:1.4rem;
   font-weight:bold;
-  line-height:1.8rem;
+  line-height:1.6rem;
   background-image: url('../images/ico_crying.png');
   background-repeat: no-repeat;
   background-size: 5rem 5rem;
@@ -140,7 +140,9 @@
 #main_body .no_data span {
   display:block;
   color:#666;
-  font-size:1rem
+  font-size:1rem;
+  margin-top:0.5rem;
+  font-family:'S-CoreDream-4Regular'
 }
 
 #main_body .date_scroll {
