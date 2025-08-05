@@ -33,6 +33,13 @@
    font-style: normal;
 }
 
+@font-face {
+   font-family: 'S-CoreDream-4Regular';
+   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff');
+   font-weight: 400;
+   font-style: 400;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -41,7 +48,7 @@
 
 html, body {
   height: 100%;
-  font-family: 'SUIT-Regular', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'S-CoreDream-3Light',/*'SUIT-Regular',*/ 'Apple SD Gothic Neo', sans-serif;
   font-size: 1rem;
   line-height: 1.5rem;
   color: #333;
