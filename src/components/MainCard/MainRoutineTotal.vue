@@ -4,7 +4,7 @@
     <p>
       <span>
         <strong>{{ isFuture ? '이날의 다짐' : '오늘의 다짐' }}</strong>
-        총<em class="t_on">15</em>건 중
+        총<em class="t_on">15</em>건
       </span>
       <span>
         <template v-if="isFuture">
@@ -13,6 +13,7 @@
          새 다짐을 만들어 볼까요?-->
         </template>
         <template v-else>
+          중 
           <strong>미달성</strong> <em class="t_on">5</em>  
           <strong>달성완료</strong> <em class="t_on">8</em>
           <strong>흐린눈</strong> <em class="t_on">2</em>
