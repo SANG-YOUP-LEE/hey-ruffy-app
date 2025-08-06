@@ -42,8 +42,8 @@ import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
-import MainDateScroll from '@/components/mainCard/MainDateScroll.vue'
-import MainRoutineTotal from '@/components/mainCard/MainRoutineTotal.vue'
+import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
+import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
