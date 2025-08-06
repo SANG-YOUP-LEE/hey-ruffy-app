@@ -92,7 +92,7 @@
 #main_body .routine_total p span {
   display: flex;
   align-items: center;
-  gap: 0.3rem; /* 텍스트와 숫자 사이 간격 */
+  gap: 0.1rem; /* 텍스트와 숫자 사이 간격 */
 }
 
 #main_body .routine_total p span {
