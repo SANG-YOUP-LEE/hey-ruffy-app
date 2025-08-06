@@ -9,7 +9,6 @@
         달성완료 <em>10</em>) 
       </span>
       <span>
-      <span>
         <button>완료된 다짐</button>
         <button>이번주 다짐</button>
       </span>
