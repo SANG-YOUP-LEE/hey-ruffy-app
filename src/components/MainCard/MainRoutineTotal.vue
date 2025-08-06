@@ -3,14 +3,14 @@
   <div class="routine_total">
     <p>
       <span>
-        <strong>{{ isFuture ? '미래의 다짐' : '오늘의 다짐' }}</strong>
+        <strong>{{ isFuture ? '이날의 다짐' : '오늘의 다짐' }}</strong>
         <template v-if="!isFuture">
           총<em>15</em>건 
         </template>
       </span>
       <span>
         <template v-if="isFuture">
-          미래의 다짐은 목록만 볼 수 있어요.
+          미래의 다짐은 편집할 수 없어요.
         </template>
         <template v-else>
           <strong>미달성</strong> <em>5</em>  
