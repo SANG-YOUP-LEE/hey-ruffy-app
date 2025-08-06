@@ -21,18 +21,13 @@
 
     <p>
       <span>
-        <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="filterNotDone" />
-          <span class="toggle-text" @click="filterNotDone = !filterNotDone">달성 전</span>
-        </div>
-        <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="filterDone" />
-          <span class="toggle-text" @click="filterDone = !filterDone">달성 완료</span>
-        </div>
-        <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="filterIgnored" />
-          <span class="toggle-text" @click="filterIgnored = !filterIgnored">흐린 눈</span>
-        </div>
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+           />
+          <span class="circle"></span>
+          달성 전
+        </label>
       </span>
     </p>
   </div>
