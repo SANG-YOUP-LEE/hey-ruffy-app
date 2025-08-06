@@ -5,34 +5,12 @@
 
     <!--main view--> 
     <div id="main_body">
+
       <!--상단 날짜 휠-->
-      <div class="date_scroll">
-        <div class="date_group">
-          <span
-            v-for="(date, index) in dateList"
-            :key="index"
-            :class="{ on: selectedIndex === index }"
-            @click="selectDate(index)"
-          >
-            <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
-          </span>
-        </div>
-      </div>
-      <!--//상단 날짜 휠-->
+      <MainDateScroll />
 
       <!--다짐 현황-->
-      <div class="routine_state on_w light">
-        <p>
-          <span><strong>오늘의 다짐</strong> 총<em>15</em>건 중</span>
-          <span><strong>달성전</strong> <em>10</em>건</span>
-          <span><strong>달성완료</strong> <em>5</em>건</span>
-        </p>
-        <p>
-          <button>달성완료 다짐</button>
-          <button>내일의 다짐</button>
-          <button>이번주 다짐</button>
-        </p>
-      </div>
+      <MainRoutineTotal />
 
       <!--다짐 없을 경우-->
       <div class="no_data ruffy01">
@@ -64,6 +42,8 @@ import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
+import MainDateScroll from '@/components/main/MainDateScroll.vue'
+import MainRoutineTotal from '@/components/main/MainRoutineTotal.vue'
 
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
@@ -80,40 +60,9 @@ function setVh() {
 onMounted(() => {
   setVh()
   window.addEventListener('resize', setVh)
-
-  // 초기 선택을 오늘 날짜로
-  selectedIndex.value = dateList.findIndex((date) => isToday(date))
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
 })
-
-const selectedIndex = ref(null)
-
-const selectDate = (index) => {
-  selectedIndex.value = index
-}
-
-const today = new Date()
-
-const dateList = Array.from({ length: 30 }, (_, i) => {
-  const d = new Date()
-  d.setDate(today.getDate() + i)
-  return d
-})
-
-const getDayLabel = (date) => {
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  return days[date.getDay()]
-}
-
-const isToday = (date) => {
-  const now = new Date()
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  )
-}
 </script>
