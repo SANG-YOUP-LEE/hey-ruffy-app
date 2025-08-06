@@ -27,8 +27,24 @@
             type="radio" 
            />
           <span class="circle"></span>
-          달성 전
         </label>
+        달성 전
+        
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+           />
+          <span class="circle"></span>
+        </label>
+        달성 완료
+        
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+           />
+          <span class="circle"></span>
+        </label>
+        흐린 눈
       </span>
     </p>
   </div>
