@@ -49,7 +49,9 @@ body.blue h1,
 body h2, 
 body.blue h2,
 body a, 
-body.blue a {
+body.blue a,
+body .t_on, 
+body.blue .t_on {
   color:#0994ff;
 }
 
@@ -120,7 +122,8 @@ body.blue .on_w.light {
 /* skin color red*/
 body.red h1,
 body.red h2,
-body.red a {
+body.red a,
+body.red .t_on {
   color:#ff5450;
 }
 
@@ -177,7 +180,8 @@ body.red .on_w.light {
 /* skin color green*/
 body.green h1,
 body.green h2,
-body.green a {
+body.green a,
+body.green .t_on {
   color:#00ac6d;
 }
 
@@ -235,7 +239,8 @@ body.green .on_w.light {
 /* skin color bw*/
 body.bw h1,
 body.bw h2,
-body.bw a  {
+body.bw a,
+body.bw .t_on {
   color:#333;
 }
 
