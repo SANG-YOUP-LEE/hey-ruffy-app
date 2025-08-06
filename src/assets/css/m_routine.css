@@ -78,11 +78,15 @@
   padding:1rem;
   border-radius:1.5rem;
   margin:1rem 0;
+  font-size:0.9rem;
   letter-spacing:-0.02rem;
-  line-height:1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+#main_body .routine_total p:first-child span em {
+  font-weight:bold
 }
 
 #main_body .routine_total p span {
