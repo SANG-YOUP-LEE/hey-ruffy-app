@@ -11,8 +11,7 @@
   background-size: 5rem 5rem;
   background-position: top center;
   font-family:'S-CoreDream-6Bold';
-  padding-top:6rem;
-  border:1px solid red
+  padding-top:5rem;
 }
 
 #main_body .no_data span {
@@ -24,7 +23,6 @@
 }
 
 #main_body .date_scroll {
-  border:1pz solid red
 }
 
 #main_body .date_scroll .date_group {
@@ -72,8 +70,7 @@
 }
 
 #main_body .routine_total {
-  
-  border:1px solid red;
   border-radius:1.5rem;
   padding:1rem;
+  margin-top:1rem;
 }
