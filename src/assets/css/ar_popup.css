@@ -333,13 +333,10 @@
   width:100%;
   font-size:0.9rem;
   margin:1rem 0 -1rem 0;
-  display: flex;
-  justify-content: flex-end;
-  text-align:right;
   background-color:green;
 }
 
 .off_walk .checkbox-label {
-  width:auto;
+  float:right;
   background-color:red;
 }
