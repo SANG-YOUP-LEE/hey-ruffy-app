@@ -4,7 +4,7 @@
     <p>
       <span>
         <strong>{{ isFuture ? '이날의 다짐' : '오늘의 다짐' }}</strong>
-        총<em class="t_on">15</em>건
+        총<em class="t_on">15</em>건 중
       </span>
       <span>
         <template v-if="isFuture">
