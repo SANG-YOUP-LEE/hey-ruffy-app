@@ -3,35 +3,20 @@
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
-    <!--main view--> 
     <div id="main_body">
-
       <!--상단 날짜 휠-->
-      <MainDateScroll />
+      <MainDateScroll @selectDate="handleSelectDate" />
 
       <!--다짐 현황-->
-      <MainRoutineTotal />
-
-      <!--다짐 없을 경우
-      <div class="no_data ruffy01">
-        <p>
-          오늘은 지켜야할<br />다짐이 없어요.
-          <span>오른쪽 하단 +버튼을 눌러<br />새로운 다짐을 추가해볼까요?</span>
-        </p>
-      </div>
-      -->
-
-      
+      <MainRoutineTotal :isFuture="isFutureDate" />
     </div>
 
     <FooterView />
 
-    <!-- 다짐 추가 버튼 -->
     <button @click="openAddRoutine" class="add">
       <span>다짐 추가하기</span>
     </button>
 
-    <!-- 다짐 추가 팝업 -->
     <AddRoutineSelector
       v-if="isAddRoutineOpen"
       @close="isAddRoutineOpen = false"
@@ -50,6 +35,14 @@ import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
+
+const selectedDate = ref(new Date())
+const isFutureDate = ref(false)
+
+const handleSelectDate = (date, isFuture) => {
+  selectedDate.value = date
+  isFutureDate.value = isFuture
+}
 
 function openAddRoutine() {
   isAddRoutineOpen.value = true
