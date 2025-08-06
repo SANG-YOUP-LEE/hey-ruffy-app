@@ -12,14 +12,14 @@
       <!--다짐 현황-->
       <MainRoutineTotal />
 
-      <!--다짐 없을 경우-->
+      <!--다짐 없을 경우
       <div class="no_data ruffy01">
         <p>
           오늘은 지켜야할<br />다짐이 없어요.
           <span>오른쪽 하단 +버튼을 눌러<br />새로운 다짐을 추가해볼까요?</span>
         </p>
       </div>
-    </div>
+    </div>-->
 
     <FooterView />
 
