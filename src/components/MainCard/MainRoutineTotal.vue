@@ -4,19 +4,15 @@
     <p>
       <span>
         <strong>오늘의 다짐</strong> 
-        총<em>15</em>건
+        총<em>15</em>건 
+        (미달성 <em>5</em>, 
+        달성완료 <em>10</em>) 
       </span>
-      <!--span>
-        <button>달성전 <em>5건</em></button>
-        <button>달성완료 <em>10건</em></button>
-      </span-->
-    </p>
-    <!--p>
-      <span></span>
       <span>
-        <button>내일의 다짐</button>
+      <span>
+        <button>완료된 다짐</button>
         <button>이번주 다짐</button>
       </span>
-    </p-->
+    </p>
   </div>
 </template>
