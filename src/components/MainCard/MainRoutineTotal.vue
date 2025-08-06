@@ -8,7 +8,7 @@
       </span>
       <span>
         <template v-if="isFuture">
-          미래의 다짐 부자시네요!
+          미래에도 다짐 부자시네요!
           <!--다짐이 없을 경우
          새 다짐을 만들어 볼까요?-->
         </template>
