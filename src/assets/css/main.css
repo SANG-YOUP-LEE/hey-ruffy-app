@@ -117,6 +117,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding:0 2rem 2rem 2rem;
+  background-color:#fafafa;
 }
 
 button.lnb {
