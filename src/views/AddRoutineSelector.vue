@@ -25,7 +25,7 @@
         <label class="checkbox-label">
           <input type="checkbox" v-model="isWalkModeOff" />
           <span class="checkmark"></span>
-          <span>{{ isWalkModeOff ? '다시 산책하고 싶다면 해제해주세요. ' : '산책 없이 다짐만 달성할래요.' }}</span>
+          <span>{{ isWalkModeOff ? '다시 산책하고 싶다면 해제해주세요. ' : '산책 없이 다짐하고 싶어요.' }}</span>
         </label>
       </div>
 
