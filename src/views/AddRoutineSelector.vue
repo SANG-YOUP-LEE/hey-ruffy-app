@@ -20,6 +20,8 @@
       <RoutineDateSelector ref="dateRef" />
       <RoutineAlarmSelector ref="alarmRef" />
 
+      <div v-if="errorMessage" class="warn-message">{{ errorMessage }}</div>
+
       <!-- 산책모드 토글 -->
       <div class="off_walk">
         <label class="checkbox-label">
@@ -51,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, nextTick, onBeforeUnmount } from 'vue'
 
 import { db } from '@/firebase'
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
@@ -78,6 +80,8 @@ const emit = defineEmits(['close'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
+
+const errorMessage = ref('')
 
 const titleRef = ref()
 const repeatRef = ref()
@@ -127,7 +131,57 @@ const closePopup = () => {
   emit('close')
 }
 
+const validateRoutine = () => {
+  if (!titleRef.value?.title || titleRef.value.title.trim() === '') {
+    errorMessage.value = '다짐 제목을 입력해주세요.'
+    return false
+  }
+
+  if (!repeatRef.value?.selectedTab) {
+    errorMessage.value = '반복 주기를 선택해주세요.'
+    return false
+  }
+
+  const selectedTab = repeatRef.value.selectedTab
+
+  if (selectedTab === 'daily') {
+    if (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0) {
+      errorMessage.value = '일간 반복의 최소 횟수를 선택해주세요.'
+      return false
+    }
+  }
+
+  if (selectedTab === 'weekly') {
+    if (!repeatRef.value.selectedWeeklyMain) {
+      errorMessage.value = '주간 반복 주기를 선택해주세요.'
+      return false
+    }
+    if (!repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0) {
+      errorMessage.value = '요일을 하나 이상 선택해주세요.'
+      return false
+    }
+  }
+
+  if (selectedTab === 'monthly') {
+    if (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0) {
+      errorMessage.value = '반복할 날짜를 선택해주세요.'
+      return false
+    }
+  }
+
+  const selectedColor = priorityRef.value?.selectedColor ?? null
+  if (selectedColor === null) {
+    errorMessage.value = '다짐 색상을 선택해주세요.'
+    return false
+  }
+
+  errorMessage.value = ''
+  return true
+}
+
 const saveRoutine = async () => {
+  errorMessage.value = '' // 메시지 초기화
+  if (!validateRoutine()) return;
   try {
     const auth = getAuth()
     const user = auth.currentUser
@@ -185,6 +239,18 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
+
+<style scoped>
+.warn-message {
+  color: #e53935; /* 붉은색 */
+  background-color: #fff5f5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+</style>
 
 
 
