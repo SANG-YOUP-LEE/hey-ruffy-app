@@ -1,4 +1,4 @@
-<template>
+<template> 
   <!--다짐 현황-->
   <div class="routine_total">
     <p>
