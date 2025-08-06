@@ -331,19 +331,15 @@
 
 .off_walk {
   width: 100% !important;
-  display: flex !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
-  font-size: 0.9rem !important;
+  display: block !important;
+  text-align: right !important;
   margin: 1rem 0 -1rem 0 !important;
   background-color: green !important;
 }
 
 .off_walk .checkbox-label {
-  display: flex !important;
-  flex-shrink: 0 !important;
+  display: inline-flex !important;
   align-items: center !important;
-  justify-content: flex-end !important;
+  gap: 0.4rem !important;
   background-color: red !important;
-  margin-left: auto !important; /* 이걸 추가로 줘야 진짜 오른쪽 붙음 */
 }
