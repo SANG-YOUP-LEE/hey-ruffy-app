@@ -2,7 +2,7 @@
   <div class="form_box_g">
     <h3>소곤소곤, 더 기억할게 있나요?</h3>
     <textarea
-      placeholder="최대 100자까지 적을 수 있어요."
+      placeholder="최대 100자까지 적을 수 있지만 안쓰셔도 상관없어요."
       class="comment"
       maxlength="100"
       v-model="text"
