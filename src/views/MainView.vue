@@ -20,6 +20,20 @@
       </div>
       <!--//상단 날짜 휠-->
 
+      <!--다짐 현황-->
+      <div class="routine_state">
+        <p>
+          <span><strong>오늘의 다짐 총<em>15</em>건 중</span>
+          <span><strong>달성전</strong> <em>10</em>건</span>
+          <span><strong>달성완료</strong> <em>5</em>건</span>
+        </p>
+        <p>
+          <button>달성완료 다짐</button>
+          <button>내일의 다짐</button>
+          <button>이번주 다짐</button>
+        </p>
+      </div>
+
       <!--다짐 없을 경우-->
       <div class="no_data ruffy01">
         <p>
