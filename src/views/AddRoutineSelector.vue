@@ -1,32 +1,40 @@
 <template>
   <div class="popup_wrap">
     <div class="popup_tit">
-        <h2>{{ isEditMode ? '다짐을 수정할까요?' : '다짐을 만들어 볼까요?' }}</h2>
-        <p>
-          <template v-if="isEditMode">
-            다짐을 변경해보아요.<br />
-            러피의 산책을 이어갑니다.
-          </template>
-          <template v-else>
-            다짐을 달성할 때마다<br />
-            러피의 산책이 총총총 계속됩니다.
-          </template>
-        </p>
-      </div>
+      <h2>{{ isEditMode ? '다짐을 수정할까요?' : '다짐을 만들어 볼까요?' }}</h2>
+      <p>
+        <template v-if="isEditMode">
+          다짐을 변경해보아요.<br />
+          러피의 산책을 이어갑니다.
+        </template>
+        <template v-else>
+          다짐을 달성할 때마다<br />
+          러피의 산책이 총총총 계속됩니다.
+        </template>
+      </p>
+    </div>
     
-      <!-- 내부 스크롤 영역 -->
+    <!-- 내부 스크롤 영역 -->
     <div class="popup_inner" ref="popupInner">
       <!-- 다짐명 입력 -->
       <RoutineTitleInput ref="titleRef" />
-      
+    
       <!-- 다짐 주기 설정 -->
       <RoutineRepeatSelector ref="repeatRef" />
-      
+    
       <!-- 시작일·종료일 설정 -->
       <RoutineDateSelector ref="dateRef" />
       
       <!-- 알람 설정 -->
       <RoutineAlarmSelector ref="alarmRef" />
+
+      <div>
+        <label class="checkbox-label">
+          <input type="checkbox" />
+          <span class="checkmark"></span>
+          <span>산책 모드 끄기</span>
+        </label>
+      </div>
       
       <!-- 러피 선택 -->
       <RoutineRuffySelector ref="ruffyRef" />
