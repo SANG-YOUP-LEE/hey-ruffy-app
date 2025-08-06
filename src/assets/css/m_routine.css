@@ -69,8 +69,14 @@
   border:1px solid #333
 }
 
-#main_body .routine_total {
-  border-radius:1.5rem;
-  padding:1rem;
-  margin-top:1rem;
+#main_body .routine_total p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#main_body .routine_total p span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* 버튼, 텍스트 간격 */
 }
