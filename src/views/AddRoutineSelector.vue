@@ -28,22 +28,21 @@
       <!-- 알람 설정 -->
       <RoutineAlarmSelector ref="alarmRef" />
 
+      <!-- 산책모드 끄기 -->
       <div class="off_walk">
         <label class="checkbox-label">
-          <input type="checkbox" />
+          <input type="checkbox" v-model="isWalkModeOff" />
           <span class="checkmark"></span>
-          <span>산책 모드 끄기</span>
+          <span>{{ isWalkModeOff ? '산책 모드 켜기' : '산책 모드 끄기' }}</span>
         </label>
       </div>
       
-      <!-- 러피 선택 -->
-      <RoutineRuffySelector ref="ruffyRef" />
-      
-      <!-- 산책코스 선택 -->
-      <RoutineCourseSelector ref="courseRef" />
-      
-      <!-- 최소달성횟수 선택 -->
-      <RoutineGoalCountSelector ref="goalRef" />
+      <!-- 산책 관련 요소 (체크시 숨김) -->
+      <div class="walk_group" v-show="!isWalkModeOff">
+        <RoutineRuffySelector ref="ruffyRef" />
+        <RoutineCourseSelector ref="courseRef" />
+        <RoutineGoalCountSelector ref="goalRef" />
+      </div> 
       
       <!-- 중요도 선택 -->
       <RoutinePrioritySelector ref="priorityRef" />
@@ -80,7 +79,6 @@ import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelec
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
-//  edit mode  //
 const props = defineProps({
   routineToEdit: {
     type: Object,
@@ -88,7 +86,10 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits(['close'])
+
 const isEditMode = computed(() => props.routineToEdit !== null)
+const isWalkModeOff = ref(false)
 
 const titleRef = ref()
 const repeatRef = ref()
@@ -100,71 +101,44 @@ const goalRef = ref()
 const priorityRef = ref()
 const commentRef = ref()
 
-const today = new Date()
-const defaultDate = {
-  year: today.getFullYear().toString(),
-  month: (today.getMonth() + 1).toString(),
-  day: today.getDate().toString()
-}
-
-const alarmSelectorRef = ref(null)
-const startDate = ref({ ...defaultDate })
-const endDate = ref({ ...defaultDate })
-
-
-const emit = defineEmits(['close'])
 let scrollY = 0
 
-// iOS에서 배경 터치 스크롤 차단
 const preventTouchMove = (e) => {
   if (!e.target.closest('.popup_wrap')) {
     e.preventDefault()
   }
 }
 
-/* 스크롤 잠금 */
 const lockScroll = () => {
   scrollY = window.scrollY
-
-  // html, body 모두 차단
   document.documentElement.classList.add('no-scroll')
   document.body.classList.add('no-scroll')
-
   document.body.style.top = `-${scrollY}px`
   document.body.style.left = '0'
   document.body.style.right = '0'
   document.body.style.width = '100%'
   document.body.style.position = 'fixed'
-
   window.addEventListener('touchmove', preventTouchMove, { passive: false })
 }
 
-/* 스크롤 해제 */
 const unlockScroll = () => {
   document.documentElement.classList.remove('no-scroll')
   document.body.classList.remove('no-scroll')
-
   document.body.style.position = ''
   document.body.style.top = ''
   document.body.style.left = ''
   document.body.style.right = ''
   document.body.style.width = ''
   document.body.style.overflow = ''
-
   window.removeEventListener('touchmove', preventTouchMove)
   window.scrollTo(0, scrollY)
 }
 
-
-
-
-/* 닫기 버튼 */
 const closePopup = () => {
   unlockScroll()
   emit('close')
 }
 
-/* 다짐 저장 버튼 */
 const saveRoutine = async () => {
   try {
     const auth = getAuth()
@@ -181,20 +155,20 @@ const saveRoutine = async () => {
       startDate: dateRef.value.startDate,
       endDate: dateRef.value.endDate,
       alarmTime: alarmRef.value?.selectedAlarm ?? null,
-      ruffy: ruffyRef.value.ruffy,
-      course: courseRef.value.course,
-      goalCount: goalRef.value.goalCount,
+      ruffy: isWalkModeOff.value ? null : ruffyRef.value.ruffy,
+      course: isWalkModeOff.value ? null : courseRef.value.course,
+      goalCount: isWalkModeOff.value ? null : goalRef.value.goalCount,
       colorIndex: priorityRef.value.selectedColor,
       comment: commentRef.value.comment,
     }
 
     if (isEditMode.value && props.routineToEdit?.id) {
-        routine.updatedAt = serverTimestamp()        // 수정 시 updatedAt 추가
-        await updateDoc(doc(db, 'users', user.uid, 'routines', props.routineToEdit.id), routine)
-      } else {
-        routine.createdAt = serverTimestamp()        // 생성 시 createdAt 추가
-        await addDoc(collection(db, 'users', user.uid, 'routines'), routine)
-      }
+      routine.updatedAt = serverTimestamp()
+      await updateDoc(doc(db, 'users', user.uid, 'routines', props.routineToEdit.id), routine)
+    } else {
+      routine.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'users', user.uid, 'routines'), routine)
+    }
 
     unlockScroll()
     emit('close')
@@ -206,23 +180,23 @@ const saveRoutine = async () => {
 
 onMounted(() => {
   lockScroll()
-
   if (props.routineToEdit) {
-        titleRef.value.setFromRoutine?.(props.routineToEdit)
-        repeatRef.value.setFromRoutine?.(props.routineToEdit)
-        dateRef.value.setFromRoutine?.(props.routineToEdit)
-        alarmRef.value.setFromRoutine?.(props.routineToEdit)
-        ruffyRef.value.setFromRoutine?.(props.routineToEdit)
-        courseRef.value.setFromRoutine?.(props.routineToEdit)
-        goalRef.value.setFromRoutine?.(props.routineToEdit)
-        priorityRef.value.setFromRoutine?.(props.routineToEdit)
-        commentRef.value.setFromRoutine?.(props.routineToEdit)
-      }
+    titleRef.value.setFromRoutine?.(props.routineToEdit)
+    repeatRef.value.setFromRoutine?.(props.routineToEdit)
+    dateRef.value.setFromRoutine?.(props.routineToEdit)
+    alarmRef.value.setFromRoutine?.(props.routineToEdit)
+    ruffyRef.value.setFromRoutine?.(props.routineToEdit)
+    courseRef.value.setFromRoutine?.(props.routineToEdit)
+    goalRef.value.setFromRoutine?.(props.routineToEdit)
+    priorityRef.value.setFromRoutine?.(props.routineToEdit)
+    commentRef.value.setFromRoutine?.(props.routineToEdit)
+  }
 })
 
 onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
+
 
 
