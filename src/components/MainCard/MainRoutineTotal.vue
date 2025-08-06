@@ -8,9 +8,9 @@
       </span>
       <span>
         <template v-if="isFuture">
-          아직 오지 않은 다짐입니다.
+          미래의 다짐 부자시네요!
           <!--다짐이 없을 경우
-          다짐을 만들어 볼까요?-->
+         새 다짐을 만들어 볼까요?-->
         </template>
         <template v-else>
           <strong>미달성</strong> <em class="t_on">5</em>  
