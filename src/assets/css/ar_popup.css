@@ -106,6 +106,10 @@
   font-size:1.2rem;
 }
 
+.form_box_g input[type="text"].uline {
+  border-bottom:1px solid #ddd
+}
+
 .form_box_g .detail_box {
 	border-radius:1.5rem;
 	border:1px solid #ddd;
