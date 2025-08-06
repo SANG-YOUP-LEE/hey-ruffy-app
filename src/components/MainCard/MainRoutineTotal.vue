@@ -12,12 +12,9 @@
       </span>
     </p>
     <p>
-      <span><strong>다짐보기</strong></span>
-      <span>
-        <button>완료된 다짐</button>
-        <button>내일의 다짐</button>
-        <button>이번주 다짐</button>
-      </span>
+      <button>완료한 다짐</button>
+      <button>내일의 다짐</button>
+      <button>이번주 다짐</button>
     </p>
   </div>
 </template>
