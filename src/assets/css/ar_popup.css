@@ -336,11 +336,13 @@
   display: flex;
   justify-content: flex-end;
   text-align:right;
+  background-color:green;
 }
 
 .off_walk .checkbox-label {
   width:auto;
-  display: inline-block;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  background-color:red;
 }
