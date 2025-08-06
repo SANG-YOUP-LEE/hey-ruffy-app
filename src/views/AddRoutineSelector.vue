@@ -13,40 +13,30 @@
         </template>
       </p>
     </div>
-    
-    <!-- 내부 스크롤 영역 -->
+
     <div class="popup_inner" ref="popupInner">
-      <!-- 다짐명 입력 -->
       <RoutineTitleInput ref="titleRef" />
-    
-      <!-- 다짐 주기 설정 -->
       <RoutineRepeatSelector ref="repeatRef" />
-    
-      <!-- 시작일·종료일 설정 -->
       <RoutineDateSelector ref="dateRef" />
-      
-      <!-- 알람 설정 -->
       <RoutineAlarmSelector ref="alarmRef" />
 
-      <!-- 산책모드 끄기 -->
+      <!-- 산책모드 토글 -->
       <div class="off_walk">
-        <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isWalkModeOff" />
-          <span class="toggle-text">{{ isWalkModeOff ? '산책 모드 켜기' : '산책 모드 끄기' }}</span>
-        </div>
+        <label class="checkbox-label">
+          <input type="checkbox" v-model="isWalkModeOff" />
+          <span class="checkmark"></span>
+          <span>{{ isWalkModeOff ? '산책 모드 켜기' : '산책 모드 끄기' }}</span>
+        </label>
       </div>
-      
-      <!-- 산책 관련 요소 (체크시 숨김) -->
+
+      <!-- 산책 관련 -->
       <div class="walk_group" v-show="!isWalkModeOff">
         <RoutineRuffySelector ref="ruffyRef" />
         <RoutineCourseSelector ref="courseRef" />
         <RoutineGoalCountSelector ref="goalRef" />
-      </div> 
-      
-      <!-- 중요도 선택 -->
+      </div>
+
       <RoutinePrioritySelector ref="priorityRef" />
-      
-      <!-- 코멘트 작성 -->
       <RoutineCommentInput ref="commentRef" />
     </div>
 
@@ -54,7 +44,6 @@
       <button class="b_basic" @click="saveRoutine">다짐 저장하기</button>
     </div>
 
-    <!-- 닫기 버튼 -->
     <div class="close_btn_wrap">
       <div class="close_btn" @click="closePopup"><span>닫기</span></div>
     </div>
@@ -67,7 +56,7 @@ import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { db } from '@/firebase'
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
-import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
+
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
 import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
@@ -196,6 +185,7 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
+
 
 
 
