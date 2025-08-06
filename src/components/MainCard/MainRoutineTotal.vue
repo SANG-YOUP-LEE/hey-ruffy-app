@@ -1,5 +1,4 @@
-<template> 
-  <!--다짐 현황-->
+<template>
   <div class="routine_total">
     <p>
       <span>
@@ -19,47 +18,45 @@
       </span>
     </p>
 
-    <p>
-      <span></span>
-      <span>
+    <p class="filter_row">
+      <span class="filter_label">필터</span>
+      <span class="filter_radios">
         <label class="custom-radio">
-          <input 
-            type="radio" 
-           />
+          <input type="radio" name="filter" value="notdone" />
           <span class="circle"></span>
         </label>
-        달성 전
-        
+        <span class="radio-text" @click="selectRadio('notdone')">달성 전</span>
+
         <label class="custom-radio">
-          <input 
-            type="radio" 
-           />
+          <input type="radio" name="filter" value="done" />
           <span class="circle"></span>
         </label>
-        달성 완료
-        
+        <span class="radio-text" @click="selectRadio('done')">달성 완료</span>
+
         <label class="custom-radio">
-          <input 
-            type="radio" 
-           />
+          <input type="radio" name="filter" value="ignored" />
           <span class="circle"></span>
         </label>
-        흐린 눈
+        <span class="radio-text" @click="selectRadio('ignored')">흐린 눈</span>
       </span>
     </p>
   </div>
 </template>
 
-
 <script setup>
 import { ref } from 'vue'
-import ToggleSwitch from '@/components/common/ToggleSwitch.vue' // 경로 확인 필요
 
 defineProps({
   isFuture: Boolean
 })
 
-const filterNotDone = ref(true)
-const filterDone = ref(false)
-const filterIgnored = ref(false)
+const selectedRadio = ref('notdone')
+
+function selectRadio(value) {
+  selectedRadio.value = value
+  const radios = document.querySelectorAll('input[name="filter"]')
+  radios.forEach(r => {
+    if (r.value === value) r.checked = true
+  })
+}
 </script>
