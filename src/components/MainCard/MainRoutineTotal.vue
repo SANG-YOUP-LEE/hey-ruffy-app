@@ -14,7 +14,8 @@
         </template>
         <template v-else>
           <strong>미달성</strong> <em class="t_on">5</em>  
-          <strong>달성완료</strong> <em class="t_on">10</em>
+          <strong>달성완료</strong> <em class="t_on">8</em>
+          <strong>흐린눈</strong> <em class="t_on">2</em>
         </template>
       </span>
     </p>
