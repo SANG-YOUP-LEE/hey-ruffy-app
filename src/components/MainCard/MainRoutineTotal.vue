@@ -3,18 +3,26 @@
   <div class="routine_total">
     <p>
       <span>
-        <strong>오늘의 다짐</strong>
-        총<em>15</em>건 
+        <strong>{{ isFuture ? '미래의 다짐' : '오늘의 다짐' }}</strong>
+        <template v-if="!isFuture">
+          총<em>15</em>건 
+        </template>
       </span>
       <span>
-        <strong>미달성</strong> <em>5</em>  
-        <strong>달성완료</strong> <em>10</em>
+        <template v-if="isFuture">
+          미래의 다짐은 목록만 볼 수 있어요.
+        </template>
+        <template v-else>
+          <strong>미달성</strong> <em>5</em>  
+          <strong>달성완료</strong> <em>10</em>
+        </template>
       </span>
     </p>
-    <!--p>
-      <button>완료한 다짐</button>
-      <button>내일의 다짐</button>
-      <button>이번주 다짐</button>
-    </p-->
   </div>
 </template>
+
+<script setup>
+defineProps({
+  isFuture: Boolean
+})
+</script>
