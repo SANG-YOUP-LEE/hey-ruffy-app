@@ -20,7 +20,7 @@
   padding:1rem; 
   box-sizing: border-box;
   background-color:#fff;
-  /*border-bottom: 1px solid #ececec;*/
+  border-bottom: 1px solid #ececec;
 }
 
 #header .left,
