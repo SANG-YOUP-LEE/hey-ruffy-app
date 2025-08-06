@@ -260,7 +260,8 @@
   gap: 1rem;
   border-radius: 1.5rem;
   padding: 0.5rem;
-  background-color: #f5f5f5;
+  background-color: #fafafa;
+  border:1px solid #ddd;
 	padding:1rem
 }
 
