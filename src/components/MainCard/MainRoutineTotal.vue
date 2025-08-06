@@ -10,8 +10,6 @@
       <span>
         <template v-if="isFuture">
           미래에도 다짐 부자시네요!
-          <!--다짐이 없을 경우
-          새 다짐을 만들어 볼까요?-->
         </template>
         <template v-else>
           <strong>미달성</strong> <em class="t_on">5</em>  
@@ -20,11 +18,35 @@
         </template>
       </span>
     </p>
+
+    <p>
+      <span>
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="filterNotDone" />
+          <span class="toggle-text" @click="filterNotDone = !filterNotDone">달성 전</span>
+        </div>
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="filterDone" />
+          <span class="toggle-text" @click="filterDone = !filterDone">달성 완료</span>
+        </div>
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="filterIgnored" />
+          <span class="toggle-text" @click="filterIgnored = !filterIgnored">흐린 눈</span>
+        </div>
+      </span>
+    </p>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
   isFuture: Boolean
 })
+
+// 기본 토글 상태 설정
+const filterNotDone = ref(true)   // ✅ 기본값 켜짐
+const filterDone = ref(false)
+const filterIgnored = ref(false)
 </script>
