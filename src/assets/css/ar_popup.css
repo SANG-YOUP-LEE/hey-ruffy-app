@@ -330,13 +330,17 @@
 }
 
 .off_walk {
-  width:100%;
-  font-size:0.9rem;
-  margin:1rem 0 -1rem 0;
-  text-align:right!important;
-  background-color:green;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.9rem;
+  margin: 1rem 0 -1rem 0;
+  background-color: green;
 }
 
 .off_walk .checkbox-label {
-  background-color:red;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: red;
 }
