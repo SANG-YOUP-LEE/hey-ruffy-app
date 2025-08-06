@@ -331,7 +331,13 @@
 
 .off_walk {
   font-size:0.9rem;
-  margin:1rem 0 -0.5rem 0;
+  margin:1rem 0 -1rem 0;
   display: flex;
   justify-content: flex-end;
+}
+
+.off_walk .checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
