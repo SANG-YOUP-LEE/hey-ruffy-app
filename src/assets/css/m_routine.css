@@ -119,6 +119,13 @@
   padding: 0.5rem 1rem;
 }
 
+#main_body .routine_total span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;   /* 오른쪽으로 밀어붙이기 */
+  margin-right: 0;     /* 오른쪽 여백 제거 */
+}
 #main_body .routine_total .filter_label {
   flex-shrink: 0;
   font-size: 0.9rem;
