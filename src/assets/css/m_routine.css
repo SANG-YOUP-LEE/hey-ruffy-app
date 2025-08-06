@@ -1,5 +1,5 @@
 #main_body .no_data {
-  width:80%;
+  width:100%;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -12,7 +12,7 @@
   background-size: 5rem 5rem;
   background-position: top center;
   font-family:'S-CoreDream-6Bold';
-  padding:6rem 2rem 6rem 2rem;
+  padding-top:6rem
 }
 
 #main_body .no_data span {
