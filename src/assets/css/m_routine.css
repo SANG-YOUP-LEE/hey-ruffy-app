@@ -74,13 +74,23 @@
   justify-content: space-between;
   align-items: center;
   margin-top:1rem;
-  font-size:0.8rem;
   letter-spacing:-0.02rem;
-  line-height:1rem;
+  line-height:1.2rem;
+  background-color:#f5f5f5;
+  padding:0.5rem;
+  border-radius:1.5rem;
 }
 
 #main_body .routine_total p span {
   display: flex;
   align-items: center;
-  gap: 0.1rem; 
+}
+
+#main_body .routine_total p button {
+  line-height:1.2rem;
+  background-color:#fff;
+  border:1px solid #333;
+  padding:0 0.5rem 0 0.5rem;
+  display:flex;
+  gap:0.1rem
 }
