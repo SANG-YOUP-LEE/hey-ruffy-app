@@ -25,7 +25,7 @@
         <label class="checkbox-label">
           <input type="checkbox" v-model="isWalkModeOff" />
           <span class="checkmark"></span>
-          <span>{{ isWalkModeOff ? '산책 모드 끄기 해제' : '산책 모드 끄기' }}</span>
+          <span>{{ isWalkModeOff ? '산책 모드 다시 켜기' : '산책 모드 끄기' }}</span>
         </label>
       </div>
 
