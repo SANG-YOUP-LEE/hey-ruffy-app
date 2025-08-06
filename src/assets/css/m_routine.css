@@ -1,5 +1,4 @@
 #main_body .no_data {
-  width:100%;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -29,7 +28,6 @@
 }
 
 #main_body .date_scroll .date_group {
-  width: 100%;
   display: flex;
   justify-content: flex-start;    
   align-items: center;        
@@ -74,7 +72,7 @@
 }
 
 #main_body .routine_total {
-  width:100%;
+  
   border:1px solid red;
   border-radius:1.5rem;
   padding:1rem;
