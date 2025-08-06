@@ -333,8 +333,8 @@
   width: 100%;
   background-color:#fafafa;
   border-radius:1rem;
-  padding:0.5rem;
-  border-color:1px solid #ececec;
+  padding:1rem;
+  border:1px solid #ececec;
   margin: 1rem 0 -1rem 0;
   text-align:center;
 }
