@@ -28,7 +28,7 @@
       <!-- 알람 설정 -->
       <RoutineAlarmSelector ref="alarmRef" />
 
-      <div>
+      <div class="off_walk">
         <label class="checkbox-label">
           <input type="checkbox" />
           <span class="checkmark"></span>
