@@ -332,9 +332,9 @@
 .off_walk {
   width: 100%;
   background-color:#fafafa;
-  border-radius:1rem;
+  border-radius:1.5rem;
   padding:1rem;
-  border:1px solid #ececec;
+  border:1px solid #ddd;
   margin: 1rem 0 -1rem 0;
   text-align:center;
 }
