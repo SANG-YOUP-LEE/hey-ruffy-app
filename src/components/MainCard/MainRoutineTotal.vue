@@ -8,7 +8,7 @@
       </span>
       <span>
         <template v-if="isFuture">
-          미래의 다짐은 총 건만 표시됩니다.
+          아직 오지 않은 다짐입니다.
         </template>
         <template v-else>
           <strong>미달성</strong> <em class="t_on">5</em>  
