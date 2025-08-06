@@ -73,10 +73,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top:1rem;
 }
 
 #main_body .routine_total p span {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* 버튼, 텍스트 간격 */
+  gap: 0.1rem; 
 }
