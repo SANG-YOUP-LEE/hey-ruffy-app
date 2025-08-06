@@ -3,7 +3,7 @@
 .popup_wrap,
 .popup_wrap .close_btn_wrap,
 .popup_wrap .popup_btm {
-	background-color:#f9f9f9;
+	background-color:#fafafa;
 }
 
 .popup_wrap .popup_inner,
@@ -53,11 +53,11 @@
  }
 
 .popup_wrap .popup_inner {
-	margin: 0 0 7rem 0;
+	margin: 0.5rem 0 7rem 0;
 	background-color:#fff;
-	padding:0 1.5rem 0 1.5rem;
+	padding:0 1.5rem 0 2rem;
   border-radius:1.5rem;
-  border:1px solid #eee;
+  border:1px solid #ececec;
 	/*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
 }
 
@@ -78,6 +78,10 @@
 .popup_wrap h3 {
 	font-size:1.3rem;
 	margin:2.5rem 0 1.5rem 0;
+}
+
+.popup_wrap h3:first-child {
+  margin-top:2rem;
 }
 
 .popup_wrap .popup_btm {
