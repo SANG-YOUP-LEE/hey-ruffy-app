@@ -30,11 +30,10 @@
 
       <!-- 산책모드 끄기 -->
       <div class="off_walk">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="isWalkModeOff" />
-          <span class="checkmark"></span>
-          <span>{{ isWalkModeOff ? '산책 모드 켜기' : '산책 모드 끄기' }}</span>
-        </label>
+        <div class="toggle-label-wrapper">
+          <ToggleSwitch class="toggle" v-model="isWalkModeOff" />
+          <span class="toggle-text">{{ isWalkModeOff ? '산책 모드 켜기' : '산책 모드 끄기' }}</span>
+        </div>
       </div>
       
       <!-- 산책 관련 요소 (체크시 숨김) -->
