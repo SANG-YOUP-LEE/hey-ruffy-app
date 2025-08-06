@@ -39,7 +39,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const preventScroll = (e) => {
+  e.preventDefault()
+}
+const lockBodyScroll = () => {
+  document.body.style.overflow = 'hidden'
+  document.body.addEventListener('touchmove', preventScroll, { passive: false })
+}
+const unlockBodyScroll = () => {
+  document.body.style.overflow = ''
+  document.body.removeEventListener('touchmove', preventScroll)
+}
+
+onMounted(() => {
+  lockBodyScroll()
+})
+onBeforeUnmount(() => {
+  unlockBodyScroll()
+})
 
 const props = defineProps({
   modelValue: {
