@@ -23,7 +23,7 @@
       <!--다짐 현황-->
       <div class="routine_state on_w light">
         <p>
-          <span><strong>오늘의 다짐 총<em>15</em>건 중</span>
+          <span><strong>오늘의 다짐</strong> 총<em>15</em>건 중</span>
           <span><strong>달성전</strong> <em>10</em>건</span>
           <span><strong>달성완료</strong> <em>5</em>건</span>
         </p>
