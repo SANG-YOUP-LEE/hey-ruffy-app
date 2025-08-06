@@ -44,11 +44,15 @@ const isToday = (date) => {
 
 const selectDate = (index) => {
   selectedIndex.value = index
-  emit('selectDate', dateList[index])
+  const selected = dateList[index]
+  const now = new Date()
+  const isFuture = selected > now && !isToday(selected)
+  emit('selectDate', selected, isFuture)
 }
 
 onMounted(() => {
   selectedIndex.value = dateList.findIndex((date) => isToday(date))
-  emit('selectDate', dateList[selectedIndex.value])
+  const selected = dateList[selectedIndex.value]
+  emit('selectDate', selected, false) // 오늘은 미래가 아님
 })
 </script>
