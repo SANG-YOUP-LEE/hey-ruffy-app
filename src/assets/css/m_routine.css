@@ -162,7 +162,8 @@
   margin-left:0.2rem
 }
 
-#main_body .routine_total .filter_row .today {
+#main_body .routine_total .filter_row .today,
+#main_body .routine_card .rc_inner i {
   display:inline-block;
   font-size:0.7rem;
   font-weight:bold;
@@ -178,6 +179,7 @@
   border-radius: 1.5rem;
   padding: 1.5rem;
   text-align: left;
+  margin-bottom:1rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
@@ -186,6 +188,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap:0.5rem
+}
+
+#main_body .routine_card .rc_inner i {
+  font-style:none;
+  background-color:#fff;
+  border:1px solid #333
 }
 
 #main_body .routine_card .rc_inner .left,
@@ -256,4 +264,8 @@
   height:3rem;
   margin:0;
   padding:0;
+}
+
+#main_body .routine_card .rc_inner .ruffys_item span {
+  background-size:100%!important
 }
