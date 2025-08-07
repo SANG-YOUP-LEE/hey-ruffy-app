@@ -3,8 +3,8 @@
     <div class="detail_box">
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isAlarmOn" />
-          <span class="toggle-text" @click="toggleAlarm">알람 설정</span>
+          <ToggleSwitch class="toggle" v-model="isAlarmOn" :label="''" />
+            <span class="toggle-text" @click="toggleAlarm">알람 설정</span>
         </div>
         <a href="#none" class="txt">알람 먼저 허용하기</a>
       </div>
