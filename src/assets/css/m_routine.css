@@ -78,7 +78,7 @@
 #main_body .date_scroll .date_group span.on,
 #main_body .date_fixed_today span.on {
   color:#333!important;
-  font-weight:bold;
+  font-weight:bold!important;
   background-color:#fff!important;
   border:1px solid #333
 }
