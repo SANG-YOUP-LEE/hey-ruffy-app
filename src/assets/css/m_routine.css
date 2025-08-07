@@ -191,7 +191,7 @@
 }
 
 #main_body .routine_card .rc_inner i {
-  font-style:none;
+  font-style:normal;
   background-color:#fff;
   border:1px solid #333
 }
