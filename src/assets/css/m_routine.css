@@ -99,20 +99,24 @@
   gap: 0.2rem; 
 }
 
-#main_body .routine_total p span {
-  display: flex;
-  align-items: center;
+#main_body .routine_total p span a {
+  display: inline-block;
 }
 
-#main_body .routine_total p:last-child button {
-  background-color:#fff;
-  border:1px solid #333;
-  padding:0.5rem;
-  border-radius:1rem;
-  display:flex;
-  align-items:center;
-  line-height:0.9rem;
-  margin-left:0.5rem;
+#main_body .routine_total p span a strong {
+  display: none
+}
+
+#main_body .routine_total p span a.not_done {
+  background: url('../images/ico_notdone.png') no-repeat 0 0/2rem 2rem;
+}
+
+#main_body .routine_total p span a.done {
+  background: url('../images/ico_done.png') no-repeat 0 0/2rem 2rem;
+}
+
+#main_body .routine_total p span a.ignored {
+  background: url('../images/ico_ignored.png') no-repeat 0 0/2rem 2rem;
 }
 
 #main_body .routine_total .filter_row {
