@@ -22,19 +22,34 @@
       <span class="filter_label">필터</span>
       <span class="filter_radios">
         <label class="custom-radio">
-          <input type="radio" name="filter" value="notdone" />
+          <input
+            type="radio"
+            name="filter"
+            value="notdone"
+            :checked="selectedRadio === 'notdone'"
+          />
           <span class="circle"></span>
         </label>
         <span class="radio-text" @click="selectRadio('notdone')">달성 전</span>
 
         <label class="custom-radio">
-          <input type="radio" name="filter" value="done" />
+          <input
+            type="radio"
+            name="filter"
+            value="done"
+            :checked="selectedRadio === 'done'"
+          />
           <span class="circle"></span>
         </label>
         <span class="radio-text" @click="selectRadio('done')">달성 완료</span>
 
         <label class="custom-radio">
-          <input type="radio" name="filter" value="ignored" />
+          <input
+            type="radio"
+            name="filter"
+            value="ignored"
+            :checked="selectedRadio === 'ignored'"
+          />
           <span class="circle"></span>
         </label>
         <span class="radio-text" @click="selectRadio('ignored')">흐린 눈</span>
@@ -55,10 +70,6 @@ const selectedRadio = ref('notdone')
 
 function selectRadio(value) {
   selectedRadio.value = value
-  emit('changeFilter', value)  // 부모에 알림
-  const radios = document.querySelectorAll('input[name="filter"]')
-  radios.forEach(r => {
-    if (r.value === value) r.checked = true
-  })
+  emit('changeFilter', value)
 }
 </script>
