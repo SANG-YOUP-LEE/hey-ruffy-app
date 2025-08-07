@@ -173,17 +173,22 @@
 }
 
 #main_body .routine_card {
+  position:relative;
   background-color:#fff;
   border:1px solid #ececec;
   border-radius:1.5rem;
   padding:1rem;
   text-align:left;
+  height:20rem
 }
 
 #main_body .routine_card .rc_inner {
   display: flex;
   align-items: center;
-  min-hiehgt:3rem;
+  min-height:3rem;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 #main_body .routine_card .rc_inner span[class^='color'] {
