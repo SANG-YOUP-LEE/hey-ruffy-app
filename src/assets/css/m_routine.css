@@ -119,13 +119,14 @@
 }
 
 #main_body .routine_total .filter_row .custom-radio {
-  margin-left:0.5rem
+  margin-left:0.2rem
 }
 
 #main_body .routine_total .filter_row .today {
   display:inline-block;
-  font-size:0.6rem;
+  font-size:0.7rem;
   font-weight:bold;
+  padding:0 0.3rem 0 0.3rem;
   border-radius:0.5rem;
   background-color:#ffde00;
   border:1px solid #ffc600;
