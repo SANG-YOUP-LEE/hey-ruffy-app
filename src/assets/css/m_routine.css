@@ -230,7 +230,9 @@
   padding-left:0
 }
 #main_body .routine_card .rc_inner p.title span {
-  margin-top:0.4rem
+  margin-top:0.4rem;
+  border:1px solid red;
+  vertical-align:middle;
 }
 
 #main_body .routine_card .rc_inner p.term {
