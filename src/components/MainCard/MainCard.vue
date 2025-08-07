@@ -1,6 +1,7 @@
 <template>
   <div class="done_group">
     <div v-if="selected === 'notdone'" class="not_done">
+      <!-- 다짐 카드 -->
       <div class="routine_card">
         <div class="rc_inner">
           <div class="left">
@@ -9,7 +10,7 @@
               외로워도 슬퍼도 나는 안울어
             </p>
             <p class="term">
-              월,화,수,목,금
+              <i>Daily</i> 월,화,수,목,금
             </p>
             <p class="se_date">
               2025.03.17 ~ 2025.04.18
@@ -29,6 +30,7 @@
           </div>
         </div>
       </div>
+      <!-- 다짐 카드 -->
     </div>
     <div v-if="selected === 'done'" class="done">달성후</div>
     <div v-if="selected === 'ignored'" class="ignored">흐린눈</div>
