@@ -20,7 +20,7 @@
 
     <p class="filter_row">
       <span class="filter_label">
-        <button @click="showWeekly"><span>주간다짐보기</span></button>
+        <button @click="handleWeeklyClick"><span>주간다짐보기</span></button>
       </span>
       <span class="filter_radios">
         <span class="today">Today</span>
@@ -74,7 +74,9 @@ function selectRadio(value) {
   emit('changeFilter', value)
 }
 
-function showWeekly() {
+function handleWeeklyClick() {
+  selectedRadio.value = null
+  emit('changeFilter', null)
   emit('showWeekly')
 }
 </script>
