@@ -279,3 +279,31 @@
   position: relative;
   z-index: 2;
 }
+
+.ruffys_item {
+}
+
+.ruffys_item span {
+  width:1.8rem;
+  height:1.8rem;
+  display:inline-block;
+  font-size:0;
+  line-hgith:0;
+}
+
+.ruffys_item span.ruffy01 {
+  background: url('../images/hey_ruffy_temp01.png') no-repeat 0 0/cover;
+}
+
+.ruffys_item span.ruffy02 {
+  background: url('../images/hey_ruffy_temp02.png') no-repeat 0 0/cover;
+}
+
+.ruffys_item span.ruffy03 {
+  background: url('../images/hey_ruffy_temp03.png') no-repeat 0 0/cover;
+}
+
+.ruffys_item span.ruffy04 {
+  background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
+}
+
