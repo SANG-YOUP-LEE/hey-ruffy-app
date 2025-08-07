@@ -69,6 +69,11 @@
   border:1px solid #333
 }
 
+#main_body .date_scroll .date_group span.today {
+  background-color:#52ff62
+  border:1px solid #00ce00;
+}
+
 #main_body .routine_total {
 }
 
