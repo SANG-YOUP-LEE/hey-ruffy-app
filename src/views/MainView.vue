@@ -1,14 +1,15 @@
-<template>    
+<template>
   <div id="main_wrap">
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
-      <!--상단 날짜 휠-->
       <MainDateScroll @selectDate="handleSelectDate" />
-
-      <!--다짐 현황-->
-      <MainRoutineTotal :isFuture="isFutureDate" />
+      <MainRoutineTotal
+        :isFuture="isFutureDate"
+        @changeFilter="selectedFilter = $event"
+      />
+      <MainCard :selected="selectedFilter" />
     </div>
 
     <FooterView />
@@ -32,12 +33,14 @@ import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
+import MainCard from '@/components/MainCard/MainCard.vue'
 
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
 
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
+const selectedFilter = ref('notdone')  // 기본: 달성전
 
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
@@ -62,3 +65,4 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
 })
 </script>
+
