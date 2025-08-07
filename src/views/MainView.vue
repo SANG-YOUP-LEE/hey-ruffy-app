@@ -7,8 +7,8 @@
       <MainDateScroll @selectDate="handleSelectDate" />
       <MainRoutineTotal
         :isFuture="isFutureDate"
-        @changeFilter="selectedFilter = $event"
-        @toggleWeekly="showWeekly = !showWeekly"
+        @changeFilter="handleFilterChange"
+        @showWeekly="showWeekly = true"
       />
       <MainCard :selected="showWeekly ? 'weekly' : selectedFilter" />
     </div>
@@ -41,12 +41,17 @@ const showLnb = ref(false)
 
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
-const selectedFilter = ref('notdone')  // 기본: 달성전
+const selectedFilter = ref('notdone')
 const showWeekly = ref(false)
-  
+
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
   isFutureDate.value = isFuture
+}
+
+const handleFilterChange = (val) => {
+  selectedFilter.value = val
+  showWeekly.value = false
 }
 
 function openAddRoutine() {
@@ -67,4 +72,3 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
 })
 </script>
-
