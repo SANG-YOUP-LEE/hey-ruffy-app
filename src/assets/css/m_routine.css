@@ -125,7 +125,9 @@
 #main_body .routine_total .filter_row .filter_label button {
   width:1.5rem;
   height:1.5rem;
-  background-image: url('../images/ico_weekly.png');
+  border:none;
+  border-radius:0;
+  background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
 }
 
 #main_body .routine_total .filter_row .filter_label button span {
