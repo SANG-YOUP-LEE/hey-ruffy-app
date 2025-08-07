@@ -116,7 +116,7 @@
   flex-grow: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding:2rem;
+  padding:1rem 2rem 2rem 2rem;
   background-color:#fafafa;
 }
 
