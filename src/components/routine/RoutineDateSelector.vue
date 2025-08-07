@@ -25,12 +25,11 @@
       </div>
     </div>
 
-    <!-- 팝업 -->
     <DateTimePickerPopup
       v-if="showDatePopup"
       :mode="popupMode"
-      :minDate="popupMode === 'end' ? selectedStartDate : {}"
-      :modelValue="popupMode === 'start' ? selectedStartDate : selectedEndDate"
+      :minDate="popupMode === 'end' ? startDate : {}"
+      :modelValue="popupMode === 'start' ? startDate : endDate"
       @confirm="handleConfirm"
       @cancel="handleCancel"
     />
@@ -38,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
@@ -46,16 +45,17 @@ const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
   endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) }
 })
+
 const emit = defineEmits(['update:startDate', 'update:endDate'])
 
 const isStartDateOn = ref(false)
 const isEndDateOn = ref(false)
+const showWarning = ref(false)
 const showDatePopup = ref(false)
 const popupMode = ref('start')
 
-const selectedStartDate = reactive({ ...props.startDate })
-const selectedEndDate = reactive({ ...props.endDate })
-const showWarning = ref(false)
+const startDate = ref({ ...props.startDate })
+const endDate = ref({ ...props.endDate })
 
 let scrollY = 0
 let activePopup = null
@@ -66,16 +66,14 @@ const preventTouchMove = (e) => {
   }
 }
 
-const lockScroll = (popupSelector) => {
-  activePopup = popupSelector
+const lockScroll = (selector) => {
+  activePopup = selector
   scrollY = window.scrollY
   document.documentElement.classList.add('no-scroll')
   document.body.classList.add('no-scroll')
-  document.body.style.top = `-${scrollY}px`
-  document.body.style.left = '0'
-  document.body.style.right = '0'
-  document.body.style.width = '100%'
   document.body.style.position = 'fixed'
+  document.body.style.top = `-${scrollY}px`
+  document.body.style.width = '100%'
   window.addEventListener('touchmove', preventTouchMove, { passive: false })
 }
 
@@ -85,10 +83,7 @@ const unlockScroll = () => {
   document.body.classList.remove('no-scroll')
   document.body.style.position = ''
   document.body.style.top = ''
-  document.body.style.left = ''
-  document.body.style.right = ''
   document.body.style.width = ''
-  document.body.style.overflow = ''
   window.removeEventListener('touchmove', preventTouchMove)
   window.scrollTo(0, scrollY)
 }
@@ -112,100 +107,94 @@ const toggleEndDate = () => {
 watch(isStartDateOn, (val) => {
   if (val) {
     popupMode.value = 'start'
-    if (!selectedStartDate.year) {
-      Object.assign(selectedStartDate, getTodayObject())
+    if (!startDate.value.year) {
+      startDate.value = getTodayObject()
     }
-    showDatePopup.value = true
     showWarning.value = false
+    showDatePopup.value = true
     lockScroll('.com_popup_wrap .popup_inner')
   } else {
-    Object.assign(selectedStartDate, { year: '', month: '', day: '' })
+    startDate.value = { year: '', month: '', day: '' }
     isEndDateOn.value = false
-    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
+    endDate.value = { year: '', month: '', day: '' }
   }
 })
 
 watch(isEndDateOn, (val) => {
   if (val) {
-    if (!selectedStartDate.year) {
+    if (!startDate.value.year) {
       showWarning.value = true
       isEndDateOn.value = false
     } else {
       popupMode.value = 'end'
-      if (!selectedEndDate.year) {
-        Object.assign(selectedEndDate, { ...selectedStartDate })
+      if (!endDate.value.year) {
+        endDate.value = { ...startDate.value }
       }
-      showDatePopup.value = true
       showWarning.value = false
+      showDatePopup.value = true
       lockScroll('.com_popup_wrap .popup_inner')
     }
   } else {
-    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
+    endDate.value = { year: '', month: '', day: '' }
   }
 })
 
-// 확인 버튼 눌렀을 때 날짜 반영하고 팝업 닫기
 const handleConfirm = (val) => {
   if (popupMode.value === 'start') {
-    Object.assign(selectedStartDate, val)
+    startDate.value = val
     isStartDateOn.value = true
   } else {
-    Object.assign(selectedEndDate, val)
+    endDate.value = val
     isEndDateOn.value = true
   }
   showDatePopup.value = false
   unlockScroll()
 }
 
-// 취소 버튼 눌렀을 때 초기화하고 팝업 닫기
 const handleCancel = () => {
   if (popupMode.value === 'start') {
-    Object.assign(selectedStartDate, { year: '', month: '', day: '' })
+    startDate.value = { year: '', month: '', day: '' }
     isStartDateOn.value = false
   } else {
-    Object.assign(selectedEndDate, { year: '', month: '', day: '' })
+    endDate.value = { year: '', month: '', day: '' }
     isEndDateOn.value = false
   }
   showDatePopup.value = false
   unlockScroll()
 }
 
-const formattedDate = computed(() => {
-  if (!selectedStartDate.year) return ''
-  const start = `${selectedStartDate.year}년 ${selectedStartDate.month}월 ${selectedStartDate.day}일`
-  const end = selectedEndDate.year
-    ? ` ~ ${selectedEndDate.year}년 ${selectedEndDate.month}월 ${selectedEndDate.day}일`
-    : ''
-  return start + end
-})
-
 const resetDates = () => {
-  Object.assign(selectedStartDate, { year: '', month: '', day: '' })
-  Object.assign(selectedEndDate, { year: '', month: '', day: '' })
+  startDate.value = { year: '', month: '', day: '' }
+  endDate.value = { year: '', month: '', day: '' }
   isStartDateOn.value = false
   isEndDateOn.value = false
 }
 
-onBeforeUnmount(() => {
-  unlockScroll()
+const formattedDate = computed(() => {
+  if (!startDate.value.year) return ''
+  const s = startDate.value
+  const e = endDate.value
+  const startStr = `${s.year}년 ${s.month}월 ${s.day}일`
+  const endStr = e.year ? ` ~ ${e.year}년 ${e.month}월 ${e.day}일` : ''
+  return startStr + endStr
 })
+
+onBeforeUnmount(unlockScroll)
 
 const setFromRoutine = (routine) => {
   if (routine?.startDate) {
-    Object.assign(selectedStartDate, routine.startDate)
+    startDate.value = routine.startDate
     isStartDateOn.value = true
   }
   if (routine?.endDate) {
-    Object.assign(selectedEndDate, routine.endDate)
+    endDate.value = routine.endDate
     isEndDateOn.value = true
   }
 }
 
 defineExpose({
-  startDate: selectedStartDate,
-  endDate: selectedEndDate,
+  startDate,
+  endDate,
   setFromRoutine
 })
-
 </script>
-

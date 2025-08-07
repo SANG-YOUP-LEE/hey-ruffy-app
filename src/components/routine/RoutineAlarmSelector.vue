@@ -4,7 +4,7 @@
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
           <ToggleSwitch class="toggle" v-model="isAlarmOn" :label="''" />
-            <span class="toggle-text" @click="toggleAlarm">알람 설정</span>
+          <span class="toggle-text" @click="toggleAlarm">알람 설정</span>
         </div>
         <a href="#none" class="txt">알람 먼저 허용하기</a>
       </div>
@@ -45,9 +45,7 @@ watch(isAlarmOn, (val) => {
   if (val) {
     showAlarmPopup.value = true
   } else {
-    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
-    showDataFixed.value = false
-    showAlarmPopup.value = false
+    clearAlarm()
   }
 })
 
@@ -61,34 +59,30 @@ const handlePopupClose = () => {
 }
 
 const resetAlarm = () => {
+  clearAlarm()
+}
+
+const clearAlarm = () => {
   selectedAlarm.value = { ampm: '', hour: '', minute: '' }
   showDataFixed.value = false
-  isAlarmOn.value = false
+  showAlarmPopup.value = false
 }
 
 const formattedAlarm = computed(() => {
-  if (!selectedAlarm.value.hour) return ''
-  return `${selectedAlarm.value.ampm} ${selectedAlarm.value.hour}시 ${selectedAlarm.value.minute}분`
+  const { ampm, hour, minute } = selectedAlarm.value
+  if (!hour) return ''
+  return `${ampm} ${hour}시 ${minute}분`
 })
 
 const setFromRoutine = (routine) => {
-  if (
-    routine?.alarmTime &&
-    routine.alarmTime.ampm &&
-    routine.alarmTime.hour &&
-    routine.alarmTime.minute
-  ) {
-    selectedAlarm.value = {
-      ampm: routine.alarmTime.ampm,
-      hour: routine.alarmTime.hour,
-      minute: routine.alarmTime.minute
-    }
+  const alarm = routine?.alarmTime
+  if (alarm?.ampm && alarm?.hour && alarm?.minute) {
+    selectedAlarm.value = { ...alarm }
     isAlarmOn.value = true
     showDataFixed.value = true
   } else {
-    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
+    clearAlarm()
     isAlarmOn.value = false
-    showDataFixed.value = false
   }
 }
 
