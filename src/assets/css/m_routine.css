@@ -178,6 +178,7 @@
   border-radius: 1.5rem;
   padding: 1.5rem;
   text-align: left;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #main_body .routine_card .rc_inner {
