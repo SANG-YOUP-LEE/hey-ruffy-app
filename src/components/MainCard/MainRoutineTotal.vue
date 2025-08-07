@@ -11,9 +11,15 @@
           미래에도 다짐 부자시네요!
         </template>
         <template v-else>
-          <strong>미달성</strong> <em class="t_on">5</em>  
-          <strong>달성완료</strong> <em class="t_on">8</em>
-          <strong>흐린눈</strong> <em class="t_on">2</em>
+          <a href="#none" class="not_done" @click.prevent="selectRadio('notdone')">
+            <strong>미달성</strong> <em class="t_on">5</em>
+          </a>  
+          <a href="#none" class="done" @click.prevent="selectRadio('done')">
+            <strong>달성완료</strong> <em class="t_on">8</em>
+          </a>
+          <a href="#none" class="ignored" @click.prevent="selectRadio('ignored')">
+            <strong>흐린눈</strong> <em class="t_on">2</em>
+          </a>
         </template>
       </span>
     </p>
