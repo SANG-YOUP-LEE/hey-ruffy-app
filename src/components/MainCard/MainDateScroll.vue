@@ -4,7 +4,7 @@
       <span
         v-for="(date, index) in dateList"
         :key="index"
-        :class="{ on: selectedIndex === index }"
+        :class="{ on: selectedIndex === index, today: isToday(date) }"
         @click="selectDate(index)"
       >
         <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
