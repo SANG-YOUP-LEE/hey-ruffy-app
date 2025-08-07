@@ -19,7 +19,9 @@
     </p>
 
     <p class="filter_row">
-      <span class="filter_label">필터</span>
+      <span class="filter_label">
+        <button><span>주간다짐보기</span></button>
+      </span>
       <span class="filter_radios">
         <span class="today">Today</span>
         <label class="custom-radio">
