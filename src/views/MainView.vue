@@ -8,6 +8,7 @@
       <MainRoutineTotal
         :isFuture="isFutureDate"
         @changeFilter="selectedFilter = $event"
+        @toggleWeekly="showWeekly = !showWeekly"
       />
       <MainCard :selected="selectedFilter" />
     </div>
