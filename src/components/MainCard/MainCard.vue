@@ -5,7 +5,11 @@
         <div class="rc_inner">
           <div class="left">
             <p class="title">
-              <span class="color_picker01"></span> 외로워도 슬퍼도 나는 안울어
+              <span class="color_picker01"></span>
+              외로워도 슬퍼도 나는 안울어
+              외로워도 슬퍼도 나는 안울어
+              외로워도 슬퍼도 나는 안울어
+              외로워도 슬퍼도 나는 안울어
             </p>
             <p class="term">
               월,화,수,목,금
@@ -18,6 +22,12 @@
             </p>
             <p class="comment">
               건강검진 극락가자!
+               건강검진 극락가자!
+               건강검진 극락가자! 건강검진 극락가자!
+               건강검진 극락가자!
+               건강검진 극락가자!
+               건강검진 극락가자!
+               건강검진 극락가자!
             </p>
           </div>
 
