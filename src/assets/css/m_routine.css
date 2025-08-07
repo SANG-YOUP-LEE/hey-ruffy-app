@@ -96,7 +96,7 @@
 #main_body .routine_total p span {
   display: flex;
   align-items: center;
-  gap: 0.2rem; /* 텍스트와 숫자 사이 간격 */
+  gap: 0.2rem; 
 }
 
 #main_body .routine_total p span {
@@ -124,7 +124,7 @@
 
 #main_body .routine_total .filter_row .filter_label button {
   width:1.5rem;
-  height:1.5rem
+  height:1.5rem;
   background-image: url('../images/ico_weekly.png');
 }
 
