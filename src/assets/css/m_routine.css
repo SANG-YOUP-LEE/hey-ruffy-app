@@ -242,17 +242,55 @@
   vertical-align:middle;
 }
 
-#main_body .routine_card .rc_inner p.term {
-  background: url('../images/ico_mark.png') no-repeat 0 0rem/0.9rem 0.9rem
-}
-#main_body .routine_card .rc_inner p.se_date {
- background: url('../images/ico_calendar02.png') no-repeat 0 0rem/0.9rem 0.9rem
-}
-#main_body .routine_card .rc_inner p.alaram {
- background: url('../images/ico_alaram.png') no-repeat 0 0rem/0.9rem 0.9rem
-}
+#main_body .routine_card .rc_inner p.term,
+#main_body .routine_card .rc_inner p.se_date,
+#main_body .routine_card .rc_inner p.alaram,
 #main_body .routine_card .rc_inner p.comment {
- background: url('../images/ico_comment.png') no-repeat 0 0rem/0.9rem 0.9rem
+  position: relative;
+}
+
+#main_body .routine_card .rc_inner p.term::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: url('../images/ico_mark.png') no-repeat center center / contain;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+#main_body .routine_card .rc_inner p.se_date::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: url('../images/ico_calendar02.png') no-repeat center center / contain;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+#main_body .routine_card .rc_inner p.alaram::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: url('../images/ico_alaram.png') no-repeat center center / contain;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+#main_body .routine_card .rc_inner p.comment::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: url('../images/ico_comment.png') no-repeat center center / contain;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 #main_body .routine_card .rc_inner .right {
