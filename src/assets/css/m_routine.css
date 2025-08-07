@@ -74,6 +74,7 @@
 }
 
 #main_body .routine_total {
+  height:4rem
 }
 
 #main_body .routine_total p:first-child {
