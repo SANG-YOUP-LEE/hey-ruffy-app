@@ -56,32 +56,6 @@
   font-family:'S-CoreDream-4Regular';
 }
 
-#header .title p span {
-  width:1.8rem;
-  height:1.8rem;
-  margin:-0.2rem 0.3rem 0 0;
-  display:inline-block;
-  font-size:0;
-  line-hgith:0;
-}
-
-#header .title p span.ruffy01 {
-  background: url('../images/hey_ruffy_temp01.png') no-repeat 0 0/cover;
-}
-
-#header .title p span.ruffy02 {
-  background: url('../images/hey_ruffy_temp02.png') no-repeat 0 0/cover;
-}
-
-#header .title p span.ruffy03 {
-  background: url('../images/hey_ruffy_temp03.png') no-repeat 0 0/cover;
-}
-
-#header .title p span.ruffy04 {
-  background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
-}
-
-
 #lnb {
   position: fixed;
   top: 0;
