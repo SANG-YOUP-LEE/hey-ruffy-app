@@ -92,7 +92,7 @@
 }
 
 #main_body .routine_total p:first-child span em {
-  font-weight:bold
+  font-weight:bold!important
 }
 
 #main_body .routine_total p span {
