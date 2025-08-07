@@ -173,23 +173,18 @@
 }
 
 #main_body .routine_card {
-  position:relative;
-  background-color:#fff;
-  border:1px solid #ececec;
-  border-radius:1.5rem;
-  padding:1rem;
-  text-align:left;
+  background-color: #fff;
+  border: 1px solid #ececec;
+  border-radius: 1.5rem;
+  padding: 1rem;
+  text-align: left;
 }
 
 #main_body .routine_card .rc_inner {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: auto;
-  min-height: 3rem;
+  gap: 1rem;
 }
 
 #main_body .routine_card .rc_inner .left,
@@ -200,16 +195,15 @@
 }
 
 #main_body .routine_card .rc_inner .left {
-  flex: 1;
+  flex: 9;
   background-color: yellow;
-  max-width: 90%;
 }
 
 #main_body .routine_card .rc_inner .right {
   flex: 1;
   background-color: red;
-  max-width: 10%;
 }
+
 #main_body .routine_card .rc_inner .right span[class^='color'] {
   width:1rem;
   height:1rem;
