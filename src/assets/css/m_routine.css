@@ -209,7 +209,9 @@
 }
 
 #main_body .routine_card .rc_inner .left .title {
-  font-weight:bold
+  font-weight:bold;
+  font-size:1.3rem;
+  line-height:1.5rem;
 }
 
 #main_body .routine_card .rc_inner p {
