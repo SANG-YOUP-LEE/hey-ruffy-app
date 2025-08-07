@@ -219,6 +219,7 @@
   font-size:0.9rem;
   letter-spacing:-0.02rem;
   line-height:1.2rem;
+  margin-bottom:0.2rem;
 }
 
 #main_body .routine_card .rc_inner p.title {
@@ -228,18 +229,21 @@
   line-height:1.3rem;
   padding-left:0
 }
+#main_body .routine_card .rc_inner p.title span {
+  margin-top:0.2rem
+}
 
 #main_body .routine_card .rc_inner p.term {
-  background: url('../images/ico_mark.png') no-repeat 0 0.2rem/0.9rem 0.9rem
+  background: url('../images/ico_mark.png') no-repeat 0 0.1rem/0.9rem 0.9rem
 }
 #main_body .routine_card .rc_inner p.se_date {
- background: url('../images/ico_calendar02.png') no-repeat 0 0.2rem/0.9rem 0.9rem
+ background: url('../images/ico_calendar02.png') no-repeat 0 0.1rem/0.9rem 0.9rem
 }
 #main_body .routine_card .rc_inner p.alaram {
- background: url('../images/ico_alaram.png') no-repeat 0 0.2rem/0.9rem 0.9rem
+ background: url('../images/ico_alaram.png') no-repeat 0 0.1rem/0.9rem 0.9rem
 }
 #main_body .routine_card .rc_inner p.comment {
- background: url('../images/ico_comment.png') no-repeat 0 0.2rem/0.9rem 0.9rem
+ background: url('../images/ico_comment.png') no-repeat 0 0.1rem/0.9rem 0.9rem
 }
 
 #main_body .routine_card .rc_inner .right {
