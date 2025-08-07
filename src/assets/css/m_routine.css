@@ -122,6 +122,16 @@
   margin: 1rem 0;
 }
 
+#main_body .routine_total .filter_row .filter_label button {
+  width:1.5rem;
+  height:1.5rem
+  background-image: url('../images/ico_weekly.png');
+}
+
+#main_body .routine_total .filter_row .filter_label button span {
+  display:none
+}
+
 #main_body .routine_total .filter_row .custom-radio {
   margin-left:0.2rem
 }
