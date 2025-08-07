@@ -23,6 +23,17 @@
 }
 
 #main_body .date_scroll {
+  display: flex;
+  position: relative;
+  overflow-x: auto;
+}
+
+#main_body .date_fixed_today {
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 10;
 }
 
 #main_body .date_scroll .date_group {
