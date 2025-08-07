@@ -101,9 +101,10 @@
 
 #main_body .routine_total p span a {
   display: inline-block;
-  width:5rem;
+  width:3rem;
   height:2rem;
-  margin-right:0.2rem
+  font-weight:bold;
+  padding-left:2.2rem;
 }
 
 #main_body .routine_total p span a strong {
