@@ -25,38 +25,41 @@
       <span class="filter_radios">
         <span class="today">Today</span>
 
-        <label class="custom-radio" @click="selectRadio('notdone')">
+        <label class="custom-radio">
           <input
             type="radio"
             name="filter"
             value="notdone"
             :checked="selectedRadio === 'notdone'"
+            @change="selectRadio('notdone')"
           />
           <span class="circle"></span>
-          <span class="radio-text">달성 전</span>
         </label>
+        <span class="radio-text" @click="selectRadio('notdone')">달성 전</span>
 
-        <label class="custom-radio" @click="selectRadio('done')">
+        <label class="custom-radio">
           <input
             type="radio"
             name="filter"
             value="done"
             :checked="selectedRadio === 'done'"
+            @change="selectRadio('done')"
           />
           <span class="circle"></span>
-          <span class="radio-text">달성 완료</span>
         </label>
+        <span class="radio-text" @click="selectRadio('done')">달성 완료</span>
 
-        <label class="custom-radio" @click="selectRadio('ignored')">
+        <label class="custom-radio">
           <input
             type="radio"
             name="filter"
             value="ignored"
             :checked="selectedRadio === 'ignored'"
+            @change="selectRadio('ignored')"
           />
           <span class="circle"></span>
-          <span class="radio-text">흐린 눈</span>
         </label>
+        <span class="radio-text" @click="selectRadio('ignored')">흐린 눈</span>
       </span>
     </p>
   </div>
