@@ -3,7 +3,7 @@
     <div v-if="selected === 'notdone'" class="not_done">
       <div class="routine_card">
         <div class="rc_inner">
-          <p class="title"><span class="color">외로워도 슬퍼도 나는 안울어</p>
+          <p class="title"><span class="color">외로워도 슬퍼도 나는 안울어</span></p>
         </div>
       </div>
     </div>
