@@ -74,10 +74,11 @@
 }
 
 #main_body .routine_total {
-  height:4rem
+  
 }
 
 #main_body .routine_total p:first-child {
+  height:4rem;
   background-color:#fff;
   border:1px solid #eaeaea;
   padding:1rem;
