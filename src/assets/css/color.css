@@ -77,6 +77,13 @@ body.blue .on_w {
   color: #0994ff!important;
 }
 
+body .on_w_nt,
+body.blue .on_w_nt {
+  background-color: #fff!important;
+  border:1px solid #0994ff!important;
+  color: #333!important;
+}
+
 body .custom-radio input[type="radio"]:checked + .circle::after,
 body.blue .custom-radio input[type="radio"]:checked + .circle::after {
   background-color:#0994ff;
@@ -144,6 +151,12 @@ body.red .on_w {
   color: #ff4160!important;
 }
 
+body.red .on_w_nt {
+  background-color: #fff!important;
+  border:1px solid #ff4160!important;
+  color: #333!important;
+}
+
 body.red .custom-radio input[type="radio"]:checked + .circle::after {
   background-color:#ff4160;
 }
@@ -200,6 +213,12 @@ body.green .on_w {
   background-color: #fff!important;
   border:1px solid #00ac6d!important;
   color: #00ac6d!important;
+}
+
+body.green .on_w_nt {
+  background-color: #fff!important;
+  border:1px solid #00ac6d!important;
+  color: #333!important;
 }
 
 body.green .custom-radio input[type="radio"]:checked + .circle::after {
@@ -262,6 +281,11 @@ body.bw .on_w {
   color: #333!important;
 }
 
+body.bw .on_w_nt {
+  background-color: #fff!important;
+  border:1px solid #333!important;
+  color: #333!important;
+}
 body.bw .custom-radio input[type="radio"]:checked + .circle::after {
   background-color:#333;
 }
