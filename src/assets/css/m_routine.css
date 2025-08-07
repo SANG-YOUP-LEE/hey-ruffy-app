@@ -147,3 +147,10 @@
   background-color:#ffde00;
   border:1px solid #ffc600;
 }
+
+#main_body .routine_card {
+  background-color:#fff;
+  border:1px solid #ececec;
+  border-radius:1.5rem;
+  padding:1rem;
+}
