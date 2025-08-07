@@ -72,9 +72,9 @@ body [class$="white"],
 body.blue [class$="white"],
 body .on_w,
 body.blue .on_w {
-  background-color: #fff;
-  border:1px solid #0994ff;
-  color: #0994ff;
+  background-color: #fff!important;
+  border:1px solid #0994ff!important;
+  color: #0994ff!important;
 }
 
 body .custom-radio input[type="radio"]:checked + .circle::after,
@@ -139,9 +139,9 @@ body.red [class$="basic"] {
 
 body.red [class$="white"],
 body.red .on_w {
-  background-color: #fff;
-  border:1px solid #ff4160;
-  color: #ff4160;
+  background-color: #fff!important;
+  border:1px solid #ff4160!important;
+  color: #ff4160!important;
 }
 
 body.red .custom-radio input[type="radio"]:checked + .circle::after {
@@ -197,9 +197,9 @@ body.green [class$="basic"]  {
 
 body.green [class$="white"],
 body.green .on_w {
-  background-color: #fff;
-  border:1px solid #00ac6d;
-  color: #00ac6d;
+  background-color: #fff!important;
+  border:1px solid #00ac6d!important;
+  color: #00ac6d!important;
 }
 
 body.green .custom-radio input[type="radio"]:checked + .circle::after {
@@ -257,9 +257,9 @@ body.bw [class$="basic"]  {
 
 body.bw [class$="white"],
 body.bw .on_w {
-  background-color: #fff;
-  border:1px solid #333;
-  color: #333;
+  background-color: #fff!important;
+  border:1px solid #333!important;
+  color: #333!important;
 }
 
 body.bw .custom-radio input[type="radio"]:checked + .circle::after {
