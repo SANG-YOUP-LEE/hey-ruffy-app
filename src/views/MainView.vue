@@ -42,7 +42,8 @@ const showLnb = ref(false)
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')  // 기본: 달성전
-
+const showWeekly = ref(false)
+  
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
   isFutureDate.value = isFuture
