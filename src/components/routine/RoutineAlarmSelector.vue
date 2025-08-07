@@ -41,13 +41,21 @@ const toggleAlarm = () => {
   isAlarmOn.value = !isAlarmOn.value
 }
 
+// 🔁 이 watch가 알람 상태 전체를 제어하는 유일한 통로가 되도록 복원
 watch(isAlarmOn, (val) => {
   if (val) {
     showAlarmPopup.value = true
   } else {
-    clearAlarm()
+    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
+    showDataFixed.value = false
+    showAlarmPopup.value = false
   }
 })
+
+// ✅ 수정: 알람 초기화는 오직 watch 트리거로
+const resetAlarm = () => {
+  isAlarmOn.value = false
+}
 
 const handlePopupClose = () => {
   showAlarmPopup.value = false
@@ -58,31 +66,29 @@ const handlePopupClose = () => {
   }
 }
 
-const resetAlarm = () => {
-  clearAlarm()
-}
-
-const clearAlarm = () => {
-  selectedAlarm.value = { ampm: '', hour: '', minute: '' }
-  showDataFixed.value = false
-  showAlarmPopup.value = false
-}
-
 const formattedAlarm = computed(() => {
-  const { ampm, hour, minute } = selectedAlarm.value
-  if (!hour) return ''
-  return `${ampm} ${hour}시 ${minute}분`
+  if (!selectedAlarm.value.hour) return ''
+  return `${selectedAlarm.value.ampm} ${selectedAlarm.value.hour}시 ${selectedAlarm.value.minute}분`
 })
 
 const setFromRoutine = (routine) => {
-  const alarm = routine?.alarmTime
-  if (alarm?.ampm && alarm?.hour && alarm?.minute) {
-    selectedAlarm.value = { ...alarm }
+  if (
+    routine?.alarmTime &&
+    routine.alarmTime.ampm &&
+    routine.alarmTime.hour &&
+    routine.alarmTime.minute
+  ) {
+    selectedAlarm.value = {
+      ampm: routine.alarmTime.ampm,
+      hour: routine.alarmTime.hour,
+      minute: routine.alarmTime.minute
+    }
     isAlarmOn.value = true
     showDataFixed.value = true
   } else {
-    clearAlarm()
+    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
     isAlarmOn.value = false
+    showDataFixed.value = false
   }
 }
 
