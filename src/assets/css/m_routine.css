@@ -179,7 +179,6 @@
   border-radius:1.5rem;
   padding:1rem;
   text-align:left;
-  height:20rem
 }
 
 #main_body .routine_card .rc_inner {
@@ -189,15 +188,30 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  justify-content: space-between;
+  width:100%;
 }
 
-#main_body .routine_card .rc_inner span[class^='color'] {
+#main_body .routine_card .rc_inner .right {
+  width:80%;
+  background-color:red
+}
+
+#main_body .routine_card .rc_inner .left {
+  width:20%;
+  background-color:yellow
+}
+#main_body .routine_card .rc_inner .right span[class^='color'] {
   width:1rem;
   height:1rem;
   border-radius:50%;
   margin-right:0.3rem;
 }
 
-#main_body .routine_card .rc_inner .title {
+#main_body .routine_card .rc_inner .right .title {
   font-weight:bold
+}
+
+#main_body .routine_card .rc_inner p {
+  display:block
 }
