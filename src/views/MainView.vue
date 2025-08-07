@@ -10,7 +10,7 @@
         @changeFilter="selectedFilter = $event"
         @toggleWeekly="showWeekly = !showWeekly"
       />
-      <MainCard :selected="selectedFilter" />
+      <MainCard :selected="showWeekly ? 'weekly' : selectedFilter" />
     </div>
 
     <FooterView />
