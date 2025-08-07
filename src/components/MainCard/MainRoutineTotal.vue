@@ -45,6 +45,7 @@
 
 <script setup>
 import { ref } from 'vue'
+const emit = defineEmits(['changeFilter'])
 
 defineProps({
   isFuture: Boolean
@@ -54,6 +55,7 @@ const selectedRadio = ref('notdone')
 
 function selectRadio(value) {
   selectedRadio.value = value
+  emit('changeFilter', value)  // 부모에 알림
   const radios = document.querySelectorAll('input[name="filter"]')
   radios.forEach(r => {
     if (r.value === value) r.checked = true
