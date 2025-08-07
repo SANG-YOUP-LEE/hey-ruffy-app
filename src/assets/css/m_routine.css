@@ -220,11 +220,13 @@
 }
 
 #main_body .routine_card .rc_inner .right {
-  text-align:right;
-  background-color:yellow;
+  text-align:center;
 }
 
 #main_body .routine_card .rc_inner .ruffys_item span {
   width:3rem;
   height:3rem;
+  border:1px solid red;
+  margin:0;
+  padding:0;
 }
