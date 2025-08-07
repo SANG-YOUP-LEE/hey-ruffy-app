@@ -1,11 +1,20 @@
-<template> 
+<template>
   <div class="date_scroll">
+    <div class="date_fixed_today">
+      <span
+        class="on_w_nt"
+        :class="{ on: selectedIndex === 0 }"
+        @click="selectToday"
+      >
+        <i>{{ getDayLabel(today) }}</i>{{ today.getDate() }}
+      </span>
+    </div>
     <div class="date_group">
       <span
-        v-for="(date, index) in dateList"
+        v-for="(date, index) in filteredDateList"
         :key="index"
-        :class="{ on: selectedIndex === index, on_w_nt: isToday(date) }"
-        @click="selectDate(index)"
+        :class="{ on: selectedIndex === index + 1 }"
+        @click="selectDate(index + 1)"
       >
         <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
       </span>
@@ -18,7 +27,7 @@ import { ref, onMounted } from 'vue'
 
 const emit = defineEmits(['selectDate'])
 
-const selectedIndex = ref(null)
+const selectedIndex = ref(0)
 
 const today = new Date()
 
@@ -27,6 +36,8 @@ const dateList = Array.from({ length: 30 }, (_, i) => {
   d.setDate(today.getDate() + i)
   return d
 })
+
+const filteredDateList = dateList.slice(1)
 
 const getDayLabel = (date) => {
   const days = ['일', '월', '화', '수', '목', '금', '토']
@@ -50,9 +61,13 @@ const selectDate = (index) => {
   emit('selectDate', selected, isFuture)
 }
 
+const selectToday = () => {
+  selectedIndex.value = 0
+  emit('selectDate', today, false)
+}
+
 onMounted(() => {
-  selectedIndex.value = dateList.findIndex((date) => isToday(date))
-  const selected = dateList[selectedIndex.value]
-  emit('selectDate', selected, false) // 오늘은 미래가 아님
+  selectedIndex.value = 0
+  emit('selectDate', today, false)
 })
 </script>
