@@ -21,7 +21,7 @@
     <p class="filter_row">
       <span class="filter_label">필터</span>
       <span class="filter_radios">
-        <span class="today">today</span>
+        <span class="today">Today</span>
         <label class="custom-radio">
           <input
             type="radio"
