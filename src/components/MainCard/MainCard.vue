@@ -4,6 +4,9 @@
     <div v-if="selected === 'done'" class="done">달성후</div>
     <div v-if="selected === 'ignored'" class="ignored">흐린눈</div>
   </div>
+  <div class="weekly_done">
+    주간 다짐
+  </div>
 </template>
 
 <script setup>
