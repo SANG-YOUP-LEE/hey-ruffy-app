@@ -219,7 +219,7 @@
   display:block
 }
 
-#main_body .routine_card .rc_inner .ruffys_item span 
+#main_body .routine_card .rc_inner .ruffys_item span {
   width:3rem;
   height:3rem;
 }
