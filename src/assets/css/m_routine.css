@@ -217,15 +217,15 @@
   padding-left:2rem;
   color:#666;
   font-size:0.9rem;
-  letter-spacing:-0.02rem
-  line-height:1rem;
+  letter-spacing:-0.02rem;
+  line-height:0.9rem;
 }
 
 #main_body .routine_card .rc_inner p.title {
   font-weight:bold;
   color:#333;
   margin-bottom:1rem;
-  line-height:1.2rem;
+  line-height:1rem;
   padding-left:0
 }
 
