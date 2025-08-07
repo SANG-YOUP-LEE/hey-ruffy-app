@@ -30,7 +30,54 @@
           </div>
         </div>
       </div>
+      <!-- //다짐 카드 -->
+
       <!-- 다짐 카드 -->
+      <div class="routine_card">
+        <div class="rc_inner">
+          <div class="left">
+            <p class="title">
+              <span class="color_picker02"></span>
+              외로워도 슬퍼도 나는 안울어2
+            </p>
+            <p class="term">
+              <i>Weekly</i> 2주마다, 월,화,수
+            </p>
+            <p class="se_date">
+              2025.03.17 ~ 2025.04.18
+            </p>
+          </div>
+
+          <div class="right">
+            <div class="ruffys_item">
+              <span class="ruffy02">도리러피</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- //다짐 카드 -->
+
+      <!-- 다짐 카드 -->
+      <div class="routine_card">
+        <div class="rc_inner">
+          <div class="left">
+            <p class="title">
+              <span class="color_picker03"></span>
+              외로워도 슬퍼도 나는 안울어3
+            </p>
+            <p class="term">
+              <i>Monthly</i> 1,2,3,4
+            </p>
+          </div>
+
+          <div class="right">
+            <div class="ruffys_item">
+              <span class="ruffy03">퓨리러피</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- //다짐 카드 -->
     </div>
     <div v-if="selected === 'done'" class="done">달성후</div>
     <div v-if="selected === 'ignored'" class="ignored">흐린눈</div>
