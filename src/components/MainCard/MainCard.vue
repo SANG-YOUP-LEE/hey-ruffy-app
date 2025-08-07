@@ -32,7 +32,9 @@
           </div>
 
           <div class="right">
-            right
+            <div class="ruffys_item">
+              <span class="ruffy01">퓨리러피</span>
+            </div>
           </div>
         </div>
       </div>
