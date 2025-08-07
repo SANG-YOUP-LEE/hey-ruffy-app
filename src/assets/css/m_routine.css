@@ -1,5 +1,3 @@
-
-
 #main_body .no_data {
   position: fixed;
   top: 50%;
@@ -111,4 +109,11 @@
   align-items:center;
   line-height:0.9rem;
   margin-left:0.5rem;
+}
+
+#main_body .routine_total .filter_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
 }
