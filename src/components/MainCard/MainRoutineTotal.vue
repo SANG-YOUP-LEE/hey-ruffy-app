@@ -20,7 +20,7 @@
 
     <p class="filter_row">
       <span class="filter_label">
-        <button><span>주간다짐보기</span></button>
+        <button @click="emit('toggleWeekly')"><span>주간다짐보기</span></button>
       </span>
       <span class="filter_radios">
         <span class="today">Today</span>
