@@ -153,4 +153,9 @@
   border:1px solid #ececec;
   border-radius:1.5rem;
   padding:1rem;
+  text-align:left;
+}
+
+#main_body .routine_card .rc_inner {
+  background-color:red
 }
