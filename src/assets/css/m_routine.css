@@ -244,11 +244,12 @@
 }
 
 #main_body .routine_card .rc_inner .setting {
-  height:2rem;
-  width:2rem;
+  height:1rem;
+  width:1rem;
   position:absolute;
   top:1rem;
   right:1rem;
+  border:1px solid red;
   background: url('../images/ico_plus.png') no-repeat 0 0/100%
 }
 
