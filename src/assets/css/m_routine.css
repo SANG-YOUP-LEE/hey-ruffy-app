@@ -164,7 +164,7 @@
 
 #main_body .routine_total .filter_row .today,
 
-#main_body .routine_total .radio_set .radio-text {
+#main_body .done_check_wrap .radio_set .radio-text {
   border:1px solid red
 }
 
