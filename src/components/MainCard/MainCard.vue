@@ -22,7 +22,7 @@
           </ul>
         </div>
         <!--//다짐 설정 팝업-->
-        
+
         <div class="rc_inner">
           <div class="left">
             <p class="title">
@@ -36,14 +36,12 @@
           </div>
           <div class="right"></div>
           <div class="done_set">
-            <button class="p_white">달성현황 체크하기</button>
+            <button class="p_white" @click="openStatusPopup">달성현황 체크하기</button>
           </div>
         </div>
       </div>
     </div>
     <!--//달성 전-->
-
-    
 
     <!-- 달성 완료 -->
     <div v-else-if="selected === 'done'" class="done">달성 완료</div>
@@ -111,6 +109,21 @@
         </div>
       </div>
     </teleport>
+
+    <!-- 달성현황 팝업 -->
+    <teleport to="body">
+      <div v-if="showStatusPopup" class="com_popup_wrap">
+        <div class="popup_inner alert">
+          <div class="popup_tit"><h2>달성현황 체크</h2></div>
+          <div class="popup_body">이 다짐의 달성 진행 상황을 확인해보세요.</div>
+          <div class="popup_btm">
+            <button @click="confirmStatusCheck" class="p_basic">확인</button>
+            <button @click="closeStatusPopup" class="p_white">취소</button>
+          </div>
+          <button class="close_btn" @click="closeStatusPopup"><span>닫기</span></button>
+        </div>
+      </div>
+    </teleport>
   </div>
 </template>
 
@@ -125,6 +138,7 @@ const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
 const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
+const showStatusPopup = ref(false)
 const isPaused = ref(false)
 
 function togglePopup() {
@@ -152,10 +166,9 @@ function closeDeleteConfirm() {
 
 function confirmDelete() {
   closeDeleteConfirm()
-  alert('삭제되었습니다') // 실제 삭제 로직
+  alert('삭제되었습니다')
 }
 
-// 잠시 멈추기 / 다시 시작하기
 function openPauseRestartConfirm() {
   closePopup()
   showPauseRestartPopup.value = true
@@ -172,7 +185,6 @@ function confirmPauseRestart() {
   closePauseRestartPopup()
 }
 
-// 공유하기
 function openShareConfirm() {
   closePopup()
   showShareConfirmPopup.value = true
@@ -186,7 +198,22 @@ function closeShareConfirm() {
 
 function confirmShare() {
   closeShareConfirm()
-  alert('공유되었습니다') // 실제 공유 로직
+  alert('공유되었습니다')
+}
+
+function openStatusPopup() {
+  showStatusPopup.value = true
+  document.body.classList.add('no-scroll')
+}
+
+function closeStatusPopup() {
+  showStatusPopup.value = false
+  document.body.classList.remove('no-scroll')
+}
+
+function confirmStatusCheck() {
+  closeStatusPopup()
+  alert('달성현황 확인 완료!')
 }
 
 onMounted(() => {
