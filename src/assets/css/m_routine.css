@@ -197,7 +197,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap:0.5rem
+  gap:0.5rem;
+  flex-wrap: wrap;
 }
 
 #main_body .routine_card .rc_inner i {
@@ -338,7 +339,8 @@
 
 #main_body .routine_card .rc_inner .done_set {
   width:100%;
-  background-color:red
+  background-color:red;
+  flex-basis: 100%;
 }
 
 #main_body .routine_card .rc_inner .ruffys_item span {
