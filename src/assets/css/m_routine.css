@@ -249,7 +249,7 @@
   position:absolute;
   top:1.5rem;
   right:1rem;
-  background: url('../images/ico_dot.png') no-repeat 0 0/contain
+  background: url('../images/ico_control.png') no-repeat 0 0/contain
 }
 
 #main_body .routine_card .setting span {
