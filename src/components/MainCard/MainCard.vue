@@ -8,6 +8,7 @@
           </button>
 
           <div v-if="showPopup" class="setting_popup">
+            <button class="close"><span>설정팝업닫기</span></button>
             <ul>
               <li><button>다짐 수정하기</button></li>
               <li><button>다짐 잠시 멈추기</button></li>
