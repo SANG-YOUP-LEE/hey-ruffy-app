@@ -5,6 +5,14 @@
       <div class="routine_card">
         <div class="rc_inner">
           <button class="setting"><span>다짐설정</span></button>
+          <div v-if="showPopupList[index]" class="setting_popup">
+            <ul>
+              <li>다짐 수정</li>
+              <li>다짐 삭제</li>
+              <li>기타 옵션</li>
+            </ul>
+          </div>
+          
           <div class="left">
             <p class="title">
               <span class="color_picker01"></span>
@@ -37,6 +45,13 @@
       <div class="routine_card">
         <div class="rc_inner">
           <button class="setting"><span>다짐설정</span></button>
+          <div v-if="showPopupList[index]" class="setting_popup">
+            <ul>
+              <li>다짐 수정</li>
+              <li>다짐 삭제</li>
+              <li>기타 옵션</li>
+            </ul>
+          </div>
           <div class="left">
             <p class="title">
               <span class="color_picker02"></span>
@@ -63,6 +78,13 @@
       <div class="routine_card">
         <div class="rc_inner">
           <button class="setting"><span>다짐설정</span></button>
+          <div v-if="showPopupList[index]" class="setting_popup">
+            <ul>
+              <li>다짐 수정</li>
+              <li>다짐 삭제</li>
+              <li>기타 옵션</li>
+            </ul>
+          </div>
           <div class="left">
             <p class="title">
               <span class="color_picker03"></span>
@@ -89,7 +111,17 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
   selected: String
 })
+
+const showPopupList = ref([false, false, false]) // 카드 개수만큼
+
+function togglePopup(index) {
+  showPopupList.value = showPopupList.value.map((val, i) =>
+    i === index ? !val : false // 다른 팝업은 닫기
+  )
+}
 </script>
