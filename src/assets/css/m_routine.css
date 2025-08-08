@@ -163,6 +163,11 @@
 }
 
 #main_body .routine_total .filter_row .today,
+
+#main_body .routine_total .radio_set .radio-text {
+  border:1px solid red
+}
+
 #main_body .routine_card .rc_inner i {
   display:inline-block;
   font-size:0.7rem;
