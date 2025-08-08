@@ -180,10 +180,10 @@
   padding: 1.5rem;
   text-align: left;
   margin-bottom:1rem;
+  position:relative;
 }
 
 #main_body .routine_card .rc_inner {
-  position:relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -243,16 +243,16 @@
   vertical-align:middle;
 }
 
-#main_body .routine_card .rc_inner .setting {
+#main_body .routine_card .setting {
   height:1.5rem;
   width:1.5rem;
   position:absolute;
-  top:0rem;
-  right:0rem;
+  top:1rem;
+  right:1rem;
   background: url('../images/ico_plus.png') no-repeat 0 0/100%
 }
 
-#main_body .routine_card .rc_inner .setting span {
+#main_body .routine_card .setting span {
   display:none
 }
 #main_body .routine_card .rc_inner p.term {
