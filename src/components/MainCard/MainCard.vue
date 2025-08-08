@@ -92,6 +92,7 @@ function handleGlobalCloseEvents() {
 }
 
 function openDeleteConfirm() {
+  closePopup()
   showDeleteConfirmPopup.value = true
   document.body.classList.add('no-scroll')
 }
