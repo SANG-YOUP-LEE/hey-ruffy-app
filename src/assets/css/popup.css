@@ -41,6 +41,11 @@ body.no-scroll {
 	border:none!important
 }
 
+.com_popup_wrap .popup_inner.alert {
+  width:60%
+  padding:2rem!important;
+}
+
 .com_popup_wrap .popup_inner .popup_tit {
 	height:auto;
 }
