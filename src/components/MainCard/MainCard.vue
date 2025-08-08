@@ -138,7 +138,7 @@
                   />
                   <span class="circle"></span>
                 </label>
-                <span class="radio-text">달성 실패</span>
+                <span class="radio-text">흐린눈</span>
                 
               </div>
               <div calss="chat_group">
