@@ -9,9 +9,10 @@
 
           <div v-if="showPopup" class="setting_popup">
             <ul>
-              <li>다짐 수정</li>
-              <li>다짐 삭제</li>
-              <li>기타 옵션</li>
+              <li><button>다짐 수정하기</button></li>
+              <li><button>다짐 잠시 멈추기</button></li>
+              <li><button>다짐 공유하기</button></li>
+              <li><button>다짐 삭제하기</button></li>
             </ul>
           </div>
 
