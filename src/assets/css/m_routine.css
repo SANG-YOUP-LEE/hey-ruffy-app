@@ -244,16 +244,16 @@
 
 
 #main_body .routine_card .rc_inner p.term {
-  background: url('../images/ico_mark.png') no-repeat 0.2rem 0.2rem/0.9rem 0.9rem
+  background: url('../images/ico_mark.png') no-repeat 0.1rem 0.1rem/0.9rem 0.9rem
 }
 #main_body .routine_card .rc_inner p.se_date {
- background: url('../images/ico_pin.png') no-repeat 0.2rem 0.2rem/0.9rem 0.9rem
+ background: url('../images/ico_pin.png') no-repeat 0.1rem 0.1rem/0.9rem 0.9rem
 }
 #main_body .routine_card .rc_inner p.alaram {
- background: url('../images/ico_alaram.png') no-repeat 0.2rem 0.2rem/0.9rem 0.9rem
+ background: url('../images/ico_alaram.png') no-repeat 0.1rem 0.1rem/0.9rem 0.9rem
 }
 #main_body .routine_card .rc_inner p.comment {
- background: url('../images/ico_comment.png') no-repeat 0.2rem 0.2rem/0.9rem 0.9rem
+ background: url('../images/ico_comment.png') no-repeat 0.1rem 0.1rem/0.9rem 0.9rem
 }
 
 #main_body .routine_card .rc_inner .right {
