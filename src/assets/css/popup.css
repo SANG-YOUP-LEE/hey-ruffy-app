@@ -35,7 +35,7 @@ body.no-scroll {
   max-width: 20rem;
 	position:relative;
   background: #fff;
-  padding: 1.5rem!important;
+  padding: 2rem!important;
   border-radius: 1rem;
 	margin:0!important;
 	border:none!important
@@ -51,7 +51,7 @@ body.no-scroll {
 }
 
 .com_popup_wrap .popup_inner.alert .popup_btm {
-  margin:2rem 0 0 0;
+  /*margin:2rem 0 0 0;*/
 }
 
 .com_popup_wrap .popup_inner .popup_tit {
@@ -95,7 +95,7 @@ body.no-scroll {
 }
 
 .com_popup_wrap .popup_inner .popup_btm {
-  margin-top:0.5rem;
+  margin-top:2rem;
   text-align: right;
 	position:relative;
 	padding:0;
