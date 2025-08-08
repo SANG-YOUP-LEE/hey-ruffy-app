@@ -119,22 +119,40 @@
             <div class="done_check_wrap">
               <div class="radio_set">
                 <label class="custom-radio">
-                  <input type="radio" id="radio-success" name="status" />
+                  <input
+                    type="radio"
+                    name="status"
+                    value="success"
+                    :checked="selectedStatus === 'success'"
+                    @change="selectedStatus = 'success'"
+                  />
                   <span class="circle"></span>
                 </label>
-                <span class="radio-text" for="radio-success">달성 성공</span>
+                <span class="radio-text" @click="selectedStatus = 'success'">달성 성공</span>
               
                 <label class="custom-radio">
-                  <input type="radio" id="radio-fail" name="status" />
+                  <input
+                    type="radio"
+                    name="status"
+                    value="fail"
+                    :checked="selectedStatus === 'fail'"
+                    @change="selectedStatus = 'fail'"
+                  />
                   <span class="circle"></span>
                 </label>
-                <span class="radio-text" for="radio-fail">달성 실패</span>
+                <span class="radio-text" @click="selectedStatus = 'fail'">달성 실패</span>
               
                 <label class="custom-radio">
-                  <input type="radio" id="radio-blur" name="status" />
+                  <input
+                    type="radio"
+                    name="status"
+                    value="blur"
+                    :checked="selectedStatus === 'blur'"
+                    @change="selectedStatus = 'blur'"
+                  />
                   <span class="circle"></span>
                 </label>
-                <span class="radio-text" for="radio-blur">흐린눈</span>
+                <span class="radio-text" @click="selectedStatus = 'blur'">흐린눈</span>
               </div>
               <div calss="chat_group">
                 
