@@ -21,6 +21,7 @@
             <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
           </ul>
         </div>
+        <!--//다짐 설정 팝업-->
 
         <div class="rc_inner">
           <div class="left">
@@ -40,9 +41,15 @@
         </div>
       </div>
     </div>
+    <!--//달성 전-->
 
+    <!-- 달성 완료 -->
     <div v-else-if="selected === 'done'" class="done">달성 완료</div>
+
+    <!-- 흐린눈 -->
     <div v-else-if="selected === 'ignored'" class="dimmed">흐린눈</div>
+
+    <!-- 주간 다짐 -->
     <div v-else-if="selected === 'weekly'" class="weekly">주간 다짐</div>
 
     <!-- 삭제 확인 팝업 -->
@@ -116,20 +123,22 @@
                   <span class="circle"></span>
                 </label>
                 <span class="radio-text" for="radio-success">달성 성공</span>
-
+              
                 <label class="custom-radio">
                   <input type="radio" id="radio-fail" name="status" />
                   <span class="circle"></span>
                 </label>
                 <span class="radio-text" for="radio-fail">달성 실패</span>
-
+              
                 <label class="custom-radio">
                   <input type="radio" id="radio-blur" name="status" />
                   <span class="circle"></span>
                 </label>
                 <span class="radio-text" for="radio-blur">흐린눈</span>
               </div>
-              <div class="chat_group"></div>
+              <div calss="chat_group">
+                
+              </div>
             </div>
           </div>
           <div class="popup_btm">
@@ -140,21 +149,15 @@
         </div>
       </div>
     </teleport>
-
-    <!-- 성공 멘트 출력 -->
-    <transition name="chat-pop">
-      <div v-if="showSuccessChat" class="chat_success right">오늘은 성공!</div>
-    </transition>
-    <transition name="chat-pop" appear>
-      <div v-if="showSuccessChat2" class="chat_success left"><span>역시 나이스!</span></div>
-    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-defineProps({ selected: String })
+defineProps({
+  selected: String
+})
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
@@ -162,20 +165,6 @@ const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
 const showStatusPopup = ref(false)
 const isPaused = ref(false)
-
-const showSuccessChat = ref(false)
-const showSuccessChat2 = ref(false)
-
-function playSuccessChat() {
-  showSuccessChat.value = true
-  setTimeout(() => {
-    showSuccessChat2.value = true
-  }, 1000)
-  setTimeout(() => {
-    showSuccessChat.value = false
-    showSuccessChat2.value = false
-  }, 4000)
-}
 
 function togglePopup() {
   showPopup.value = !showPopup.value
@@ -249,7 +238,7 @@ function closeStatusPopup() {
 
 function confirmStatusCheck() {
   closeStatusPopup()
-  playSuccessChat()
+  alert('달성현황 확인 완료!')
 }
 
 onMounted(() => {
@@ -263,43 +252,3 @@ onBeforeUnmount(() => {
   document.body.classList.remove('no-scroll')
 })
 </script>
-
-<style scoped>
-.chat_success {
-  position: fixed;
-  bottom: 4rem;
-  max-width: 80%;
-  padding: 1rem 1.2rem;
-  font-size: 1rem;
-  background: #222;
-  color: #fff;
-  border-radius: 1.5rem;
-  z-index: 9999;
-  opacity: 0.9;
-  line-height: 1.4rem;
-  pointer-events: none;
-  animation: pop-up 0.5s ease-out;
-
-  &.right {
-    right: 1.5rem;
-    text-align: right;
-  }
-
-  &.left {
-    left: 1.5rem;
-    text-align: left;
-    border-bottom: 2px solid #fff;
-  }
-}
-
-@keyframes pop-up {
-  0% {
-    transform: translateY(2rem);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 0.9;
-  }
-}
-</style>
