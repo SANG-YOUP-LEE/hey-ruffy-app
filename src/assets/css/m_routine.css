@@ -339,7 +339,6 @@
 
 #main_body .routine_card .rc_inner .done_set {
   width:100%;
-  background-color:red;
   flex-basis: 100%;
 }
 
