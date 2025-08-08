@@ -183,6 +183,11 @@
   position:relative;
 }
 
+#main_body .routine_card.rt_off {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 #main_body .routine_card .rc_inner {
   display: flex;
   align-items: flex-start;
