@@ -4,6 +4,7 @@
       <!-- 다짐 카드 -->
       <div class="routine_card">
         <div class="rc_inner">
+          <button class="setting"><span>다짐설정</span></button>
           <div class="left">
             <p class="title">
               <span class="color_picker01"></span>
@@ -35,6 +36,7 @@
       <!-- 다짐 카드 -->
       <div class="routine_card">
         <div class="rc_inner">
+          <button class="setting"><span>다짐설정</span></button>
           <div class="left">
             <p class="title">
               <span class="color_picker02"></span>
@@ -60,6 +62,7 @@
       <!-- 다짐 카드 -->
       <div class="routine_card">
         <div class="rc_inner">
+          <button class="setting"><span>다짐설정</span></button>
           <div class="left">
             <p class="title">
               <span class="color_picker03"></span>
