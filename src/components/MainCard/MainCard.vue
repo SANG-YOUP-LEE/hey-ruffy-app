@@ -42,7 +42,7 @@
     </div>
 
     <!-- 흐린눈 -->
-    <div v-else-if="selected === 'dimmed'" class="dimmed">
+    <div v-else-if="selected === 'ignored'" class="dimmed">
       흐린눈
     </div>
 
