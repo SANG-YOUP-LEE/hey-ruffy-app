@@ -35,6 +35,9 @@
             <p class="comment">건강검진 극락가자!</p>
           </div>
           <div class="right"></div>
+          <div class="done_set">
+            <button class="p_white">달성현황 체크하기</button>
+          </div>
         </div>
       </div>
     </div>
