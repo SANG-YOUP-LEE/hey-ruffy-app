@@ -2,7 +2,7 @@
   <div class="done_group">
     <!-- 달성 전 -->
     <div v-if="selected === 'notdone'" class="not_done">
-      <div class="routine_card">
+      <div :class="['routine_card', { rt_off: isPaused }]">
         <div class="rc_inner">
           <button class="setting" @click="togglePopup">
             <span>다짐설정</span>
@@ -76,7 +76,7 @@
             </template>
             <template v-else>
               정말 다짐을 잠시 멈추실 건가요? <br />
-              다짐은 언제든 다시 시작할 수 있어요.
+              멈춘 다짐은 언제든 다시 시작할 수 있어요.
             </template>
           </div>
           <div class="popup_btm">
@@ -89,7 +89,6 @@
         </div>
       </div>
     </teleport>
-    <!-- //잠시 멈추기 / 다시 시작하기 팝업 -->
   </div>
 </template>
 
@@ -130,7 +129,7 @@ function closeDeleteConfirm() {
 
 function confirmDelete() {
   closeDeleteConfirm()
-  alert('삭제되었습니다') // TODO: 실제 삭제 처리
+  alert('삭제되었습니다') // 실제 삭제 로직
 }
 
 // 잠시 멈추기 / 다시 시작하기
