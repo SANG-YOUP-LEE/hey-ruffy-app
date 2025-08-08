@@ -17,7 +17,7 @@
                 {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
               </button>
             </li>
-            <li><button class="share">다짐 공유하기</button></li>
+            <li><button class="share" @click="openShareConfirm">다짐 공유하기</button></li>
             <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
           </ul>
         </div>
@@ -34,7 +34,6 @@
             <p class="alaram">am 07:00</p>
             <p class="comment">건강검진 극락가자!</p>
           </div>
-
           <div class="right"></div>
         </div>
       </div>
@@ -91,6 +90,21 @@
         </div>
       </div>
     </teleport>
+
+    <!-- 공유하기 팝업 -->
+    <teleport to="body">
+      <div v-if="showShareConfirmPopup" class="com_popup_wrap">
+        <div class="popup_inner alert">
+          <div class="popup_tit"><h2>다짐을 공유할까요?</h2></div>
+          <div class="popup_body">누군가에게 동기부여가 될 수 있어요. <br /> 지금 다짐을 공유할까요?</div>
+          <div class="popup_btm">
+            <button @click="confirmShare" class="p_basic">공유하기</button>
+            <button @click="closeShareConfirm" class="p_white">취소</button>
+          </div>
+          <button class="close_btn" @click="closeShareConfirm"><span>닫기</span></button>
+        </div>
+      </div>
+    </teleport>
   </div>
 </template>
 
@@ -104,6 +118,7 @@ defineProps({
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
 const showPauseRestartPopup = ref(false)
+const showShareConfirmPopup = ref(false)
 const isPaused = ref(false)
 
 function togglePopup() {
@@ -149,6 +164,23 @@ function closePauseRestartPopup() {
 function confirmPauseRestart() {
   isPaused.value = !isPaused.value
   closePauseRestartPopup()
+}
+
+// 공유하기
+function openShareConfirm() {
+  closePopup()
+  showShareConfirmPopup.value = true
+  document.body.classList.add('no-scroll')
+}
+
+function closeShareConfirm() {
+  showShareConfirmPopup.value = false
+  document.body.classList.remove('no-scroll')
+}
+
+function confirmShare() {
+  closeShareConfirm()
+  alert('공유되었습니다') // 실제 공유 로직
 }
 
 onMounted(() => {
