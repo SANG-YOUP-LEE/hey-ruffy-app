@@ -8,12 +8,12 @@
           </button>
 
           <div v-if="showPopup" class="setting_popup">
-            <button class="close"><span>설정팝업닫기</span></button>
+            <button class="close" @click="closePopup"><span>설정팝업닫기</span></button>
             <ul>
-              <li><button>다짐 수정하기</button></li>
-              <li><button>다짐 잠시 멈추기</button></li>
-              <li><button>다짐 공유하기</button></li>
-              <li><button>다짐 삭제하기</button></li>
+              <li><button class="modify">다짐 수정하기</button></li>
+              <li><button class="lock">다짐 잠시 멈추기</button></li>
+              <li><button class="share">다짐 공유하기</button></li>
+              <li><button class="del">다짐 삭제하기</button></li>
             </ul>
           </div>
 
@@ -46,5 +46,9 @@ const showPopup = ref(false)
 
 function togglePopup() {
   showPopup.value = !showPopup.value
+}
+
+function closePopup() {
+  showPopup.value = false
 }
 </script>
