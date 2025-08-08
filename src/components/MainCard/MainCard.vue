@@ -53,12 +53,12 @@
 
     <!-- 삭제 확인 팝업 -->
     <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
-      <div class="popup_inner">
+      <div class="popup_inner alert">
         <div class="popup_tit">
           <h2>정말 다짐을 삭제할까요?</h2>
         </div>
         <div class="popup_body">
-          삭제된 다짐은 되돌릴 수 없어요/
+          삭제된 다짐은 되돌릴 수 없어요.
         </div>
         <div class="popup_btm">
           <button @click="confirmDelete" class="p_basic">삭제</button>
