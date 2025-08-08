@@ -122,19 +122,19 @@
                   <input type="radio" id="radio-success" name="status" />
                   <span class="circle"></span>
                 </label>
-                <label class="radio-text" for="radio-success">달성 성공</label>
+                <span class="radio-text" for="radio-success">달성 성공</span>
               
                 <label class="custom-radio">
                   <input type="radio" id="radio-fail" name="status" />
                   <span class="circle"></span>
                 </label>
-                <label class="radio-text" for="radio-fail">달성 실패</label>
+                <span class="radio-text" for="radio-fail">달성 실패</span>
               
                 <label class="custom-radio">
                   <input type="radio" id="radio-blur" name="status" />
                   <span class="circle"></span>
                 </label>
-                <label class="radio-text" for="radio-blur">흐린눈</label>
+                <span class="radio-text" for="radio-blur">흐린눈</span>
               </div>
               <div calss="chat_group">
                 
