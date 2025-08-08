@@ -9,12 +9,14 @@
           </button>
 
           <div v-if="showPopup" class="setting_popup">
-            <button class="close_spop" @click="closePopup">
-              <span>설정팝업닫기</span>
-            </button>
+            <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
             <ul>
               <li><button class="modify">다짐 수정하기</button></li>
-              <li><button class="lock">다짐 잠시 멈추기</button></li>
+              <li>
+                <button class="lock" @click="openPauseRestartConfirm">
+                  {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
+                </button>
+              </li>
               <li><button class="share">다짐 공유하기</button></li>
               <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
             </ul>
@@ -37,30 +39,20 @@
     </div>
 
     <!-- 달성 완료 -->
-    <div v-else-if="selected === 'done'" class="done">
-      달성 완료
-    </div>
+    <div v-else-if="selected === 'done'" class="done">달성 완료</div>
 
     <!-- 흐린눈 -->
-    <div v-else-if="selected === 'ignored'" class="dimmed">
-      흐린눈
-    </div>
+    <div v-else-if="selected === 'ignored'" class="dimmed">흐린눈</div>
 
     <!-- 주간 다짐 -->
-    <div v-else-if="selected === 'weekly'" class="weekly">
-      주간 다짐
-    </div>
+    <div v-else-if="selected === 'weekly'" class="weekly">주간 다짐</div>
 
     <!-- 삭제 확인 팝업 -->
     <teleport to="body">
       <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
-          <div class="popup_tit">
-            <h2>정말 다짐을 삭제할까요?</h2>
-          </div>
-          <div class="popup_body">
-            삭제된 다짐은 되돌릴 수 없어요.
-          </div>
+          <div class="popup_tit"><h2>정말 다짐을 삭제할까요?</h2></div>
+          <div class="popup_body">삭제된 다짐은 되돌릴 수 없어요.</div>
           <div class="popup_btm">
             <button @click="confirmDelete" class="p_basic">삭제</button>
             <button @click="closeDeleteConfirm" class="p_white">취소</button>
@@ -69,7 +61,35 @@
         </div>
       </div>
     </teleport>
-    <!-- //삭제 확인 팝업 -->
+
+    <!-- 잠시 멈추기 / 다시 시작하기 팝업 -->
+    <teleport to="body">
+      <div v-if="showPauseRestartPopup" class="com_popup_wrap">
+        <div class="popup_inner alert">
+          <div class="popup_tit">
+            <h2>{{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}</h2>
+          </div>
+          <div class="popup_body">
+            <template v-if="isPaused">
+              다짐을 다시 시작할까요? <br />
+              지칠땐 언제든 다시 멈출 수 있어요.
+            </template>
+            <template v-else>
+              정말 다짐을 잠시 멈추실 건가요? <br />
+              멈춘 다짐은 언제든 다시 시작할 수 있어요.
+            </template>
+          </div>
+          <div class="popup_btm">
+            <button @click="confirmPauseRestart" class="p_basic">
+              {{ isPaused ? '다짐 다시 시작하기' : '다짐 멈추기' }}
+            </button>
+            <button @click="closePauseRestartPopup" class="p_white">취소</button>
+          </div>
+          <button class="close_btn" @click="closePauseRestartPopup"><span>닫기</span></button>
+        </div>
+      </div>
+    </teleport>
+    <!-- //잠시 멈추기 / 다시 시작하기 팝업 -->
   </div>
 </template>
 
@@ -82,6 +102,8 @@ defineProps({
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
+const showPauseRestartPopup = ref(false)
+const isPaused = ref(false)
 
 function togglePopup() {
   showPopup.value = !showPopup.value
@@ -92,9 +114,7 @@ function closePopup() {
 }
 
 function handleGlobalCloseEvents() {
-  if (showPopup.value) {
-    closePopup()
-  }
+  if (showPopup.value) closePopup()
 }
 
 function openDeleteConfirm() {
@@ -110,8 +130,24 @@ function closeDeleteConfirm() {
 
 function confirmDelete() {
   closeDeleteConfirm()
-  // TODO: 실제 삭제 로직 여기에 추가
-  alert('삭제되었습니다') // 또는 emit
+  alert('삭제되었습니다') // TODO: 실제 삭제 처리
+}
+
+// 잠시 멈추기 / 다시 시작하기
+function openPauseRestartConfirm() {
+  closePopup()
+  showPauseRestartPopup.value = true
+  document.body.classList.add('no-scroll')
+}
+
+function closePauseRestartPopup() {
+  showPauseRestartPopup.value = false
+  document.body.classList.remove('no-scroll')
+}
+
+function confirmPauseRestart() {
+  isPaused.value = !isPaused.value
+  closePauseRestartPopup()
 }
 
 onMounted(() => {
@@ -122,6 +158,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('close-other-popups', handleGlobalCloseEvents)
   window.removeEventListener('popstate', handleGlobalCloseEvents)
-  document.body.classList.remove('no-scroll') // 혹시 남아있을 경우
+  document.body.classList.remove('no-scroll')
 })
 </script>
