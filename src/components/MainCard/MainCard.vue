@@ -3,25 +3,27 @@
     <!-- 달성 전 -->
     <div v-if="selected === 'notdone'" class="not_done">
       <div :class="['routine_card', { rt_off: isPaused }]">
+        <!--다짐 설정 팝업-->
+        <button class="setting" @click="togglePopup">
+          <span>다짐설정</span>
+        </button>
+
+        <div v-if="showPopup" class="setting_popup">
+          <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
+          <ul>
+            <li><button class="modify">다짐 수정하기</button></li>
+            <li>
+              <button class="lock" @click="openPauseRestartConfirm">
+                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
+              </button>
+            </li>
+            <li><button class="share">다짐 공유하기</button></li>
+            <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
+          </ul>
+        </div>
+        <!--//다짐 설정 팝업-->
+        
         <div class="rc_inner">
-          <button class="setting" @click="togglePopup">
-            <span>다짐설정</span>
-          </button>
-
-          <div v-if="showPopup" class="setting_popup">
-            <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
-            <ul>
-              <li><button class="modify">다짐 수정하기</button></li>
-              <li>
-                <button class="lock" @click="openPauseRestartConfirm">
-                  {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
-                </button>
-              </li>
-              <li><button class="share">다짐 공유하기</button></li>
-              <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
-            </ul>
-          </div>
-
           <div class="left">
             <p class="title">
               <span class="color_picker01"></span>
