@@ -42,8 +42,16 @@ body.no-scroll {
 }
 
 .com_popup_wrap .popup_inner.alert {
-  width:60%;
-  padding:2rem!important;
+  /*width:70%;
+  padding:2rem!important;*/
+}
+
+.com_popup_wrap .popup_inner.alert .popup_tit {
+  margin:1rem 0 2rem 0
+}
+
+.com_popup_wrap .popup_inner.alert .popup_btm {
+  margin:2rem 0 0 0;
 }
 
 .com_popup_wrap .popup_inner .popup_tit {
