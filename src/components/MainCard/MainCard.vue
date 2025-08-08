@@ -2,7 +2,12 @@
   <div class="done_group">
     <!-- 달성 전 -->
     <div v-if="selected === 'notdone'" class="not_done">
-      <div :class="['routine_card', { rt_off: isPaused }]">
+      <!-- 루틴 카드 목록 -->
+      <div
+        v-for="(routine, index) in routines"
+        :key="index"
+        :class="['routine_card', { rt_off: isPaused }]"
+      >
         <!--다짐 설정 팝업-->
         <button class="setting" @click="togglePopup">
           <span>다짐설정</span>
@@ -22,25 +27,28 @@
           </ul>
         </div>
         <!--//다짐 설정 팝업-->
-        
+
         <div class="rc_inner">
           <div class="left">
             <p class="title">
-              <span class="color_picker01"></span>
-              외로워도 슬퍼도 나는 안울어
+              <span :class="'color_picker0' + ((routine.colorIndex ?? 1))"></span>
+              {{ routine.title }}
             </p>
-            <p class="term"><i>Daily</i> 월,화,수,목,금</p>
-            <p class="se_date">2025.03.17 ~ 2025.04.18</p>
-            <p class="alaram">am 07:00</p>
-            <p class="comment">건강검진 극락가자!</p>
+            <p class="term">
+              <i>{{ routine.repeatType }}</i>
+              <template v-if="routine.repeatDays?.length">{{ routine.repeatDays.join(',') }}</template>
+              <template v-else-if="routine.repeatWeekDays?.length">{{ routine.repeatWeekDays.join(',') }}</template>
+              <template v-else-if="routine.repeatMonthDays?.length">{{ routine.repeatMonthDays.join(',') }}</template>
+            </p>
+            <p class="se_date">{{ routine.startDate }} ~ {{ routine.endDate }}</p>
+            <p class="alaram" v-if="routine.alarmTime">{{ routine.alarmTime }}</p>
+            <p class="comment" v-if="routine.comment">{{ routine.comment }}</p>
           </div>
           <div class="right"></div>
         </div>
       </div>
     </div>
     <!--//달성 전-->
-
-    
 
     <!-- 달성 완료 -->
     <div v-else-if="selected === 'done'" class="done">달성 완료</div>
@@ -124,6 +132,14 @@ const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
 const isPaused = ref(false)
 
+// 루틴 목록 상태
+const routines = ref([])
+
+// 퍼블 테스트용 루틴 추가용 이벤트 핸들러
+function handleDummyRoutine(routine) {
+  routines.value.push(routine)
+}
+
 function togglePopup() {
   showPopup.value = !showPopup.value
 }
@@ -152,7 +168,6 @@ function confirmDelete() {
   alert('삭제되었습니다') // 실제 삭제 로직
 }
 
-// 잠시 멈추기 / 다시 시작하기
 function openPauseRestartConfirm() {
   closePopup()
   showPauseRestartPopup.value = true
@@ -169,7 +184,6 @@ function confirmPauseRestart() {
   closePauseRestartPopup()
 }
 
-// 공유하기
 function openShareConfirm() {
   closePopup()
   showShareConfirmPopup.value = true
@@ -186,12 +200,18 @@ function confirmShare() {
   alert('공유되었습니다') // 실제 공유 로직
 }
 
+// 테스트용 루틴 받기 위한 이벤트 리스너 등록
 onMounted(() => {
+  window.addEventListener('dummy-added', (e) => {
+    handleDummyRoutine(e.detail)
+  })
+
   window.addEventListener('close-other-popups', handleGlobalCloseEvents)
   window.addEventListener('popstate', handleGlobalCloseEvents)
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('dummy-added', handleDummyRoutine)
   window.removeEventListener('close-other-popups', handleGlobalCloseEvents)
   window.removeEventListener('popstate', handleGlobalCloseEvents)
   document.body.classList.remove('no-scroll')
