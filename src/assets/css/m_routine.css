@@ -268,13 +268,12 @@
   font-size:0.9rem;
 }
 
-#main_body .routine_card .setting_popup .close {
+#main_body .routine_card .setting_popup .close_spop {
   position:absolute;
   top:0.5rem;
   right:0.5rem;
   width:1rem;
   height:1rem;
-  border:1px solid red;
   background: url('../images/ico_close.png') no-repeat 0 0/cover
 }
 
@@ -283,19 +282,19 @@
 }
 
 #main_body .routine_card .setting_popup button.modify {
-  background: url('../images/ico_modify.png') no-repeat 0 0.1rem/1rem 1rem
+  background: url('../images/ico_modify.png') no-repeat 0 50%/1rem 1rem
 }
 
 #main_body .routine_card .setting_popup button.lock {
-  background: url('../images/ico_lock.png') no-repeat 0 0.1rem/1rem 1rem
+  background: url('../images/ico_lock.png') no-repeat 0 50%/1rem 1rem
 }
 
 #main_body .routine_card .setting_popup button.share {
-  background: url('../images/ico_share02.png') no-repeat 0 0.1rem/1rem 1rem
+  background: url('../images/ico_share02.png') no-repeat 0 50%/1rem 1rem
 }
 
 #main_body .routine_card .setting_popup button.del {
-  background: url('../images/ico_del.png') no-repeat 0 0.1rem/1rem 1rem
+  background: url('../images/ico_del.png') no-repeat 0 50%/1rem 1rem
 }
 
 #main_body .routine_card .rc_inner p.term {
