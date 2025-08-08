@@ -185,14 +185,11 @@
 
 #main_body .routine_card.rt_off {
   opacity: 0.5;
-  pointer-events: none;
   position: relative;
 }
 
 #main_body .routine_card.rt_off .setting {
-  pointer-events: auto;
-  position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 #main_body .routine_card .rc_inner {
