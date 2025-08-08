@@ -284,8 +284,6 @@
 
 #main_body .routine_card .setting_popup button {
   padding-left:2rem;
-  line-height:1rem;
-  height:1rem;
 }
 
 #main_body .routine_card .setting_popup button:active {
