@@ -244,11 +244,11 @@
 }
 
 #main_body .routine_card .setting {
-  height:1.5rem;
-  width:1.5rem;
+  height:1rem;
+  width:1rem;
   position:absolute;
   top:1.5rem;
-  right:1.5rem;
+  right:1rem;
   background: url('../images/ico_control.png') no-repeat 0 0/contain
 }
 
@@ -270,17 +270,12 @@
 
 #main_body .routine_card .setting_popup .close_spop {
   position:absolute;
-  top:0.5rem;
-  right:0.5rem;
-  width:1rem!important;
-  height:1rem!important;
-  border:1px solid red;
+  top:0.8rem;
+  right:0.8rem;
+  width:1.5rem;
+  height:1.5rem;
   padding:0;
   background: url('../images/ico_close.png') no-repeat 0 0/100%!important
-}
-
-#main_body .routine_card .setting_popup li {
-  background-color:red
 }
 
 #main_body .routine_card .setting_popup .close_spop span {
@@ -293,19 +288,19 @@
 }
 
 #main_body .routine_card .setting_popup button.modify {
-  background: url('../images/ico_modify.png') no-repeat 0 50%/0.9rem 0.9rem
+  background: url('../images/ico_modify.png') no-repeat -0.1rem 50%/0.9rem 0.9rem
 }
 
 #main_body .routine_card .setting_popup button.lock {
-  background: url('../images/ico_lock.png') no-repeat 0 50%/0.9rem 0.9rem
+  background: url('../images/ico_lock.png') no-repeat -0.1rem 50%/0.9rem 0.9rem
 }
 
 #main_body .routine_card .setting_popup button.share {
-  background: url('../images/ico_share02.png') no-repeat 0 50%/0.9rem 0.9rem
+  background: url('../images/ico_share02.png') no-repeat -0.1rem 50%/0.9rem 0.9rem
 }
 
 #main_body .routine_card .setting_popup button.del {
-  background: url('../images/ico_del.png') no-repeat 0 50%/0.9rem 0.9rem
+  background: url('../images/ico_del.png') no-repeat -0.1rem 50%/0.9rem 0.9rem
 }
 
 #main_body .routine_card .rc_inner p.term {
