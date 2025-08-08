@@ -272,13 +272,15 @@
   position:absolute;
   top:0.5rem;
   right:0.5rem;
-  width:1rem;
-  height:1rem;
-  background: url('../images/ico_close.png') no-repeat 0 0/cover
+  width:1rem!important;
+  height:1rem!important;
+  border:1px solid red;
+  background: url('../images/ico_close.png') no-repeat 0 0/100%!important
 }
 
 #main_body .routine_card .setting_popup button {
   padding-left:2rem;
+  line-height:1.3rem;
 }
 
 #main_body .routine_card .setting_popup button.modify {
