@@ -117,12 +117,32 @@
           <div class="popup_tit"><h2>오늘의 다짐은 어땠나요?</h2></div>
           <div class="popup_body">
             <div class="done_check_wrap">
-              <div class="noti">
-                아래 대화창에 '달성', '미달성', '흐린눈' 중 한가지를 선택해서 적은 후 보내기 버튼을 눌러주세요.
+              <div class="radio_set">
+                <label class="custom-radio">
+                  <input
+                    type="radio"
+                  />
+                  <span class="circle"></span>
+                </label>
+                <span class="radio-text">달성 성공</span>
+                <label class="custom-radio">
+                  <input
+                    type="radio"
+                  />
+                  <span class="circle"></span>
+                </label>
+                <span class="radio-text">달성 실패</span>
+                <label class="custom-radio">
+                  <input
+                    type="radio"
+                  />
+                  <span class="circle"></span>
+                </label>
+                <span class="radio-text">달성 실패</span>
+                
               </div>
-              <div>
-                <input type="text" placeholder="ex)달성">
-                <button>보내기</button>
+              <div calss="chat_group">
+                
               </div>
             </div>
           </div>
