@@ -119,27 +119,20 @@
             <div class="done_check_wrap">
               <div class="radio_set">
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                  />
+                  <input type="radio" name="status" value="success" />
                   <span class="circle"></span>
+                  <span class="radio-text">달성 성공</span>
                 </label>
-                <span class="radio-text">달성 성공</span>
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                  />
+                  <input type="radio" name="status" value="fail" />
                   <span class="circle"></span>
+                  <span class="radio-text">달성 실패</span>
                 </label>
-                <span class="radio-text">달성 실패</span>
                 <label class="custom-radio">
-                  <input
-                    type="radio"
-                  />
+                  <input type="radio" name="status" value="blurred" />
                   <span class="circle"></span>
+                  <span class="radio-text">흐린눈</span>
                 </label>
-                <span class="radio-text">흐린눈</span>
-                
               </div>
               <div calss="chat_group">
                 
