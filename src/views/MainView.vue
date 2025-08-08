@@ -55,6 +55,7 @@ const handleFilterChange = (val) => {
 }
 
 function openAddRoutine() {
+  window.dispatchEvent(new Event('close-other-popups'))
   isAddRoutineOpen.value = true
 }
 
