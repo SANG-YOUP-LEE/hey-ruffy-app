@@ -244,12 +244,12 @@
 }
 
 #main_body .routine_card .setting {
-  height:1.5rem;
-  width:1.5rem;
+  height:1rem;
+  width:1rem;
   position:absolute;
   top:1rem;
   right:1rem;
-  background: url('../images/ico_dot02.png') no-repeat 0 0/contain
+  background: url('../images/ico_dot.png') no-repeat 0 0/contain
 }
 
 #main_body .routine_card .setting span {
