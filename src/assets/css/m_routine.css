@@ -289,7 +289,7 @@
 }
 
 #main_body .routine_card .setting_popup button:active {
-  text-decoration: underline;
+  text-decoration: underline!important;
 }
 
 #main_body .routine_card .setting_popup button.modify {
