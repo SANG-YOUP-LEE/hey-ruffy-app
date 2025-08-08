@@ -288,6 +288,10 @@
   height:1rem;
 }
 
+#main_body .routine_card .setting_popup button:active {
+  text-decoration: underline;
+}
+
 #main_body .routine_card .setting_popup button.modify {
   background: url('../images/ico_modify.png') no-repeat 0 50%/0.9rem 0.9rem
 }
