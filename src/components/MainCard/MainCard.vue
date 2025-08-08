@@ -8,7 +8,7 @@
           </button>
 
           <div v-if="showPopup" class="setting_popup">
-            <button class="close" @click="closePopup"><span>설정팝업닫기</span></button>
+            <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
             <ul>
               <li><button class="modify">다짐 수정하기</button></li>
               <li><button class="lock">다짐 잠시 멈추기</button></li>
