@@ -16,7 +16,7 @@
               <li><button class="modify">다짐 수정하기</button></li>
               <li><button class="lock">다짐 잠시 멈추기</button></li>
               <li><button class="share">다짐 공유하기</button></li>
-              <li><button class="del">다짐 삭제하기</button></li>
+              <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
             </ul>
           </div>
 
@@ -50,6 +50,20 @@
     <div v-else-if="selected === 'weekly'" class="weekly">
       주간 다짐
     </div>
+
+    <!-- ✅ 삭제 확인 팝업 -->
+    <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
+      <div class="popup_inner">
+        <div class="popup_tit">
+          <h2>정말 삭제할까요?</h2>
+        </div>
+        <div class="popup_btm">
+          <button @click="confirmDelete">삭제</button>
+          <button @click="closeDeleteConfirm">취소</button>
+        </div>
+        <button class="close_btn" @click="closeDeleteConfirm"><span>닫기</span></button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -61,6 +75,7 @@ defineProps({
 })
 
 const showPopup = ref(false)
+const showDeleteConfirmPopup = ref(false)
 
 function togglePopup() {
   showPopup.value = !showPopup.value
@@ -70,20 +85,36 @@ function closePopup() {
   showPopup.value = false
 }
 
-  
 function handleGlobalCloseEvents() {
   if (showPopup.value) {
     closePopup()
   }
 }
 
+function openDeleteConfirm() {
+  showDeleteConfirmPopup.value = true
+  document.body.classList.add('no-scroll')
+}
+
+function closeDeleteConfirm() {
+  showDeleteConfirmPopup.value = false
+  document.body.classList.remove('no-scroll')
+}
+
+function confirmDelete() {
+  closeDeleteConfirm()
+  // TODO: 실제 삭제 로직 여기에 추가
+  alert('삭제되었습니다') // 또는 emit
+}
+
 onMounted(() => {
   window.addEventListener('close-other-popups', handleGlobalCloseEvents)
-  window.addEventListener('popstate', handleGlobalCloseEvents) // 뒤로가기 같은 라우터 이동
+  window.addEventListener('popstate', handleGlobalCloseEvents)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('close-other-popups', handleGlobalCloseEvents)
   window.removeEventListener('popstate', handleGlobalCloseEvents)
+  document.body.classList.remove('no-scroll') // 혹시 남아있을 경우
 })
 </script>
