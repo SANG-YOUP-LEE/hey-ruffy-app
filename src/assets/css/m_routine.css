@@ -336,6 +336,11 @@
   text-align:center;
 }
 
+#main_body .routine_card .rc_inner .done_set {
+  width:100%;
+  background-color:red
+}
+
 #main_body .routine_card .rc_inner .ruffys_item span {
   width:3rem;
   height:3rem;
