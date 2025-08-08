@@ -124,7 +124,7 @@
                 <input type="text" placeholder="ex)달성">
                 <button>보내기</button>
               </div>
-            <div>
+            </div>
           </div>
           <div class="popup_btm">
             <button @click="confirmStatusCheck" class="p_basic">확인</button>
