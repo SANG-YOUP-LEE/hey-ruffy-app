@@ -183,6 +183,7 @@ const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
 const showStatusPopup = ref(false)
 const isPaused = ref(false)
+const selectedStatus = ref('')
 
 function togglePopup() {
   showPopup.value = !showPopup.value
