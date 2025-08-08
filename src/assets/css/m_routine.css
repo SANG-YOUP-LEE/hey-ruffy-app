@@ -286,31 +286,10 @@
   padding-left:2rem;
 }
 
-#main_body .routine_card .setting_popup li button span {
-  display:inline-block
-}
-
-#main_body .routine_card .setting_popup li button:active span {
+#main_body .routine_card .setting_popup li button.modify:active {
   text-decoration: underline!important;
 }
 
-.setting_btn {
-  position: relative;
-  padding-left: 2rem;
-  text-decoration: underline;
-  text-underline-offset: 0.3rem;
-}
-
-.setting_btn::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1rem;
-  height: 1rem;
-  background: url('../images/ico_modify.png') no-repeat center/contain;
-}
 #main_body .routine_card .setting_popup button.modify {
   background: url('../images/ico_modify.png') no-repeat 0 50%/0.9rem 0.9rem
 }
