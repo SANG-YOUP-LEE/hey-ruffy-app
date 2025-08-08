@@ -38,6 +38,47 @@
         </div>
       </div>
     </div>
+    <!--//달성 전-->
+
+    <!-- 달성 전 -->
+    <div v-if="selected === 'notdone'" class="not_done">
+      <div :class="['routine_card', { rt_off: isPaused }]">
+        <!--다짐 설정 팝업-->
+        <button class="setting" @click="togglePopup">
+          <span>다짐설정</span>
+        </button>
+
+        <div v-if="showPopup" class="setting_popup">
+          <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
+          <ul>
+            <li><button class="modify">다짐 수정하기</button></li>
+            <li>
+              <button class="lock" @click="openPauseRestartConfirm">
+                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
+              </button>
+            </li>
+            <li><button class="share" @click="openShareConfirm">다짐 공유하기</button></li>
+            <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
+          </ul>
+        </div>
+        <!--//다짐 설정 팝업-->
+        
+        <div class="rc_inner">
+          <div class="left">
+            <p class="title">
+              <span class="color_picker01"></span>
+              외로워도 슬퍼도 나는 안울어
+            </p>
+            <p class="term"><i>Daily</i> 월,화,수,목,금</p>
+            <p class="se_date">2025.03.17 ~ 2025.04.18</p>
+            <p class="alaram">am 07:00</p>
+            <p class="comment">건강검진 극락가자!</p>
+          </div>
+          <div class="right"></div>
+        </div>
+      </div>
+    </div>
+    <!--//달성 전-->
 
     <!-- 달성 완료 -->
     <div v-else-if="selected === 'done'" class="done">달성 완료</div>
