@@ -315,8 +315,9 @@
   padding-left:2rem;
 }
 
-#main_body .routine_card .setting_popup li button.modify:active {
-  text-decoration: underline!important;
+#main_body .routine_card .setting_popup li.disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 #main_body .routine_card .setting_popup button.modify {
