@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 defineProps({
   selected: String
@@ -69,4 +69,21 @@ function togglePopup() {
 function closePopup() {
   showPopup.value = false
 }
+
+  
+function handleGlobalCloseEvents() {
+  if (showPopup.value) {
+    closePopup()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('close-other-popups', handleGlobalCloseEvents)
+  window.addEventListener('popstate', handleGlobalCloseEvents) // 뒤로가기 같은 라우터 이동
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('close-other-popups', handleGlobalCloseEvents)
+  window.removeEventListener('popstate', handleGlobalCloseEvents)
+})
 </script>
