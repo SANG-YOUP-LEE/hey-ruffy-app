@@ -11,14 +11,20 @@
         <div v-if="showPopup" class="setting_popup">
           <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
           <ul>
-            <li><button class="modify">다짐 수정하기</button></li>
+            <li :class="{ disabled: isPaused }">
+              <button class="modify" :disabled="isPaused">다짐 수정하기</button>
+            </li>
             <li>
               <button class="lock" @click="openPauseRestartConfirm">
                 {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
               </button>
             </li>
-            <li><button class="share" @click="openShareConfirm">다짐 공유하기</button></li>
-            <li><button class="del" @click="openDeleteConfirm">다짐 삭제하기</button></li>
+            <li :class="{ disabled: isPaused }">
+              <button class="share" @click="openShareConfirm" :disabled="isPaused">다짐 공유하기</button>
+            </li>
+            <li :class="{ disabled: isPaused }">
+              <button class="del" @click="openDeleteConfirm" :disabled="isPaused">다짐 삭제하기</button>
+            </li>
           </ul>
         </div>
         <!--//다짐 설정 팝업-->
