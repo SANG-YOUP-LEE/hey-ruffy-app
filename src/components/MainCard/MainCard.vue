@@ -10,10 +10,10 @@
           <div v-if="showPopup" class="setting_popup">
             <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
             <ul>
-              <li><button class="modify">다짐 수정하기</button></li>
-              <li><button class="lock">다짐 잠시 멈추기</button></li>
-              <li><button class="share">다짐 공유하기</button></li>
-              <li><button class="del">다짐 삭제하기</button></li>
+              <li><button class="modify"><span>다짐 수정하기</span></button></li>
+              <li><button class="lock"><span>다짐 잠시 멈추기</span></button></li>
+              <li><button class="share"><span>다짐 공유하기</span></button></li>
+              <li><button class="del"><span>다짐 삭제하기</span></button></li>
             </ul>
           </div>
 
