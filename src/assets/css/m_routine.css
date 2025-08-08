@@ -244,11 +244,11 @@
 }
 
 #main_body .routine_card .setting {
-  height:1rem;
-  width:1rem;
+  height:1.5rem;
+  width:1.5rem;
   position:absolute;
   top:1.5rem;
-  right:1rem;
+  right:1.5rem;
   background: url('../images/ico_control.png') no-repeat 0 0/contain
 }
 
@@ -280,7 +280,7 @@
 }
 
 #main_body .routine_card .setting_popup li {
-  backgroud-color:red
+  background-color:red
 }
 
 #main_body .routine_card .setting_popup .close_spop span {
