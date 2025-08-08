@@ -284,6 +284,9 @@
 
 #main_body .routine_card .setting_popup li button {
   padding-left:2rem;
+    color: red !important;
+  font-size: 1rem !important;
+  text-decoration: underline !important
 }
 
 #main_body .routine_card .setting_popup li button span {
