@@ -51,15 +51,18 @@
       주간 다짐
     </div>
 
-    <!-- ✅ 삭제 확인 팝업 -->
+    <!-- 삭제 확인 팝업 -->
     <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
       <div class="popup_inner">
         <div class="popup_tit">
-          <h2>정말 삭제할까요?</h2>
+          <h2>정말 다짐을 삭제할까요?</h2>
+        </div>
+        <div class="popup_body">
+          삭제된 다짐은 되돌릴 수 없어요/
         </div>
         <div class="popup_btm">
-          <button @click="confirmDelete">삭제</button>
-          <button @click="closeDeleteConfirm">취소</button>
+          <button @click="confirmDelete" class="p_basic">삭제</button>
+          <button @click="closeDeleteConfirm" class="p_white">취소</button>
         </div>
         <button class="close_btn" @click="closeDeleteConfirm"><span>닫기</span></button>
       </div>
