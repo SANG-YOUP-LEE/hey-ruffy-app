@@ -283,10 +283,12 @@
 }
 
 #main_body .routine_card .setting_popup li button {
-  padding-left:2rem;
-    color: red !important;
-  font-size: 1rem !important;
-  text-decoration: underline !important
+   color: red !important;
+  background-color: yellow !important;
+  text-decoration: underline !important;
+  text-underline-offset: 0.3em;
+  text-decoration-skip-ink: none;
+  line-height: 2rem
 }
 
 #main_body .routine_card .setting_popup li button span {
