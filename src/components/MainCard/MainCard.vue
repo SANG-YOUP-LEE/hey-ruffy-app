@@ -1,5 +1,6 @@
 <template>
   <div class="done_group">
+    <!-- 달성 전 -->
     <div v-if="selected === 'notdone'" class="not_done">
       <div class="routine_card">
         <div class="rc_inner">
@@ -8,7 +9,9 @@
           </button>
 
           <div v-if="showPopup" class="setting_popup">
-            <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
+            <button class="close_spop" @click="closePopup">
+              <span>설정팝업닫기</span>
+            </button>
             <ul>
               <li><button class="modify">다짐 수정하기</button></li>
               <li><button class="lock">다짐 잠시 멈추기</button></li>
@@ -31,6 +34,21 @@
           <div class="right"></div>
         </div>
       </div>
+    </div>
+
+    <!-- 달성 완료 -->
+    <div v-else-if="selected === 'done'" class="done">
+      달성 완료
+    </div>
+
+    <!-- 흐린눈 -->
+    <div v-else-if="selected === 'dimmed'" class="dimmed">
+      흐린눈
+    </div>
+
+    <!-- 주간 다짐 -->
+    <div v-else-if="selected === 'weekly'" class="weekly">
+      주간 다짐
     </div>
   </div>
 </template>
