@@ -282,11 +282,15 @@
   display:none
 }
 
-#main_body .routine_card .setting_popup button {
+#main_body .routine_card .setting_popup li button {
   padding-left:2rem;
 }
 
-#main_body .routine_card .setting_popup button:active {
+#main_body .routine_card .setting_popup li button span {
+  display:inline-block
+}
+
+#main_body .routine_card .setting_popup li button span:active {
   text-decoration: underline!important;
 }
 
