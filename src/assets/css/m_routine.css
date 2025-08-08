@@ -290,7 +290,7 @@
   display:inline-block
 }
 
-#main_body .routine_card .setting_popup li button span:active {
+#main_body .routine_card .setting_popup li button:active span {
   text-decoration: underline!important;
 }
 
