@@ -163,9 +163,19 @@
 }
 
 #main_body .routine_total .filter_row .today,
+#main_body .routine_card .rc_inner i {
+  display:inline-block;
+  font-size:0.7rem;
+  font-weight:bold;
+  padding:0 0.3rem 0 0.3rem;
+  border-radius:1rem;
+  background-color:#ffde00;
+  border:1px solid #ffc600;
+}
 
 #main_body .done_check_wrap .radio_set .radio-text {
-  border:1px solid red
+  border:1px solid red;
+  display:block;
 }
 
 #main_body .routine_card .rc_inner i {
