@@ -243,6 +243,7 @@
 
 #main_body .routine_card .rc_inner p.title span {
   vertical-align:middle;
+  margin-top:-0.1rem
 }
 
 #main_body .routine_card .setting {
