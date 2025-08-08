@@ -25,9 +25,9 @@
           </div>
 
           <div class="right">
-            <div class="ruffys_item">
+            <!--div class="ruffys_item">
               <span class="ruffy01">퓨리러피</span>
-            </div>
+            </div-->
           </div>
         </div>
       </div>
@@ -51,9 +51,9 @@
           </div>
 
           <div class="right">
-            <div class="ruffys_item">
+            <!--div class="ruffys_item">
               <span class="ruffy02">도리러피</span>
-            </div>
+            </div-->
           </div>
         </div>
       </div>
@@ -74,9 +74,9 @@
           </div>
 
           <div class="right">
-            <div class="ruffys_item">
+            <!--div class="ruffys_item">
               <span class="ruffy03">퓨리러피</span>
-            </div>
+            </div-->
           </div>
         </div>
       </div>
