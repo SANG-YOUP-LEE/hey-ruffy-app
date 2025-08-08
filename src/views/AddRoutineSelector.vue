@@ -53,11 +53,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick, onBeforeUnmount } from 'vue'
-
-import { db } from '@/firebase'
-import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
@@ -76,11 +72,10 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'dummy-added'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
-
 const errorMessage = ref('')
 
 const titleRef = ref()
@@ -179,45 +174,31 @@ const validateRoutine = () => {
   return true
 }
 
-const saveRoutine = async () => {
-  errorMessage.value = '' // 메시지 초기화
-  if (!validateRoutine()) return;
-  try {
-    const auth = getAuth()
-    const user = auth.currentUser
-    if (!user) throw new Error('로그인이 필요합니다.')
+const saveRoutine = () => {
+  errorMessage.value = ''
+  if (!validateRoutine()) return
 
-    const routine = {
-      title: titleRef.value.title,
-      repeatType: repeatRef.value.selectedTab,
-      repeatDays: repeatRef.value.selectedTab === 'daily' ? [...repeatRef.value.selectedDaily] : [],
-      repeatWeeks: repeatRef.value.selectedTab === 'weekly' ? repeatRef.value.selectedWeeklyMain : '',
-      repeatWeekDays: repeatRef.value.selectedTab === 'weekly' ? [...repeatRef.value.selectedWeeklyDays] : [],
-      repeatMonthDays: repeatRef.value.selectedTab === 'monthly' ? [...repeatRef.value.selectedDates] : [],
-      startDate: dateRef.value.startDate,
-      endDate: dateRef.value.endDate,
-      alarmTime: alarmRef.value?.selectedAlarm ?? null,
-      ruffy: isWalkModeOff.value ? null : ruffyRef.value.ruffy,
-      course: isWalkModeOff.value ? null : courseRef.value.course,
-      goalCount: isWalkModeOff.value ? null : goalRef.value.goalCount,
-      colorIndex: priorityRef.value.selectedColor,
-      comment: commentRef.value.comment,
-    }
-
-    if (isEditMode.value && props.routineToEdit?.id) {
-      routine.updatedAt = serverTimestamp()
-      await updateDoc(doc(db, 'users', user.uid, 'routines', props.routineToEdit.id), routine)
-    } else {
-      routine.createdAt = serverTimestamp()
-      await addDoc(collection(db, 'users', user.uid, 'routines'), routine)
-    }
-
-    unlockScroll()
-    emit('close')
-  } catch (err) {
-    console.error('다짐 저장 실패:', err)
-    alert('저장에 실패했습니다.')
+  const dummyRoutine = {
+    title: titleRef.value.title,
+    repeatType: repeatRef.value.selectedTab,
+    repeatDays: repeatRef.value.selectedTab === 'daily' ? [...repeatRef.value.selectedDaily] : [],
+    repeatWeeks: repeatRef.value.selectedTab === 'weekly' ? repeatRef.value.selectedWeeklyMain : '',
+    repeatWeekDays: repeatRef.value.selectedTab === 'weekly' ? [...repeatRef.value.selectedWeeklyDays] : [],
+    repeatMonthDays: repeatRef.value.selectedTab === 'monthly' ? [...repeatRef.value.selectedDates] : [],
+    startDate: dateRef.value.startDate,
+    endDate: dateRef.value.endDate,
+    alarmTime: alarmRef.value?.selectedAlarm ?? '',
+    ruffy: isWalkModeOff.value ? null : ruffyRef.value.ruffy,
+    course: isWalkModeOff.value ? null : courseRef.value.course,
+    goalCount: isWalkModeOff.value ? null : goalRef.value.goalCount,
+    colorIndex: priorityRef.value.selectedColor,
+    comment: commentRef.value.comment
   }
+
+  emit('dummy-added', dummyRoutine)
+
+  unlockScroll()
+  emit('close')
 }
 
 onMounted(() => {
