@@ -56,7 +56,7 @@
 html, body {
   height: 100%;
   font-family: 'S-CoreDream-4Regular',/*'SUIT-Regular',*/ 'Apple SD Gothic Neo', sans-serif;
-  font-size: 1rem;
+  font-size: 0.92rem;
   line-height: 1.6em;
   color: #333;
   letter-spacing:-0.01rem;
@@ -66,7 +66,10 @@ html, body {
   text-align: center;
   overscroll-behavior: none;
 }
-
+/* iPhone SE 등 아주 작은 폭 보호 */
+@media (max-width: 375px) {
+  :root, html { font-size: 0.875em; }
+}
 .no-touch {
   width: 100vw;
   height: calc(var(--vh, 1vh) * 100); 
@@ -392,8 +395,4 @@ textarea {
 /*흰*/
 .color_picker10 {
   background: linear-gradient(135deg, #f0f0f0 0%, #fafafa 40%, #ffffff 100%);
-}
-/* iPhone SE 등 아주 작은 폭 보호 */
-@media (max-width: 375px) {
-  :root, html { font-size: 0.875em; }
 }

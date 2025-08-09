@@ -79,7 +79,7 @@
             </template>
             <template v-else>
               정말 다짐을 잠시 멈추실 건가요? <br />
-              멈춘 다짐은 언제든 다시 시작할 수 있어요.
+              다짐은 언제든 다시 시작할 수 있어요.
             </template>
           </div>
           <div class="popup_btm">
@@ -246,6 +246,7 @@ function confirmShare() {
 }
 
 function openStatusPopup() {
+  if (showPopup.value) closePopup()
   showStatusPopup.value = true
   document.body.classList.add('no-scroll')
 }
