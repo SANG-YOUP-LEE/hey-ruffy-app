@@ -34,6 +34,7 @@
   left: 0;
   z-index: 10;
   margin-right:0.2rem;
+  font-weight:bold
 }
 
 #main_body .date_scroll .date_group {
@@ -116,11 +117,14 @@
 }
 
 #main_body .routine_total p span a {
-  display: inline-block;
-  width:3.5rem;
-  height:2rem;
-  font-weight:bold;
-  padding-left:2.3rem;
+ display: inline-flex;          
+  align-items: center;          
+  justify-content: center;      
+  width: 3.2rem;
+  height: 2rem;
+  font-weight: bold;
+  padding-left: 2rem;        
+  box-sizing: border-box;  
 }
 
 #main_body .routine_total p span a strong {
@@ -128,15 +132,15 @@
 }
 
 #main_body .routine_total p span a.not_done {
-  background: url('../images/ico_notdone.png') no-repeat 0 0/2rem 2rem;
+  background: url('https://img.icons8.com/parakeet-line/50/cloud.png') no-repeat 0 0/2rem 2rem;
 }
 
 #main_body .routine_total p span a.done {
-  background: url('../images/ico_done.png') no-repeat 0 0/2rem 2rem;
+  background: url('https://img.icons8.com/parakeet-line/50/cloud-checked.png') no-repeat 0 0/2rem 2rem;
 }
 
 #main_body .routine_total p span a.ignored {
-  background: url('../images/ico_ignored.png') no-repeat 0 0/2rem 2rem;
+  background: url('https://img.icons8.com/parakeet-line/50/dashed-cloud.png') no-repeat 0 0/2rem 2rem;
 }
 
 #main_body .routine_total .filter_row {
@@ -171,11 +175,6 @@
   border-radius:1rem;
   background-color:#ffde00;
   border:1px solid #ffc600;
-}
-
-#main_body .done_check_wrap .radio_set .radio-text {
-  border:1px solid red;
-  display:block;
 }
 
 #main_body .routine_card .rc_inner i {
@@ -288,7 +287,7 @@
 #main_body .routine_card .setting_popup {
   position: absolute;
   top: 0rem;
-  right: 0rem; /* setting 버튼 기준 위치 조정 */
+  right: 0rem; 
   background: #fff;
   border: 1px solid #333;
   border-radius: 1rem;
@@ -309,6 +308,10 @@
 
 #main_body .routine_card .setting_popup .close_spop span {
   display:none
+}
+
+#main_body .routine_card .setting_popup li {
+  line-height:1.6rem
 }
 
 #main_body .routine_card .setting_popup li button {

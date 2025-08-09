@@ -1,9 +1,7 @@
 <template>
   <div class="done_group">
-    <!-- 달성 전 -->
     <div v-if="selected === 'notdone'" class="not_done">
       <div :class="['routine_card', { rt_off: isPaused }]">
-        <!--다짐 설정 팝업-->
         <button class="setting" @click="togglePopup">
           <span>다짐설정</span>
         </button>
@@ -16,7 +14,7 @@
             </li>
             <li>
               <button class="lock" @click="openPauseRestartConfirm">
-                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
+                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멂추기' }}
               </button>
             </li>
             <li :class="{ disabled: isPaused }">
@@ -27,7 +25,6 @@
             </li>
           </ul>
         </div>
-        <!--//다짐 설정 팝업-->
 
         <div class="rc_inner">
           <div class="left">
@@ -47,18 +44,12 @@
         </div>
       </div>
     </div>
-    <!--//달성 전-->
 
-    <!-- 달성 완료 -->
     <div v-else-if="selected === 'done'" class="done">달성 완료</div>
-
-    <!-- 흐린눈 -->
     <div v-else-if="selected === 'ignored'" class="dimmed">흐린눈</div>
-
-    <!-- 주간 다짐 -->
     <div v-else-if="selected === 'weekly'" class="weekly">주간 다짐</div>
 
-    <!-- 삭제 확인 팝업 -->
+    <!-- 다짐 삭제하기 팝업 -->
     <teleport to="body">
       <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -72,8 +63,9 @@
         </div>
       </div>
     </teleport>
+    <!-- //다짐 삭제하기 팝업 -->
 
-    <!-- 잠시 멈추기 / 다시 시작하기 팝업 -->
+    <!-- 다짐 잠시 멈추기,시작하기 팝업 -->
     <teleport to="body">
       <div v-if="showPauseRestartPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -100,8 +92,9 @@
         </div>
       </div>
     </teleport>
+    <!-- //다짐 잠시 멈추기,시작하기 팝업 -->
 
-    <!-- 공유하기 팝업 -->
+    <!-- 다짐 공유하기 팝업 -->
     <teleport to="body">
       <div v-if="showShareConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -115,64 +108,56 @@
         </div>
       </div>
     </teleport>
+    <!-- //다짐 공유하기 팝업 -->
 
-    <!-- 달성현황 팝업 -->
+    <!-- 다짐 현황체크하기 팝업 -->
     <teleport to="body">
       <div v-if="showStatusPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
-          <div class="popup_tit"><h2>오늘의 다짐은 어땠나요?</h2></div>
+          <div class="popup_tit">
+            <h2>오늘의 다짐은 어땠나요?</h2>
+            <p class="noti" v-show="!selectedState">아래 세가지 중에서 선택해주세요.</p>
+          </div>
           <div class="popup_body">
             <div class="done_check_wrap">
-              <div class="radio_set">
-                <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="success"
-                    :checked="selectedStatus === 'success'"
-                    @change="selectedStatus = 'success'"
-                  />
-                  <span class="circle"></span>
-                </label>
-                <span class="radio-text" @click="selectedStatus = 'success'">달성 성공</span>
-              
-                <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="fail"
-                    :checked="selectedStatus === 'fail'"
-                    @change="selectedStatus = 'fail'"
-                  />
-                  <span class="circle"></span>
-                </label>
-                <span class="radio-text" @click="selectedStatus = 'fail'">달성 실패</span>
-              
-                <label class="custom-radio">
-                  <input
-                    type="radio"
-                    name="status"
-                    value="blur"
-                    :checked="selectedStatus === 'blur'"
-                    @change="selectedStatus = 'blur'"
-                  />
-                  <span class="circle"></span>
-                </label>
-                <span class="radio-text" @click="selectedStatus = 'blur'">흐린눈</span>
+              <div class="state_group">
+                <span
+                  class="well_done"
+                  :class="{ right: selectedState==='well_done' }"
+                  @click="onSelect('well_done')"
+                  v-show="!selectedState || selectedState==='well_done'"
+                >{{ selectedState==='well_done' ? '나 잘했지? 오늘도 다짐 성공이야!' : '다짐 달성 성공!' }}</span>
+                <span
+                  class="fail_done"
+                  :class="{ right: selectedState==='fail_done' }"
+                  @click="onSelect('fail_done')"
+                  v-show="!selectedState || selectedState==='fail_done'"
+                >{{ selectedState==='fail_done' ? '오늘은 결국 실패야ㅠㅠ' : '다짐 달성 실패ㅠ' }}</span>
+                <span
+                  class="ign_done"
+                  :class="{ right: selectedState==='ign_done' }"
+                  @click="onSelect('ign_done')"
+                  v-show="!selectedState || selectedState==='ign_done'"
+                >{{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}</span>
               </div>
-              <div calss="chat_group">
-                
+
+              <div class="chat_group" v-if="selectedState">
+                <span class="well_done" v-show="selectedState==='well_done'">넌 역시 최고야. 대체 언제까지 멋있을래?</span>
+                <span class="fail_done" v-show="selectedState==='fail_done'">괜찮아! 너무 완벽하면 재미없는거 알지?</span>
+                <span class="ign_done" v-show="selectedState==='ign_done'">알아. 오늘은 특별한 날이었단거. 대신 다짐 현황에는 기록하지 않을게.</span>
               </div>
             </div>
           </div>
           <div class="popup_btm">
-            <button @click="confirmStatusCheck" class="p_basic">확인</button>
+            <button v-if="selectedState" @click="confirmStatusCheck" class="p_basic">달성 현황 완료</button>
+            <button v-if="selectedState" @click="resetSelection" class="p_white">달성 현황 재선택</button>
             <button @click="closeStatusPopup" class="p_white">취소</button>
           </div>
           <button class="close_btn" @click="closeStatusPopup"><span>닫기</span></button>
         </div>
       </div>
     </teleport>
+    <!-- //다짐 현황체크하기 팝업 -->
   </div>
 </template>
 
@@ -190,6 +175,15 @@ const showShareConfirmPopup = ref(false)
 const showStatusPopup = ref(false)
 const isPaused = ref(false)
 const selectedStatus = ref('')
+const selectedState = ref('')
+
+function onSelect(type) {
+  selectedState.value = selectedState.value === type ? '' : type
+}
+
+function resetSelection() {
+  selectedState.value = ''
+}
 
 function togglePopup() {
   showPopup.value = !showPopup.value
@@ -259,6 +253,7 @@ function openStatusPopup() {
 function closeStatusPopup() {
   showStatusPopup.value = false
   document.body.classList.remove('no-scroll')
+  resetSelection()
 }
 
 function confirmStatusCheck() {

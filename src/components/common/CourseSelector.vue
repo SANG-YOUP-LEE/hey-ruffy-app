@@ -25,10 +25,7 @@
 
       <!-- 팝업 -->
       <div class="speech-bubble-wrapper" v-if="showCoursePopup">
-        <!-- 투명 닫기 영역 -->
         <button class="popup-close-area" @click="closeCoursePopup"></button>
-
-        <!-- 실제 말풍선 -->
         <div class="speech-bubble" @click.stop>
           <button class="close-btn" @click="closeCoursePopup">
             <img :src="closeIcon" alt="닫기" />
@@ -58,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -66,7 +63,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const closeIcon = new URL('@/assets/images/ico_close02.png', import.meta.url).href
+const myName = computed(() => props.uniqueName || 'course-selector')
+
+const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
 
 const courseOptions = [
   { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
@@ -82,9 +81,26 @@ const selectCourse = (value) => {
   emit('update:modelValue', value)
   selectedOption.value = value
   showCoursePopup.value = true
+  // 나 열렸다고 전역 이벤트 송신
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
 
 const closeCoursePopup = () => {
   showCoursePopup.value = false
 }
+
+// 다른 애가 열리면 나는 닫기
+const onBubbleOpen = (e) => {
+  const who = e?.detail?.who
+  if (who && who !== myName.value) {
+    showCoursePopup.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('bubble-open', onBubbleOpen)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('bubble-open', onBubbleOpen)
+})
 </script>

@@ -18,10 +18,7 @@
           />
           <span class="circle"></span>
         </label>
-        <span
-          class="name"
-          :class="{ on: modelValue === option.value }"
-        >
+        <span class="name" :class="{ on: modelValue === option.value }">
           {{ option.name }}
         </span>
       </a>
@@ -31,10 +28,7 @@
         class="speech-bubble-wrapper"
         v-if="showRuffyPopup"
       >
-        <!-- 투명 닫기 버튼 (전체 영역) -->
         <button class="popup-close-area" @click="closeRuffyPopup"></button>
-
-        <!-- 말풍선 -->
         <div class="speech-bubble" @click.stop>
           <button class="close-btn" @click="closeRuffyPopup">
             <img :src="closeIcon" alt="닫기" />
@@ -64,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -72,7 +66,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const closeIcon = new URL('@/assets/images/ico_close02.png', import.meta.url).href
+const myName = computed(() => props.uniqueName || 'ruffy-selector')
+
+const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
 
 const ruffyOptions = [
   { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
@@ -85,14 +81,29 @@ const showRuffyPopup = ref(false)
 const selectedOption = ref('')
 
 const selectRuffy = (value, event) => {
-  event.stopPropagation()
+  event?.stopPropagation()
   emit('update:modelValue', value)
   selectedOption.value = value
   showRuffyPopup.value = true
+  // 나 열렸다고 전역 이벤트 송신
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
 
 const closeRuffyPopup = () => {
   showRuffyPopup.value = false
 }
-</script>
 
+const onBubbleOpen = (e) => {
+  const who = e?.detail?.who
+  if (who && who !== myName.value) {
+    showRuffyPopup.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('bubble-open', onBubbleOpen)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('bubble-open', onBubbleOpen)
+})
+</script>

@@ -20,7 +20,7 @@
       <RoutineDateSelector ref="dateRef" />
       <RoutineAlarmSelector ref="alarmRef" />
 
-      <div v-if="errorMessage" class="warn-message">{{ errorMessage }}</div>
+      <div v-if="errorMessage" class="warn-message t_red01">{{ errorMessage }}</div>
 
       <!-- 산책모드 토글 -->
       <div class="off_walk">
@@ -239,18 +239,6 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
-
-<style scoped>
-.warn-message {
-  color: #e53935; /* 붉은색 */
-  background-color: #fff5f5;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  margin-top: 1.5rem;
-  text-align: center;
-}
-</style>
 
 
 

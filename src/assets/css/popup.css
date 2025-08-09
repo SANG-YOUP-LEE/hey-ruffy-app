@@ -41,21 +41,21 @@ body.no-scroll {
 	border:none!important
 }
 
-.com_popup_wrap .popup_inner.alert {
-  /*width:70%;
-  padding:2rem!important;*/
-}
-
 .com_popup_wrap .popup_inner.alert .popup_tit {
-  margin:1rem 0 2rem 0
+  margin:1rem 0 1rem 0
 }
 
-.com_popup_wrap .popup_inner.alert .popup_btm {
-  /*margin:2rem 0 0 0;*/
-}
 
 .com_popup_wrap .popup_inner .popup_tit {
 	height:auto;
+}
+
+.com_popup_wrap .popup_inner .popup_tit .noti {
+  padding:1rem;
+  margin-top:0.5rem;
+  border-radius: 1.5rem;
+  background-color:#f5f5f5;
+  border:1px solid #ddd;
 }
 
 .com_popup_wrap .popup_inner .popup_tit h2 {
@@ -95,7 +95,7 @@ body.no-scroll {
 }
 
 .com_popup_wrap .popup_inner .popup_btm {
-  margin-top:2rem;
+  margin-top:1rem;
   text-align: right;
 	position:relative;
 	padding:0;
@@ -110,9 +110,118 @@ body.no-scroll {
 	height:1.5rem;
 	border-radius:50%;
 	display: inline-block;
-	background:url('@/assets/images/ico_close01.png') no-repeat 0 0/cover;
+	background:url('@/assets/images/ico_close.png') no-repeat 0 0/cover;
 }
 
 .com_popup_wrap .close_btn span {
 	display:none
+}
+
+
+.done_check_wrap {
+}
+
+.done_check_wrap .state_group {
+  text-align:right
+}
+
+.done_check_wrap .state_group span,
+.done_check_wrap .chat_group span {
+  display: flex;
+  flex-wrap: nowrap;  
+  margin-bottom:0.5rem;
+  border-radius: 1.5rem;
+  background-color:#f9f9f9;
+  border:1px solid #ddd;
+  padding:0.5rem;
+  padding-left:2.5rem
+}
+
+.done_check_wrap .state_group span.well_done {
+  background:url('https://img.icons8.com/color/48/smiling.png') no-repeat 0.2rem 50%/2rem 2rem
+}
+
+.done_check_wrap .state_group span.fail_done {
+  background:url('https://img.icons8.com/color/48/sad--v2.png') no-repeat 0.2rem 50%/2rem 2rem
+}
+
+.done_check_wrap .state_group span.ign_done {
+  background:url('https://img.icons8.com/color/48/apology.png') no-repeat 0.2rem 50%/2rem 2rem
+}
+
+.done_check_wrap .state_group span.well_done.right {
+  background:url('https://img.icons8.com/color/48/smiling.png') no-repeat  98% 0.18rem/2rem 2rem
+}
+
+.done_check_wrap .state_group span.fail_done.right {
+  background:url('https://img.icons8.com/color/48/sad--v2.png') no-repeat 98% 0.18rem/2rem 2rem
+}
+
+.done_check_wrap .state_group span.ign_done.right {
+  background:url('https://img.icons8.com/color/48/apology.png') no-repeat 98% 0.18rem/2rem 2rem
+}
+
+.done_check_wrap .chat_group span.well_done {
+  background:url('https://img.icons8.com/emoji/48/partying-face.png') no-repeat 0.2rem 50%/2rem 2rem
+}
+
+.done_check_wrap .chat_group span.fail_done {
+  background:url('https://img.icons8.com/emoji/48/red-heart.png') no-repeat 0.2rem 50%/2rem 2rem
+}
+
+.done_check_wrap .chat_group span.ign_done {
+  background:url('https://img.icons8.com/emoji/48/ok-hand-emoji.png') no-repeat 0.2rem 50%/2rem 2rem
+}
+
+.done_check_wrap .state_group span.right{
+  display: inline-flex;  
+  flex: 0 0 auto;          
+  width: auto;            
+  flex-wrap: nowrap;  
+  justify-content: flex-end; 
+  padding-right:2.5rem;
+  padding-left:1rem;
+  background-color:#ffeb8c!important;
+  border:1px solid #ffd200;
+  animation: bubble-pop-right .8s ease-out both;
+  transition: background-position .4s ease, padding .4s ease, box-shadow .4s ease, transform .4s ease, opacity .3s ease;
+  box-shadow: 0 6px 14px rgba(0,0,0,.06);
+  will-change: transform, opacity;
+}
+
+.done_check_wrap .chat_group {
+  text-align: left;
+  animation: chat-panel-in 1s ease-out both;
+}
+
+.done_check_wrap .chat_group span {
+  display: inline-flex;  
+  flex: 0 0 auto;          
+  width: auto;            
+  flex-wrap: nowrap;  
+  padding-right:1rem;
+  background-color:#d4fbff!important;
+  border:1px solid #8af5ff;
+  margin-top:0.5rem;
+  animation: chat-bubble-in-left 1s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.done_check_wrap .chat_group span:nth-child(1){ animation-delay: .2s; }
+.done_check_wrap .chat_group span:nth-child(2){ animation-delay: .5s; }
+.done_check_wrap .chat_group span:nth-child(3){ animation-delay: .8s; }
+
+@keyframes bubble-pop-right{
+  0%{ opacity:0; transform: translateX(10px) scale(.96); }
+  60%{ opacity:1; transform: translateX(0) scale(1.02); }
+  100%{ opacity:1; transform: translateX(0) scale(1); }
+}
+
+@keyframes chat-panel-in{
+  from{ opacity:0; transform: translateY(8px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+@keyframes chat-bubble-in-left{
+  0%{ opacity:0; transform: translateX(-10px) scale(.98); }
+  100%{ opacity:1; transform: translateX(0) scale(1); }
 }
