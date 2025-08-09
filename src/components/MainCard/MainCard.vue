@@ -14,7 +14,7 @@
             </li>
             <li>
               <button class="lock" @click="openPauseRestartConfirm">
-                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멂추기' }}
+                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
               </button>
             </li>
             <li :class="{ disabled: isPaused }">
