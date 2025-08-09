@@ -1,6 +1,9 @@
 <template>
   <div class="done_group">
-    <div v-if="selected === 'notdone'" class="not_done">
+   
+    <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
+
+    <div v-else :class="wrapperClass">
       <div :class="['routine_card', { rt_off: isPaused }]">
         <button class="setting" @click="togglePopup">
           <span>다짐설정</span>
@@ -29,27 +32,22 @@
         <div class="rc_inner">
           <div class="left">
             <p class="title">
-              <span class="color_picker01"></span>
-              외로워도 슬퍼도 나는 안울어
+              <span :class="colorClass"></span>
+              {{ titleText }}
             </p>
-            <p class="term"><i>Daily</i> 월,화,수,목,금</p>
-            <p class="se_date">2025.03.17 ~ 2025.04.18</p>
-            <p class="alaram">am 07:00</p>
-            <p class="comment">건강검진 극락가자!</p>
+            <p class="term"><i>{{ repeatLabel }}</i> {{ repeatDetail }}</p>
+            <p class="se_date">{{ periodText }}</p>
+            <p class="alaram">{{ alarmText }}</p>
+            <p class="comment" v-if="commentText">{{ commentText }}</p>
           </div>
           <div class="right"></div>
-          <div class="done_set">
+          <div class="done_set" v-if="showStatusButton">
             <button class="p_white" @click="openStatusPopup">달성현황 체크하기</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else-if="selected === 'done'" class="done">달성 완료</div>
-    <div v-else-if="selected === 'ignored'" class="dimmed">흐린눈</div>
-    <div v-else-if="selected === 'weekly'" class="weekly">주간 다짐</div>
-
-    <!-- 다짐 삭제하기 팝업 -->
     <teleport to="body">
       <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -63,9 +61,7 @@
         </div>
       </div>
     </teleport>
-    <!-- //다짐 삭제하기 팝업 -->
 
-    <!-- 다짐 잠시 멈추기,시작하기 팝업 -->
     <teleport to="body">
       <div v-if="showPauseRestartPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -92,9 +88,7 @@
         </div>
       </div>
     </teleport>
-    <!-- //다짐 잠시 멈추기,시작하기 팝업 -->
 
-    <!-- 다짐 공유하기 팝업 -->
     <teleport to="body">
       <div v-if="showShareConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -108,9 +102,7 @@
         </div>
       </div>
     </teleport>
-    <!-- //다짐 공유하기 팝업 -->
 
-    <!-- 다짐 현황체크하기 팝업 -->
     <teleport to="body">
       <div v-if="showStatusPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -157,16 +149,17 @@
         </div>
       </div>
     </teleport>
-    <!-- //다짐 현황체크하기 팝업 -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
-defineProps({
-  selected: String
+const props = defineProps({
+  selected: String,
+  routine: { type: Object, default: () => ({}) }
 })
+const emit = defineEmits(['delete','changeStatus'])
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
@@ -176,6 +169,73 @@ const showStatusPopup = ref(false)
 const isPaused = ref(false)
 const selectedStatus = ref('')
 const selectedState = ref('')
+
+const titleText = computed(() => props.routine?.title || '')
+const commentText = computed(() => props.routine?.comment || '')
+
+const colorClass = computed(() => {
+  const idx = Number(props.routine?.colorIndex ?? 0)
+  const n = isNaN(idx) ? 0 : idx
+  return `color_picker${String(n + 1).padStart(2, '0')}`
+})
+
+const repeatLabel = computed(() => {
+  const t = props.routine?.repeatType
+  if (t === 'weekly') return 'Weekly'
+  if (t === 'monthly') return 'Monthly'
+  return 'Daily'
+})
+
+const repeatDetail = computed(() => {
+  const r = props.routine || {}
+  if (r.repeatType === 'daily') {
+    if (Array.isArray(r.repeatDays) && r.repeatDays.length) {
+      return r.repeatDays.includes('매일') ? '매일' : r.repeatDays.join(',')
+    }
+    return ''
+  }
+  if (r.repeatType === 'weekly') {
+    const main = r.repeatWeeks || '매주'
+    const days = Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length ? r.repeatWeekDays.join(',') : ''
+    return days ? `${main} ${days}` : main
+  }
+  if (r.repeatType === 'monthly') {
+    const days = Array.isArray(r.repeatMonthDays) && r.repeatMonthDays.length ? r.repeatMonthDays.join(', ') : ''
+    return days ? `${days}일` : ''
+  }
+  return ''
+})
+
+const periodText = computed(() => {
+  const s = props.routine?.startDate || {}
+  const e = props.routine?.endDate || {}
+  const hasS = s.year && s.month && s.day
+  const hasE = e.year && e.month && e.day
+  if (!hasS && !hasE) return ''
+  const sTxt = hasS ? `${s.year}.${pad(s.month)}.${pad(s.day)}` : ''
+  const eTxt = hasE ? `${e.year}.${pad(e.month)}.${pad(e.day)}` : ''
+  return hasE ? `${sTxt} ~ ${eTxt}` : sTxt
+})
+
+const alarmText = computed(() => {
+  const a = props.routine?.alarmTime || {}
+  if (!a.hour) return ''
+  return `${a.ampm} ${pad(a.hour)}:${pad(a.minute)}`
+})
+
+const showStatusButton = computed(() => props.selected === 'notdone')
+
+const wrapperClass = computed(() => {
+  if (props.selected === 'done') return 'done'
+  if (props.selected === 'faildone') return 'fail_done'
+  if (props.selected === 'ignored') return 'dimmed'
+  return 'not_done'
+})
+
+function pad(v) {
+  const n = String(v || '')
+  return n.length === 1 ? `0${n}` : n
+}
 
 function onSelect(type) {
   selectedState.value = selectedState.value === type ? '' : type
@@ -209,8 +269,9 @@ function closeDeleteConfirm() {
 }
 
 function confirmDelete() {
+  const id = props.routine?.id
   closeDeleteConfirm()
-  alert('삭제되었습니다')
+  if (id) emit('delete', id)
 }
 
 function openPauseRestartConfirm() {
@@ -258,8 +319,13 @@ function closeStatusPopup() {
 }
 
 function confirmStatusCheck() {
+  const id = props.routine?.id
+  let next = null
+  if (selectedState.value === 'well_done') next = 'done'
+  else if (selectedState.value === 'fail_done') next = 'faildone'
+  else if (selectedState.value === 'ign_done') next = 'ignored'
   closeStatusPopup()
-  alert('달성현황 확인 완료!')
+  if (id && next) emit('changeStatus', { id, status: next })
 }
 
 onMounted(() => {

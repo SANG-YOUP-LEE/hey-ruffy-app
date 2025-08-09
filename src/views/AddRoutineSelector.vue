@@ -22,7 +22,6 @@
 
       <div v-if="errorMessage" class="warn-message t_red01">{{ errorMessage }}</div>
 
-      <!-- 산책모드 토글 -->
       <div class="off_walk">
         <label class="checkbox-label">
           <input type="checkbox" v-model="isWalkModeOff" />
@@ -31,7 +30,6 @@
         </label>
       </div>
 
-      <!-- 산책 관련 -->
       <div class="walk_group" v-show="!isWalkModeOff">
         <RoutineRuffySelector ref="ruffyRef" />
         <RoutineCourseSelector ref="courseRef" />
@@ -53,8 +51,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick, onBeforeUnmount } from 'vue'
-
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { db } from '@/firebase'
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
@@ -70,17 +67,13 @@ import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelecto
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const props = defineProps({
-  routineToEdit: {
-    type: Object,
-    default: null
-  }
+  routineToEdit: { type: Object, default: null }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
-
 const errorMessage = ref('')
 
 const titleRef = ref()
@@ -96,9 +89,7 @@ const commentRef = ref()
 let scrollY = 0
 
 const preventTouchMove = (e) => {
-  if (!e.target.closest('.popup_wrap')) {
-    e.preventDefault()
-  }
+  if (!e.target.closest('.popup_wrap')) e.preventDefault()
 }
 
 const lockScroll = () => {
@@ -136,21 +127,17 @@ const validateRoutine = () => {
     errorMessage.value = '다짐 제목을 입력해주세요.'
     return false
   }
-
   if (!repeatRef.value?.selectedTab) {
     errorMessage.value = '반복 주기를 선택해주세요.'
     return false
   }
-
   const selectedTab = repeatRef.value.selectedTab
-
   if (selectedTab === 'daily') {
     if (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0) {
       errorMessage.value = '일간 반복의 최소 횟수를 선택해주세요.'
       return false
     }
   }
-
   if (selectedTab === 'weekly') {
     if (!repeatRef.value.selectedWeeklyMain) {
       errorMessage.value = '주간 반복 주기를 선택해주세요.'
@@ -161,27 +148,24 @@ const validateRoutine = () => {
       return false
     }
   }
-
   if (selectedTab === 'monthly') {
     if (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0) {
       errorMessage.value = '반복할 날짜를 선택해주세요.'
       return false
     }
   }
-
   const selectedColor = priorityRef.value?.selectedColor ?? null
   if (selectedColor === null) {
     errorMessage.value = '다짐 색상을 선택해주세요.'
     return false
   }
-
   errorMessage.value = ''
   return true
 }
 
 const saveRoutine = async () => {
-  errorMessage.value = '' // 메시지 초기화
-  if (!validateRoutine()) return;
+  errorMessage.value = ''
+  if (!validateRoutine()) return
   try {
     const auth = getAuth()
     const user = auth.currentUser
@@ -201,15 +185,18 @@ const saveRoutine = async () => {
       course: isWalkModeOff.value ? null : courseRef.value.course,
       goalCount: isWalkModeOff.value ? null : goalRef.value.goalCount,
       colorIndex: priorityRef.value.selectedColor,
-      comment: commentRef.value.comment,
+      comment: commentRef.value.comment
     }
 
     if (isEditMode.value && props.routineToEdit?.id) {
       routine.updatedAt = serverTimestamp()
       await updateDoc(doc(db, 'users', user.uid, 'routines', props.routineToEdit.id), routine)
+      emit('save', { id: props.routineToEdit.id, ...routine })
     } else {
       routine.createdAt = serverTimestamp()
-      await addDoc(collection(db, 'users', user.uid, 'routines'), routine)
+      const colRef = collection(db, 'users', user.uid, 'routines')
+      const docRef = await addDoc(colRef, routine)
+      emit('save', { id: docRef.id, ...routine })
     }
 
     unlockScroll()
@@ -239,6 +226,3 @@ onBeforeUnmount(() => {
   unlockScroll()
 })
 </script>
-
-
-

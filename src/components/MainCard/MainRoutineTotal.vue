@@ -11,13 +11,16 @@
           미래에도 다짐 부자시네요!
         </template>
         <template v-else>
-          <a href="#none" class="not_done" @click.prevent="selectRadio('notdone')">
+          <a href="#none" class="not_done" @click.prevent="selectedRadio = 'notdone'">
             <strong>미달성</strong> <em class="t_on">5</em>
-          </a>  
-          <a href="#none" class="done" @click.prevent="selectRadio('done')">
+          </a>
+          <a href="#none" class="done" @click.prevent="selectedRadio = 'done'">
             <strong>달성완료</strong> <em class="t_on">8</em>
           </a>
-          <a href="#none" class="ignored" @click.prevent="selectRadio('ignored')">
+          <a href="#none" class="fail_done" @click.prevent="selectedRadio = 'faildone'">
+            <strong>달성실패</strong> <em class="t_on">8</em>
+          </a>
+          <a href="#none" class="ignored" @click.prevent="selectedRadio = 'ignored'">
             <strong>흐린눈</strong> <em class="t_on">2</em>
           </a>
         </template>
@@ -32,60 +35,52 @@
         <span class="today">Today</span>
 
         <label class="custom-radio">
-          <input
-            type="radio"
-            name="filter"
-            value="notdone"
-            :checked="selectedRadio === 'notdone'"
-            @change="selectRadio('notdone')"
-          />
+          <input type="radio" name="filter" value="notdone" v-model="selectedRadio" />
           <span class="circle"></span>
         </label>
-        <span class="radio-text" @click="selectRadio('notdone')">달성 전</span>
+        <span class="radio-text" @click="selectedRadio = 'notdone'">달성 전</span>
 
         <label class="custom-radio">
-          <input
-            type="radio"
-            name="filter"
-            value="done"
-            :checked="selectedRadio === 'done'"
-            @change="selectRadio('done')"
-          />
+          <input type="radio" name="filter" value="done" v-model="selectedRadio" />
           <span class="circle"></span>
         </label>
-        <span class="radio-text" @click="selectRadio('done')">달성 완료</span>
+        <span class="radio-text" @click="selectedRadio = 'done'">달성 완료</span>
 
         <label class="custom-radio">
-          <input
-            type="radio"
-            name="filter"
-            value="ignored"
-            :checked="selectedRadio === 'ignored'"
-            @change="selectRadio('ignored')"
-          />
+          <input type="radio" name="filter" value="faildone" v-model="selectedRadio" />
           <span class="circle"></span>
         </label>
-        <span class="radio-text" @click="selectRadio('ignored')">흐린 눈</span>
+        <span class="radio-text" @click="selectedRadio = 'faildone'">달성 실패</span>
+
+        <label class="custom-radio">
+          <input type="radio" name="filter" value="ignored" v-model="selectedRadio" />
+          <span class="circle"></span>
+        </label>
+        <span class="radio-text" @click="selectedRadio = 'ignored'">흐린 눈</span>
       </span>
     </p>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 
-const emit = defineEmits(['changeFilter', 'showWeekly'])
-defineProps({ isFuture: Boolean })
+const emit = defineEmits(['update:modelValue', 'changeFilter', 'showWeekly'])
+const props = defineProps({
+  isFuture: Boolean,
+  modelValue: { type: String, default: 'notdone' }
+})
 
-const selectedRadio = ref('notdone')
-
-function selectRadio(value) {
-  selectedRadio.value = value
-  emit('changeFilter', value)
-}
+const selectedRadio = computed({
+  get: () => props.modelValue,
+  set: (v) => {
+    emit('update:modelValue', v)
+    emit('changeFilter', v)
+  }
+})
 
 function handleWeeklyClick() {
-  selectedRadio.value = null
+  emit('update:modelValue', null)
   emit('changeFilter', null)
   emit('showWeekly')
 }
