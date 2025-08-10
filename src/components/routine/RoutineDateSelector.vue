@@ -37,9 +37,23 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount, getCurrentInstance, onMounted, onUnmounted } from 'vue'
+
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
+
+
+// ── 디버그: 이 컴포넌트가 몇 번 마운트되는지 추적
+defineOptions({ name: 'RoutineDateSelector' })
+const __rdsInst = getCurrentInstance()
+onMounted(() => {
+  console.log('[RDS] mounted uid=', __rdsInst?.uid, ' parent=', __rdsInst?.parent?.type?.name)
+})
+onUnmounted(() => {
+  console.log('[RDS] unmounted uid=', __rdsInst?.uid)
+})
+
+
 
 const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },

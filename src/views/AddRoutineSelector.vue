@@ -53,7 +53,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, nextTick, getCurrentInstance } from 'vue'
+
+
 import { db } from '@/firebase'
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
@@ -67,6 +69,14 @@ import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vu
 import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
+
+
+// ── 디버그: 팝업이 몇 번 렌더되는지 추적
+defineOptions({ name: 'AddRoutineSelector' })
+const __arsInst = getCurrentInstance()
+onMounted(() => {
+  console.log('[ARS] mounted uid=', __arsInst?.uid, ' parent=', __arsInst?.parent?.type?.name)
+})
 
 const props = defineProps({
   routineToEdit: { type: Object, default: null }
