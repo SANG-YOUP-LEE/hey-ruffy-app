@@ -43,6 +43,7 @@
             :routine="rt"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
+            @edit="onEdit"
           />
         </template>
       </template>
@@ -56,7 +57,8 @@
 
     <AddRoutineSelector
       v-if="isAddRoutineOpen"
-      @close="isAddRoutineOpen = false"
+      :routineToEdit="editingRoutine"
+      @close="() => { isAddRoutineOpen = false; editingRoutine = null }"
       @save="onSaved"
     />
   </div>
@@ -66,7 +68,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { db } from '@/firebase'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, updateDoc, deleteDoc, doc } from 'firebase/firestore'
 
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
@@ -77,6 +79,7 @@ import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
 
 const isAddRoutineOpen = ref(false)
+const editingRoutine = ref(null)
 const showLnb = ref(false)
 
 const selectedDate = ref(new Date())
@@ -111,28 +114,60 @@ const handleFilterChange = () => {
 
 // 저장 팝업에서 올라온 데이터(낙관적 반영). 실시간 스냅샷이 들어오면 동일 id는 덮어씀.
 function onSaved(rt) {
-  const exists = routines.value.some(r => r.id === rt.id)
-  if (!exists) routines.value.unshift({ ...rt, status: getStatus(rt) })
+  const i = routines.value.findIndex(r => r.id === rt.id)
+  if (i === -1) {
+    routines.value.unshift({ ...rt, status: getStatus(rt) })
+  } else {
+    routines.value[i] = { ...routines.value[i], ...rt }
+  }
   isAddRoutineOpen.value = false
-  selectedFilter.value = 'notdone'
+  editingRoutine.value = null
   showWeekly.value = false
 }
 
-function onChangeStatus({ id, status }) {
+async function onChangeStatus({ id, status }) {
   const i = routines.value.findIndex(r => r.id === id)
-  if (i !== -1) {
-    routines.value[i] = { ...routines.value[i], status }
-    selectedFilter.value = status
-    showWeekly.value = false
+  if (i === -1) return
+
+  // 로컬 먼저 반영
+  routines.value[i] = { ...routines.value[i], status }
+
+  // 미달성 탭에서는 카드만 사라지게, 필터는 유지
+  showWeekly.value = false
+
+  // Firestore 반영
+  try {
+    if (!currentUid) throw new Error('no-auth')
+    await updateDoc(doc(db, 'users', currentUid, 'routines', id), { status })
+  } catch (e) {
+    console.error('status update failed:', e)
   }
 }
 
-function onDelete(id) {
+async function onDelete(id) {
+  // 낙관적 UI
+  const backup = routines.value.slice()
   routines.value = routines.value.filter(r => r.id !== id)
+
+  try {
+    if (!currentUid) throw new Error('no-auth')
+    await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
+  } catch (e) {
+    console.error('delete failed:', e)
+    // 실패 시 롤백 (원하면 토스트만 띄우고 스냅샷 동기화에 맡겨도 됨)
+    routines.value = backup
+  }
+}
+
+function onEdit(rt) {
+  window.dispatchEvent(new Event('close-other-popups'))
+  editingRoutine.value = rt
+  isAddRoutineOpen.value = true
 }
 
 function openAddRoutine() {
   window.dispatchEvent(new Event('close-other-popups'))
+  editingRoutine.value = null
   isAddRoutineOpen.value = true
 }
 
@@ -156,7 +191,7 @@ const bindRoutines = (uid) => {
 
   stopRoutines = onSnapshot(q, (snap) => {
     const list = []
-    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }))
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }))
     routines.value = list
   }, (err) => {
     console.error('routines subscription error:', err)

@@ -17,6 +17,8 @@
     <div class="popup_inner" ref="popupInner">
       <RoutineTitleInput ref="titleRef" />
       <RoutineRepeatSelector ref="repeatRef" />
+
+      <!-- ✅ 키 리마운트 제거 -->
       <RoutineDateSelector ref="dateRef" />
       <RoutineAlarmSelector ref="alarmRef" />
 
@@ -51,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
 import { db } from '@/firebase'
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
@@ -76,6 +78,7 @@ const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
 const errorMessage = ref('')
 
+// ✅ 키 리마운트용 상태 제거
 const titleRef = ref()
 const repeatRef = ref()
 const dateRef = ref()
@@ -171,6 +174,13 @@ const saveRoutine = async () => {
     const user = auth.currentUser
     if (!user) throw new Error('로그인이 필요합니다.')
 
+    const safeAlarm = (alarmRef.value && alarmRef.value.isAlarmOn === false)
+      ? null
+      : (alarmRef.value?.selectedAlarm ?? null)
+    const safeEndDate = (dateRef.value && dateRef.value.isEndDateOn === false /* hasEndDate -> isEndDateOn 으로 노출됐음 */
+      ? null
+      : (dateRef.value?.endDate ?? null))
+
     const routine = {
       title: titleRef.value.title,
       repeatType: repeatRef.value.selectedTab,
@@ -179,8 +189,8 @@ const saveRoutine = async () => {
       repeatWeekDays: repeatRef.value.selectedTab === 'weekly' ? [...repeatRef.value.selectedWeeklyDays] : [],
       repeatMonthDays: repeatRef.value.selectedTab === 'monthly' ? [...repeatRef.value.selectedDates] : [],
       startDate: dateRef.value.startDate,
-      endDate: dateRef.value.endDate,
-      alarmTime: alarmRef.value?.selectedAlarm ?? null,
+      endDate: safeEndDate,
+      alarmTime: safeAlarm,
       ruffy: isWalkModeOff.value ? null : ruffyRef.value.ruffy,
       course: isWalkModeOff.value ? null : courseRef.value.course,
       goalCount: isWalkModeOff.value ? null : goalRef.value.goalCount,
@@ -207,19 +217,36 @@ const saveRoutine = async () => {
   }
 }
 
+// 신규 생성 초기화
+const hardResetDateAndAlarm = () => {
+  dateRef.value?.reset?.()
+  alarmRef.value?.reset?.()
+}
+
+// 편집 모드 세팅
+const applyFromRoutine = () => {
+  titleRef.value?.setFromRoutine?.(props.routineToEdit)
+  repeatRef.value?.setFromRoutine?.(props.routineToEdit)
+  dateRef.value?.setFromRoutine?.(props.routineToEdit)
+  alarmRef.value?.setFromRoutine?.(props.routineToEdit)
+  ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
+  courseRef.value?.setFromRoutine?.(props.routineToEdit)
+  goalRef.value?.setFromRoutine?.(props.routineToEdit)
+  priorityRef.value?.setFromRoutine?.(props.routineToEdit)
+  commentRef.value?.setFromRoutine?.(props.routineToEdit)
+}
+
 onMounted(() => {
   lockScroll()
-  if (props.routineToEdit) {
-    titleRef.value.setFromRoutine?.(props.routineToEdit)
-    repeatRef.value.setFromRoutine?.(props.routineToEdit)
-    dateRef.value.setFromRoutine?.(props.routineToEdit)
-    alarmRef.value.setFromRoutine?.(props.routineToEdit)
-    ruffyRef.value.setFromRoutine?.(props.routineToEdit)
-    courseRef.value.setFromRoutine?.(props.routineToEdit)
-    goalRef.value.setFromRoutine?.(props.routineToEdit)
-    priorityRef.value.setFromRoutine?.(props.routineToEdit)
-    commentRef.value.setFromRoutine?.(props.routineToEdit)
-  }
+
+  // ✅ 키 바꾸지 말고, 모드별로 메서드 호출만
+  nextTick(() => {
+    if (props.routineToEdit) {
+      applyFromRoutine()
+    } else {
+      hardResetDateAndAlarm()
+    }
+  })
 })
 
 onBeforeUnmount(() => {

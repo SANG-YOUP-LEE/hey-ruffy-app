@@ -57,13 +57,15 @@ const popupMode = ref('start')
 const startDate = ref({ ...props.startDate })
 const endDate = ref({ ...props.endDate })
 
+// ✅ 프로그램적 갱신을 워처에서 무시하기 위한 가드
+const isProgrammatic = ref(false)
+const withSilent = (fn) => { isProgrammatic.value = true; try { fn() } finally { isProgrammatic.value = false } }
+
 let scrollY = 0
 let activePopup = null
 
 const preventTouchMove = (e) => {
-  if (activePopup && !e.target.closest(activePopup)) {
-    e.preventDefault()
-  }
+  if (activePopup && !e.target.closest(activePopup)) e.preventDefault()
 }
 
 const lockScroll = (selector) => {
@@ -105,11 +107,10 @@ const toggleEndDate = () => {
 }
 
 watch(isStartDateOn, (val) => {
+  if (isProgrammatic.value) return
   if (val) {
     popupMode.value = 'start'
-    if (!startDate.value.year) {
-      startDate.value = getTodayObject()
-    }
+    if (!startDate.value.year) startDate.value = getTodayObject()
     showWarning.value = false
     showDatePopup.value = true
     lockScroll('.com_popup_wrap .popup_inner')
@@ -121,15 +122,14 @@ watch(isStartDateOn, (val) => {
 })
 
 watch(isEndDateOn, (val) => {
+  if (isProgrammatic.value) return
   if (val) {
     if (!startDate.value.year) {
       showWarning.value = true
       isEndDateOn.value = false
     } else {
       popupMode.value = 'end'
-      if (!endDate.value.year) {
-        endDate.value = { ...startDate.value }
-      }
+      if (!endDate.value.year) endDate.value = { ...startDate.value }
       showWarning.value = false
       showDatePopup.value = true
       lockScroll('.com_popup_wrap .popup_inner')
@@ -142,10 +142,12 @@ watch(isEndDateOn, (val) => {
 const handleConfirm = (val) => {
   if (popupMode.value === 'start') {
     startDate.value = val
-    isStartDateOn.value = true
+    withSilent(() => { isStartDateOn.value = true }) // ✅ 사용자 확인만 반영
+    emit('update:startDate', startDate.value)
   } else {
     endDate.value = val
-    isEndDateOn.value = true
+    withSilent(() => { isEndDateOn.value = true })
+    emit('update:endDate', endDate.value)
   }
   showDatePopup.value = false
   unlockScroll()
@@ -154,20 +156,26 @@ const handleConfirm = (val) => {
 const handleCancel = () => {
   if (popupMode.value === 'start') {
     startDate.value = { year: '', month: '', day: '' }
-    isStartDateOn.value = false
+    withSilent(() => { isStartDateOn.value = false })
+    emit('update:startDate', startDate.value)
   } else {
     endDate.value = { year: '', month: '', day: '' }
-    isEndDateOn.value = false
+    withSilent(() => { isEndDateOn.value = false })
+    emit('update:endDate', endDate.value)
   }
   showDatePopup.value = false
   unlockScroll()
 }
 
 const resetDates = () => {
-  startDate.value = { year: '', month: '', day: '' }
-  endDate.value = { year: '', month: '', day: '' }
-  isStartDateOn.value = false
-  isEndDateOn.value = false
+  withSilent(() => {
+    startDate.value = { year: '', month: '', day: '' }
+    endDate.value = { year: '', month: '', day: '' }
+    isStartDateOn.value = false
+    isEndDateOn.value = false
+  })
+  emit('update:startDate', startDate.value)
+  emit('update:endDate', endDate.value)
 }
 
 const formattedDate = computed(() => {
@@ -181,20 +189,45 @@ const formattedDate = computed(() => {
 
 onBeforeUnmount(unlockScroll)
 
+// ✅ 편집 주입: 팝업/워처 안 열리고 값만 반영
 const setFromRoutine = (routine) => {
-  if (routine?.startDate) {
-    startDate.value = routine.startDate
-    isStartDateOn.value = true
-  }
-  if (routine?.endDate) {
-    endDate.value = routine.endDate
-    isEndDateOn.value = true
-  }
+  withSilent(() => {
+    if (routine?.startDate) {
+      startDate.value = routine.startDate
+      isStartDateOn.value = true
+    } else {
+      startDate.value = { year: '', month: '', day: '' }
+      isStartDateOn.value = false
+    }
+
+    if (routine?.endDate) {
+      endDate.value = routine.endDate
+      isEndDateOn.value = true
+    } else {
+      endDate.value = { year: '', month: '', day: '' }
+      isEndDateOn.value = false
+    }
+  })
+}
+
+// ✅ 신규 생성 초기화(팝업 미오픈)
+const reset = () => {
+  resetDates()
+}
+
+// ✅ 외부에서 팝업 강제 닫기용
+const closeAll = () => {
+  showDatePopup.value = false
+  unlockScroll()
 }
 
 defineExpose({
   startDate,
   endDate,
-  setFromRoutine
+  isStartDateOn,
+  isEndDateOn,
+  setFromRoutine,
+  reset,
+  closeAll
 })
 </script>
