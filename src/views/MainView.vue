@@ -4,8 +4,13 @@
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
-      <div v-if="routines.length === 0" class="no_data">
-        <span>아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?</span>
+      <div v-if="displayedRoutines.length === 0" class="no_data">
+        <span v-if="routines.length === 0">
+          아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
+        </span>
+        <span v-else>
+          해당 조건에 맞는 다짐이 없어요.
+        </span>
       </div>
 
       <template v-else>
@@ -17,17 +22,24 @@
           @showWeekly="showWeekly = true"
         />
 
-        <div v-if="selectedFilter === 'notdone' && notdoneCount === 0" class="all_clear">
+        <div
+          v-if="selectedFilter === 'notdone' && notdoneCount === 0 && routines.length > 0"
+          class="all_clear"
+        >
           짝짝짝! 모든 달성을 완료했어요.
         </div>
 
-        <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
+        <MainCard
+          v-if="showWeekly"
+          :selected="'weekly'"
+          :routine="{}"
+        />
 
         <template v-else>
           <MainCard
             v-for="rt in displayedRoutines"
             :key="rt.id"
-            :selected="rt.status"
+            :selected="getStatus(rt)"
             :routine="rt"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
@@ -42,12 +54,20 @@
       <span>다짐 추가하기</span>
     </button>
 
-    <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen = false" @save="onSaved" />
+    <AddRoutineSelector
+      v-if="isAddRoutineOpen"
+      @close="isAddRoutineOpen = false"
+      @save="onSaved"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { db } from '@/firebase'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
+
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
@@ -66,11 +86,18 @@ const showWeekly = ref(false)
 
 const routines = ref([])
 
-const notdoneCount = computed(() => routines.value.filter(r => r.status === 'notdone').length)
+function getStatus(r) {
+  // 서버에 status가 없으면 기본값을 notdone으로 취급
+  return r?.status || 'notdone'
+}
+
+const notdoneCount = computed(
+  () => routines.value.filter(r => getStatus(r) === 'notdone').length
+)
 
 const displayedRoutines = computed(() => {
-  if (!selectedFilter.value) return routines.value
-  return routines.value.filter(r => r.status === selectedFilter.value)
+  if (showWeekly.value) return routines.value
+  return routines.value.filter(r => getStatus(r) === selectedFilter.value)
 })
 
 const handleSelectDate = (date, isFuture) => {
@@ -82,8 +109,10 @@ const handleFilterChange = () => {
   showWeekly.value = false
 }
 
+// 저장 팝업에서 올라온 데이터(낙관적 반영). 실시간 스냅샷이 들어오면 동일 id는 덮어씀.
 function onSaved(rt) {
-  routines.value.unshift({ ...rt, status: 'notdone' })
+  const exists = routines.value.some(r => r.id === rt.id)
+  if (!exists) routines.value.unshift({ ...rt, status: getStatus(rt) })
   isAddRoutineOpen.value = false
   selectedFilter.value = 'notdone'
   showWeekly.value = false
@@ -112,12 +141,49 @@ function setVh() {
   document.documentElement.style.setProperty('--vh', `${vh}px`)
 }
 
+/* ---------- Firestore 실시간 구독 (users/{uid}/routines) ---------- */
+let stopAuth = null
+let stopRoutines = null
+let currentUid = null
+
+const bindRoutines = (uid) => {
+  if (stopRoutines) { stopRoutines(); stopRoutines = null }
+
+  const q = query(
+    collection(db, 'users', uid, 'routines'),
+    orderBy('createdAt', 'desc')
+  )
+
+  stopRoutines = onSnapshot(q, (snap) => {
+    const list = []
+    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }))
+    routines.value = list
+  }, (err) => {
+    console.error('routines subscription error:', err)
+    routines.value = []
+  })
+}
+
 onMounted(() => {
   setVh()
   window.addEventListener('resize', setVh)
+
+  const auth = getAuth()
+  stopAuth = onAuthStateChanged(auth, (user) => {
+    if (user && user.uid !== currentUid) {
+      currentUid = user.uid
+      bindRoutines(currentUid)
+    } else if (!user) {
+      currentUid = null
+      routines.value = []
+      if (stopRoutines) { stopRoutines(); stopRoutines = null }
+    }
+  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
+  if (stopAuth) stopAuth()
+  if (stopRoutines) stopRoutines()
 })
 </script>
