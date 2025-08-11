@@ -309,11 +309,12 @@
 }
 
 #main_body .routine_card .rc_inner .left {
-  flex: 8;
+  flex: 10;
+  background-color:Red;
 }
 
 #main_body .routine_card .rc_inner .right {
-  flex: 2;
+  flex: 0;
 }
 
 #main_body .routine_card .rc_inner .left span[class^='color'] {
