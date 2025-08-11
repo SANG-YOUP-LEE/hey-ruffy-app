@@ -41,7 +41,7 @@
       </template>
     </div>
 
-    <FooterView />
+    <FooterView @refresh-main="refreshMain" />
 
     <button @click="openAddRoutine" class="add">
       <span>다짐 추가하기</span>
@@ -159,6 +159,8 @@ const displayedRoutines = computed(() => {
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
   isFutureDate.value = isFuture
+  selectedFilter.value = 'notdone'
+  showWeekly.value = false
 }
 
 const handleFilterChange = () => {
@@ -243,6 +245,10 @@ function openEditRoutine(rt) {
 function setVh() {
   const vh = window.innerHeight * 0.01
   document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+
+function refreshMain() {
+  window.location.reload()
 }
 
 let stopAuth = null
