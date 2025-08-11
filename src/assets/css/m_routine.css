@@ -174,8 +174,21 @@
 }
 
 #main_body .routine_total .filter_row .filter_buttons {
- border:1px solid red;  
+  margin:0;
+  padding:0;
+  width:100%;
+  border:1px solid red;  
 }
+
+#main_body .routine_total .filter_row .filter_buttons button {
+  width:20%;
+  display:inline-block;
+  background-color:#ebeffd;
+  text-align:center;
+  border-bottom-left-radius:1.5rem;
+  border-bottom-right-radius:1.5rem;
+}
+
 
 #main_body .routine_total .filter_row .today,
 #main_body .routine_card .rc_inner i {
