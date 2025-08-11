@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div id="main_wrap">
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
@@ -14,7 +14,10 @@
         @showWeekly="showWeekly = true"
       />
 
-      <div v-if="!showWeekly && displayedRoutines.length === 0" class="no_data">
+      <div
+        v-if="!showWeekly && displayedRoutines.length === 0"
+        class="no_data"
+      >
         <span v-if="rawRoutines.length === 0">
           아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
         </span>
@@ -85,28 +88,11 @@ function dateKey(date, tz = 'Asia/Seoul') {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
 }
 
-function normISO(s) {
-  if (!s) return null
-  if (typeof s !== 'string') return null
-  const t = s.trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t
-  const d = new Date(t.replace(/[./]/g, '-'))
-  if (isNaN(d.getTime())) return null
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(d)
-}
-
 function getYMDFromAny(v) {
   if (!v) return null
-  if (typeof v === 'string') return normISO(v)
+  if (typeof v === 'string') return v.slice(0, 10)
   if (v instanceof Date) return dateKey(v)
   if (typeof v.toDate === 'function') return dateKey(v.toDate())
-  if (typeof v === 'object' && 'year' in v && 'month' in v && 'day' in v) {
-    const y = String(v.year || '').padStart(4, '0')
-    const m = String(v.month || '').padStart(2, '0')
-    const d = String(v.day || '').padStart(2, '0')
-    if (!y.trim() || !m.trim() || !d.trim()) return null
-    return `${y}-${m}-${d}`
-  }
   return null
 }
 
@@ -114,29 +100,19 @@ function inDateRange(r, date) {
   const ymd = dateKey(date)
   const s = getYMDFromAny(r.startDate || r.start || r.period?.start)
   const e = getYMDFromAny(r.endDate || r.end || r.period?.end)
-  const afterStart = !s || ymd >= s
-  const beforeEnd = !e || ymd <= e
-  return afterStart && beforeEnd
+  return (!s || ymd >= s) && (!e || ymd <= e)
 }
 
 function mapStatus(list, date) {
   const key = dateKey(date)
   return list.map(r => {
-    const entry = r?.progress?.[key]
-    let s
-    if (typeof entry === 'string') s = entry
-    else if (entry && typeof entry === 'object' && 'status' in entry) s = entry.status
-    else s = 'notdone'
-    return { ...r, status: s }
+    const st = r?.progress?.[key] ?? 'notdone'
+    return { ...r, status: st }
   })
 }
 
 function getStatus(r) {
-  const s = r?.status
-  if (!s) return 'notdone'
-  if (s === 'fail') return 'faildone'
-  if (s === 'skip') return 'ignored'
-  return s
+  return r?.status || 'notdone'
 }
 
 const inRangeRoutinesForDate = computed(() =>
@@ -157,11 +133,9 @@ const pausedWithStatus = computed(() =>
   mapStatus(pausedRoutinesForDate.value, selectedDate.value)
 )
 
-function recomputeList() {
+watch([selectedDate, rawRoutines], () => {
   routines.value = [...activeWithStatus.value, ...pausedWithStatus.value]
-}
-
-watch([selectedDate, rawRoutines], recomputeList, { immediate: true, deep: true })
+}, { immediate: true })
 
 const countsForDate = computed(() => {
   const c = { notdone: 0, done: 0, faildone: 0, ignored: 0 }
@@ -185,8 +159,6 @@ const displayedRoutines = computed(() => {
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
   isFutureDate.value = isFuture
-  selectedFilter.value = 'notdone'
-  showWeekly.value = false
 }
 
 const handleFilterChange = () => {
@@ -204,7 +176,6 @@ function onSaved(rt) {
   editingRoutine.value = null
   selectedFilter.value = 'notdone'
   showWeekly.value = false
-  recomputeList()
 }
 
 async function onChangeStatus({ id, status }) {
@@ -226,7 +197,6 @@ async function onChangeStatus({ id, status }) {
   }
   selectedFilter.value = status
   showWeekly.value = false
-  recomputeList()
 }
 
 async function onTogglePause({ id, isPaused }) {
@@ -245,7 +215,6 @@ async function onTogglePause({ id, isPaused }) {
     const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
     rawRoutines.value.splice(j, 1, next)
   }
-  recomputeList()
 }
 
 async function onDelete(id) {
@@ -257,7 +226,6 @@ async function onDelete(id) {
     return
   }
   rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
-  recomputeList()
 }
 
 function openAddRoutine() {
@@ -282,23 +250,22 @@ let stopRoutines = null
 
 const bindRoutines = (uid) => {
   if (stopRoutines) { stopRoutines(); stopRoutines = null }
-  const q = query(collection(db, 'users', uid, 'routines'), orderBy('createdAt', 'desc'))
+  const q = query(
+    collection(db, 'users', uid, 'routines'),
+    orderBy('createdAt', 'desc')
+  )
   stopRoutines = onSnapshot(q, (snap) => {
     const list = []
     snap.forEach(d => list.push({ id: d.id, ...d.data() }))
     rawRoutines.value = list
-    recomputeList()
   }, (err) => {
     console.error('routines subscription error:', err)
     rawRoutines.value = []
-    recomputeList()
   })
 }
 
 watch(selectedDate, () => {
-  selectedFilter.value = 'notdone'
-  showWeekly.value = false
-  recomputeList()
+  routines.value = [...activeWithStatus.value, ...pausedWithStatus.value]
 })
 
 onMounted(() => {
@@ -313,7 +280,6 @@ onMounted(() => {
       currentUid = null
       rawRoutines.value = []
       if (stopRoutines) { stopRoutines(); stopRoutines = null }
-      recomputeList()
     }
   })
 })
