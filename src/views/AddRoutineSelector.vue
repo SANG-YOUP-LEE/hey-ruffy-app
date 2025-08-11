@@ -207,6 +207,11 @@ const closePopup = () => {
 
 function notU(v) { return v !== undefined }
 
+const hasWalk = computed(() => {
+  if (isWalkModeOff.value) return false
+  return !!(ruffyRef.value?.ruffy || courseRef.value?.course || goalRef.value?.goalCount)
+})
+
 function buildPayload() {
   const repeatType = repeatRef.value?.selectedTab
   const payload = {
@@ -223,7 +228,8 @@ function buildPayload() {
     course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
     goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
-    comment: commentRef.value?.comment ?? ''
+    comment: commentRef.value?.comment ?? '',
+    hasWalk: hasWalk.value
   }
   const cleaned = {}
   Object.entries(payload).forEach(([k, v]) => { if (notU(v)) cleaned[k] = v })
@@ -297,11 +303,6 @@ const saveRoutine = async () => {
     alert('저장에 실패했습니다.')
   }
 }
-
-const hasWalk = vComputed(() => {
-  if (isWalkModeOff.value) return false
-  return !!(ruffyRef.value?.ruffy || courseRef.value?.course || goalRef.value?.goalCount)
-})
 
 onMounted(() => {
   lockScroll()
