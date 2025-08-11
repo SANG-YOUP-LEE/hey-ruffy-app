@@ -91,11 +91,15 @@
   border:none!important;
  }
 
-#main_body .date_fixed_today span.on,
-#main_body .date_fixed_today span:fist-child {
+#main_body .date_fixed_today span.on {
+  border:none!important;
+}
+
+#main_body .date_fixed_today span.on_w_nt {
   border:none!important;
   background: url('https://img.icons8.com/ios-glyphs/30/full-stop--v1.png') no-repeat top center/0.5rem 0.5rem;
 }
+
 
 #main_body .routine_total {
   margin:0;
@@ -146,7 +150,7 @@
   align-items: center;          
   justify-content: center;
   font-weight: bold;
-  padding:0.5rem 0.5rem 0.5rem 2rem;
+  padding:0.2rem 0.5rem 0.2rem 2rem;
   box-sizing: border-box;  
   border-radius:1rem;
   text-decoration:none;
