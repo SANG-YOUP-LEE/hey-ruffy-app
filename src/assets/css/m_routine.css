@@ -125,6 +125,7 @@
   margin-bottom:0.5rem;
   border:1px solid #eaeaea;
   border-top:none;
+  color:#333;
 }
 
 #main_body .routine_total p:first-child span em {
@@ -146,7 +147,7 @@
   box-sizing: border-box;  
   border-radius:1rem;
   text-decoration:none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
 }
 
 #main_body .routine_total p span a strong {
@@ -158,7 +159,11 @@
 }
 
 #main_body .routine_total p span a.not_done {
-  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0.2rem 50%/1.5rem 1.5rem #fffimportant;
+  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0.2rem 50%/1.5rem 1.5rem #fff;
+}
+
+#main_body .routine_total p span a.not_done {
+  background-color:#fff!important
 }
 
 #main_body .routine_total p span a.done {
