@@ -186,14 +186,13 @@
   margin:0;
   padding:0;
   width:100%;
-  display:flex;
   overflow:hidden;
+  display:grid; 
+  grid-template-columns:repeat(5, minmax(0,1fr));
 }
 
 #main_body .routine_total .filter_row .filter_buttons button {
-  display:grid; 
-  grid-template-columns:repeat(5,1fr);
-  flex:1;
+  display:block; 
   line-height:3rem;
   background-color:#ebeffd;
   text-align:center;
