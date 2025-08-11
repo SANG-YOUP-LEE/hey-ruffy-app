@@ -12,20 +12,23 @@
         @showWeekly="showWeekly = true"
       />
 
-      <div v-if="displayedRoutines.length === 0" class="no_data">
+      <div
+        v-if="!showWeekly && !isFutureDate && selectedFilter === 'notdone' && routines.length > 0 && notdoneCount === 0"
+        class="all_clear"
+      >
+        짝짝짝! 모든 달성을 완료했어요.
+      </div>
+      
+      <div
+        v-if="!showWeekly && displayedRoutines.length === 0 && !(selectedFilter === 'notdone' && routines.length > 0 && notdoneCount === 0)"
+        class="no_data"
+      >
         <span v-if="routines.length === 0">
           아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
         </span>
         <span v-else>
           해당 조건에 맞는 다짐이 없어요.
         </span>
-      </div>
-
-      <div
-        v-if="!showWeekly && !isFutureDate && selectedFilter === 'notdone' && routines.length > 0 && notdoneCount === 0"
-        class="all_clear"
-      >
-        짝짝짝! 모든 달성을 완료했어요.
       </div>
 
       <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
