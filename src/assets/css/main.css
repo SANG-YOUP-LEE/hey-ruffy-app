@@ -76,7 +76,7 @@
   }
 
 #footer .button {
-  width:90%;
+  width:100%;
   margin:0 auto;
   flex-shrink: 0;
   display: flex;
