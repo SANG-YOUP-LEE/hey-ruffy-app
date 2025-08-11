@@ -5,7 +5,7 @@
 
     <div v-else :class="wrapperClass">
       <div :class="['routine_card', { rt_off: isPaused }]">
-        <button class="setting" @click="togglePopup">
+        <button class="setting" @click.stop="togglePopup">
           <span>다짐설정</span>
         </button>
 
@@ -258,6 +258,7 @@ function handleGlobalCloseEvents() {
 }
 
 function openDeleteConfirm() {
+  window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
   showDeleteConfirmPopup.value = true
   document.body.classList.add('no-scroll')
@@ -275,6 +276,7 @@ function confirmDelete() {
 }
 
 function openPauseRestartConfirm() {
+  window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
   showPauseRestartPopup.value = true
   document.body.classList.add('no-scroll')
@@ -291,6 +293,7 @@ function confirmPauseRestart() {
 }
 
 function openShareConfirm() {
+  window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
   showShareConfirmPopup.value = true
   document.body.classList.add('no-scroll')
@@ -307,6 +310,7 @@ function confirmShare() {
 }
 
 function openStatusPopup() {
+  window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
   showStatusPopup.value = true
   document.body.classList.add('no-scroll')
