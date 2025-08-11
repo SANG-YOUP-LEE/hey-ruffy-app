@@ -220,7 +220,6 @@
 
 #main_body .routine_total .filter_row .filter_buttons button {
   display:inline-block; 
-  line-height:3.5rem;
   background-color:#ebeffd;
   border:1px solid #ebeffd;
   text-align:center;
@@ -229,7 +228,7 @@
   font-weight:bold;
   margin:0;
   padding:0;
-  padding-top:1rem;
+  padding-top:2rem;
   border-radius:0;
   border-bottom-left-radius:1.5rem;
   border-bottom-right-radius:1.5rem;
