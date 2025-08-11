@@ -68,12 +68,11 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0.4rem 1rem;
+  padding: 1rem 1rem;
   line-height: 1.1rem;
   font-size: 1rem;
   color: #999;
   box-sizing: border-box;
-  border:1px solid red;
 }
 #main_body .date_scroll .date_group i,
 #main_body .date_fixed_today i {
@@ -90,11 +89,11 @@
   font-weight:bold!important;
   background-color:#fff!important;
   border:none!important;
-  background: url('https://img.icons8.com/ios-glyphs/30/full-stop--v1.png') no-repeat top center/0.5rem 0.5rem;
-}
+ }
 
 #main_body .date_fixed_today span.on {
-  border:none!important
+  border:red!important;
+  background: url('https://img.icons8.com/ios-glyphs/30/full-stop--v1.png') no-repeat top center/0.5rem 0.5rem;
 }
 
 #main_body .routine_total {
