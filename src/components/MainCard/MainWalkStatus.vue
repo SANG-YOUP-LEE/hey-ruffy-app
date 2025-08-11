@@ -1,1 +1,3 @@
-
+<template>
+  MainWalkStatus.vue
+</template>
