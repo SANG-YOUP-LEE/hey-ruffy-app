@@ -68,7 +68,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 1rem 1rem;
+  padding: 0.6rem 1rem;
   line-height: 1.1rem;
   font-size: 1rem;
   color: #999;
@@ -91,8 +91,9 @@
   border:none!important;
  }
 
-#main_body .date_fixed_today span.on {
-  border:red!important;
+#main_body .date_fixed_today span.on,
+#main_body .date_fixed_today span:fist-child {
+  border:none!important;
   background: url('https://img.icons8.com/ios-glyphs/30/full-stop--v1.png') no-repeat top center/0.5rem 0.5rem;
 }
 
