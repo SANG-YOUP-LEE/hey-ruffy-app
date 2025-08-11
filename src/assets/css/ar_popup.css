@@ -323,7 +323,7 @@
 .monthly-grid span.m_s_btn { 
 	width:1.8rem;
 	height:1.8rem;
-  border:1px solid red;
+  border:1px solid #fff;
   aspect-ratio: 1 / 1; 
 	display:inline-block;
 	margin-bottom:0.5rem;
