@@ -1,14 +1,11 @@
 <template>
   <div class="done_group">
-   
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
-
     <div v-else :class="wrapperClass">
       <div :class="['routine_card', { rt_off: isPaused, walk_mode: !!props.routine?.hasWalk }]">
         <button class="setting" @click.stop="togglePopup">
           <span>다짐설정</span>
         </button>
-
         <div v-if="showPopup" class="setting_popup">
           <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
           <ul>
@@ -28,7 +25,6 @@
             </li>
           </ul>
         </div>
-
         <div class="rc_inner">
           <div class="left">
             <p class="title">
@@ -44,10 +40,12 @@
           <div class="done_set" v-if="showStatusButton">
             <button class="p_white" @click="openStatusPopup">달성현황 체크하기</button>
           </div>
+          <div class="walk_check" v-if="props.routine?.hasWalk">
+            <button class="p_white">산책 현황 보기</button>
+          </div>
         </div>
       </div>
     </div>
-
     <teleport to="body">
       <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -61,7 +59,6 @@
         </div>
       </div>
     </teleport>
-
     <teleport to="body">
       <div v-if="showPauseRestartPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -88,7 +85,6 @@
         </div>
       </div>
     </teleport>
-
     <teleport to="body">
       <div v-if="showShareConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -102,7 +98,6 @@
         </div>
       </div>
     </teleport>
-
     <teleport to="body">
       <div v-if="showStatusPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -132,7 +127,6 @@
                   v-show="!selectedState || selectedState==='ign_done'"
                 >{{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}</span>
               </div>
-
               <div class="chat_group" v-if="selectedState">
                 <span class="well_done" v-show="selectedState==='well_done'">넌 역시 최고야. 대체 언제까지 멋있을래?</span>
                 <span class="fail_done" v-show="selectedState==='fail_done'">괜찮아! 너무 완벽하면 재미없는거 알지?</span>
