@@ -117,7 +117,7 @@ const fieldErrors = ref({
 })
 
 const errorTimers = {}
-const ERROR_MS = 1500
+const ERROR_MS = 3000
 
 function showFieldError(key, msg) {
   fieldErrors.value[key] = msg
@@ -232,30 +232,42 @@ function buildPayload() {
 
 const validateRoutine = () => {
   clearAllFieldErrors()
-
   if (!titleRef.value?.title || titleRef.value.title.trim() === '') {
     showFieldError('title', '다짐 제목을 입력해주세요.')
     return false
   }
-
-  const t = repeatRef.value?.selectedTab
-  const repeatInvalid =
-    !t ||
-    (t === 'daily' && (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0)) ||
-    (t === 'weekly' && (!repeatRef.value.selectedWeeklyMain || !repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0)) ||
-    (t === 'monthly' && (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0))
-
-  if (repeatInvalid) {
-    showFieldError('repeat', '다짐 반복 주기를 선택해주세요.')
+  if (!repeatRef.value?.selectedTab) {
+    showFieldError('repeat', '반복 주기를 선택해주세요.')
     return false
   }
-
+  const selectedTab = repeatRef.value.selectedTab
+  if (selectedTab === 'daily') {
+    if (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0) {
+      showFieldError('repeat', '일간 반복 주기를 선택해주세요.')
+      return false
+    }
+  }
+  if (selectedTab === 'weekly') {
+    if (!repeatRef.value.selectedWeeklyMain) {
+      showFieldError('repeat', '주간 반복 주기를 선택해주세요.')
+      return false
+    }
+    if (!repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0) {
+      showFieldError('repeat', '반복할 요일을 하나 이상 선택해주세요.')
+      return false
+    }
+  }
+  if (selectedTab === 'monthly') {
+    if (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0) {
+      showFieldError('repeat', '반복할 날짜를 선택해주세요.')
+      return false
+    }
+  }
   const selectedColor = priorityRef.value?.selectedColor ?? null
   if (selectedColor === null) {
     showFieldError('priority', '다짐 색상을 선택해주세요.')
     return false
   }
-
   return true
 }
 
