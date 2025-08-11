@@ -259,7 +259,7 @@ const validateRoutine = () => {
   }
   if (selectedTab === 'monthly') {
     if (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0) {
-      showFieldError('repeat', '반복할 날짜를 선택해주세요.')
+      showFieldError('repeat', '매월 반복할 날짜를 선택해주세요.')
       return false
     }
   }
