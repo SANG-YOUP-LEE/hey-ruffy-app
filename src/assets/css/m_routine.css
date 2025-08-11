@@ -86,7 +86,10 @@
   color:#333!important;
   font-weight:bold!important;
   background-color:#fff!important;
-  border:1px solid #333
+}
+
+#main_body .date_fixed_today span.on {
+  border:none
 }
 
 #main_body .routine_total {
