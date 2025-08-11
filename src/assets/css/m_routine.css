@@ -204,7 +204,7 @@
   font-size:0.9rem;
   position:relative; 
   z-index:1;
-  margin-top:-2rem;
+  margin-top:-2.2rem;
   margin-bottom:1rem;
 }
 
@@ -222,6 +222,7 @@
   display:inline-block; 
   line-height:3rem;
   background-color:#ebeffd;
+  border:1px solid #ebeffd;
   text-align:center;
   color:#93a7ff;
   font-size:0.9rem;
@@ -237,6 +238,7 @@
 
 #main_body .routine_total .filter_row .filter_buttons button.on {
   background-color:#797eff!important;
+  border:1px solid #797eff!important;
   font-size:1rem;
   color:#fff
 }
