@@ -33,6 +33,7 @@
   border:1px solid #eaeaea;
   border-bottom:none;
   padding:0.5rem 1rem 0.5rem 1rem;
+  z-index:2!important
 }
 
 #main_body .date_fixed_today {
@@ -95,7 +96,6 @@
 
 #main_body .routine_total {
   margin:0;
-  z-index:2;
 }
 
 #main_body .routine_total p:first-child {
@@ -174,7 +174,7 @@
   align-items: center;
   margin-top:-1.5rem;
   font-size:0.9rem;
-  z-index:1;
+  z-index:1!important;
 }
 
 #main_body .routine_total .filter_row .filter_buttons {
@@ -186,19 +186,21 @@
 }
 
 #main_body .routine_total .filter_row .filter_buttons button {
-flex:1;
-line-height:3rem;
-display:block;
-background-color:#ebeffd;
-text-align:center;
-color:#93a7ff;
-font-size:0.9rem;
-font-weight:bold;
-margin:0;
-padding:0;
-padding-top:2rem;
-border-radius:0;
-box-sizing:border-box;
+  flex:1;
+  line-height:3rem;
+  display:block;
+  background-color:#ebeffd;
+  text-align:center;
+  color:#93a7ff;
+  font-size:0.9rem;
+  font-weight:bold;
+  margin:0;
+  padding:0;
+  padding-top:2rem;
+  border-radius:0;
+  border-bottom-left-radius:1.5rem;
+  border-bottom-right-radius:1.5rem;
+  box-sizing:border-box;
 }
 
 #main_body .routine_total .filter_row .filter_buttons button.on {
