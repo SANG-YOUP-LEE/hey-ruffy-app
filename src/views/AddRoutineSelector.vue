@@ -15,12 +15,25 @@
     </div>
 
     <div class="popup_inner" ref="popupInner">
-      <RoutineTitleInput ref="titleRef" />
-      <RoutineRepeatSelector ref="repeatRef" />
-      <RoutineDateSelector ref="dateRef" />
-      <RoutineAlarmSelector ref="alarmRef" />
+      <div ref="titleWrap">
+        <RoutineTitleInput ref="titleRef" />
+        <div v-if="fieldErrors.title" class="warn-message t_red01">{{ fieldErrors.title }}</div>
+      </div>
 
-      <div v-if="errorMessage" class="warn-message t_red01">{{ errorMessage }}</div>
+      <div ref="repeatWrap">
+        <RoutineRepeatSelector ref="repeatRef" />
+        <div v-if="fieldErrors.repeat" class="warn-message t_red01">{{ fieldErrors.repeat }}</div>
+      </div>
+
+      <div ref="dateWrap">
+        <RoutineDateSelector ref="dateRef" />
+        <div v-if="fieldErrors.date" class="warn-message t_red01">{{ fieldErrors.date }}</div>
+      </div>
+
+      <div ref="alarmWrap">
+        <RoutineAlarmSelector ref="alarmRef" />
+        <div v-if="fieldErrors.alarm" class="warn-message t_red01">{{ fieldErrors.alarm }}</div>
+      </div>
 
       <div class="off_walk">
         <label class="checkbox-label">
@@ -31,13 +44,29 @@
       </div>
 
       <div class="walk_group" v-show="!isWalkModeOff">
-        <RoutineRuffySelector ref="ruffyRef" />
-        <RoutineCourseSelector ref="courseRef" />
-        <RoutineGoalCountSelector ref="goalRef" />
+        <div ref="ruffyWrap">
+          <RoutineRuffySelector ref="ruffyRef" />
+          <div v-if="fieldErrors.ruffy" class="warn-message t_red01">{{ fieldErrors.ruffy }}</div>
+        </div>
+        <div ref="courseWrap">
+          <RoutineCourseSelector ref="courseRef" />
+          <div v-if="fieldErrors.course" class="warn-message t_red01">{{ fieldErrors.course }}</div>
+        </div>
+        <div ref="goalWrap">
+          <RoutineGoalCountSelector ref="goalRef" />
+          <div v-if="fieldErrors.goal" class="warn-message t_red01">{{ fieldErrors.goal }}</div>
+        </div>
       </div>
 
-      <RoutinePrioritySelector ref="priorityRef" />
-      <RoutineCommentInput ref="commentRef" />
+      <div ref="priorityWrap">
+        <RoutinePrioritySelector ref="priorityRef" />
+        <div v-if="fieldErrors.priority" class="warn-message t_red01">{{ fieldErrors.priority }}</div>
+      </div>
+
+      <div ref="commentWrap">
+        <RoutineCommentInput ref="commentRef" />
+        <div v-if="fieldErrors.comment" class="warn-message t_red01">{{ fieldErrors.comment }}</div>
+      </div>
     </div>
 
     <div class="popup_btm">
@@ -53,7 +82,7 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { db } from '@/firebase'
-import { doc, updateDoc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
@@ -74,7 +103,51 @@ const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
-const errorMessage = ref('')
+
+const fieldErrors = ref({
+  title: '',
+  repeat: '',
+  date: '',
+  alarm: '',
+  ruffy: '',
+  course: '',
+  goal: '',
+  priority: '',
+  comment: ''
+})
+
+const errorTimers = {}
+const ERROR_MS = 3000
+
+function showFieldError(key, msg) {
+  fieldErrors.value[key] = msg
+  if (errorTimers[key]) clearTimeout(errorTimers[key])
+  errorTimers[key] = setTimeout(() => {
+    fieldErrors.value[key] = ''
+    delete errorTimers[key]
+  }, ERROR_MS)
+  const wrapRefMap = {
+    title: titleWrap,
+    repeat: repeatWrap,
+    date: dateWrap,
+    alarm: alarmWrap,
+    ruffy: ruffyWrap,
+    course: courseWrap,
+    goal: goalWrap,
+    priority: priorityWrap,
+    comment: commentWrap
+  }
+  const el = wrapRefMap[key]?.value
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function clearAllFieldErrors() {
+  Object.keys(fieldErrors.value).forEach(k => {
+    fieldErrors.value[k] = ''
+    if (errorTimers[k]) clearTimeout(errorTimers[k])
+    delete errorTimers[k]
+  })
+}
 
 const titleRef = ref()
 const repeatRef = ref()
@@ -85,6 +158,16 @@ const courseRef = ref()
 const goalRef = ref()
 const priorityRef = ref()
 const commentRef = ref()
+
+const titleWrap = ref()
+const repeatWrap = ref()
+const dateWrap = ref()
+const alarmWrap = ref()
+const ruffyWrap = ref()
+const courseWrap = ref()
+const goalWrap = ref()
+const priorityWrap = ref()
+const commentWrap = ref()
 
 let scrollY = 0
 
@@ -122,17 +205,15 @@ const closePopup = () => {
   emit('close')
 }
 
-function notU(v) { return v !== undefined } // undefined만 걸러냄
+function notU(v) { return v !== undefined }
 
 function buildPayload() {
-  // 폼 값 수집 (undefined는 제외, null/빈배열은 의도적으로 허용)
   const repeatType = repeatRef.value?.selectedTab
-
   const payload = {
     title: titleRef.value?.title ?? '',
     repeatType: repeatType ?? 'daily',
-    repeatDays: repeatType === 'daily'  ? [...(repeatRef.value?.selectedDaily ?? [])]       : [],
-    repeatWeeks: repeatType === 'weekly' ? (repeatRef.value?.selectedWeeklyMain ?? '')      : '',
+    repeatDays: repeatType === 'daily' ? [...(repeatRef.value?.selectedDaily ?? [])] : [],
+    repeatWeeks: repeatType === 'weekly' ? (repeatRef.value?.selectedWeeklyMain ?? '') : '',
     repeatWeekDays: repeatType === 'weekly' ? [...(repeatRef.value?.selectedWeeklyDays ?? [])] : [],
     repeatMonthDays: repeatType === 'monthly' ? [...(repeatRef.value?.selectedDates ?? [])] : [],
     startDate: dateRef.value?.startDate ?? null,
@@ -142,68 +223,62 @@ function buildPayload() {
     course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
     goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
-    comment: commentRef.value?.comment ?? '',
+    comment: commentRef.value?.comment ?? ''
   }
-
-  // undefined 제거 (merge:true일 때 깔끔하게 반영)
   const cleaned = {}
   Object.entries(payload).forEach(([k, v]) => { if (notU(v)) cleaned[k] = v })
   return cleaned
 }
 
 const validateRoutine = () => {
+  clearAllFieldErrors()
   if (!titleRef.value?.title || titleRef.value.title.trim() === '') {
-    errorMessage.value = '다짐 제목을 입력해주세요.'
+    showFieldError('title', '다짐 제목을 입력해주세요.')
     return false
   }
   if (!repeatRef.value?.selectedTab) {
-    errorMessage.value = '반복 주기를 선택해주세요.'
+    showFieldError('repeat', '반복 주기를 선택해주세요.')
     return false
   }
   const selectedTab = repeatRef.value.selectedTab
   if (selectedTab === 'daily') {
     if (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0) {
-      errorMessage.value = '일간 반복의 최소 횟수를 선택해주세요.'
+      showFieldError('repeat', '일간 반복의 최소 횟수를 선택해주세요.')
       return false
     }
   }
   if (selectedTab === 'weekly') {
     if (!repeatRef.value.selectedWeeklyMain) {
-      errorMessage.value = '주간 반복 주기를 선택해주세요.'
+      showFieldError('repeat', '주간 반복 주기를 선택해주세요.')
       return false
     }
     if (!repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0) {
-      errorMessage.value = '요일을 하나 이상 선택해주세요.'
+      showFieldError('repeat', '요일을 하나 이상 선택해주세요.')
       return false
     }
   }
   if (selectedTab === 'monthly') {
     if (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0) {
-      errorMessage.value = '반복할 날짜를 선택해주세요.'
+      showFieldError('repeat', '반복할 날짜를 선택해주세요.')
       return false
     }
   }
   const selectedColor = priorityRef.value?.selectedColor ?? null
   if (selectedColor === null) {
-    errorMessage.value = '다짐 색상을 선택해주세요.'
+    showFieldError('priority', '다짐 색상을 선택해주세요.')
     return false
   }
-  errorMessage.value = ''
   return true
 }
 
 const saveRoutine = async () => {
-  errorMessage.value = ''
   if (!validateRoutine()) return
   try {
     const auth = getAuth()
     const user = auth.currentUser
     if (!user) throw new Error('로그인이 필요합니다.')
-
     const payload = buildPayload()
-
     if (isEditMode.value && props.routineToEdit?.id) {
-      // ✅ 수정: merge 저장으로 기존 필드(예: progress, createdAt) 보존
       await setDoc(
         doc(db, 'users', user.uid, 'routines', props.routineToEdit.id),
         { ...payload, updatedAt: serverTimestamp() },
@@ -211,12 +286,10 @@ const saveRoutine = async () => {
       )
       emit('save', { id: props.routineToEdit.id, ...payload })
     } else {
-      // 신규 생성
       const colRef = collection(db, 'users', user.uid, 'routines')
       const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp() })
       emit('save', { id: docRef.id, ...payload })
     }
-
     unlockScroll()
     emit('close')
   } catch (err) {
@@ -228,7 +301,6 @@ const saveRoutine = async () => {
 onMounted(() => {
   lockScroll()
   if (props.routineToEdit) {
-    // 수정 진입 시 폼에 초기값 주입
     titleRef.value?.setFromRoutine?.(props.routineToEdit)
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
     dateRef.value?.setFromRoutine?.(props.routineToEdit)
@@ -238,13 +310,12 @@ onMounted(() => {
     goalRef.value?.setFromRoutine?.(props.routineToEdit)
     priorityRef.value?.setFromRoutine?.(props.routineToEdit)
     commentRef.value?.setFromRoutine?.(props.routineToEdit)
-
-    // 산책 OFF 초기화(이전 데이터 반영)
     isWalkModeOff.value = !props.routineToEdit.ruffy
   }
 })
 
 onBeforeUnmount(() => {
   unlockScroll()
+  clearAllFieldErrors()
 })
 </script>
