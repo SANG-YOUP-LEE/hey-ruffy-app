@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
@@ -56,6 +56,9 @@ const popupMode = ref('start')
 
 const startDate = ref({ ...props.startDate })
 const endDate = ref({ ...props.endDate })
+
+// 🔒 자동 오픈 방지용 가드
+const suppressAutoOpen = ref(false)
 
 let scrollY = 0
 let activePopup = null
@@ -105,6 +108,7 @@ const toggleEndDate = () => {
 }
 
 watch(isStartDateOn, (val) => {
+  if (suppressAutoOpen.value) return  // ✅ 값 주입 중엔 팝업 금지
   if (val) {
     popupMode.value = 'start'
     if (!startDate.value.year) {
@@ -121,6 +125,7 @@ watch(isStartDateOn, (val) => {
 })
 
 watch(isEndDateOn, (val) => {
+  if (suppressAutoOpen.value) return  // ✅ 값 주입 중엔 팝업 금지
   if (val) {
     if (!startDate.value.year) {
       showWarning.value = true
@@ -182,14 +187,24 @@ const formattedDate = computed(() => {
 onBeforeUnmount(unlockScroll)
 
 const setFromRoutine = (routine) => {
+  // ✅ 수정모드 초기 주입: 팝업 자동 오픈 차단
+  suppressAutoOpen.value = true
   if (routine?.startDate) {
     startDate.value = routine.startDate
     isStartDateOn.value = true
+  } else {
+    startDate.value = { year: '', month: '', day: '' }
+    isStartDateOn.value = false
   }
   if (routine?.endDate) {
     endDate.value = routine.endDate
     isEndDateOn.value = true
+  } else {
+    endDate.value = { year: '', month: '', day: '' }
+    isEndDateOn.value = false
   }
+  showDatePopup.value = false
+  nextTick(() => { suppressAutoOpen.value = false })
 }
 
 defineExpose({

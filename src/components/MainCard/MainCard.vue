@@ -13,7 +13,7 @@
           <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
           <ul>
             <li :class="{ disabled: isPaused }">
-              <button class="modify" :disabled="isPaused">다짐 수정하기</button>
+              <button class="modify" :disabled="isPaused" @click="onEdit">다짐 수정하기</button>
             </li>
             <li>
               <button class="lock" @click="openPauseRestartConfirm">
@@ -159,7 +159,7 @@ const props = defineProps({
   selected: String,
   routine: { type: Object, default: () => ({}) }
 })
-const emit = defineEmits(['delete','changeStatus'])
+const emit = defineEmits(['delete','changeStatus','edit'])
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
@@ -255,6 +255,19 @@ function closePopup() {
 
 function handleGlobalCloseEvents() {
   if (showPopup.value) closePopup()
+}
+
+function onEdit() {
+  closePopup()
+  let rt = {}
+  try {
+    // Proxy/순환참조/DOM 참조 등 방지용: JSON 복사
+    rt = JSON.parse(JSON.stringify(props.routine || {}))
+  } catch (e) {
+    console.warn('safe clone failed, passing shallow object', e)
+    rt = { ...(props.routine || {}) }
+  }
+  emit('edit', rt)
 }
 
 function openDeleteConfirm() {

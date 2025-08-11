@@ -53,7 +53,7 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { db } from '@/firebase'
-import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, updateDoc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
@@ -122,6 +122,35 @@ const closePopup = () => {
   emit('close')
 }
 
+function notU(v) { return v !== undefined } // undefined만 걸러냄
+
+function buildPayload() {
+  // 폼 값 수집 (undefined는 제외, null/빈배열은 의도적으로 허용)
+  const repeatType = repeatRef.value?.selectedTab
+
+  const payload = {
+    title: titleRef.value?.title ?? '',
+    repeatType: repeatType ?? 'daily',
+    repeatDays: repeatType === 'daily'  ? [...(repeatRef.value?.selectedDaily ?? [])]       : [],
+    repeatWeeks: repeatType === 'weekly' ? (repeatRef.value?.selectedWeeklyMain ?? '')      : '',
+    repeatWeekDays: repeatType === 'weekly' ? [...(repeatRef.value?.selectedWeeklyDays ?? [])] : [],
+    repeatMonthDays: repeatType === 'monthly' ? [...(repeatRef.value?.selectedDates ?? [])] : [],
+    startDate: dateRef.value?.startDate ?? null,
+    endDate: dateRef.value?.endDate ?? null,
+    alarmTime: alarmRef.value?.selectedAlarm ?? null,
+    ruffy: isWalkModeOff.value ? null : (ruffyRef.value?.ruffy ?? null),
+    course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
+    goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
+    colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
+    comment: commentRef.value?.comment ?? '',
+  }
+
+  // undefined 제거 (merge:true일 때 깔끔하게 반영)
+  const cleaned = {}
+  Object.entries(payload).forEach(([k, v]) => { if (notU(v)) cleaned[k] = v })
+  return cleaned
+}
+
 const validateRoutine = () => {
   if (!titleRef.value?.title || titleRef.value.title.trim() === '') {
     errorMessage.value = '다짐 제목을 입력해주세요.'
@@ -171,32 +200,21 @@ const saveRoutine = async () => {
     const user = auth.currentUser
     if (!user) throw new Error('로그인이 필요합니다.')
 
-    const routine = {
-      title: titleRef.value.title,
-      repeatType: repeatRef.value.selectedTab,
-      repeatDays: repeatRef.value.selectedTab === 'daily' ? [...repeatRef.value.selectedDaily] : [],
-      repeatWeeks: repeatRef.value.selectedTab === 'weekly' ? repeatRef.value.selectedWeeklyMain : '',
-      repeatWeekDays: repeatRef.value.selectedTab === 'weekly' ? [...repeatRef.value.selectedWeeklyDays] : [],
-      repeatMonthDays: repeatRef.value.selectedTab === 'monthly' ? [...repeatRef.value.selectedDates] : [],
-      startDate: dateRef.value.startDate,
-      endDate: dateRef.value.endDate,
-      alarmTime: alarmRef.value?.selectedAlarm ?? null,
-      ruffy: isWalkModeOff.value ? null : ruffyRef.value.ruffy,
-      course: isWalkModeOff.value ? null : courseRef.value.course,
-      goalCount: isWalkModeOff.value ? null : goalRef.value.goalCount,
-      colorIndex: priorityRef.value.selectedColor,
-      comment: commentRef.value.comment
-    }
+    const payload = buildPayload()
 
     if (isEditMode.value && props.routineToEdit?.id) {
-      routine.updatedAt = serverTimestamp()
-      await updateDoc(doc(db, 'users', user.uid, 'routines', props.routineToEdit.id), routine)
-      emit('save', { id: props.routineToEdit.id, ...routine })
+      // ✅ 수정: merge 저장으로 기존 필드(예: progress, createdAt) 보존
+      await setDoc(
+        doc(db, 'users', user.uid, 'routines', props.routineToEdit.id),
+        { ...payload, updatedAt: serverTimestamp() },
+        { merge: true }
+      )
+      emit('save', { id: props.routineToEdit.id, ...payload })
     } else {
-      routine.createdAt = serverTimestamp()
+      // 신규 생성
       const colRef = collection(db, 'users', user.uid, 'routines')
-      const docRef = await addDoc(colRef, routine)
-      emit('save', { id: docRef.id, ...routine })
+      const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp() })
+      emit('save', { id: docRef.id, ...payload })
     }
 
     unlockScroll()
@@ -210,15 +228,19 @@ const saveRoutine = async () => {
 onMounted(() => {
   lockScroll()
   if (props.routineToEdit) {
-    titleRef.value.setFromRoutine?.(props.routineToEdit)
-    repeatRef.value.setFromRoutine?.(props.routineToEdit)
-    dateRef.value.setFromRoutine?.(props.routineToEdit)
-    alarmRef.value.setFromRoutine?.(props.routineToEdit)
-    ruffyRef.value.setFromRoutine?.(props.routineToEdit)
-    courseRef.value.setFromRoutine?.(props.routineToEdit)
-    goalRef.value.setFromRoutine?.(props.routineToEdit)
-    priorityRef.value.setFromRoutine?.(props.routineToEdit)
-    commentRef.value.setFromRoutine?.(props.routineToEdit)
+    // 수정 진입 시 폼에 초기값 주입
+    titleRef.value?.setFromRoutine?.(props.routineToEdit)
+    repeatRef.value?.setFromRoutine?.(props.routineToEdit)
+    dateRef.value?.setFromRoutine?.(props.routineToEdit)
+    alarmRef.value?.setFromRoutine?.(props.routineToEdit)
+    ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
+    courseRef.value?.setFromRoutine?.(props.routineToEdit)
+    goalRef.value?.setFromRoutine?.(props.routineToEdit)
+    priorityRef.value?.setFromRoutine?.(props.routineToEdit)
+    commentRef.value?.setFromRoutine?.(props.routineToEdit)
+
+    // 산책 OFF 초기화(이전 데이터 반영)
+    isWalkModeOff.value = !props.routineToEdit.ruffy
   }
 })
 

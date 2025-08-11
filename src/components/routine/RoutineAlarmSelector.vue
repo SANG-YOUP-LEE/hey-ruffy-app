@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
 
@@ -37,12 +37,16 @@ const showAlarmPopup = ref(false)
 const selectedAlarm = ref({ ampm: '', hour: '', minute: '' })
 const showDataFixed = ref(false)
 
+// ✅ 자동 오픈 방지용 가드
+const suppressAutoOpen = ref(false)
+
 const toggleAlarm = () => {
   isAlarmOn.value = !isAlarmOn.value
 }
 
-// 🔁 이 watch가 알람 상태 전체를 제어하는 유일한 통로가 되도록 복원
+// 🔁 이 watch가 알람 상태 전체를 제어하는 유일한 통로가 되도록 유지
 watch(isAlarmOn, (val) => {
+  if (suppressAutoOpen.value) return // ✅ 값 주입 중에는 팝업 열지 않음
   if (val) {
     showAlarmPopup.value = true
   } else {
@@ -72,6 +76,8 @@ const formattedAlarm = computed(() => {
 })
 
 const setFromRoutine = (routine) => {
+  // ✅ 수정 모드 값 주입 중 자동 오픈 차단
+  suppressAutoOpen.value = true
   if (
     routine?.alarmTime &&
     routine.alarmTime.ampm &&
@@ -90,6 +96,8 @@ const setFromRoutine = (routine) => {
     isAlarmOn.value = false
     showDataFixed.value = false
   }
+  showAlarmPopup.value = false
+  nextTick(() => { suppressAutoOpen.value = false })
 }
 
 defineExpose({

@@ -39,6 +39,7 @@
             :routine="rt"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
+            @edit="openEditRoutine"
           />
         </template>
       </template>
@@ -52,8 +53,9 @@
 
     <AddRoutineSelector
       v-if="isAddRoutineOpen"
-      @close="isAddRoutineOpen = false"
+      @close="isAddRoutineOpen = false; editingRoutine = null"
       @save="onSaved"
+      :routineToEdit="editingRoutine"
     />
   </div>
 </template>
@@ -83,6 +85,9 @@ const showWeekly = ref(false)
 const routines = ref([])          // 화면에 뿌릴 리스트 (status 포함)
 const rawRoutines = ref([])       // Firestore 원본(매핑 전)
 let currentUid = null
+
+// 수정 대상 (있으면 수정 모드)
+let editingRoutine = ref(null)
 
 function dateKey(date, tz = 'Asia/Seoul') {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date) // yyyy-mm-dd
@@ -118,13 +123,18 @@ const handleFilterChange = () => {
   showWeekly.value = false
 }
 
+// 저장(신규/수정 공통) → 로컬 즉시 반영
 function onSaved(rt) {
-  const exists = rawRoutines.value.some(r => r.id === rt.id)
-  if (!exists) {
+  const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
+  if (idx === -1) {
     rawRoutines.value = [{ ...rt }, ...rawRoutines.value]
-    routines.value = mapStatus(rawRoutines.value, selectedDate.value)
+  } else {
+    rawRoutines.value.splice(idx, 1, { ...rawRoutines.value[idx], ...rt })
   }
+  routines.value = mapStatus(rawRoutines.value, selectedDate.value)
+
   isAddRoutineOpen.value = false
+  editingRoutine.value = null
   selectedFilter.value = 'notdone'
   showWeekly.value = false
 }
@@ -172,6 +182,13 @@ async function onDelete(id) {
 
 function openAddRoutine() {
   window.dispatchEvent(new Event('close-other-popups'))
+  editingRoutine.value = null
+  isAddRoutineOpen.value = true
+}
+
+function openEditRoutine(rt) {
+  window.dispatchEvent(new Event('close-other-popups'))
+  editingRoutine.value = rt // 카드에서 안전 복사됨
   isAddRoutineOpen.value = true
 }
 
