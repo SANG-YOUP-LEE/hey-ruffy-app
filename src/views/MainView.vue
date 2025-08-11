@@ -4,44 +4,41 @@
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
+      <MainDateScroll @selectDate="handleSelectDate" />
+      <MainRoutineTotal
+        :isFuture="isFutureDate"
+        v-model:modelValue="selectedFilter"
+        @changeFilter="handleFilterChange"
+        @showWeekly="showWeekly = true"
+      />
+
+      <div v-if="displayedRoutines.length === 0" class="no_data">
+        <span v-if="routines.length === 0">
+          아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
+        </span>
+        <span v-else>
+          해당 조건에 맞는 다짐이 없어요.
+        </span>
+      </div>
+
+      <div
+        v-if="selectedFilter === 'notdone' && notdoneCount === 0 && routines.length > 0"
+        class="all_clear"
+      >
+        짝짝짝! 모든 달성을 완료했어요.
+      </div>
+
+      <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
       <template v-else>
-        <MainDateScroll @selectDate="handleSelectDate" />
-        <MainRoutineTotal
-          :isFuture="isFutureDate"
-          v-model:modelValue="selectedFilter"
-          @changeFilter="handleFilterChange"
-          @showWeekly="showWeekly = true"
+        <MainCard
+          v-for="rt in displayedRoutines"
+          :key="rt.id"
+          :selected="getStatus(rt)"
+          :routine="rt"
+          @changeStatus="onChangeStatus"
+          @delete="onDelete"
+          @edit="openEditRoutine"
         />
-        
-        <div v-if="displayedRoutines.length === 0" class="no_data">
-          <span v-if="routines.length === 0">
-            아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
-          </span>
-          <span v-else>
-            해당 조건에 맞는 다짐이 없어요.
-          </span>
-        </div>
-
-        <div
-          v-if="selectedFilter === 'notdone' && notdoneCount === 0 && routines.length > 0"
-          class="all_clear"
-        >
-          짝짝짝! 모든 달성을 완료했어요.
-        </div>
-
-        <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
-
-        <template v-else>
-          <MainCard
-            v-for="rt in displayedRoutines"
-            :key="rt.id"
-            :selected="getStatus(rt)"
-            :routine="rt"
-            @changeStatus="onChangeStatus"
-            @delete="onDelete"
-            @edit="openEditRoutine"
-          />
-        </template>
       </template>
     </div>
 
@@ -82,21 +79,20 @@ const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')
 const showWeekly = ref(false)
 
-const routines = ref([])          // 화면에 뿌릴 리스트 (status 포함)
-const rawRoutines = ref([])       // Firestore 원본(매핑 전)
+const routines = ref([])
+const rawRoutines = ref([])
 let currentUid = null
 
-// 수정 대상 (있으면 수정 모드)
 let editingRoutine = ref(null)
 
 function dateKey(date, tz = 'Asia/Seoul') {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date) // yyyy-mm-dd
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
 }
 
 function mapStatus(list, date) {
   const key = dateKey(date)
   return list.map(r => {
-    const st = r?.progress?.[key] ?? 'notdone' // notdone | done | faildone | ignored
+    const st = r?.progress?.[key] ?? 'notdone'
     return { ...r, status: st }
   })
 }
@@ -123,7 +119,6 @@ const handleFilterChange = () => {
   showWeekly.value = false
 }
 
-// 저장(신규/수정 공통) → 로컬 즉시 반영
 function onSaved(rt) {
   const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
   if (idx === -1) {
@@ -132,7 +127,6 @@ function onSaved(rt) {
     rawRoutines.value.splice(idx, 1, { ...rawRoutines.value[idx], ...rt })
   }
   routines.value = mapStatus(rawRoutines.value, selectedDate.value)
-
   isAddRoutineOpen.value = false
   editingRoutine.value = null
   selectedFilter.value = 'notdone'
@@ -142,7 +136,6 @@ function onSaved(rt) {
 async function onChangeStatus({ id, status }) {
   const key = dateKey(selectedDate.value)
   if (!currentUid) return
-
   try {
     await updateDoc(doc(db, 'users', currentUid, 'routines', id), {
       [`progress.${key}`]: status,
@@ -151,7 +144,6 @@ async function onChangeStatus({ id, status }) {
   } catch (e) {
     console.error('update status failed:', e)
   }
-
   const i = routines.value.findIndex(r => r.id === id)
   if (i !== -1) {
     routines.value[i] = { ...routines.value[i], status }
@@ -162,7 +154,6 @@ async function onChangeStatus({ id, status }) {
     next.progress = { ...(next.progress || {}), [key]: status }
     rawRoutines.value.splice(j, 1, next)
   }
-
   selectedFilter.value = status
   showWeekly.value = false
 }
@@ -175,7 +166,6 @@ async function onDelete(id) {
     console.error('delete routine failed:', e)
     return
   }
-  // 스냅샷이 곧 내려오지만, 즉시 화면에서도 제거
   rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
   routines.value = routines.value.filter(r => r.id !== id)
 }
@@ -188,7 +178,7 @@ function openAddRoutine() {
 
 function openEditRoutine(rt) {
   window.dispatchEvent(new Event('close-other-popups'))
-  editingRoutine.value = rt // 카드에서 안전 복사됨
+  editingRoutine.value = rt
   isAddRoutineOpen.value = true
 }
 
@@ -197,18 +187,15 @@ function setVh() {
   document.documentElement.style.setProperty('--vh', `${vh}px`)
 }
 
-/* ---------- Firestore 실시간 구독 (users/{uid}/routines) ---------- */
 let stopAuth = null
 let stopRoutines = null
 
 const bindRoutines = (uid) => {
   if (stopRoutines) { stopRoutines(); stopRoutines = null }
-
   const q = query(
     collection(db, 'users', uid, 'routines'),
     orderBy('createdAt', 'desc')
   )
-
   stopRoutines = onSnapshot(q, (snap) => {
     const list = []
     snap.forEach(d => list.push({ id: d.id, ...d.data() }))
@@ -228,7 +215,6 @@ watch(selectedDate, () => {
 onMounted(() => {
   setVh()
   window.addEventListener('resize', setVh)
-
   const auth = getAuth()
   stopAuth = onAuthStateChanged(auth, (user) => {
     if (user && user.uid !== currentUid) {
