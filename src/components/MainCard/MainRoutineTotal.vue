@@ -31,6 +31,7 @@
         <button type="button" :class="{ active: selectedRadio === 'done' }" @click="selectedRadio = 'done'">달성 완료</button>
         <button type="button" :class="{ active: selectedRadio === 'faildone' }" @click="selectedRadio = 'faildone'">달성 실패</button>
         <button type="button" :class="{ active: selectedRadio === 'ignored' }" @click="selectedRadio = 'ignored'">흐린 눈</button>
+        <button type="button" @click="handleWeeklyClick">주간보기</button>
       </span>
     </p>
   </div>
