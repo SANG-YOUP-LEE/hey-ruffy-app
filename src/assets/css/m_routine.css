@@ -434,7 +434,8 @@
   text-align:center;
 }
 
-#main_body .routine_card .rc_inner .done_set {
+#main_body .routine_card .rc_inner .done_set,
+#main_body .routine_card .rc_inner .walk_check {
   width:100%;
   flex-basis: 100%;
 }
@@ -450,6 +451,3 @@
   background-size:100%!important
 }
 
-#main_body .walk_mode .walk_check .p_white {
-  width:100%;
-}
