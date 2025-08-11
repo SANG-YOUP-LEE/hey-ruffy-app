@@ -238,6 +238,7 @@
 
 #main_body .routine_total .filter_row .filter_buttons button.on {
   background-color:#797eff!important;
+  border:1px solid #797eff!important;
   font-size:1rem;
   color:#fff
 }
