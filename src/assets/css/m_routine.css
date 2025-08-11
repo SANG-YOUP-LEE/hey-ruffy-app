@@ -451,5 +451,5 @@
 }
 
 #main_body .routine_card.walk_mode .walk_check button {
-  width:100%;
+  width:100%!important;
 }
