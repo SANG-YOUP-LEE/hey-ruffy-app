@@ -167,7 +167,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-import WalkStatusPanel from '@/components/mainCard/mainWalkStatus.vue'
+import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 
 const props = defineProps({
   selected: String,
