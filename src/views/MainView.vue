@@ -169,10 +169,10 @@ const displayedRoutines = computed(() => {
 
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
-  const today = dateKey(new Date())
-  isFutureDate.value = typeof isFuture === 'boolean' ? isFuture : dateKey(date) > today
+  isFutureDate.value = isFuture
+  selectedFilter.value = 'notdone'   
+  showWeekly.value = false           
 }
-
 const handleFilterChange = () => {
   showWeekly.value = false
 }
