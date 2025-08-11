@@ -129,7 +129,7 @@
   border-radius:1.5rem;
   border-top-left-radius:0;
   border-top-right-radius:0;
-  margin-bottom:0.5rem;
+  margin-bottom:0.2rem;
   border:1px solid #eaeaea;
   border-top:none;
   color:#333;
@@ -220,7 +220,7 @@
 
 #main_body .routine_total .filter_row .filter_buttons button {
   display:inline-block; 
-  line-height:3rem;
+  line-height:2rem;
   background-color:#ebeffd;
   border:1px solid #ebeffd;
   text-align:center;
@@ -229,7 +229,7 @@
   font-weight:bold;
   margin:0;
   padding:0;
-  padding-top:2rem;
+  padding-top:1rem;
   border-radius:0;
   border-bottom-left-radius:1.5rem;
   border-bottom-right-radius:1.5rem;
