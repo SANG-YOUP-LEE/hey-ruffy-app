@@ -117,13 +117,21 @@ function inDateRange(r, date) {
 function mapStatus(list, date) {
   const key = dateKey(date)
   return list.map(r => {
-    const st = r?.progress?.[key] ?? 'notdone'
-    return { ...r, status: st }
+    const entry = r?.progress?.[key]
+    let s
+    if (typeof entry === 'string') s = entry
+    else if (entry && typeof entry === 'object' && 'status' in entry) s = entry.status
+    else s = 'notdone'
+    return { ...r, status: s }
   })
 }
 
 function getStatus(r) {
-  return r?.status || 'notdone'
+  const s = r?.status
+  if (!s) return 'notdone'
+  if (s === 'fail') return 'faildone'
+  if (s === 'skip') return 'ignored'
+  return s
 }
 
 const inRangeRoutinesForDate = computed(() =>
