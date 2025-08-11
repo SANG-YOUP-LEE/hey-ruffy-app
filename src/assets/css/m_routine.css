@@ -449,3 +449,7 @@
 #main_body .routine_card .rc_inner .ruffys_item span {
   background-size:100%!important
 }
+
+#main_body .routine_card.walk_mode {
+  border:1px solid red
+}
