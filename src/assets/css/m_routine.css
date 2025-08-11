@@ -89,7 +89,7 @@
 }
 
 #main_body .date_fixed_today span.on {
-  border:none
+  border:none!important
 }
 
 #main_body .routine_total {
@@ -108,6 +108,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+#main_body .routine_total p:first-child span:first-child {
+  display:inline-block;
+  background-color:#fff;
+  padding:0.5rem;
+  border-radius:1.5rem;
+  border-top-left-radius:0;
+  border-top-right-radius:0;
+  margin-bottom:0.5rem;
 }
 
 #main_body .routine_total p:first-child span em {
