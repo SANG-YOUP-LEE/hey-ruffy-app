@@ -4,7 +4,7 @@
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
 
     <div v-else :class="wrapperClass">
-      <div :class="['routine_card', { rt_off: isPaused }]">
+      <div :class="['routine_card', { rt_off: isPaused, walk_mode: !!props.routine?.hasWalk }]">
         <button class="setting" @click.stop="togglePopup">
           <span>다짐설정</span>
         </button>
