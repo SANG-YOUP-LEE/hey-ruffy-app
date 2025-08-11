@@ -146,24 +146,20 @@
 }
 
 #main_body .routine_total p span a.not_done {
-  background-color:#fff;
-  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0 0/1rem 1rem;
+  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0.5rem 0.5rem/1rem 1rem #fff;
 }
 
 #main_body .routine_total p span a.done {
-  background-color:#80daff;
-  background: url('https://img.icons8.com/ios-glyphs/30/lol--v1.png') no-repeat 0 0/1rem 1rem;
+  background: url('https://img.icons8.com/ios-glyphs/30/lol--v1.png') no-repeat 0.5rem 0.5rem/1rem 1rem #80daff;
 }
 
 #main_body .routine_total p span a.fail_done {
-  background-color:#f1afff;
-  background: url('https://img.icons8.com/ios-glyphs/30/sad.png') no-repeat 0 0/1rem 1rem;
+  background: url('https://img.icons8.com/ios-glyphs/30/sad.png') no-repeat 0.5rem 0.5rem/1rem 1rem #f1afff;
 }
 
 
 #main_body .routine_total p span a.ignored {
-  background-color:#cfcfcf;
-  background: url('https://img.icons8.com/ios-glyphs/30/confused--v1.png') no-repeat 0 0/1rem 1rem;
+  background: url('https://img.icons8.com/ios-glyphs/30/confused--v1.png') no-repeat 0.5rem 0.5rem/1rem 1rem #cfcfcf;
 }
 
 #main_body .routine_total .filter_row {
