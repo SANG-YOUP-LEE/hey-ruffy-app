@@ -26,6 +26,9 @@
   display: flex;
   position: relative;
   overflow-x: auto;
+  border-radius:1.5rem;
+  background-color:#fff;
+  border:1px solid #eaeaea;
 }
 
 #main_body .date_fixed_today {
