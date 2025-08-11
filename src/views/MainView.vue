@@ -12,8 +12,8 @@
         @showWeekly="showWeekly = true"
       />
 
-      <div
-        v-if="!showWeekly && displayedRoutines.length === 0 && !(selectedFilter === 'notdone' && routines.length > 0 && notdoneCount === 0)"
+     <div
+        v-if="!showWeekly && displayedRoutines.length === 0"
         class="no_data"
       >
         <span v-if="routines.length === 0">
@@ -96,10 +96,6 @@ function mapStatus(list, date) {
 function getStatus(r) {
   return r?.status || 'notdone'
 }
-
-const notdoneCount = computed(
-  () => routines.value.filter(r => getStatus(r) === 'notdone').length
-)
 
 const displayedRoutines = computed(() => {
   if (showWeekly.value) return routines.value
