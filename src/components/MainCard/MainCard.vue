@@ -41,11 +41,12 @@
             <button class="p_white" @click="openStatusPopup">달성현황 체크하기</button>
           </div>
           <div class="walk_check" v-if="props.routine?.hasWalk">
-            <button class="p_white">산책 현황 보기</button>
+            <button class="p_white" @click="openWalkPopup">산책 현황 보기</button>
           </div>
         </div>
       </div>
     </div>
+
     <teleport to="body">
       <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -59,6 +60,7 @@
         </div>
       </div>
     </teleport>
+
     <teleport to="body">
       <div v-if="showPauseRestartPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -85,6 +87,7 @@
         </div>
       </div>
     </teleport>
+
     <teleport to="body">
       <div v-if="showShareConfirmPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -98,6 +101,7 @@
         </div>
       </div>
     </teleport>
+
     <teleport to="body">
       <div v-if="showStatusPopup" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -143,11 +147,27 @@
         </div>
       </div>
     </teleport>
+
+    <teleport to="body">
+      <div v-if="showWalkPopup" class="com_popup_wrap">
+        <div class="popup_inner alert">
+          <div class="popup_tit"><h2>산책 현황</h2></div>
+          <div class="popup_body">
+            <WalkStatusPanel :routine="props.routine" />
+          </div>
+          <div class="popup_btm">
+            <button @click="closeWalkPopup" class="p_white">닫기</button>
+          </div>
+          <button class="close_btn" @click="closeWalkPopup"><span>닫기</span></button>
+        </div>
+      </div>
+    </teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import WalkStatusPanel from '@/components/mainCard/mainWalkStatus.vue'
 
 const props = defineProps({
   selected: String,
@@ -160,6 +180,7 @@ const showDeleteConfirmPopup = ref(false)
 const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
 const showStatusPopup = ref(false)
+const showWalkPopup = ref(false)
 const isPaused = ref(false)
 const selectedStatus = ref('')
 const selectedState = ref('')
@@ -255,10 +276,8 @@ function onEdit() {
   closePopup()
   let rt = {}
   try {
-    // Proxy/순환참조/DOM 참조 등 방지용: JSON 복사
     rt = JSON.parse(JSON.stringify(props.routine || {}))
   } catch (e) {
-    console.warn('safe clone failed, passing shallow object', e)
     rt = { ...(props.routine || {}) }
   }
   emit('edit', rt)
@@ -327,6 +346,18 @@ function closeStatusPopup() {
   showStatusPopup.value = false
   document.body.classList.remove('no-scroll')
   resetSelection()
+}
+
+function openWalkPopup() {
+  window.dispatchEvent(new Event('close-other-popups'))
+  if (showPopup.value) closePopup()
+  showWalkPopup.value = true
+  document.body.classList.add('no-scroll')
+}
+
+function closeWalkPopup() {
+  showWalkPopup.value = false
+  document.body.classList.remove('no-scroll')
 }
 
 function confirmStatusCheck() {
