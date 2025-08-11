@@ -89,21 +89,18 @@
   border:1px solid #333
 }
 
-#main_body .date_fixed_today span.today {
-  border:1px solid #00ce00;
-}
-
 #main_body .routine_total {
-  
+  border:1px solid red
 }
 
 #main_body .routine_total p:first-child {
   height:4rem;
-  background-color:#fff;
+  background-color:#797eff;
   border:1px solid #eaeaea;
+  border-top:none;
+  border-bottom:none;
+  border-bottom-right-radius:1.5rem;
   padding:1rem;
-  border-radius:1.5rem;
-  margin:1rem 0;
   font-size:0.9rem;
   letter-spacing:-0.02rem;
   display: flex;
