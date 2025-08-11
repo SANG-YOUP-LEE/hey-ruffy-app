@@ -16,23 +16,23 @@
 
     <div class="popup_inner" ref="popupInner">
       <div ref="titleWrap">
-        <RoutineTitleInput ref="titleRef" />
         <div v-if="fieldErrors.title" class="warn-message t_red01">{{ fieldErrors.title }}</div>
+        <RoutineTitleInput ref="titleRef" />
       </div>
 
       <div ref="repeatWrap">
-        <RoutineRepeatSelector ref="repeatRef" />
         <div v-if="fieldErrors.repeat" class="warn-message t_red01">{{ fieldErrors.repeat }}</div>
+        <RoutineRepeatSelector ref="repeatRef" />
       </div>
 
       <div ref="dateWrap">
-        <RoutineDateSelector ref="dateRef" />
         <div v-if="fieldErrors.date" class="warn-message t_red01">{{ fieldErrors.date }}</div>
+        <RoutineDateSelector ref="dateRef" />
       </div>
 
       <div ref="alarmWrap">
-        <RoutineAlarmSelector ref="alarmRef" />
         <div v-if="fieldErrors.alarm" class="warn-message t_red01">{{ fieldErrors.alarm }}</div>
+        <RoutineAlarmSelector ref="alarmRef" />
       </div>
 
       <div class="off_walk">
@@ -59,8 +59,8 @@
       </div>
 
       <div ref="priorityWrap">
-        <RoutinePrioritySelector ref="priorityRef" />
         <div v-if="fieldErrors.priority" class="warn-message t_red01">{{ fieldErrors.priority }}</div>
+        <RoutinePrioritySelector ref="priorityRef" />
       </div>
 
       <div ref="commentWrap">
