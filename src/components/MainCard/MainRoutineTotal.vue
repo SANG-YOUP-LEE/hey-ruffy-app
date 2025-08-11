@@ -10,16 +10,16 @@
           미래에도 다짐 부자시네요!
         </template>
         <template v-else>
-          <a href="#none" class="not_done" @click.prevent="selectedRadio = 'notdone'">
+          <a href="#none" class="not_done" :class="{ on: selectedRadio === 'notdone' }" @click.prevent="selectedRadio = 'notdone'">
             <strong>미달성</strong> <em class="t_on">5</em>
           </a>
-          <a href="#none" class="done" @click.prevent="selectedRadio = 'done'">
+          <a href="#none" class="done" :class="{ on: selectedRadio === 'done' }" @click.prevent="selectedRadio = 'done'">
             <strong>달성완료</strong> <em class="t_on">8</em>
           </a>
-          <a href="#none" class="fail_done" @click.prevent="selectedRadio = 'faildone'">
+          <a href="#none" class="fail_done" :class="{ on: selectedRadio === 'faildone' }" @click.prevent="selectedRadio = 'faildone'">
             <strong>달성실패</strong> <em class="t_on">8</em>
           </a>
-          <a href="#none" class="ignored" @click.prevent="selectedRadio = 'ignored'">
+          <a href="#none" class="ignored" :class="{ on: selectedRadio === 'ignored' }" @click.prevent="selectedRadio = 'ignored'">
             <strong>흐린눈</strong> <em class="t_on">2</em>
           </a>
         </template>
@@ -27,11 +27,11 @@
     </p>
     <p class="filter_row">
       <span class="filter_buttons">
-        <button type="button" :class="{ active: selectedRadio === 'notdone' }" @click="selectedRadio = 'notdone'">달성 전</button>
-        <button type="button" :class="{ active: selectedRadio === 'done' }" @click="selectedRadio = 'done'">달성 완료</button>
-        <button type="button" :class="{ active: selectedRadio === 'faildone' }" @click="selectedRadio = 'faildone'">달성 실패</button>
-        <button type="button" :class="{ active: selectedRadio === 'ignored' }" @click="selectedRadio = 'ignored'">흐린 눈</button>
-        <button type="button" @click="handleWeeklyClick">주간보기</button>
+        <button type="button" :class="{ on: selectedRadio === 'notdone' }" @click="selectedRadio = 'notdone'">달성 전</button>
+        <button type="button" :class="{ on: selectedRadio === 'done' }" @click="selectedRadio = 'done'">달성 완료</button>
+        <button type="button" :class="{ on: selectedRadio === 'faildone' }" @click="selectedRadio = 'faildone'">달성 실패</button>
+        <button type="button" :class="{ on: selectedRadio === 'ignored' }" @click="selectedRadio = 'ignored'">흐린 눈</button>
+        <button type="button" :class="{ on: selectedRadio === null }" @click="handleWeeklyClick">주간보기</button>
       </span>
     </p>
   </div>
@@ -60,5 +60,6 @@ function handleWeeklyClick() {
   emit('showWeekly')
 }
 </script>
+
 
 
