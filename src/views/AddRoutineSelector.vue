@@ -298,6 +298,11 @@ const saveRoutine = async () => {
   }
 }
 
+const hasWalk = vComputed(() => {
+  if (isWalkModeOff.value) return false
+  return !!(ruffyRef.value?.ruffy || courseRef.value?.course || goalRef.value?.goalCount)
+})
+
 onMounted(() => {
   lockScroll()
   if (props.routineToEdit) {
