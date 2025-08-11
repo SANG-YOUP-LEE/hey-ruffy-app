@@ -138,11 +138,15 @@
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
 import { auth, db } from "../firebase"
+
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
-  reload
+  reload,
+  setPersistence,
+  browserLocalPersistence
 } from "firebase/auth"
+
 import {
   doc,
   setDoc,
@@ -150,6 +154,7 @@ import {
 } from "firebase/firestore"
 import { getFirebaseErrorMessage } from "@/utils/firebaseErrorMessage"
 import RuffySelectorSignup from '@/components/common/RuffySelector.vue'
+
 // 폼 관련
 const email = ref("")
 const password = ref("")
@@ -167,7 +172,7 @@ const router = useRouter()
 
 // 러피 선택 관련
 const selectedOption = ref("")
-
+const selectedColor = ref("blue")
 
 // 이메일 유효성
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -217,9 +222,23 @@ const handleSignup = async () => {
   loading.value = true
 
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
-    const user = userCredential.user
-    await sendEmailVerification(user)
+    await setPersistence(auth, browserLocalPersistence)
+
+    const { user } = await createUserWithEmailAndPassword(auth, email.value, password.value)
+
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      email: user.email,
+      nickname: nickname.value,
+      selectedRuffy: selectedOption.value,
+      selectedColor: selectedColor.value,
+      verified: false,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+
+    try { await sendEmailVerification(user) } catch {}
+
     signupComplete.value = true
     await showInfo("가입 이메일로 인증 메일을 보냈어요.")
   } catch (error) {
@@ -238,15 +257,12 @@ const checkVerification = async () => {
   if (auth.currentUser.emailVerified) {
     try {
       await setDoc(doc(db, "users", auth.currentUser.uid), {
-        email: auth.currentUser.email,
-        nickname: nickname.value,
-        selectedRuffy: selectedOption.value, // ✅ 러피 저장 추가
-        selectedColor: selectedColor.value,
-        createdAt: serverTimestamp(),
-        verified: true
-        })
+        verified: true,
+        updatedAt: serverTimestamp()
+      }, { merge: true })
+
       await showInfo("인증이 완료되었습니다!")
-      router.push({ path: "/login", query: { from: "signup" } })
+      router.replace("/main") // ✅ 바로 메인으로 이동
     } catch (err) {
       await showError("인증은 되었지만<br />사용자 정보 저장 중 오류가 발생했습니다.")
     }
@@ -271,7 +287,6 @@ const resendVerification = async () => {
 
   try {
     await reload(auth.currentUser)
-
     await sendEmailVerification(auth.currentUser)
 
     await showInfo("인증 메일을 다시 보냈어요!")
@@ -317,8 +332,6 @@ const clearMessages = () => {
   infoMessage.value = ""
   errorMessage.value = ""
 }
-
-const selectedColor = ref("blue")
 
 onMounted(() => {
   document.body.classList.add("blue")
