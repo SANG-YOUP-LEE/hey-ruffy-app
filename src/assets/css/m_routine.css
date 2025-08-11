@@ -310,7 +310,6 @@
 
 #main_body .routine_card .rc_inner .left {
   flex: 10;
-  background-color:Red;
 }
 
 #main_body .routine_card .rc_inner .right {
@@ -452,5 +451,4 @@
 }
 
 #main_body .routine_card.walk_mode {
-  border:1px solid red
 }
