@@ -116,7 +116,8 @@
   border-top-left-radius:0;
   border-top-right-radius:0;
   margin-bottom:1rem;
-  border:1px solid #eaeaea
+  border:1px solid #eaeaea;
+  border-top:none;
 }
 
 #main_body .routine_total p:first-child span em {
@@ -130,7 +131,7 @@
 }
 
 #main_body .routine_total p span a {
- display: inline-flex;          
+  display: inline-flex;          
   align-items: center;          
   justify-content: center;      
   width: 3.2rem;
