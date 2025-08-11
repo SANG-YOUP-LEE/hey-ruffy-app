@@ -3,28 +3,49 @@
     <p>
       <span>
         <strong>{{ isFuture ? '이날의 다짐' : '오늘의 다짐' }}</strong>
-        총<em class="t_on">15</em>건
+        총<em class="t_on">{{ displayTotal }}</em>건
       </span>
       <span>
         <template v-if="isFuture">
           미래에도 다짐 부자시네요!
         </template>
         <template v-else>
-          <a href="#none" class="not_done" :class="{ on: selectedRadio === 'notdone' }" @click.prevent="selectedRadio = 'notdone'">
-            <strong>미달성</strong> <em class="t_on">5</em>
+          <a
+            href="#none"
+            class="not_done"
+            :class="{ on: selectedRadio === 'notdone' }"
+            @click.prevent="selectedRadio = 'notdone'"
+          >
+            <strong>미달성</strong> <em class="t_on">{{ displayCounts.notdone }}</em>
           </a>
-          <a href="#none" class="done" :class="{ on: selectedRadio === 'done' }" @click.prevent="selectedRadio = 'done'">
-            <strong>달성완료</strong> <em class="t_on">8</em>
+          <a
+            href="#none"
+            class="done"
+            :class="{ on: selectedRadio === 'done' }"
+            @click.prevent="selectedRadio = 'done'"
+          >
+            <strong>달성완료</strong> <em class="t_on">{{ displayCounts.done }}</em>
           </a>
-          <a href="#none" class="fail_done" :class="{ on: selectedRadio === 'faildone' }" @click.prevent="selectedRadio = 'faildone'">
-            <strong>달성실패</strong> <em class="t_on">8</em>
+          <a
+            href="#none"
+            class="fail_done"
+            :class="{ on: selectedRadio === 'faildone' }"
+            @click.prevent="selectedRadio = 'faildone'"
+          >
+            <strong>달성실패</strong> <em class="t_on">{{ displayCounts.faildone }}</em>
           </a>
-          <a href="#none" class="ignored" :class="{ on: selectedRadio === 'ignored' }" @click.prevent="selectedRadio = 'ignored'">
-            <strong>흐린눈</strong> <em class="t_on">2</em>
+          <a
+            href="#none"
+            class="ignored"
+            :class="{ on: selectedRadio === 'ignored' }"
+            @click.prevent="selectedRadio = 'ignored'"
+          >
+            <strong>흐린눈</strong> <em class="t_on">{{ displayCounts.ignored }}</em>
           </a>
         </template>
       </span>
     </p>
+
     <p class="filter_row">
       <span class="filter_buttons">
         <button type="button" :class="{ on: selectedRadio === 'notdone' }" @click="selectedRadio = 'notdone'">달성 전</button>
@@ -42,8 +63,29 @@ import { computed } from 'vue'
 
 const emit = defineEmits(['update:modelValue', 'changeFilter', 'showWeekly'])
 const props = defineProps({
-  isFuture: Boolean,
-  modelValue: { type: String, default: 'notdone' }
+  isFuture: { type: Boolean, default: false },
+  // 주의: 주간보기(null)까지 허용
+  modelValue: { type: [String, null], default: 'notdone' },
+
+  // 상위에서 내려줄 카운트(없으면 기본값으로 현재 화면처럼 보이게)
+  counts: {
+    type: Object,
+    default: null, // { notdone, done, faildone, ignored }
+  },
+  // 총합을 따로 내려줄 수도 있음(없으면 기본값 사용)
+  totalCount: {
+    type: Number,
+    default: null,
+  },
+})
+
+// 상위에서 안 내려줘도 UI 틀어지지 않게 안전한 기본값
+const displayCounts = computed(() => {
+  return props.counts ?? { notdone: 5, done: 8, faildone: 8, ignored: 2 }
+})
+const displayTotal = computed(() => {
+  // 총합 props가 있으면 사용, 없으면 기본 15 유지
+  return props.totalCount ?? 15
 })
 
 const selectedRadio = computed({
@@ -60,6 +102,3 @@ function handleWeeklyClick() {
   emit('showWeekly')
 }
 </script>
-
-
-

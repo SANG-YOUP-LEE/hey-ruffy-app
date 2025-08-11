@@ -29,11 +29,7 @@
           짝짝짝! 모든 달성을 완료했어요.
         </div>
 
-        <MainCard
-          v-if="showWeekly"
-          :selected="'weekly'"
-          :routine="{}"
-        />
+        <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
 
         <template v-else>
           <MainCard
@@ -63,10 +59,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { db } from '@/firebase'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
@@ -84,10 +80,23 @@ const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')
 const showWeekly = ref(false)
 
-const routines = ref([])
+const routines = ref([])          // 화면에 뿌릴 리스트 (status 포함)
+const rawRoutines = ref([])       // Firestore 원본(매핑 전)
+let currentUid = null
+
+function dateKey(date, tz = 'Asia/Seoul') {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date) // yyyy-mm-dd
+}
+
+function mapStatus(list, date) {
+  const key = dateKey(date)
+  return list.map(r => {
+    const st = r?.progress?.[key] ?? 'notdone' // notdone | done | faildone | ignored
+    return { ...r, status: st }
+  })
+}
 
 function getStatus(r) {
-  // 서버에 status가 없으면 기본값을 notdone으로 취급
   return r?.status || 'notdone'
 }
 
@@ -109,25 +118,55 @@ const handleFilterChange = () => {
   showWeekly.value = false
 }
 
-// 저장 팝업에서 올라온 데이터(낙관적 반영). 실시간 스냅샷이 들어오면 동일 id는 덮어씀.
 function onSaved(rt) {
-  const exists = routines.value.some(r => r.id === rt.id)
-  if (!exists) routines.value.unshift({ ...rt, status: getStatus(rt) })
+  const exists = rawRoutines.value.some(r => r.id === rt.id)
+  if (!exists) {
+    rawRoutines.value = [{ ...rt }, ...rawRoutines.value]
+    routines.value = mapStatus(rawRoutines.value, selectedDate.value)
+  }
   isAddRoutineOpen.value = false
   selectedFilter.value = 'notdone'
   showWeekly.value = false
 }
 
-function onChangeStatus({ id, status }) {
+async function onChangeStatus({ id, status }) {
+  const key = dateKey(selectedDate.value)
+  if (!currentUid) return
+
+  try {
+    await updateDoc(doc(db, 'users', currentUid, 'routines', id), {
+      [`progress.${key}`]: status,
+      updatedAt: serverTimestamp(),
+    })
+  } catch (e) {
+    console.error('update status failed:', e)
+  }
+
   const i = routines.value.findIndex(r => r.id === id)
   if (i !== -1) {
     routines.value[i] = { ...routines.value[i], status }
-    selectedFilter.value = status
-    showWeekly.value = false
   }
+  const j = rawRoutines.value.findIndex(r => r.id === id)
+  if (j !== -1) {
+    const next = { ...rawRoutines.value[j] }
+    next.progress = { ...(next.progress || {}), [key]: status }
+    rawRoutines.value.splice(j, 1, next)
+  }
+
+  selectedFilter.value = status
+  showWeekly.value = false
 }
 
-function onDelete(id) {
+async function onDelete(id) {
+  if (!currentUid) return
+  try {
+    await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
+  } catch (e) {
+    console.error('delete routine failed:', e)
+    return
+  }
+  // 스냅샷이 곧 내려오지만, 즉시 화면에서도 제거
+  rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
   routines.value = routines.value.filter(r => r.id !== id)
 }
 
@@ -144,7 +183,6 @@ function setVh() {
 /* ---------- Firestore 실시간 구독 (users/{uid}/routines) ---------- */
 let stopAuth = null
 let stopRoutines = null
-let currentUid = null
 
 const bindRoutines = (uid) => {
   if (stopRoutines) { stopRoutines(); stopRoutines = null }
@@ -156,13 +194,19 @@ const bindRoutines = (uid) => {
 
   stopRoutines = onSnapshot(q, (snap) => {
     const list = []
-    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }))
-    routines.value = list
+    snap.forEach(d => list.push({ id: d.id, ...d.data() }))
+    rawRoutines.value = list
+    routines.value = mapStatus(rawRoutines.value, selectedDate.value)
   }, (err) => {
     console.error('routines subscription error:', err)
+    rawRoutines.value = []
     routines.value = []
   })
 }
+
+watch(selectedDate, () => {
+  routines.value = mapStatus(rawRoutines.value, selectedDate.value)
+})
 
 onMounted(() => {
   setVh()
@@ -175,6 +219,7 @@ onMounted(() => {
       bindRoutines(currentUid)
     } else if (!user) {
       currentUid = null
+      rawRoutines.value = []
       routines.value = []
       if (stopRoutines) { stopRoutines(); stopRoutines = null }
     }
