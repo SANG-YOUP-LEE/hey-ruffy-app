@@ -3,7 +3,7 @@
    
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
 
-    <div v-else :class="wrapperClass" v-show="!isHidden">
+    <div v-else :class="wrapperClass">
       <div :class="['routine_card', { rt_off: isPaused }]">
         <button class="setting" @click="togglePopup">
           <span>다짐설정</span>
@@ -13,8 +13,7 @@
           <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
           <ul>
             <li :class="{ disabled: isPaused }">
-              <!-- ✅ 수정: 클릭 시 편집 이벤트 발생 -->
-              <button class="modify" :disabled="isPaused" @click="onEdit">다짐 수정하기</button>
+              <button class="modify" :disabled="isPaused">다짐 수정하기</button>
             </li>
             <li>
               <button class="lock" @click="openPauseRestartConfirm">
@@ -160,8 +159,7 @@ const props = defineProps({
   selected: String,
   routine: { type: Object, default: () => ({}) }
 })
-// ✅ 수정: edit 이벤트 추가
-const emit = defineEmits(['delete','changeStatus','edit'])
+const emit = defineEmits(['delete','changeStatus'])
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
@@ -171,7 +169,6 @@ const showStatusPopup = ref(false)
 const isPaused = ref(false)
 const selectedStatus = ref('')
 const selectedState = ref('')
-const isHidden = ref(false)
 
 const titleText = computed(() => props.routine?.title || '')
 const commentText = computed(() => props.routine?.comment || '')
@@ -249,7 +246,6 @@ function resetSelection() {
 }
 
 function togglePopup() {
-  window.dispatchEvent(new CustomEvent('close-other-popups'))
   showPopup.value = !showPopup.value
 }
 
@@ -262,7 +258,6 @@ function handleGlobalCloseEvents() {
 }
 
 function openDeleteConfirm() {
-  window.dispatchEvent(new CustomEvent('close-other-popups'))
   closePopup()
   showDeleteConfirmPopup.value = true
   document.body.classList.add('no-scroll')
@@ -280,7 +275,6 @@ function confirmDelete() {
 }
 
 function openPauseRestartConfirm() {
-  window.dispatchEvent(new CustomEvent('close-other-popups'))
   closePopup()
   showPauseRestartPopup.value = true
   document.body.classList.add('no-scroll')
@@ -297,7 +291,6 @@ function confirmPauseRestart() {
 }
 
 function openShareConfirm() {
-  window.dispatchEvent(new CustomEvent('close-other-popups'))
   closePopup()
   showShareConfirmPopup.value = true
   document.body.classList.add('no-scroll')
@@ -314,7 +307,6 @@ function confirmShare() {
 }
 
 function openStatusPopup() {
-  window.dispatchEvent(new CustomEvent('close-other-popups'))
   if (showPopup.value) closePopup()
   showStatusPopup.value = true
   document.body.classList.add('no-scroll')
@@ -333,20 +325,7 @@ function confirmStatusCheck() {
   else if (selectedState.value === 'fail_done') next = 'faildone'
   else if (selectedState.value === 'ign_done') next = 'ignored'
   closeStatusPopup()
-  if (id && next) {
-    if (props.selected === 'notdone' && next !== 'notdone') {
-      isHidden.value = true
-    }
-    emit('changeStatus', { id, status: next })
-  }
-}
-
-/* ✅ 추가: 편집 이벤트 핸들러 */
-function onEdit() {
-  // 다른 카드 팝업 닫고, 현재 설정팝업 닫은 뒤, 부모로 편집 요청
-  window.dispatchEvent(new CustomEvent('close-other-popups'))
-  closePopup()
-  emit('edit', props.routine)
+  if (id && next) emit('changeStatus', { id, status: next })
 }
 
 onMounted(() => {

@@ -3,13 +3,7 @@
     <div 
       class="toggle-switch" 
       :class="{ on: modelValue }" 
-      role="switch"
-      :aria-checked="modelValue ? 'true' : 'false'"
-      :aria-label="label"
-      tabindex="0"
-      @click="toggle"
-      @keydown.space.prevent="toggle"
-      @keydown.enter.prevent="toggle"
+      @click="$emit('update:modelValue', !modelValue)"
     >
       <div class="toggle-circle"></div>
     </div>
@@ -18,15 +12,15 @@
 </template>
 
 <script setup>
-const props = defineProps({
-  label: { type: String, required: true },
-  modelValue: { type: Boolean, default: false }
+defineProps({
+  label: {
+    type: String,
+    required: true
+  },
+  modelValue: {
+    type: Boolean,
+    default: false
+  }
 })
-const emit = defineEmits(['update:modelValue'])
-
-// 사용자 입력(클릭/키보드)에서만 emit
-const toggle = () => {
-  emit('update:modelValue', !props.modelValue)
-}
+defineEmits(['update:modelValue'])
 </script>
-
