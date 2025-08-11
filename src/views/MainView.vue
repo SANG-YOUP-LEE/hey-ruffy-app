@@ -13,13 +13,6 @@
       />
 
       <div
-        v-if="!showWeekly && !isFutureDate && selectedFilter === 'notdone' && routines.length > 0 && notdoneCount === 0"
-        class="all_clear"
-      >
-        짝짝짝! 모든 달성을 완료했어요.
-      </div>
-      
-      <div
         v-if="!showWeekly && displayedRoutines.length === 0 && !(selectedFilter === 'notdone' && routines.length > 0 && notdoneCount === 0)"
         class="no_data"
       >
