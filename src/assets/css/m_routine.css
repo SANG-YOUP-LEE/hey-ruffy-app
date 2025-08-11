@@ -95,6 +95,7 @@
 
 #main_body .routine_total {
   margin:0;
+  z-index:2;
 }
 
 #main_body .routine_total p:first-child {
@@ -173,33 +174,35 @@
   align-items: center;
   margin-top:-1.5rem;
   font-size:0.9rem;
+  z-index:1;
 }
 
 #main_body .routine_total .filter_row .filter_buttons {
   margin:0;
   padding:0;
   width:100%;
+  display:flex;
+  overflow:hidden;
 }
 
 #main_body .routine_total .filter_row .filter_buttons button {
-  width:20%;
-  line-height:3rem;
-  display:inline-block;
-  background-color:#ebeffd;
-  text-align:center;
-  border-bottom-left-radius:1.5rem;
-  border-bottom-right-radius:1.5rem;
-  color:#93a7ff;
-  font-size:0.9rem;
-  font-weight:bold;
-  gap:0;
-  margin:0;
-  padding:0;
-  padding-top:2rem;
+flex:1;
+line-height:3rem;
+display:block;
+background-color:#ebeffd;
+text-align:center;
+color:#93a7ff;
+font-size:0.9rem;
+font-weight:bold;
+margin:0;
+padding:0;
+padding-top:2rem;
+border-radius:0;
+box-sizing:border-box;
 }
 
 #main_body .routine_total .filter_row .filter_buttons button.on {
-  background-color:#797eff;
+  background-color:#797eff!important;
   font-size:1rem;
   color:#fff
 }
