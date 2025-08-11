@@ -199,6 +199,7 @@
 
 #main_body .routine_total .filter_row {
   display: flex;
+  height:5.2rem;
   justify-content: space-between;
   align-items: center;
   font-size:0.9rem;
