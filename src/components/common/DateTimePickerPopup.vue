@@ -23,9 +23,9 @@
         <VueScrollPicker
           v-model="localValue.day"
           :options="days"
-          :drag-sensitivity="3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
+          :drag-sensitivity="2"
+          :touch-sensitivity="1"
+          :scroll-sensitivity="1"
         />
       </div>
       <div class="popup_btm">
