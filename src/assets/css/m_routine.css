@@ -111,11 +111,11 @@
 #main_body .routine_total p:first-child span:first-child {
   display:inline-block;
   background-color:#fff;
-  padding:1rem;
+  padding:0.5rem;
   border-radius:1.5rem;
   border-top-left-radius:0;
   border-top-right-radius:0;
-  margin-bottom:1rem;
+  margin-bottom:0.5rem;
   border:1px solid #eaeaea;
   border-top:none;
 }
@@ -137,11 +137,11 @@
   height: 2rem;
   font-weight: bold;
   padding-left:2rem;
-  width:3rem;
+  width:3.3rem;
   box-sizing: border-box;  
   border-radius:1rem;
   color:#333!important;
-  text-underline:none;
+  text-decoration:none;
 }
 
 #main_body .routine_total p span a strong {
@@ -149,20 +149,20 @@
 }
 
 #main_body .routine_total p span a.not_done {
-  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0.5rem 0.5rem/1.5rem 1.5rem #fff;
+  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0 0.3rem/1.5rem 1.5rem #fff;
 }
 
 #main_body .routine_total p span a.done {
-  background: url('https://img.icons8.com/ios-glyphs/30/lol--v1.png') no-repeat 0.5rem 0.5rem/1.5rem 1.5rem #80daff;
+  background: url('https://img.icons8.com/ios-glyphs/30/lol--v1.png') no-repeat 0 0.3rem/1.5rem 1.5rem #80daff;
 }
 
 #main_body .routine_total p span a.fail_done {
-  background: url('https://img.icons8.com/ios-glyphs/30/sad.png') no-repeat 0.5rem 0.5rem/1.5rem 1.5rem #f1afff;
+  background: url('https://img.icons8.com/ios-glyphs/30/sad.png') no-repeat 0 0.3rem/1.5rem 1.5rem #f1afff;
 }
 
 
 #main_body .routine_total p span a.ignored {
-  background: url('https://img.icons8.com/ios-glyphs/30/confused--v1.png') no-repeat 0.5rem 0.5rem/1.5rem 1.5rem #cfcfcf;
+  background: url('https://img.icons8.com/ios-glyphs/30/confused--v1.png') no-repeat 0 0.3rem/1.5rem 1.5rem #cfcfcf;
 }
 
 #main_body .routine_total .filter_row {
