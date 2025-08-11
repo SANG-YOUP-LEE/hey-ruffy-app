@@ -173,20 +173,8 @@
   font-size:0.9rem;
 }
 
-#main_body .routine_total .filter_row .filter_label button {
-  width:1.5rem;
-  height:1.5rem;
-  border:none;
-  border-radius:0;
-  background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
-}
-
-#main_body .routine_total .filter_row .filter_label button span {
-  display:none
-}
-
-#main_body .routine_total .filter_row .custom-radio {
-  margin-left:0.1rem
+#main_body .routine_total .filter_row .filter_buttons {
+ border:1px solid red;  
 }
 
 #main_body .routine_total .filter_row .today,
