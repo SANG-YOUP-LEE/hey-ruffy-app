@@ -4,15 +4,6 @@
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
-      <div v-if="displayedRoutines.length === 0" class="no_data">
-        <span v-if="routines.length === 0">
-          아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
-        </span>
-        <span v-else>
-          해당 조건에 맞는 다짐이 없어요.
-        </span>
-      </div>
-
       <template v-else>
         <MainDateScroll @selectDate="handleSelectDate" />
         <MainRoutineTotal
@@ -21,6 +12,15 @@
           @changeFilter="handleFilterChange"
           @showWeekly="showWeekly = true"
         />
+        
+        <div v-if="displayedRoutines.length === 0" class="no_data">
+          <span v-if="routines.length === 0">
+            아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
+          </span>
+          <span v-else>
+            해당 조건에 맞는 다짐이 없어요.
+          </span>
+        </div>
 
         <div
           v-if="selectedFilter === 'notdone' && notdoneCount === 0 && routines.length > 0"
