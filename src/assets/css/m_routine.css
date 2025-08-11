@@ -116,6 +116,7 @@
   border-top-left-radius:0;
   border-top-right-radius:0;
   margin-bottom:1rem;
+  border:1px solid #eaeaea
 }
 
 #main_body .routine_total p:first-child span em {
