@@ -132,12 +132,10 @@
   display: inline-flex;          
   align-items: center;          
   justify-content: center;
-  line-height:2.2rem;
   font-weight: bold;
-  padding:0 0.5rem 0 1.5rem;
+  padding:0.5rem 0.5rem 0.5rem 2rem;
   box-sizing: border-box;  
   border-radius:1rem;
-  color:#333!important;
   text-decoration:none;
 }
 
@@ -145,8 +143,11 @@
   display: none
 }
 
+#main_body .routine_total p span a em.t_on {
+  color:#333!important
+}
+
 #main_body .routine_total p span a.not_done {
-  color:#333!important;
   background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0.2rem 50%/1.5rem 1.5rem #fff;
 }
 
