@@ -45,16 +45,16 @@
 
       <div class="walk_group" v-show="!isWalkModeOff">
         <div ref="ruffyWrap">
-          <RoutineRuffySelector ref="ruffyRef" />
           <div v-if="fieldErrors.ruffy" class="warn-message t_red01">{{ fieldErrors.ruffy }}</div>
+          <RoutineRuffySelector ref="ruffyRef" />
         </div>
         <div ref="courseWrap">
-          <RoutineCourseSelector ref="courseRef" />
           <div v-if="fieldErrors.course" class="warn-message t_red01">{{ fieldErrors.course }}</div>
+          <RoutineCourseSelector ref="courseRef" />
         </div>
         <div ref="goalWrap">
-          <RoutineGoalCountSelector ref="goalRef" />
           <div v-if="fieldErrors.goal" class="warn-message t_red01">{{ fieldErrors.goal }}</div>
+          <RoutineGoalCountSelector ref="goalRef" />
         </div>
       </div>
 
@@ -209,7 +209,7 @@ function notU(v) { return v !== undefined }
 
 const hasWalk = computed(() => {
   if (isWalkModeOff.value) return false
-  return !!(ruffyRef.value?.ruffy || courseRef.value?.course || goalRef.value?.goalCount)
+  return !!(ruffyRef.value?.ruffy && courseRef.value?.course && goalRef.value?.goalCount)
 })
 
 function buildPayload() {
@@ -246,28 +246,34 @@ const validateRoutine = () => {
     showFieldError('repeat', '반복 주기를 선택해주세요.')
     return false
   }
-  const selectedTab = repeatRef.value.selectedTab
-  if (selectedTab === 'daily') {
-    if (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0) {
-      showFieldError('repeat', '일간 반복 주기를 선택해주세요.')
-      return false
-    }
+  const t = repeatRef.value.selectedTab
+  if (t === 'daily' && (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0)) {
+    showFieldError('repeat', '반복 주기를 선택해주세요.')
+    return false
   }
-  if (selectedTab === 'weekly') {
-    if (!repeatRef.value.selectedWeeklyMain) {
-      showFieldError('repeat', '주간 반복 주기를 선택해주세요.')
-      return false
-    }
-    if (!repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0) {
-      showFieldError('repeat', '반복할 요일을 하나 이상 선택해주세요.')
-      return false
-    }
+  if (t === 'weekly' && (!repeatRef.value.selectedWeeklyMain || !repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0)) {
+    showFieldError('repeat', '반복 주기를 선택해주세요.')
+    return false
   }
-  if (selectedTab === 'monthly') {
-    if (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0) {
-      showFieldError('repeat', '매월 반복할 날짜를 선택해주세요.')
-      return false
+  if (t === 'monthly' && (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0)) {
+    showFieldError('repeat', '반복 주기를 선택해주세요.')
+    return false
+  }
+  if (!isWalkModeOff.value) {
+    let invalid = false
+    if (!ruffyRef.value?.ruffy) {
+      showFieldError('ruffy', '러피를 선택해주세요.')
+      invalid = true
     }
+    if (!courseRef.value?.course) {
+      showFieldError('course', '코스를 선택해주세요.')
+      invalid = true
+    }
+    if (!goalRef.value?.goalCount) {
+      showFieldError('goal', '목표 횟수를 선택해주세요.')
+      invalid = true
+    }
+    if (invalid) return false
   }
   const selectedColor = priorityRef.value?.selectedColor ?? null
   if (selectedColor === null) {
