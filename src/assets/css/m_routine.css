@@ -109,7 +109,8 @@
 #main_body .routine_total p:first-child span:first-child {
   display:inline-block;
   background-color:#fff;
-  padding:0.5rem 1rem 0.5rem 1rem;
+  padding:0.25rem 1rem 0.25rem 1rem;
+  line-height:2.2rem;
   border-radius:1.5rem;
   border-top-left-radius:0;
   border-top-right-radius:0;
