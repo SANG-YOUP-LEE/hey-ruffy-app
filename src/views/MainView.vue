@@ -88,11 +88,20 @@ function dateKey(date, tz = 'Asia/Seoul') {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
 }
 
+function partsToYMD(o) {
+  const y = String(o.year || '').padStart(4, '0')
+  const m = String(o.month || '').padStart(2, '0')
+  const d = String(o.day || '').padStart(2, '0')
+  if (!y.trim() || !m.trim() || !d.trim()) return null
+  return `${y}-${m}-${d}`
+}
+
 function getYMDFromAny(v) {
   if (!v) return null
   if (typeof v === 'string') return v.slice(0, 10)
   if (v instanceof Date) return dateKey(v)
   if (typeof v.toDate === 'function') return dateKey(v.toDate())
+  if (typeof v === 'object' && 'year' in v && 'month' in v && 'day' in v) return partsToYMD(v)
   return null
 }
 
@@ -100,7 +109,9 @@ function inDateRange(r, date) {
   const ymd = dateKey(date)
   const s = getYMDFromAny(r.startDate || r.start || r.period?.start)
   const e = getYMDFromAny(r.endDate || r.end || r.period?.end)
-  return (!s || ymd >= s) && (!e || ymd <= e)
+  const afterStart = !s || ymd >= s
+  const beforeEnd = !e || ymd <= e
+  return afterStart && beforeEnd
 }
 
 function mapStatus(list, date) {
@@ -158,7 +169,8 @@ const displayedRoutines = computed(() => {
 
 const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
-  isFutureDate.value = isFuture
+  const today = dateKey(new Date())
+  isFutureDate.value = typeof isFuture === 'boolean' ? isFuture : dateKey(date) > today
 }
 
 const handleFilterChange = () => {
