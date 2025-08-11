@@ -25,37 +25,12 @@
         </template>
       </span>
     </p>
-
     <p class="filter_row">
-      <span class="filter_label">
-        <button @click="handleWeeklyClick"><span>주간다짐보기</span></button>
-      </span>
-      <span class="filter_radios">
-        <span class="today">Today</span>
-
-        <label class="custom-radio">
-          <input type="radio" name="filter" value="notdone" v-model="selectedRadio" />
-          <span class="circle"></span>
-        </label>
-        <span class="radio-text" @click="selectedRadio = 'notdone'">달성 전</span>
-
-        <label class="custom-radio">
-          <input type="radio" name="filter" value="done" v-model="selectedRadio" />
-          <span class="circle"></span>
-        </label>
-        <span class="radio-text" @click="selectedRadio = 'done'">달성 완료</span>
-
-        <label class="custom-radio">
-          <input type="radio" name="filter" value="faildone" v-model="selectedRadio" />
-          <span class="circle"></span>
-        </label>
-        <span class="radio-text" @click="selectedRadio = 'faildone'">달성 실패</span>
-
-        <label class="custom-radio">
-          <input type="radio" name="filter" value="ignored" v-model="selectedRadio" />
-          <span class="circle"></span>
-        </label>
-        <span class="radio-text" @click="selectedRadio = 'ignored'">흐린 눈</span>
+      <span class="filter_buttons">
+        <button type="button" :class="{ active: selectedRadio === 'notdone' }" @click="selectedRadio = 'notdone'">달성 전</button>
+        <button type="button" :class="{ active: selectedRadio === 'done' }" @click="selectedRadio = 'done'">달성 완료</button>
+        <button type="button" :class="{ active: selectedRadio === 'faildone' }" @click="selectedRadio = 'faildone'">달성 실패</button>
+        <button type="button" :class="{ active: selectedRadio === 'ignored' }" @click="selectedRadio = 'ignored'">흐린 눈</button>
       </span>
     </p>
   </div>
@@ -84,3 +59,5 @@ function handleWeeklyClick() {
   emit('showWeekly')
 }
 </script>
+
+
