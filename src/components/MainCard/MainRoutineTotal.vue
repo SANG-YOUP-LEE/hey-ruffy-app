@@ -58,7 +58,7 @@
   </div>
   <div class="today_tools">
     <div class="today">
-      <a href="#none" class="prev">전날</a>
+      <a href="#none" class="prev"><span>전날</span></a>
       08.12
       <a href="#none" class="next"><span>다음날</span></a>
     </div>
