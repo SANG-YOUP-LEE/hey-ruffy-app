@@ -466,11 +466,6 @@
   text-align: center;
 }
 
-#main_body .today_tools .today p {
-  width:11rem;
-  background-color:red
-}
-
 #main_body .today_tools a span {
   display: none;
 }
