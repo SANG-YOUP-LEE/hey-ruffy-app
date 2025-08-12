@@ -43,7 +43,7 @@ function fromTimestampOrNull(ts) {
 
 // ✅ 교체: normalize()
 export function normalize(doc) {
-  // 1) start/end 후보 모으기 (우선순위: 새필드 > 구필드 > createdAt)
+  // 1) start/end
   const startCand = [
     cleanISO(doc.start),
     toISODate(doc.startDate),
@@ -56,33 +56,57 @@ export function normalize(doc) {
 
   const start = startCand[0] || null;
   let end = endCand[0] || null;
-
-  // 종료가 시작보다 빠르면 무시
   if (start && end && end < start) end = null;
 
   const tz = doc.tz ?? "Asia/Seoul";
   const alarmTime = doc.alarmTime ?? parseAlarm(doc.ampm, doc.hour, doc.minute);
 
-  // 2) 반복 규칙
-  const freq = doc.repeatType === "monthly" ? "monthly"
-             : doc.repeatType === "weekly" ? "weekly"
-             : "daily";
+  // 2) 반복 규칙 정규화
+  // - 일간 탭에서 '매일'이면 daily
+  // - 일간 탭에서 요일(월/화/…)을 골랐다면 weekly(byWeekday)로 변환
+  // - 주간 탭은 weekly + interval(N주마다)
+  // - 월간 탭은 monthly + byMonthDay
+  const dailyDays = Array.isArray(doc.repeatDays) ? doc.repeatDays.map(String) : [];
+  const selectedEveryday = dailyDays.some(s => s.includes("매")); // '매일' 포함 여부
 
-  const interval = (() => {
-    const s = String(doc.repeatWeeks ?? "").trim(); // "2주마다", "매주" 등
-    const m = s.match(/(\d+)/);
-    return m ? Number(m[1]) : 1;
-  })();
+  let freq = "daily";
+  let interval = 1;
+  let byWeekday = undefined;
+  let byMonthDay = undefined;
 
-  const byWeekday = Array.isArray(doc.repeatWeekDays) && doc.repeatWeekDays.length
-    ? doc.repeatWeekDays.map(s => KOR_TO_ICS[String(s).replace(/['"]/g,"")]).filter(Boolean)
-    : undefined;
+  if (doc.repeatType === "weekly") {
+    freq = "weekly";
+    const m = String(doc.repeatWeeks ?? "").match(/(\d+)/);
+    interval = m ? Number(m[1]) : 1;
+    if (Array.isArray(doc.repeatWeekDays) && doc.repeatWeekDays.length) {
+      byWeekday = doc.repeatWeekDays
+        .map(s => KOR_TO_ICS[String(s).replace(/['"]/g,"")])
+        .filter(Boolean);
+    }
+  } else if (doc.repeatType === "monthly") {
+    freq = "monthly";
+    interval = 1;
+    if (Array.isArray(doc.repeatMonthDays) && doc.repeatMonthDays.length) {
+      byMonthDay = doc.repeatMonthDays
+        .map(n => Number(n))
+        .filter(n => Number.isInteger(n) && n >= 1 && n <= 31);
+    }
+  } else {
+    // daily 탭
+    if (selectedEveryday || dailyDays.length === 0) {
+      freq = "daily";
+      interval = 1;
+    } else {
+      // '월', '화' … 선택 → 주간 규칙으로 변환
+      freq = "weekly";
+      interval = 1;
+      byWeekday = dailyDays
+        .map(s => KOR_TO_ICS[String(s).replace(/['"]/g,"")])
+        .filter(Boolean);
+    }
+  }
 
-  const byMonthDay = Array.isArray(doc.repeatMonthDays) && doc.repeatMonthDays.length
-    ? doc.repeatMonthDays.map(n => Number(n)).filter(n => Number.isInteger(n) && n >= 1 && n <= 31)
-    : undefined;
-
-  // anchor는 반드시 유효한 ISO로 (없으면 start를 anchor로, start도 없으면 createdAt 또는 오늘)
+  // anchor
   const fallbackToday = (() => {
     const d = new Date();
     const p = n => String(n).padStart(2, "0");
@@ -105,12 +129,10 @@ export function normalize(doc) {
   };
 }
 
-
-// 로컬 날짜 객체 (기기 TZ 사용)
-// 한국에서 사용한다고 가정. 해외 사용 시 dayjs-tz 권장.
+// 로컬 날짜 객체
 function dateFromISO(iso) {
   const [y,m,d] = iso.split("-").map(Number);
-  return new Date(y, m - 1, d); // 00:00 local
+  return new Date(y, m - 1, d);
 }
 
 function isoKey(date) {
@@ -118,32 +140,31 @@ function isoKey(date) {
   return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`;
 }
 
-function diffDays(aISO, bISO) { // b - a (days)
+function diffDays(aISO, bISO) {
   const A = dateFromISO(aISO), B = dateFromISO(bISO);
-  const ms = B - A;
-  return Math.floor(ms / 86400000);
+  return Math.floor((B - A) / 86400000);
 }
 
-function diffMonths(aISO, bISO) { // b - a (months)
+function diffMonths(aISO, bISO) {
   const [ay, am] = aISO.split("-").map(Number);
   const [by, bm] = bISO.split("-").map(Number);
   return (by - ay) * 12 + (bm - am);
 }
 
-function weekdayISO(iso) { // "SU".."SA"
+function weekdayISO(iso) {
   const d = dateFromISO(iso).getDay(); // 0:Sun
   return ICS_LIST[d];
 }
 
-// 날짜가 start~end 사이인지(종료 미지정이면 무한)
+// start~end 범위 체크
 export function isActive(dateISO, startISO, endISO) {
   if (!startISO) return true;
-  if (diffDays(startISO, dateISO) < 0) return false;   // before start
+  if (diffDays(startISO, dateISO) < 0) return false;        // before start
   if (endISO && diffDays(dateISO, endISO) < 0) return false; // after end
   return true;
 }
 
-// 해당 날짜가 규칙에 해당하는지
+// 규칙 매칭 여부
 export function isDue(dateISO, rule, anchorISO) {
   if (!rule || !anchorISO) return false;
   const interval = rule.interval ?? 1;
@@ -154,15 +175,17 @@ export function isDue(dateISO, rule, anchorISO) {
   }
 
   if (rule.freq === "weekly") {
+    if (!Array.isArray(rule.byWeekday) || rule.byWeekday.length === 0) return false; // ✅ 요일 없으면 매칭 금지
     const dow = weekdayISO(dateISO);
-    if (rule.byWeekday && !rule.byWeekday.includes(dow)) return false;
+    if (!rule.byWeekday.includes(dow)) return false;
     const weeks = Math.floor(diffDays(anchorISO, dateISO) / 7);
     return weeks >= 0 && weeks % interval === 0;
   }
 
   if (rule.freq === "monthly") {
+    if (!Array.isArray(rule.byMonthDay) || rule.byMonthDay.length === 0) return false; // ✅ 날짜 없으면 매칭 금지
     const day = Number(dateISO.slice(8,10));
-    if (rule.byMonthDay && !rule.byMonthDay.includes(day)) return false;
+    if (!rule.byMonthDay.includes(day)) return false;
     const months = diffMonths(anchorISO, dateISO);
     return months >= 0 && months % interval === 0;
   }
@@ -170,10 +193,10 @@ export function isDue(dateISO, rule, anchorISO) {
   return false;
 }
 
-// 선택: 다음 발생일 찾기(간단 스캔)
+// 다음 발생일
 export function nextOccurrence(rule, fromISO, anchorISO, untilISO=null) {
   let cursor = dateFromISO(fromISO);
-  for (let i = 0; i < 730; i++) { // 최대 2년 탐색
+  for (let i = 0; i < 730; i++) {
     const iso = isoKey(cursor);
     if (isDue(iso, rule, anchorISO)) return iso;
     cursor.setDate(cursor.getDate() + 1);
@@ -181,4 +204,3 @@ export function nextOccurrence(rule, fromISO, anchorISO, untilISO=null) {
   }
   return null;
 }
-
