@@ -174,7 +174,7 @@
 }
 
 #main_body .routine_total p span a.done {
-  background: url('../images/done.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
+  background: url('../images/ico_done.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
 }
 
 #main_body .routine_total p span a.done {
@@ -462,7 +462,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-family: 'S-CoreDream-6Bold';
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   text-align: center;
 }
 
