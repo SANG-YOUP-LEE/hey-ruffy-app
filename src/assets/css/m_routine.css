@@ -452,39 +452,40 @@
 #main_body .today_tools {
   margin-bottom: 1rem;
   display: flex;
-  justify-content: flex-end; 
-  position: relative; 
+  justify-content: flex-end;
+  align-items: center; /* 수직 중앙 정렬 */
+  position: relative;
 }
 
 #main_body .today_tools .today {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'S-CoreDream-6Bold';;
+  font-family: 'S-CoreDream-6Bold';
   font-size: 1.4rem;
   text-align: center;
 }
 
 #main_body .today_tools a span {
-  display:none
+  display: none;
 }
 
 #main_body .today_tools a {
-  width:2rem;
-  height:2rem;
-  display:inline-block;
+  width: 2rem;
+  height: 2rem;
+  display: inline-block;
 }
 
 #main_body .today_tools a.prev {
-  background: url('https://img.icons8.com/fluency-systems-regular/50/left-squared.png') no-repeat 0 0/100%
+  background: url('https://img.icons8.com/fluency-systems-regular/50/left-squared.png') no-repeat 0 0/100%;
 }
 #main_body .today_tools a.next {
-  background: url('https://img.icons8.com/fluency-systems-regular/50/right-squared.png') no-repeat 0 0/100%
+  background: url('https://img.icons8.com/fluency-systems-regular/50/right-squared.png') no-repeat 0 0/100%;
 }
 #main_body .today_tools a.move {
-  background: url('https://img.icons8.com/windows/32/counterflow.png') no-repeat 0 0/100%
+  background: url('https://img.icons8.com/windows/32/counterflow.png') no-repeat 0 0/100%;
 }
 
 #main_body .tools {
-  margin-left: auto; 
+  margin-left: auto;
 }
