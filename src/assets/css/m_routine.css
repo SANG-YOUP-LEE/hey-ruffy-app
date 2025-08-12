@@ -469,27 +469,19 @@
   display:none
 }
 
-#main_body .today_tools .today a {
-  width:1rem;
-  height:1rem;
-  display:inline-block;
-  border:1px solid red;
-}
-
-#main_body .today_tools .tools a {
+#main_body .today_tools a {
   width:2rem;
   height:2rem;
   display:inline-block;
-  border:1px solid green;
 }
 
-#main_body .today_tools .today a.prev {
+#main_body .today_tools a.prev {
   background: url('https://img.icons8.com/fluency-systems-regular/50/left-squared.png') no-repeat 0 0/100%
 }
-#main_body .today_tools .today a.next {
+#main_body .today_tools a.next {
   background: url('https://img.icons8.com/fluency-systems-regular/50/right-squared.png') no-repeat 0 0/100%
 }
-#main_body .today_tools .today a.move {
+#main_body .today_tools a.move {
   background: url('https://img.icons8.com/windows/32/counterflow.png') no-repeat 0 0/100%
 }
 
