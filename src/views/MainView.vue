@@ -41,6 +41,7 @@
           :key="rt.id"
           :selected="getStatus(rt)"
           :routine="rt"
+          :isToday="isTodayDate"
           @changeStatus="onChangeStatus"
           @delete="onDelete"
           @edit="openEditRoutine"
@@ -92,6 +93,7 @@ const showWeekly = ref(false)
 
 const rawRoutines = ref([])
 const routines = ref([])
+const isTodayDate = computed(() => dateKey(selectedDate.value) === dateKey(new Date()))
 let currentUid = null
 
 let editingRoutine = ref(null)
