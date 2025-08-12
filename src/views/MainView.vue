@@ -4,24 +4,28 @@
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
-      <MainDateScroll @selectDate="handleSelectDate" />
+      <MainDateScroll
+        :selectedDate="selectedDate"
+        @selectDate="handleSelectDate"
+      />
+
       <MainRoutineTotal
         :isFuture="isFutureDate"
+        :selectedDate="selectedDate"
         v-model:modelValue="selectedFilter"
         :counts="countsForDate"
         :totalCount="totalCountForDate"
         @changeFilter="handleFilterChange"
         @showWeekly="showWeekly = true"
+        @requestPrev="handlePrev"
+        @requestNext="handleNext"
       />
 
-      <!-- ✅ 로딩/없음 분기만 교체 (디자인 유지) -->
-      <!-- 로딩 중에는 스켈레톤 -->
       <div v-if="isLoading && !showWeekly" class="skeleton-wrap">
         <div class="skeleton-card"></div>
         <div class="skeleton-card"></div>
       </div>
 
-      <!-- 스냅샷 도착 후에만 ‘없어요’ 판단 -->
       <div
         v-else-if="!showWeekly && hasFetched && displayedRoutines.length === 0"
         class="no_data"
@@ -80,8 +84,8 @@ import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 
-const isLoading = ref(true)      // ✅ 첫 구독 로딩상태
-const hasFetched = ref(false)    // ✅ 최소 1번 스냅샷 받았는지
+const isLoading = ref(true)
+const hasFetched = ref(false)
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
 const MAX_ROUTINES = 100
@@ -95,13 +99,11 @@ const rawRoutines = ref([])
 const routines = ref([])
 const isTodayDate = computed(() => dateKey(selectedDate.value) === dateKey(new Date()))
 let currentUid = null
-
 let editingRoutine = ref(null)
 
 function dateKey(date, tz = 'Asia/Seoul') {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
 }
-
 function getYMDFromAny(v) {
   if (!v) return null
   if (typeof v === 'string') return v.slice(0, 10)
@@ -109,20 +111,14 @@ function getYMDFromAny(v) {
   if (typeof v.toDate === 'function') return dateKey(v.toDate())
   return null
 }
-
 function inDateRange(r, date) {
   const ymd = dateKey(date)
   const startISO = r.start || getYMDFromAny(r.startDate || r.period?.start)
   const endISO   = r.end   || getYMDFromAny(r.endDate   || r.period?.end)
-  const rule     = r.rule || { freq: 'daily', interval: 1, anchor: startISO } // ✅ 가드
+  const rule     = r.rule || { freq: 'daily', interval: 1, anchor: startISO }
   const anchor   = rule.anchor || startISO
-
-  return (
-    isActiveRule(ymd, startISO, endISO) &&
-    isDue(ymd, rule, anchor)
-  )
+  return isActiveRule(ymd, startISO, endISO) && isDue(ymd, rule, anchor)
 }
-
 function mapStatus(list, date) {
   const key = dateKey(date)
   return list.map(r => {
@@ -130,7 +126,6 @@ function mapStatus(list, date) {
     return { ...r, status: st }
   })
 }
-
 function getStatus(r) {
   return r?.status || 'notdone'
 }
@@ -138,14 +133,12 @@ function getStatus(r) {
 const inRangeRoutinesForDate = computed(() =>
   rawRoutines.value.filter(r => inDateRange(r, selectedDate.value))
 )
-
 const pausedRoutinesForDate = computed(() =>
   inRangeRoutinesForDate.value.filter(r => !!r.isPaused)
 )
 const activeNonPausedForDate = computed(() =>
   inRangeRoutinesForDate.value.filter(r => !r.isPaused)
 )
-
 const activeWithStatus = computed(() =>
   mapStatus(activeNonPausedForDate.value, selectedDate.value)
 )
@@ -182,13 +175,12 @@ const handleSelectDate = (date, isFuture) => {
   selectedFilter.value = 'notdone'
   showWeekly.value = false
 }
-
 const handleFilterChange = () => {
   showWeekly.value = false
 }
 
 function onSaved(rt) {
-  const norm = normalize(rt) // ✅ 정규화
+  const norm = normalize(rt)
   const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
   if (idx === -1) {
     rawRoutines.value = [{ ...norm }, ...rawRoutines.value]
@@ -209,9 +201,7 @@ async function onChangeStatus({ id, status }) {
       [`progress.${key}`]: status,
       updatedAt: serverTimestamp(),
     })
-  } catch (e) {
-    console.error('update status failed:', e)
-  }
+  } catch (e) {}
   const j = rawRoutines.value.findIndex(r => r.id === id)
   if (j !== -1) {
     const next = { ...rawRoutines.value[j] }
@@ -229,10 +219,7 @@ async function onTogglePause({ id, isPaused }) {
       isPaused: !!isPaused,
       updatedAt: serverTimestamp(),
     })
-  } catch (e) {
-    console.error('toggle pause failed:', e)
-    return
-  }
+  } catch (e) { return }
   const j = rawRoutines.value.findIndex(r => r.id === id)
   if (j !== -1) {
     const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
@@ -241,42 +228,28 @@ async function onTogglePause({ id, isPaused }) {
 }
 
 async function onDelete(payload) {
-  // payload가 단순 id 문자열인지, 객체인지 둘 다 처리
-  const id = typeof payload === 'string' ? payload : payload?.id;
-  console.log('[delete] called. uid =', currentUid, 'id =', id);
-
+  const id = typeof payload === 'string' ? payload : payload?.id
   if (!currentUid || !id) {
-    console.error('[delete] invalid params', { currentUid, id });
-    alert('삭제 실패: 잘못된 ID입니다.');
-    return;
+    alert('삭제 실패: 잘못된 ID입니다.')
+    return
   }
-
-  const refPath = `users/${currentUid}/routines/${id}`;
   try {
-    console.log('[delete] try path =', refPath);
-    await deleteDoc(doc(db, 'users', currentUid, 'routines', id));
-    console.log('[delete] success:', id);
-    // 성공 후 로컬 목록에서 제거
-    rawRoutines.value = rawRoutines.value.filter(r => r.id !== id);
+    await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
+    rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
   } catch (e) {
-    console.error('[delete] firestore error:', e);
-    alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.');
+    alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.')
   }
 }
 
 function openAddRoutine() {
   window.dispatchEvent(new Event('close-other-popups'))
   editingRoutine.value = null
-
-  const MAX_ROUTINES = 100
   if (rawRoutines.value.length >= MAX_ROUTINES) {
     alert(`다짐은 최대 ${MAX_ROUTINES}개까지 만들 수 있어요.`)
     return
   }
-
   isAddRoutineOpen.value = true
 }
-
 function openEditRoutine(rt) {
   window.dispatchEvent(new Event('close-other-popups'))
   editingRoutine.value = rt
@@ -287,7 +260,6 @@ function setVh() {
   const vh = window.innerHeight * 0.01
   document.documentElement.style.setProperty('--vh', `${vh}px`)
 }
-
 function refreshMain() {
   window.location.reload()
 }
@@ -297,45 +269,31 @@ let stopRoutines = null
 
 const bindRoutines = (uid) => {
   if (stopRoutines) {
-    stopRoutines();
-    stopRoutines = null;
+    stopRoutines()
+    stopRoutines = null
   }
-
-  isLoading.value = true;   // ✅ 시작 시 로딩 ON
-  hasFetched.value = false; // ✅ 초기화
-
+  isLoading.value = true
+  hasFetched.value = false
   const q = query(
     collection(db, 'users', uid, 'routines'),
     orderBy('createdAt', 'desc')
-  );
-
+  )
   stopRoutines = onSnapshot(
     q,
     (snap) => {
-      const list = [];
-      snap.forEach((d) => list.push({ id: d.id, ...normalize(d.data()) }));
-
-      console.log('[routines] count:', list.length);
-      list.forEach((r) => {
-        console.log('▶', r.title, 'start:', r.start, 'end:', r.end, 'rule:', r.rule);
-      });
-
-      rawRoutines.value = list;
-      isLoading.value = false; // ✅ 데이터 도착 → 로딩 OFF
-      hasFetched.value = true; // ✅ 첫 스냅샷 수신
+      const list = []
+      snap.forEach((d) => list.push({ id: d.id, ...normalize(d.data()) }))
+      rawRoutines.value = list
+      isLoading.value = false
+      hasFetched.value = true
     },
-    (err) => {
-      console.error('routines subscription error:', err);
-      rawRoutines.value = [];
-      isLoading.value = false; // ✅ 에러 시 로딩 OFF
-      hasFetched.value = true; // ✅ 에러여도 판정 가능
+    () => {
+      rawRoutines.value = []
+      isLoading.value = false
+      hasFetched.value = true
     }
-  );
-};
-
-watch(selectedDate, () => {
-  routines.value = [...activeWithStatus.value, ...pausedWithStatus.value]
-})
+  )
+}
 
 onMounted(() => {
   setVh()
@@ -354,10 +312,24 @@ onMounted(() => {
     }
   })
 })
-
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
 })
+
+function startOfDay(d){ const nd=new Date(d); nd.setHours(0,0,0,0); return nd }
+function addDays(d, days){ const nd=new Date(d); nd.setDate(nd.getDate()+days); nd.setHours(0,0,0,0); return nd }
+function isTodayDateFn(d){ return startOfDay(d).getTime()===startOfDay(new Date()).getTime() }
+
+function handlePrev() {
+  const d = addDays(selectedDate.value, -1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
+function handleNext() {
+  const d = addDays(selectedDate.value, 1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
 </script>
