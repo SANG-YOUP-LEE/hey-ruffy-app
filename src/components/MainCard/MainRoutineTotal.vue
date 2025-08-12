@@ -56,104 +56,54 @@
       </span>
     </p>
   </div>
-  <div class="today_tools">
+    <div class="today_tools">
     <div class="today">
       <p>
         <a 
           href="#none" 
           class="prev" 
           :class="{ hidden: isToday }" 
-          @click.prevent="goPrev"
-        >
-          <span>전날</span>
-        </a>
+          @click.prevent="$emit('requestPrev')"
+        ><span>전날</span></a>
         {{ formattedDate }}
-        <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
+        <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>다음날</span></a>
       </p>
     </div>
     <div class="tools">
-      <!--a href="#none" class="weekly"><span>주간보기</span></a-->
       <a href="#none" class="move"><span>다짐이동</span></a>
     </div>
   </div>
-
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
-const emit = defineEmits(['update:modelValue', 'changeFilter', 'showWeekly'])
+const emit = defineEmits(['update:modelValue','changeFilter','showWeekly','requestPrev','requestNext'])
 const props = defineProps({
   isFuture: { type: Boolean, default: false },
-  // 주의: 주간보기(null)까지 허용
   modelValue: { type: [String, null], default: 'notdone' },
-
-  // 상위에서 내려줄 카운트(없으면 기본값으로 현재 화면처럼 보이게)
-  counts: {
-    type: Object,
-    default: null, // { notdone, done, faildone, ignored }
-  },
-  // 총합을 따로 내려줄 수도 있음(없으면 기본값 사용)
-  totalCount: {
-    type: Number,
-    default: null,
-  },
+  counts: { type: Object, default: null },
+  totalCount: { type: Number, default: null },
+  selectedDate: { type: Date, required: true }
 })
 
-// 상위에서 안 내려줘도 UI 틀어지지 않게 안전한 기본값
-const displayCounts = computed(() => {
-  return props.counts ?? { notdone: 5, done: 8, faildone: 8, ignored: 2 }
-})
-const displayTotal = computed(() => {
-  // 총합 props가 있으면 사용, 없으면 기본 15 유지
-  return props.totalCount ?? 15
-})
+const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
+const displayTotal = computed(() => props.totalCount ?? 15)
 
 const selectedRadio = computed({
   get: () => props.modelValue,
-  set: (v) => {
-    emit('update:modelValue', v)
-    emit('changeFilter', v)
-  }
+  set: (v) => { emit('update:modelValue', v); emit('changeFilter', v) }
 })
 
-function handleWeeklyClick() {
-  emit('update:modelValue', null)
-  emit('changeFilter', null)
-  emit('showWeekly')
-}
-
-// 날짜 상태
-const currentDate = ref(startOfDay(new Date()))
-const todayDate = startOfDay(new Date())
-
-const isToday = computed(() => currentDate.value.getTime() === todayDate.getTime())
+const isToday = computed(() => {
+  const a = new Date(props.selectedDate); a.setHours(0,0,0,0)
+  const b = new Date(); b.setHours(0,0,0,0)
+  return a.getTime() === b.getTime()
+})
 
 const formattedDate = computed(() => {
-  const d = currentDate.value
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  const dayName = dayNames[d.getDay()]
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}.${dayName}`
+  const d = props.selectedDate
+  const dayNames = ['일','월','화','수','목','금','토']
+  return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}.${dayNames[d.getDay()]}`
 })
-
-function goPrev() {
-  currentDate.value = addDays(currentDate.value, -1)
-}
-
-function goNext() {
-  currentDate.value = addDays(currentDate.value, 1)
-}
-
-// 유틸
-function startOfDay(d) {
-  const nd = new Date(d)
-  nd.setHours(0, 0, 0, 0)
-  return nd
-}
-function addDays(d, days) {
-  const nd = new Date(d)
-  nd.setDate(nd.getDate() + days)
-  nd.setHours(0, 0, 0, 0)
-  return nd
-}
 </script>
