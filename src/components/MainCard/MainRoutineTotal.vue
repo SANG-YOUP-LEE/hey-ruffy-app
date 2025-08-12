@@ -65,6 +65,8 @@
           :class="{ hidden: isToday }" 
           @click.prevent="goPrev"
         >
+          <span>전날</span>
+        </a>
         {{ formattedDate }}
         <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
       </p>
