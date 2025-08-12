@@ -14,8 +14,16 @@
         @showWeekly="showWeekly = true"
       />
 
+      <!-- ✅ 로딩/없음 분기만 교체 (디자인 유지) -->
+      <!-- 로딩 중에는 스켈레톤 -->
+      <div v-if="isLoading && !showWeekly" class="skeleton-wrap">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+
+      <!-- 스냅샷 도착 후에만 ‘없어요’ 판단 -->
       <div
-        v-if="!showWeekly && displayedRoutines.length === 0"
+        v-else-if="!showWeekly && hasFetched && displayedRoutines.length === 0"
         class="no_data"
       >
         <span v-if="rawRoutines.length === 0">
@@ -71,7 +79,8 @@ import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 
-const isLoading = ref(true) // ✅ 첫 구독 로딩상태
+const isLoading = ref(true)      // ✅ 첫 구독 로딩상태
+const hasFetched = ref(false)    // ✅ 최소 1번 스냅샷 받았는지
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
 
@@ -102,7 +111,7 @@ function inDateRange(r, date) {
   const ymd = dateKey(date)
   const startISO = r.start || getYMDFromAny(r.startDate || r.period?.start)
   const endISO   = r.end   || getYMDFromAny(r.endDate   || r.period?.end)
-  const rule     = r.rule || { freq: 'daily', interval: 1, anchor: startISO } // 가드 추가
+  const rule     = r.rule || { freq: 'daily', interval: 1, anchor: startISO } // ✅ 가드
   const anchor   = rule.anchor || startISO
 
   return (
@@ -176,7 +185,7 @@ const handleFilterChange = () => {
 }
 
 function onSaved(rt) {
-  const norm = normalize(rt) // 정규화 추가
+  const norm = normalize(rt) // ✅ 정규화
   const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
   if (idx === -1) {
     rawRoutines.value = [{ ...norm }, ...rawRoutines.value]
@@ -268,10 +277,15 @@ const bindRoutines = (uid) => {
     stopRoutines();
     stopRoutines = null;
   }
+
+  isLoading.value = true;   // ✅ 시작 시 로딩 ON
+  hasFetched.value = false; // ✅ 초기화
+
   const q = query(
     collection(db, 'users', uid, 'routines'),
     orderBy('createdAt', 'desc')
   );
+
   stopRoutines = onSnapshot(
     q,
     (snap) => {
@@ -280,23 +294,18 @@ const bindRoutines = (uid) => {
 
       console.log('[routines] count:', list.length);
       list.forEach((r) => {
-        console.log(
-          '▶',
-          r.title,
-          'start:',
-          r.start,
-          'end:',
-          r.end,
-          'rule:',
-          r.rule
-        );
+        console.log('▶', r.title, 'start:', r.start, 'end:', r.end, 'rule:', r.rule);
       });
 
       rawRoutines.value = list;
+      isLoading.value = false; // ✅ 데이터 도착 → 로딩 OFF
+      hasFetched.value = true; // ✅ 첫 스냅샷 수신
     },
     (err) => {
       console.error('routines subscription error:', err);
       rawRoutines.value = [];
+      isLoading.value = false; // ✅ 에러 시 로딩 OFF
+      hasFetched.value = true; // ✅ 에러여도 판정 가능
     }
   );
 };
@@ -317,6 +326,8 @@ onMounted(() => {
       currentUid = null
       rawRoutines.value = []
       if (stopRoutines) { stopRoutines(); stopRoutines = null }
+      isLoading.value = false
+      hasFetched.value = true
     }
   })
 })
