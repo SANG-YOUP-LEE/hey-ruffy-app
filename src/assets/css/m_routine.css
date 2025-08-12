@@ -490,6 +490,8 @@
   background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
 }
 
+#main_body .today_tools .today .prev.hidden { visibility: hidden; }
+
 #main_body .tools {
   margin-left: auto;
 }
