@@ -149,7 +149,7 @@
     </teleport>
 
     <teleport to="body">
-      <div v-if="showWalkPopup" class="com_popup_wrap">
+      <div v-if="showWalkPopup" class="com_popup_wrap walk_status">
         <div class="popup_inner alert">
           <div class="popup_tit"><h2>산책 현황</h2></div>
           <div class="popup_body">
