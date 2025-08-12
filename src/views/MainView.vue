@@ -83,6 +83,7 @@ const isLoading = ref(true)      // ✅ 첫 구독 로딩상태
 const hasFetched = ref(false)    // ✅ 최소 1번 스냅샷 받았는지
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
+const MAX_ROUTINES = 100
 
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
@@ -264,6 +265,13 @@ async function onDelete(payload) {
 function openAddRoutine() {
   window.dispatchEvent(new Event('close-other-popups'))
   editingRoutine.value = null
+
+  const MAX_ROUTINES = 100
+  if (rawRoutines.value.length >= MAX_ROUTINES) {
+    alert(`다짐은 최대 ${MAX_ROUTINES}개까지 만들 수 있어요.`)
+    return
+  }
+
   isAddRoutineOpen.value = true
 }
 
