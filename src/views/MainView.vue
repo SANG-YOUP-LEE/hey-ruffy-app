@@ -69,6 +69,7 @@ import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
+import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
@@ -97,11 +98,17 @@ function getYMDFromAny(v) {
 }
 
 function inDateRange(r, date) {
-  const ymd = dateKey(date)
-  const s = getYMDFromAny(r.startDate || r.start || r.period?.start)
-  const e = getYMDFromAny(r.endDate || r.end || r.period?.end)
-  return (!s || ymd >= s) && (!e || ymd <= e)
+  const ymd = dateKey(date) // "YYYY-MM-DD"
+  const startISO = r.start || getYMDFromAny(r.startDate || r.period?.start)
+  const endISO   = r.end   || getYMDFromAny(r.endDate   || r.period?.end)
+  const anchor   = (r.rule && r.rule.anchor) || startISO
+
+  return (
+    isActiveRule(ymd, startISO, endISO) &&           // 시작/종료 범위 안이고
+    isDue(ymd, r.rule, anchor)                       // 그 날짜가 규칙에 해당하면 통과
+  )
 }
+
 
 function mapStatus(list, date) {
   const key = dateKey(date)
@@ -260,14 +267,14 @@ const bindRoutines = (uid) => {
     collection(db, 'users', uid, 'routines'),
     orderBy('createdAt', 'desc')
   )
-  stopRoutines = onSnapshot(q, (snap) => {
-    const list = []
-    snap.forEach(d => list.push({ id: d.id, ...d.data() }))
-    rawRoutines.value = list
+ stopRoutines = onSnapshot(q, (snap) => {
+  const list = []
+  snap.forEach(d => list.push({ id: d.id, ...normalize(d.data()) })) // ✅ 정규화
+  rawRoutines.value = list
   }, (err) => {
-    console.error('routines subscription error:', err)
-    rawRoutines.value = []
-  })
+  console.error('routines subscription error:', err)
+  rawRoutines.value = []
+})
 }
 
 watch(selectedDate, () => {
