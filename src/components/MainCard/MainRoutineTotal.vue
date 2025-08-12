@@ -114,8 +114,6 @@ function handleWeeklyClick() {
   emit('showWeekly')
 }
 
-  import { ref, computed } from 'vue'
-
 // 날짜 상태
 const currentDate = ref(startOfDay(new Date()))
 const todayDate = startOfDay(new Date())
