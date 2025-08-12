@@ -23,51 +23,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 
 const emit = defineEmits(['selectDate'])
+const props = defineProps({
+  selectedDate: { type: Date, required: true }
+})
 
 const selectedIndex = ref(0)
-
 const today = new Date()
 
 const dateList = Array.from({ length: 30 }, (_, i) => {
   const d = new Date()
   d.setDate(today.getDate() + i)
+  d.setHours(0,0,0,0)
   return d
 })
-
 const filteredDateList = dateList.slice(1)
 
-const getDayLabel = (date) => {
-  const days = ['일', '월', '화', '수', '목', '금', '토']
-  return days[date.getDay()]
-}
+const getDayLabel = (date) => ['일','월','화','수','목','금','토'][date.getDay()]
+const isSameDay = (a,b)=> a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()
 
-const isToday = (date) => {
-  const now = new Date()
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  )
+const syncFromProp = () => {
+  const idx = dateList.findIndex(d => isSameDay(d, props.selectedDate))
+  selectedIndex.value = idx >= 0 ? idx : 0
 }
 
 const selectDate = (index) => {
   selectedIndex.value = index
   const selected = dateList[index]
   const now = new Date()
-  const isFuture = selected > now && !isToday(selected)
+  const isFuture = selected > now && !isSameDay(selected, now)
   emit('selectDate', selected, isFuture)
 }
 
-const selectToday = () => {
-  selectedIndex.value = 0
-  emit('selectDate', today, false)
-}
+const selectToday = () => { selectDate(0) }
 
-onMounted(() => {
-  selectedIndex.value = 0
-  emit('selectDate', today, false)
-})
+watch(() => props.selectedDate, syncFromProp, { immediate: true })
+onMounted(syncFromProp)
 </script>
