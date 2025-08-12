@@ -21,19 +21,55 @@ export function parseAlarm(ampm, hour, minute) {
   return `${String(h).padStart(2, "0")}:${mm}`; // "HH:mm"
 }
 
-// 레거시 → 신규 스키마 정규화
+// ✅ 추가 유틸
+function isISODate(s) {
+  return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+}
+function cleanISO(s) {
+  if (!isISODate(s)) return null;
+  if (s === "0000-00-00" || s === "0-0-0" || s.includes("NaN")) return null;
+  return s;
+}
+function fromTimestampOrNull(ts) {
+  try {
+    if (ts && typeof ts.toDate === "function") {
+      const d = ts.toDate();
+      const p = n => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+    }
+  } catch {}
+  return null;
+}
+
+// ✅ 교체: normalize()
 export function normalize(doc) {
-  const start = doc.start ?? toISODate(doc.startDate);
-  const end = doc.end ?? toISODate(doc.endDate) ?? null;
+  // 1) start/end 후보 모으기 (우선순위: 새필드 > 구필드 > createdAt)
+  const startCand = [
+    cleanISO(doc.start),
+    toISODate(doc.startDate),
+    fromTimestampOrNull(doc.createdAt),
+  ].filter(Boolean);
+  const endCand = [
+    cleanISO(doc.end),
+    toISODate(doc.endDate),
+  ].filter(Boolean);
+
+  const start = startCand[0] || null;
+  let end = endCand[0] || null;
+
+  // 종료가 시작보다 빠르면 무시
+  if (start && end && end < start) end = null;
+
   const tz = doc.tz ?? "Asia/Seoul";
   const alarmTime = doc.alarmTime ?? parseAlarm(doc.ampm, doc.hour, doc.minute);
 
+  // 2) 반복 규칙
   const freq = doc.repeatType === "monthly" ? "monthly"
              : doc.repeatType === "weekly" ? "weekly"
              : "daily";
 
   const interval = (() => {
-    const s = String(doc.repeatWeeks ?? "").trim(); // 예: "2주마다", "매주"
+    const s = String(doc.repeatWeeks ?? "").trim(); // "2주마다", "매주" 등
     const m = s.match(/(\d+)/);
     return m ? Number(m[1]) : 1;
   })();
@@ -46,7 +82,16 @@ export function normalize(doc) {
     ? doc.repeatMonthDays.map(n => Number(n)).filter(n => Number.isInteger(n) && n >= 1 && n <= 31)
     : undefined;
 
-  const rule = { freq, interval, anchor: start };
+  // anchor는 반드시 유효한 ISO로 (없으면 start를 anchor로, start도 없으면 createdAt 또는 오늘)
+  const fallbackToday = (() => {
+    const d = new Date();
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  })();
+  const createdISO = fromTimestampOrNull(doc.createdAt);
+  const anchor = cleanISO(doc?.rule?.anchor) || start || createdISO || fallbackToday;
+
+  const rule = { freq, interval, anchor };
   if (byWeekday) rule.byWeekday = byWeekday;
   if (byMonthDay) rule.byMonthDay = byMonthDay;
 
@@ -59,6 +104,7 @@ export function normalize(doc) {
     rule,
   };
 }
+
 
 // 로컬 날짜 객체 (기기 TZ 사용)
 // 한국에서 사용한다고 가정. 해외 사용 시 dayjs-tz 권장.
@@ -135,3 +181,4 @@ export function nextOccurrence(rule, fromISO, anchorISO, untilISO=null) {
   }
   return null;
 }
+

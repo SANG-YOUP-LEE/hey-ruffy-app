@@ -95,25 +95,26 @@ import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelec
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
-const props = defineProps({
-  routineToEdit: { type: Object, default: null }
-})
+const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
+const p = n => String(n).padStart(2,'0')
+function toISO(d){ if(!d) return null; return `${d.year}-${p(d.month)}-${p(d.day)}` }
+function weeklyDaysToICS(arr){ return (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean) }
+function parseInterval(s){ const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
+// ✅ 잘못된 ISO 문자열 방지
+function safeISOFromDateObj(obj){
+  const s = toISO(obj)
+  return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
+}
 
+const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
 
 const fieldErrors = ref({
-  title: '',
-  repeat: '',
-  date: '',
-  alarm: '',
-  ruffy: '',
-  course: '',
-  goal: '',
-  priority: '',
-  comment: ''
+  title: '', repeat: '', date: '', alarm: '',
+  ruffy: '', course: '', goal: '', priority: '', comment: ''
 })
 
 const errorTimers = {}
@@ -122,90 +123,27 @@ const ERROR_MS = 3000
 function showFieldError(key, msg) {
   fieldErrors.value[key] = msg
   if (errorTimers[key]) clearTimeout(errorTimers[key])
-  errorTimers[key] = setTimeout(() => {
-    fieldErrors.value[key] = ''
-    delete errorTimers[key]
-  }, ERROR_MS)
-  const wrapRefMap = {
-    title: titleWrap,
-    repeat: repeatWrap,
-    date: dateWrap,
-    alarm: alarmWrap,
-    ruffy: ruffyWrap,
-    course: courseWrap,
-    goal: goalWrap,
-    priority: priorityWrap,
-    comment: commentWrap
-  }
-  const el = wrapRefMap[key]?.value
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  errorTimers[key] = setTimeout(() => { fieldErrors.value[key] = ''; delete errorTimers[key] }, ERROR_MS)
+  const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, comment: commentWrap }
+  const el = wrapRefMap[key]?.value; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 function clearAllFieldErrors() {
-  Object.keys(fieldErrors.value).forEach(k => {
-    fieldErrors.value[k] = ''
-    if (errorTimers[k]) clearTimeout(errorTimers[k])
-    delete errorTimers[k]
-  })
+  Object.keys(fieldErrors.value).forEach(k => { fieldErrors.value[k] = ''; if (errorTimers[k]) clearTimeout(errorTimers[k]); delete errorTimers[k] })
 }
 
-const titleRef = ref()
-const repeatRef = ref()
-const dateRef = ref()
-const alarmRef = ref()
-const ruffyRef = ref()
-const courseRef = ref()
-const goalRef = ref()
-const priorityRef = ref()
-const commentRef = ref()
-
-const titleWrap = ref()
-const repeatWrap = ref()
-const dateWrap = ref()
-const alarmWrap = ref()
-const ruffyWrap = ref()
-const courseWrap = ref()
-const goalWrap = ref()
-const priorityWrap = ref()
-const commentWrap = ref()
+const titleRef = ref(); const repeatRef = ref(); const dateRef = ref(); const alarmRef = ref()
+const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const commentRef = ref()
+const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
+const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const commentWrap = ref()
 
 let scrollY = 0
+const preventTouchMove = (e) => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
+const lockScroll = () => { scrollY = window.scrollY; document.documentElement.classList.add('no-scroll'); document.body.classList.add('no-scroll'); document.body.style.top = `-${scrollY}px`; document.body.style.left = '0'; document.body.style.right = '0'; document.body.style.width = '100%'; document.body.style.position = 'fixed'; window.addEventListener('touchmove', preventTouchMove, { passive: false }) }
+const unlockScroll = () => { document.documentElement.classList.remove('no-scroll'); document.body.classList.remove('no-scroll'); document.body.style.position = ''; document.body.style.top=''; document.body.style.left=''; document.body.style.right=''; document.body.style.width=''; document.body.style.overflow=''; window.removeEventListener('touchmove', preventTouchMove); window.scrollTo(0, scrollY) }
+const closePopup = () => { unlockScroll(); emit('close') }
 
-const preventTouchMove = (e) => {
-  if (!e.target.closest('.popup_wrap')) e.preventDefault()
-}
-
-const lockScroll = () => {
-  scrollY = window.scrollY
-  document.documentElement.classList.add('no-scroll')
-  document.body.classList.add('no-scroll')
-  document.body.style.top = `-${scrollY}px`
-  document.body.style.left = '0'
-  document.body.style.right = '0'
-  document.body.style.width = '100%'
-  document.body.style.position = 'fixed'
-  window.addEventListener('touchmove', preventTouchMove, { passive: false })
-}
-
-const unlockScroll = () => {
-  document.documentElement.classList.remove('no-scroll')
-  document.body.classList.remove('no-scroll')
-  document.body.style.position = ''
-  document.body.style.top = ''
-  document.body.style.left = ''
-  document.body.style.right = ''
-  document.body.style.width = ''
-  document.body.style.overflow = ''
-  window.removeEventListener('touchmove', preventTouchMove)
-  window.scrollTo(0, scrollY)
-}
-
-const closePopup = () => {
-  unlockScroll()
-  emit('close')
-}
-
-function notU(v) { return v !== undefined }
+function notU(v){ return v !== undefined }
 
 const hasWalk = computed(() => {
   if (isWalkModeOff.value) return false
@@ -213,10 +151,10 @@ const hasWalk = computed(() => {
 })
 
 function buildPayload() {
-  const repeatType = repeatRef.value?.selectedTab
-  const payload = {
+  const repeatType = repeatRef.value?.selectedTab ?? 'daily'
+  const base = {
     title: titleRef.value?.title ?? '',
-    repeatType: repeatType ?? 'daily',
+    repeatType,
     repeatDays: repeatType === 'daily' ? [...(repeatRef.value?.selectedDaily ?? [])] : [],
     repeatWeeks: repeatType === 'weekly' ? (repeatRef.value?.selectedWeeklyMain ?? '') : '',
     repeatWeekDays: repeatType === 'weekly' ? [...(repeatRef.value?.selectedWeeklyDays ?? [])] : [],
@@ -231,55 +169,45 @@ function buildPayload() {
     comment: commentRef.value?.comment ?? '',
     hasWalk: hasWalk.value
   }
+
+  // ✅ 안전한 ISO 계산 (빈값/가짜값 방지)
+  const todayISO = new Date().toISOString().slice(0,10)
+  const startISO = safeISOFromDateObj(base.startDate) || todayISO
+  const endISO   = safeISOFromDateObj(base.endDate) || null
+
+  const interval = parseInterval(base.repeatWeeks)
+  const rule = {
+    freq: repeatType,
+    interval,
+    anchor: startISO,
+    ...(repeatType === 'weekly'  ? { byWeekday: weeklyDaysToICS(base.repeatWeekDays) } : {}),
+    ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays||[]).map(Number) } : {})
+  }
+
   const cleaned = {}
-  Object.entries(payload).forEach(([k, v]) => { if (notU(v)) cleaned[k] = v })
+  Object.entries({ ...base, tz:'Asia/Seoul', start:startISO, end:endISO, rule })
+    .forEach(([k,v]) => { if (notU(v)) cleaned[k] = v })
+
   return cleaned
 }
 
 const validateRoutine = () => {
   clearAllFieldErrors()
-  if (!titleRef.value?.title || titleRef.value.title.trim() === '') {
-    showFieldError('title', '다짐 제목을 입력해주세요.')
-    return false
-  }
-  if (!repeatRef.value?.selectedTab) {
-    showFieldError('repeat', '반복 주기를 선택해주세요.')
-    return false
-  }
+  if (!titleRef.value?.title || titleRef.value.title.trim() === '') { showFieldError('title','다짐 제목을 입력해주세요.'); return false }
+  if (!repeatRef.value?.selectedTab) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
   const t = repeatRef.value.selectedTab
-  if (t === 'daily' && (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0)) {
-    showFieldError('repeat', '반복 주기를 선택해주세요.')
-    return false
-  }
-  if (t === 'weekly' && (!repeatRef.value.selectedWeeklyMain || !repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0)) {
-    showFieldError('repeat', '반복 주기를 선택해주세요.')
-    return false
-  }
-  if (t === 'monthly' && (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0)) {
-    showFieldError('repeat', '반복 주기를 선택해주세요.')
-    return false
-  }
+  if (t === 'daily' && (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
+  if (t === 'weekly' && (!repeatRef.value.selectedWeeklyMain || !repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
+  if (t === 'monthly' && (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
   if (!isWalkModeOff.value) {
     let invalid = false
-    if (!ruffyRef.value?.ruffy) {
-      showFieldError('ruffy', '러피를 선택해주세요.')
-      invalid = true
-    }
-    if (!courseRef.value?.course) {
-      showFieldError('course', '코스를 선택해주세요.')
-      invalid = true
-    }
-    if (!goalRef.value?.goalCount) {
-      showFieldError('goal', '목표 횟수를 선택해주세요.')
-      invalid = true
-    }
+    if (!ruffyRef.value?.ruffy) { showFieldError('ruffy','러피를 선택해주세요.'); invalid = true }
+    if (!courseRef.value?.course) { showFieldError('course','코스를 선택해주세요.'); invalid = true }
+    if (!goalRef.value?.goalCount) { showFieldError('goal','목표 횟수를 선택해주세요.'); invalid = true }
     if (invalid) return false
   }
   const selectedColor = priorityRef.value?.selectedColor ?? null
-  if (selectedColor === null) {
-    showFieldError('priority', '다짐 색상을 선택해주세요.')
-    return false
-  }
+  if (selectedColor === null) { showFieldError('priority','다짐 색상을 선택해주세요.'); return false }
   return true
 }
 
@@ -289,7 +217,9 @@ const saveRoutine = async () => {
     const auth = getAuth()
     const user = auth.currentUser
     if (!user) throw new Error('로그인이 필요합니다.')
+
     const payload = buildPayload()
+
     if (isEditMode.value && props.routineToEdit?.id) {
       await setDoc(
         doc(db, 'users', user.uid, 'routines', props.routineToEdit.id),
@@ -299,9 +229,14 @@ const saveRoutine = async () => {
       emit('save', { id: props.routineToEdit.id, ...payload })
     } else {
       const colRef = collection(db, 'users', user.uid, 'routines')
-      const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp() })
+      const docRef = await addDoc(colRef, {
+        ...payload,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
       emit('save', { id: docRef.id, ...payload })
     }
+
     unlockScroll()
     emit('close')
   } catch (err) {
@@ -331,3 +266,4 @@ onBeforeUnmount(() => {
   clearAllFieldErrors()
 })
 </script>
+

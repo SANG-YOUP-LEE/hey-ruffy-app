@@ -71,6 +71,7 @@ import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 
+const isLoading = ref(true) // ✅ 첫 구독 로딩상태
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
 
@@ -98,17 +99,17 @@ function getYMDFromAny(v) {
 }
 
 function inDateRange(r, date) {
-  const ymd = dateKey(date) // "YYYY-MM-DD"
+  const ymd = dateKey(date)
   const startISO = r.start || getYMDFromAny(r.startDate || r.period?.start)
   const endISO   = r.end   || getYMDFromAny(r.endDate   || r.period?.end)
-  const anchor   = (r.rule && r.rule.anchor) || startISO
+  const rule     = r.rule || { freq: 'daily', interval: 1, anchor: startISO } // 가드 추가
+  const anchor   = rule.anchor || startISO
 
   return (
-    isActiveRule(ymd, startISO, endISO) &&           // 시작/종료 범위 안이고
-    isDue(ymd, r.rule, anchor)                       // 그 날짜가 규칙에 해당하면 통과
+    isActiveRule(ymd, startISO, endISO) &&
+    isDue(ymd, rule, anchor)
   )
 }
-
 
 function mapStatus(list, date) {
   const key = dateKey(date)
@@ -175,11 +176,12 @@ const handleFilterChange = () => {
 }
 
 function onSaved(rt) {
+  const norm = normalize(rt) // 정규화 추가
   const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
   if (idx === -1) {
-    rawRoutines.value = [{ ...rt }, ...rawRoutines.value]
+    rawRoutines.value = [{ ...norm }, ...rawRoutines.value]
   } else {
-    rawRoutines.value.splice(idx, 1, { ...rawRoutines.value[idx], ...rt })
+    rawRoutines.value.splice(idx, 1, { ...rawRoutines.value[idx], ...norm })
   }
   isAddRoutineOpen.value = false
   editingRoutine.value = null
@@ -262,20 +264,42 @@ let stopAuth = null
 let stopRoutines = null
 
 const bindRoutines = (uid) => {
-  if (stopRoutines) { stopRoutines(); stopRoutines = null }
+  if (stopRoutines) {
+    stopRoutines();
+    stopRoutines = null;
+  }
   const q = query(
     collection(db, 'users', uid, 'routines'),
     orderBy('createdAt', 'desc')
-  )
- stopRoutines = onSnapshot(q, (snap) => {
-  const list = []
-  snap.forEach(d => list.push({ id: d.id, ...normalize(d.data()) })) // ✅ 정규화
-  rawRoutines.value = list
-  }, (err) => {
-  console.error('routines subscription error:', err)
-  rawRoutines.value = []
-})
-}
+  );
+  stopRoutines = onSnapshot(
+    q,
+    (snap) => {
+      const list = [];
+      snap.forEach((d) => list.push({ id: d.id, ...normalize(d.data()) }));
+
+      console.log('[routines] count:', list.length);
+      list.forEach((r) => {
+        console.log(
+          '▶',
+          r.title,
+          'start:',
+          r.start,
+          'end:',
+          r.end,
+          'rule:',
+          r.rule
+        );
+      });
+
+      rawRoutines.value = list;
+    },
+    (err) => {
+      console.error('routines subscription error:', err);
+      rawRoutines.value = [];
+    }
+  );
+};
 
 watch(selectedDate, () => {
   routines.value = [...activeWithStatus.value, ...pausedWithStatus.value]
