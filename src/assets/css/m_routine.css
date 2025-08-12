@@ -449,13 +449,13 @@
   background-size:100%!important
 }
 
-#main_body .toady_tools {
+#main_body .today_tools {
   margin-bottom: 1rem;
   display: flex;
   justify-content: center;
 }
 
-#main_body .toady_tools .today {
+#main_body .today_tools .today {
   font-family:'S-CoreDream-6Bold'
 }
 
