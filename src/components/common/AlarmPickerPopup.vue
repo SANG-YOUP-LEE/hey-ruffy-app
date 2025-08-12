@@ -27,7 +27,7 @@
           :options="minuteLoopOptions"
           :drag-sensitivity="1"
           :touch-sensitivity="1"
-          :scroll-sensitivity="1"
+          :scroll-sensitivity="4"
         />
       </div>
       <div class="popup_btm">
