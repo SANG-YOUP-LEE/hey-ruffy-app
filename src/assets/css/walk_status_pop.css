@@ -1,7 +1,7 @@
 .com_popup_wrap.walk_status .popup_inner {
-  width:90vw;
-  height:90vh;
-  height:90dvh;
+  width:100vw;
+  height:80vh;
+  height:80dvh;
   background-color:Red;
 }
 
