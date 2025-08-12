@@ -11,9 +11,9 @@
         <VueScrollPicker
           v-model="localValue.ampm"
           :options="ampmOptions"
-          :drag-sensitivity="3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
+          :drag-sensitivity="1"
+          :touch-sensitivity="1"
+          :scroll-sensitivity="1"
         />
         <VueScrollPicker
           v-model="selectedHour"
@@ -25,8 +25,8 @@
         <VueScrollPicker
           v-model="selectedMinute"
           :options="minuteLoopOptions"
-          :drag-sensitivity="1"
-          :touch-sensitivity="1"
+          :drag-sensitivity="3"
+          :touch-sensitivity="2"
           :scroll-sensitivity="4"
         />
       </div>
