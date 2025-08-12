@@ -237,15 +237,28 @@ async function onTogglePause({ id, isPaused }) {
   }
 }
 
-async function onDelete(id) {
-  if (!currentUid) return
-  try {
-    await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
-  } catch (e) {
-    console.error('delete routine failed:', e)
-    return
+async function onDelete(payload) {
+  // payload가 단순 id 문자열인지, 객체인지 둘 다 처리
+  const id = typeof payload === 'string' ? payload : payload?.id;
+  console.log('[delete] called. uid =', currentUid, 'id =', id);
+
+  if (!currentUid || !id) {
+    console.error('[delete] invalid params', { currentUid, id });
+    alert('삭제 실패: 잘못된 ID입니다.');
+    return;
   }
-  rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
+
+  const refPath = `users/${currentUid}/routines/${id}`;
+  try {
+    console.log('[delete] try path =', refPath);
+    await deleteDoc(doc(db, 'users', currentUid, 'routines', id));
+    console.log('[delete] success:', id);
+    // 성공 후 로컬 목록에서 제거
+    rawRoutines.value = rawRoutines.value.filter(r => r.id !== id);
+  } catch (e) {
+    console.error('[delete] firestore error:', e);
+    alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.');
+  }
 }
 
 function openAddRoutine() {
