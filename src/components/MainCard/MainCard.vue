@@ -1,6 +1,16 @@
 <template>
   <div class="done_group">
-  08.12
+    <div class="done_top">
+      <div class="today">
+        <a href="#none" class="prev">전날</a>
+        08.12
+        <a href="#none" class="next"><span>다음날</span></a>
+      </div>
+      <div class="tools">
+        <!--a href="#none" class="weekly"><span>주간보기</span></a-->
+        <a href="#none" class="move"><span>다짐이동</span></a>        
+      </div?
+    </div>
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
       <div :class="['routine_card', { rt_off: isPaused, walk_mode: !!props.routine?.hasWalk }]">
