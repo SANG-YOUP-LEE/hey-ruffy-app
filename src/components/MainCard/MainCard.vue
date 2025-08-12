@@ -1,5 +1,6 @@
 <template>
   <div class="done_group">
+  08.12
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
       <div :class="['routine_card', { rt_off: isPaused, walk_mode: !!props.routine?.hasWalk }]">
