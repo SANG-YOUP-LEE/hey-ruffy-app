@@ -477,13 +477,13 @@
 }
 
 #main_body .today_tools a.prev {
-  background: url('https://img.icons8.com/fluency-systems-regular/50/left-squared.png') no-repeat 0 0/100%;
+  background: url('../images/ico_prev.png') no-repeat 0 0/100%;
 }
 #main_body .today_tools a.next {
-  background: url('https://img.icons8.com/fluency-systems-regular/50/right-squared.png') no-repeat 0 0/100%;
+  background: url('../images/ico_next.png') no-repeat 0 0/100%;
 }
 #main_body .today_tools a.move {
-  background: url('https://img.icons8.com/windows/32/counterflow.png') no-repeat 0 0/100%;
+  background: url('../images/ico_move.png') no-repeat 0 0/100%;
 }
 
 #main_body .tools {
