@@ -52,22 +52,20 @@
         <button type="button" :class="{ on: selectedRadio === 'done' }" @click="selectedRadio = 'done'">달성 완료</button>
         <button type="button" :class="{ on: selectedRadio === 'faildone' }" @click="selectedRadio = 'faildone'">달성 실패</button>
         <button type="button" :class="{ on: selectedRadio === 'ignored' }" @click="selectedRadio = 'ignored'">흐린 눈</button>
+        <!--button type="button" :class="{ on: selectedRadio === null }" @click="handleWeeklyClick">주간보기</button-->
       </span>
     </p>
   </div>
-
   <div class="today_tools">
     <div class="today">
-      <a
-        href="#none"
-        class="prev"
-        :class="{ hidden: isToday }"
-        @click.prevent="goPrev"
-      ><span>전날</span></a>
-      {{ formattedDate }}
-      <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
+      <p>
+        <a href="#none" class="prev" :class="{ hidden: isToday }" @click.prevent="goPrev"><span>전날</span></a>
+        {{ formattedDate }}
+        <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
+      </p>
     </div>
     <div class="tools">
+      <!--a href="#none" class="weekly"><span>주간보기</span></a-->
       <a href="#none" class="move"><span>다짐이동</span></a>
     </div>
   </div>
@@ -112,8 +110,7 @@ const isToday = computed(() => currentDate.value.getTime() === todayDate.getTime
 const formattedDate = computed(() => {
   const d = currentDate.value
   const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-  const dayName = dayNames[d.getDay()]
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}. ${dayName}`
+  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}. ${dayNames[d.getDay()]}`
 })
 
 function goPrev() {
