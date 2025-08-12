@@ -58,9 +58,11 @@
   </div>
   <div class="today_tools">
     <div class="today">
-      <a v-if="!isToday" href="#none" class="prev" @click.prevent="goPrev"><span>전날</span></a>
-      {{ formattedDate }}
-      <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
+      <p>
+        <a v-if="!isToday" href="#none" class="prev" @click.prevent="goPrev"><span>전날</span></a>
+        {{ formattedDate }}
+        <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
+      </p>
     </div>
     <div class="tools">
       <!--a href="#none" class="weekly"><span>주간보기</span></a-->
@@ -122,7 +124,7 @@ const isToday = computed(() => currentDate.value.getTime() === todayDate.getTime
 
 const formattedDate = computed(() => {
   const d = currentDate.value
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토'] // 필요에 맞게 변경
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] // 필요에 맞게 변경
   const dayName = dayNames[d.getDay()]
   return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} (${dayName})`
 })
