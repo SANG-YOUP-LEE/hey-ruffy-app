@@ -59,7 +59,12 @@
   <div class="today_tools">
     <div class="today">
       <p>
-        <a v-show="!isToday" href="#none" class="prev" @click.prevent="goPrev"><span>전날</span></a>
+        <a 
+          href="#none" 
+          class="prev" 
+          :class="{ hidden: isToday }" 
+          @click.prevent="goPrev"
+        >
         {{ formattedDate }}
         <a href="#none" class="next" @click.prevent="goNext"><span>다음날</span></a>
       </p>
