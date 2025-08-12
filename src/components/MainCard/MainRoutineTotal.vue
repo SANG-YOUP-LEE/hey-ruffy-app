@@ -122,7 +122,9 @@ const isToday = computed(() => currentDate.value.getTime() === todayDate.getTime
 
 const formattedDate = computed(() => {
   const d = currentDate.value
-  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'] // 필요에 맞게 변경
+  const dayName = dayNames[d.getDay()]
+  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} (${dayName})`
 })
 
 function goPrev() {
