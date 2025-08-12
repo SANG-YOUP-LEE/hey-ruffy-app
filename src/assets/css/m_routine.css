@@ -166,7 +166,7 @@
 }
 
 #main_body .routine_total p span a.not_done {
-  background: url('https://img.icons8.com/ios-glyphs/30/neutral-emoticon--v1.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
+  background: url('../images/ico_notdone.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
 }
 
 #main_body .routine_total p span a.not_done {
@@ -174,7 +174,7 @@
 }
 
 #main_body .routine_total p span a.done {
-  background: url('https://img.icons8.com/ios-glyphs/30/lol--v1.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
+  background: url('../images/done.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
 }
 
 #main_body .routine_total p span a.done {
@@ -182,7 +182,7 @@
 }
 
 #main_body .routine_total p span a.fail_done {
-  background: url('https://img.icons8.com/ios-glyphs/30/sad.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
+  background: url('../images/ico_fail.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
 }
 
 #main_body .routine_total p span a.fail_done {
@@ -190,7 +190,7 @@
 }
 
 #main_body .routine_total p span a.ignored {
-  background: url('https://img.icons8.com/ios-glyphs/30/confused--v1.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
+  background: url('../images/ico_ignored.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
 }
 
 #main_body .routine_total p span a.ignored {
@@ -485,6 +485,9 @@
 }
 #main_body .today_tools a.move {
   background: url('../images/ico_move.png') no-repeat 0 0/100%;
+}
+#main_body .today_tools a.weekly {
+  background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
 }
 
 #main_body .tools {
