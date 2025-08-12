@@ -171,8 +171,10 @@ import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 
 const props = defineProps({
   selected: String,
-  routine: { type: Object, default: () => ({}) }
+  routine: { type: Object, default: () => ({}) },
+  isToday: { type: Boolean, default: false }
 })
+  
 const emit = defineEmits(['delete','changeStatus','edit'])
 
 const showPopup = ref(false)
@@ -238,8 +240,8 @@ const alarmText = computed(() => {
   return `${a.ampm} ${pad(a.hour)}:${pad(a.minute)}`
 })
 
-const showStatusButton = computed(() => props.selected === 'notdone')
-
+const showStatusButton = computed(() => props.isToday && props.selected === 'notdone')
+  
 const wrapperClass = computed(() => {
   if (props.selected === 'done') return 'done'
   if (props.selected === 'faildone') return 'fail_done'
