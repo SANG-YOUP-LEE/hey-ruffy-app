@@ -460,9 +460,35 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'ONE-Mobile-POP';
+  font-family: 'S-CoreDream-6Bold';;
   font-size: 1.4rem;
   text-align: center;
+}
+
+#main_body .today_tools a span {
+  display:none
+}
+
+#main_body .today_tools .today a {
+  width:1rem;
+  height:1rem;
+  display:inline-block;
+}
+
+#main_body .today_tools .tools a {
+  width:2rem;
+  height:2rem;
+  display:inline-block;
+}
+
+#main_body .today_tools .today a.prev {
+  background: url('https://img.icons8.com/fluency-systems-regular/50/left-squared.png') no-repeat 0 0/100%
+}
+#main_body .today_tools .today a.next {
+  background: url('https://img.icons8.com/fluency-systems-regular/50/right-squared.png') no-repeat 0 0/100%
+}
+#main_body .today_tools .today a.move {
+  background: url('https://img.icons8.com/windows/32/counterflow.png') no-repeat 0 0/100%
 }
 
 #main_body .tools {
