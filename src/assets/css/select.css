@@ -309,3 +309,33 @@
   background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
 }
 
+.card-selector {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:0.2rem;
+  align-items: start;
+}
+.card-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap:0.2rem;
+  cursor: pointer;
+  user-select: none;
+}
+.design {
+  width: 3rem;
+  height:2rem;
+  border: 1px solid #ddd;
+  border-radius:1rem
+}
+.design.selected {
+  border-color: #111;
+}
+.name {
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+.name.on {
+  font-weight: 600;
+}
