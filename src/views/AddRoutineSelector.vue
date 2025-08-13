@@ -1,288 +1,218 @@
 <template>
-  <div class="popup_wrap">
-    <div class="popup_tit">
-      <h2>{{ isEditMode ? '다짐을 수정할까요?' : '다짐을 만들어 볼까요?' }}</h2>
-      <p>
-        <template v-if="isEditMode">
-          다짐을 변경해보아요.<br />
-          러피의 산책을 이어갑니다.
-        </template>
-        <template v-else>
-          다짐을 달성할 때마다<br />
-          러피의 산책이 총총총 계속됩니다.
-        </template>
-      </p>
-    </div>
-
-    <div class="popup_inner" ref="popupInner">
-      <div ref="titleWrap">
-        <div v-if="fieldErrors.title" class="warn-message t_red01">{{ fieldErrors.title }}</div>
-        <RoutineTitleInput ref="titleRef" />
-      </div>
-
-      <div ref="repeatWrap">
-        <div v-if="fieldErrors.repeat" class="warn-message t_red01">{{ fieldErrors.repeat }}</div>
-        <RoutineRepeatSelector ref="repeatRef" />
-      </div>
-
-      <div ref="dateWrap">
-        <div v-if="fieldErrors.date" class="warn-message t_red01">{{ fieldErrors.date }}</div>
-        <RoutineDateSelector ref="dateRef" />
-      </div>
-
-      <div ref="alarmWrap">
-        <div v-if="fieldErrors.alarm" class="warn-message t_red01">{{ fieldErrors.alarm }}</div>
-        <RoutineAlarmSelector ref="alarmRef" />
-      </div>
-
-      <div ref="priorityWrap">
-        <div v-if="fieldErrors.priority" class="warn-message t_red01">{{ fieldErrors.priority }}</div>
-        <RoutinePrioritySelector ref="priorityRef" />
-      </div>
-
-      <div ref="cardWrap">
-        <div v-if="fieldErrors.card" class="warn-message t_red01">{{ fieldErrors.card }}</div>
-        <RoutineCardSelector ref="cardRef" v-model="cardSkin" uniqueName="card-skin" />
-      </div>
-
-      <div class="off_walk">
-        <p>{{ isWalkModeOff ? '산책 없는 다짐은 볶음밥 없는 닭갈비ㅠ' : '이제부터 러피와의 산책을 준비할까요?' }}</p>
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="isWalkModeOff" />
-          <span class="checkmark"></span>
-          <span>{{ isWalkModeOff ? '다시 산책하고 싶다면 해제해주세요. ' : '산책 없이 다짐하고 싶어요.' }}</span>
+  <div class="select_ruffy" ref="selectRuffyRef">
+    <div class="ruffys" ref="ruffysRef">
+      <a
+        v-for="option in ruffyOptions"
+        :key="option.value"
+        href="#none"
+        :class="{ on: modelValue === option.value }"
+        @click.prevent="selectRuffy(option.value, $event)"
+      >
+        <span class="img"><img :src="option.img" :alt="option.name" /></span>
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+            :name="uniqueName || 'choice'" 
+            :value="option.value" 
+            :checked="modelValue === option.value" 
+          />
+          <span class="circle"></span>
         </label>
-      </div>
+        <span class="name" :class="{ on: modelValue === option.value }">
+          {{ option.name }}
+        </span>
+      </a>
 
-      <div class="walk_group" v-show="!isWalkModeOff">
-        <div ref="ruffyWrap">
-          <div v-if="fieldErrors.ruffy" class="warn-message t_red01">{{ fieldErrors.ruffy }}</div>
-          <RoutineRuffySelector v-model="ruffy" ref="ruffyRef" uniqueName="ruffy" />
+      <!-- 팝업 -->
+      <div 
+        class="speech-bubble-wrapper"
+        v-if="showRuffyPopup"
+      >
+        <button class="popup-close-area" @click="closeRuffyPopup"></button>
+        <div class="speech-bubble" @click.stop>
+          <button class="close-btn" @click="closeRuffyPopup">
+            <img :src="closeIcon" alt="닫기" />
+          </button>
+          <div class="tail" :class="selectedOption"></div>
+
+          <div v-if="selectedOption === 'option1'" class="r_detail01">
+            <p><span>러피 이미지</span><span>Furry Ruffy</span></p>
+            귀여운 잠보 퓨리예요. 움직이기 싫어해서 산책 한번 나가기 힘들지만 막상 나가면 날라날라~ 6개월째 생일날 받은 노란색 안대는 최애템!
+          </div>
+          <div v-else-if="selectedOption === 'option2'" class="r_detail02">
+            <p><span>러피 이미지</span><span>Billy Ruffy</span></p>
+            언제나 씩씩한 빌리의 비밀은 할머니가 준 파란색 담요! 이것만 두르면 용기 백배지만 요거 없으면 무서워서 잠도 잘 못자는건 안 비밀~
+          </div>
+          <div v-else-if="selectedOption === 'option3'" class="r_detail03">
+            <p><span>러피 이미지</span><span>Mari Ruffy</span></p>
+            새침 숙녀 마리예요. 수족냉증이 있어서 사계절 내내 수면양말 네짝은 필수랍니다. 그중 요키 이모가 짜준 핑크 하트 수면 양말이 최고!
+          </div>
+          <div v-else-if="selectedOption === 'option4'" class="r_detail04">
+            <p><span>러피 이미지</span><span>Dory Ruffy</span></p>
+            세상 순둥순둥하고 착한 도리예요. 두달쯤 되던 달 번개소리에 놀라 잠을 깬 이후로 귀마개가 없으면 잠들지 못하는 짠한 겁보랍니다.
+          </div>
         </div>
-        <div ref="courseWrap">
-          <div v-if="fieldErrors.course" class="warn-message t_red01">{{ fieldErrors.course }}</div>
-          <RoutineCourseSelector v-model="course" ref="courseRef" uniqueName="course" />
-        </div>
-        <div ref="goalWrap">
-          <div v-if="fieldErrors.goal" class="warn-message t_red01">{{ fieldErrors.goal }}</div>
-          <RoutineGoalCountSelector ref="goalRef" />
-        </div>
       </div>
-
-      <div ref="commentWrap">
-        <RoutineCommentInput ref="commentRef" />
-        <div v-if="fieldErrors.comment" class="warn-message t_red01">{{ fieldErrors.comment }}</div>
-      </div>
-    </div>
-
-    <div class="popup_btm">
-      <button class="b_basic" @click="saveRoutine">다짐 저장하기</button>
-    </div>
-
-    <div class="close_btn_wrap">
-      <div class="close_btn" @click="closePopup"><span>닫기</span></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
-import { db } from '@/firebase'
-import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
-import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
-import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
-import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
-import RoutineAlarmSelector from '@/components/routine/RoutineAlarmSelector.vue'
-import RoutineRuffySelector from '@/components/routine/RoutineRuffySelector.vue'
-import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vue'
-import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
-import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
-import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
-import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
-
-const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
-const p = n => String(n).padStart(2,'0')
-function toISO(d){ if(!d) return null; return `${d.year}-${p(d.month)}-${p(d.day)}` }
-function weeklyDaysToICS(arr){ return (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean) }
-function parseInterval(s){ const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
-function safeISOFromDateObj(obj){
-  const s = toISO(obj)
-  return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
-}
-
-const props = defineProps({ routineToEdit: { type: Object, default: null } })
-const emit = defineEmits(['close','save'])
-
-const isEditMode = computed(() => props.routineToEdit !== null)
-const isWalkModeOff = ref(false)
-
-const ruffy = ref('')
-const course = ref('')
-
-const normalizeSkin = (v) => {
-  const m = String(v || '').match(/(\d+)/)
-  if (!m) return 'option01'
-  const n = m[1].padStart(2, '0')
-  return `option${n}`
-}
-const cardSkin = ref('option01')
-
-const fieldErrors = ref({
-  title: '', repeat: '', date: '', alarm: '',
-  ruffy: '', course: '', goal: '', priority: '', card: '', comment: ''
+const props = defineProps({
+  modelValue: String,
+  uniqueName: { type: String, default: '' }
 })
+const emit = defineEmits(['update:modelValue'])
 
-const errorTimers = {}
-const ERROR_MS = 3000
+const myName = computed(() => props.uniqueName || 'ruffy-selector')
 
-function showFieldError(key, msg) {
-  fieldErrors.value[key] = msg
-  if (errorTimers[key]) clearTimeout(errorTimers[key])
-  errorTimers[key] = setTimeout(() => { fieldErrors.value[key] = ''; delete errorTimers[key] }, ERROR_MS)
-  const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, card: cardWrap, comment: commentWrap }
-  const el = wrapRefMap[key]?.value; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
+
+const ruffyOptions = [
+  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href },
+]
+
+const showRuffyPopup = ref(false)
+const selectedOption = ref('')
+
+const selectRuffy = (value, event) => {
+  event?.stopPropagation()
+  emit('update:modelValue', value)
+  selectedOption.value = value
+  showRuffyPopup.value = true
+  // 나 열렸다고 전역 이벤트 송신
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
 
-function clearAllFieldErrors() {
-  Object.keys(fieldErrors.value).forEach(k => { fieldErrors.value[k] = ''; if (errorTimers[k]) clearTimeout(errorTimers[k]); delete errorTimers[k] })
+const closeRuffyPopup = () => {
+  showRuffyPopup.value = false
 }
 
-const titleRef = ref(); const repeatRef = ref(); const dateRef = ref(); const alarmRef = ref()
-const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const cardRef = ref(); const commentRef = ref()
-const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
-const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
-
-let scrollY = 0
-const preventTouchMove = (e) => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
-const lockScroll = () => { scrollY = window.scrollY; document.documentElement.classList.add('no-scroll'); document.body.classList.add('no-scroll'); document.body.style.top = `-${scrollY}px`; document.body.style.left = '0'; document.body.style.right = '0'; document.body.style.width = '100%'; document.body.style.position = 'fixed'; window.addEventListener('touchmove', preventTouchMove, { passive: false }) }
-const unlockScroll = () => { document.documentElement.classList.remove('no-scroll'); document.body.classList.remove('no-scroll'); document.body.style.position = ''; document.body.style.top=''; document.body.style.left=''; document.body.style.right=''; document.body.style.width=''; document.body.style.overflow=''; window.removeEventListener('touchmove', preventTouchMove); window.scrollTo(0, scrollY) }
-const closePopup = () => { unlockScroll(); emit('close') }
-
-function notU(v){ return v !== undefined }
-
-const hasWalk = computed(() => {
-  if (isWalkModeOff.value) return false
-  return !!(ruffy.value && course.value && goalRef.value?.goalCount)
-})
-
-function buildPayload() {
-  const repeatType = repeatRef.value?.selectedTab ?? 'daily'
-  const base = {
-    title: titleRef.value?.title ?? '',
-    repeatType,
-    repeatDays: repeatType === 'daily' ? [...(repeatRef.value?.selectedDaily ?? [])] : [],
-    repeatWeeks: repeatType === 'weekly' ? (repeatRef.value?.selectedWeeklyMain ?? '') : '',
-    repeatWeekDays: repeatType === 'weekly' ? [...(repeatRef.value?.selectedWeeklyDays ?? [])] : [],
-    repeatMonthDays: repeatType === 'monthly' ? [...(repeatRef.value?.selectedDates ?? [])] : [],
-    startDate: dateRef.value?.startDate ?? null,
-    endDate: dateRef.value?.endDate ?? null,
-    alarmTime: alarmRef.value?.selectedAlarm ?? null,
-    ruffy: isWalkModeOff.value ? null : (ruffy.value || null),
-    course: isWalkModeOff.value ? null : (course.value || null),
-    goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
-    colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
-    cardSkin: normalizeSkin(cardSkin.value),
-    comment: commentRef.value?.comment ?? '',
-    hasWalk: hasWalk.value
-  }
-
-  const todayISO = new Date().toISOString().slice(0,10)
-  const startISO = safeISOFromDateObj(base.startDate) || todayISO
-  const endISO   = safeISOFromDateObj(base.endDate) || null
-
-  const interval = parseInterval(base.repeatWeeks)
-  const rule = {
-    freq: repeatType,
-    interval,
-    anchor: startISO,
-    ...(repeatType === 'weekly'  ? { byWeekday: weeklyDaysToICS(base.repeatWeekDays) } : {}),
-    ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays||[]).map(Number) } : {})
-  }
-
-  const cleaned = {}
-  Object.entries({ ...base, tz:'Asia/Seoul', start:startISO, end:endISO, rule })
-    .forEach(([k,v]) => { if (notU(v)) cleaned[k] = v })
-
-  return cleaned
-}
-
-const validateRoutine = () => {
-  clearAllFieldErrors()
-  if (!titleRef.value?.title || titleRef.value.title.trim() === '') { showFieldError('title','다짐 제목을 입력해주세요.'); return false }
-  if (!repeatRef.value?.selectedTab) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
-  const t = repeatRef.value.selectedTab
-  if (t === 'daily' && (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
-  if (t === 'weekly' && (!repeatRef.value.selectedWeeklyMain || !repeatRef.value.selectedWeeklyDays || repeatRef.value.selectedWeeklyDays.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
-  if (t === 'monthly' && (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
-  if (!isWalkModeOff.value) {
-    let invalid = false
-    if (!ruffy.value) { showFieldError('ruffy','러피를 선택해주세요.'); invalid = true }
-    if (!course.value) { showFieldError('course','코스를 선택해주세요.'); invalid = true }
-    if (!goalRef.value?.goalCount) { showFieldError('goal','목표 횟수를 선택해주세요.'); invalid = true }
-    if (invalid) return false
-  }
-  const selectedColor = priorityRef.value?.selectedColor ?? null
-  if (selectedColor === null) { showFieldError('priority','다짐 색상을 선택해주세요.'); return false }
-  if (!cardSkin.value) { showFieldError('card','카드 디자인을 선택해주세요.'); return false }
-  return true
-}
-
-const saveRoutine = async () => {
-  if (!validateRoutine()) return
-  try {
-    const auth = getAuth()
-    const user = auth.currentUser
-    if (!user) throw new Error('로그인이 필요합니다.')
-
-    const payload = buildPayload()
-
-    if (isEditMode.value && props.routineToEdit?.id) {
-      await setDoc(
-        doc(db, 'users', user.uid, 'routines', props.routineToEdit.id),
-        { ...payload, updatedAt: serverTimestamp() },
-        { merge: true }
-      )
-      emit('save', { id: props.routineToEdit.id, ...payload })
-    } else {
-      const colRef = collection(db, 'users', user.uid, 'routines')
-      const docRef = await addDoc(colRef, {
-        ...payload,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
-      emit('save', { id: docRef.id, ...payload })
-    }
-
-    unlockScroll()
-    emit('close')
-  } catch (err) {
-    console.error('다짐 저장 실패:', err)
-    alert('저장에 실패했습니다.')
+const onBubbleOpen = (e) => {
+  const who = e?.detail?.who
+  if (who && who !== myName.value) {
+    showRuffyPopup.value = false
   }
 }
 
 onMounted(() => {
-  lockScroll()
-  if (props.routineToEdit) {
-    titleRef.value?.setFromRoutine?.(props.routineToEdit)
-    repeatRef.value?.setFromRoutine?.(props.routineToEdit)
-    dateRef.value?.setFromRoutine?.(props.routineToEdit)
-    alarmRef.value?.setFromRoutine?.(props.routineToEdit)
-    ruffy.value  = props.routineToEdit.ruffy  || ''
-    course.value = props.routineToEdit.course || ''
-    goalRef.value?.setFromRoutine?.(props.routineToEdit)
-    priorityRef.value?.setFromRoutine?.(props.routineToEdit)
-    cardRef.value?.setFromRoutine?.(props.routineToEdit)
-    commentRef.value?.setFromRoutine?.(props.routineToEdit)
-    isWalkModeOff.value = !props.routineToEdit.ruffy
-    cardSkin.value = props.routineToEdit.cardSkin || cardSkin.value
-  }
+  window.addEventListener('bubble-open', onBubbleOpen)
 })
-
 onBeforeUnmount(() => {
-  unlockScroll()
-  clearAllFieldErrors()
+  window.removeEventListener('bubble-open', onBubbleOpen)
+})
+</script>
+
+이건 코스셀렉터뷰
+
+<template>
+  <div class="select_course">
+    <div class="course" ref="courseRef">
+      <a
+        v-for="option in courseOptions"
+        :key="option.value"
+        href="#none"
+        :class="{ on: modelValue === option.value }"
+        @click.prevent="selectCourse(option.value)"
+      >
+        <span class="img"><img :src="option.img" :alt="option.name" /></span>
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+            :name="uniqueName || 'choice-course'" 
+            :value="option.value" 
+            :checked="modelValue === option.value" 
+          />
+          <span class="circle"></span>
+        </label>
+        <span class="name" :class="{ on: modelValue === option.value }">
+          {{ option.name }}
+        </span>
+      </a>
+
+      <!-- 팝업 -->
+      <div class="speech-bubble-wrapper" v-if="showCoursePopup">
+        <button class="popup-close-area" @click="closeCoursePopup"></button>
+        <div class="speech-bubble" @click.stop>
+          <button class="close-btn" @click="closeCoursePopup">
+            <img :src="closeIcon" alt="닫기" />
+          </button>
+          <div class="tail" :class="selectedOption"></div>
+
+          <div v-if="selectedOption === 'option1'" class="r_detail01">
+            <p><span>초록숲길 이미지</span><span>초록숲길</span></p>
+            초록숲길 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option2'" class="r_detail02">
+            <p><span>물빛공원 이미지</span><span>물빛공원</span></p>
+            물빛공원 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option3'" class="r_detail03">
+            <p><span>별빛강길 이미지</span><span>별빛강길</span></p>
+            별빛강길 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option4'" class="r_detail04">
+            <p><span>은빛호수길 이미지</span><span>은빛호수길</span></p>
+            은빛호수길 설명입니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+
+const props = defineProps({
+  modelValue: String,
+  uniqueName: { type: String, default: '' }
+})
+const emit = defineEmits(['update:modelValue'])
+
+const myName = computed(() => props.uniqueName || 'course-selector')
+
+const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
+
+const courseOptions = [
+  { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+]
+
+const showCoursePopup = ref(false)
+const selectedOption = ref('')
+
+const selectCourse = (value) => {
+  emit('update:modelValue', value)
+  selectedOption.value = value
+  showCoursePopup.value = true
+  // 나 열렸다고 전역 이벤트 송신
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
+}
+
+const closeCoursePopup = () => {
+  showCoursePopup.value = false
+}
+
+// 다른 애가 열리면 나는 닫기
+const onBubbleOpen = (e) => {
+  const who = e?.detail?.who
+  if (who && who !== myName.value) {
+    showCoursePopup.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('bubble-open', onBubbleOpen)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('bubble-open', onBubbleOpen)
 })
 </script>
