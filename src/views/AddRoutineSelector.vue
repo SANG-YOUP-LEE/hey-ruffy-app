@@ -57,11 +57,11 @@
       <div class="walk_group" v-show="!isWalkModeOff">
         <div ref="ruffyWrap">
           <div v-if="fieldErrors.ruffy" class="warn-message t_red01">{{ fieldErrors.ruffy }}</div>
-          <RoutineRuffySelector ref="ruffyRef" />
+          <RoutineRuffySelector v-model="ruffy" ref="ruffyRef" uniqueName="ruffy" />
         </div>
         <div ref="courseWrap">
           <div v-if="fieldErrors.course" class="warn-message t_red01">{{ fieldErrors.course }}</div>
-          <RoutineCourseSelector ref="courseRef" />
+          <RoutineCourseSelector v-model="course" ref="courseRef" uniqueName="course" />
         </div>
         <div ref="goalWrap">
           <div v-if="fieldErrors.goal" class="warn-message t_red01">{{ fieldErrors.goal }}</div>
@@ -117,13 +117,16 @@ const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
+
+const ruffy = ref('')
+const course = ref('')
+
 const normalizeSkin = (v) => {
   const m = String(v || '').match(/(\d+)/)
   if (!m) return 'option01'
   const n = m[1].padStart(2, '0')
   return `option${n}`
 }
-
 const cardSkin = ref('option01')
 
 const fieldErrors = ref({
@@ -161,7 +164,7 @@ function notU(v){ return v !== undefined }
 
 const hasWalk = computed(() => {
   if (isWalkModeOff.value) return false
-  return !!(ruffyRef.value?.ruffy && courseRef.value?.course && goalRef.value?.goalCount)
+  return !!(ruffy.value && course.value && goalRef.value?.goalCount)
 })
 
 function buildPayload() {
@@ -176,14 +179,13 @@ function buildPayload() {
     startDate: dateRef.value?.startDate ?? null,
     endDate: dateRef.value?.endDate ?? null,
     alarmTime: alarmRef.value?.selectedAlarm ?? null,
-    ruffy: isWalkModeOff.value ? null : (ruffyRef.value?.ruffy ?? null),
-    course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
+    ruffy: isWalkModeOff.value ? null : (ruffy.value || null),
+    course: isWalkModeOff.value ? null : (course.value || null),
     goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
     cardSkin: normalizeSkin(cardSkin.value),
     comment: commentRef.value?.comment ?? '',
-    hasWalk: hasWalk.value,
-    
+    hasWalk: hasWalk.value
   }
 
   const todayISO = new Date().toISOString().slice(0,10)
@@ -216,8 +218,8 @@ const validateRoutine = () => {
   if (t === 'monthly' && (!repeatRef.value.selectedDates || repeatRef.value.selectedDates.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
   if (!isWalkModeOff.value) {
     let invalid = false
-    if (!ruffyRef.value?.ruffy) { showFieldError('ruffy','러피를 선택해주세요.'); invalid = true }
-    if (!courseRef.value?.course) { showFieldError('course','코스를 선택해주세요.'); invalid = true }
+    if (!ruffy.value) { showFieldError('ruffy','러피를 선택해주세요.'); invalid = true }
+    if (!course.value) { showFieldError('course','코스를 선택해주세요.'); invalid = true }
     if (!goalRef.value?.goalCount) { showFieldError('goal','목표 횟수를 선택해주세요.'); invalid = true }
     if (invalid) return false
   }
@@ -268,8 +270,8 @@ onMounted(() => {
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
     dateRef.value?.setFromRoutine?.(props.routineToEdit)
     alarmRef.value?.setFromRoutine?.(props.routineToEdit)
-    ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
-    courseRef.value?.setFromRoutine?.(props.routineToEdit)
+    ruffy.value  = props.routineToEdit.ruffy  || ''
+    course.value = props.routineToEdit.course || ''
     goalRef.value?.setFromRoutine?.(props.routineToEdit)
     priorityRef.value?.setFromRoutine?.(props.routineToEdit)
     cardRef.value?.setFromRoutine?.(props.routineToEdit)
