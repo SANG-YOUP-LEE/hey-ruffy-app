@@ -36,7 +36,6 @@
   text-align:center;
 }
 
-/* 러피즈 컨테이너 */
 .select_ruffy .ruffys a span.img {
   width: 100%;
   height: 2.5rem;
@@ -47,10 +46,10 @@
   margin-bottom:0.5rem
 }
 
-/* 코스 컨테이너 (높이만 다르게) */
-.select_course .course a span.img {
+.select_course .course a span.img,
+.select_card .card a span.img {
   width: 100%;
-  height: 5rem; /* 러피보다 높게 */
+  height: 5rem;
   display: flex; 
   align-items: center; 
   justify-content: center; 
@@ -58,16 +57,17 @@
   margin-bottom:0.2rem
 }
 
-/* 실제 이미지 */
 .select_ruffy .ruffys a span.img img,
-.select_course .course a span.img img {
+.select_course .course a span.img img,
+.select_card .card a span.img img {
   max-height: 100%;
   width: auto;
   border-radius: 1.5rem;
 }
 
 .select_ruffy .ruffys a span.name,
-.select_course .course a span.name {
+.select_course .course a span.name,
+.select_card .card a span.name {
   width:100%;
   display:inline-block;
   border-radius:0.7rem;
@@ -77,34 +77,36 @@
   letter-spacing:-0.02rem;
 }
 
-
 .select_ruffy .ruffys a.on span.name,
-.select_course .course a.on span.name {
+.select_course .course a.on span.name,
+.select_card .card a.on span.name {
   color:#fff
 }
 
 .select_ruffy .ruffys a .custom-radio,
-.select_course .course a .custom-radio {
+.select_course .course a .custom-radio,
+.select_card .card a .custom-radio {
   margin-bottom:0.5rem;
 }
 
 .select_ruffy .ruffys .ruffys_detail,
-.select_course .course .ruffys_detail {
+.select_course .course .ruffys_detail,
+.select_card .card .ruffys_detail {
   width:100%;
   margin:0 0 1rem 0;
 }
 
-/* 말풍선 래퍼는 relative 기준점 */
 .select_ruffy .ruffys .speech-bubble-wrapper,
-.select_course .course .speech-bubble-wrapper  {
+.select_course .course .speech-bubble-wrapper,
+.select_card .card .speech-bubble-wrapper {
   position: absolute;
   width: 100%;
   margin-top: -15rem;
 }
 
-/* 말풍선 */
 .select_ruffy .ruffys .speech-bubble,
-.select_course .course .speech-bubble {
+.select_course .course .speech-bubble,
+.select_card .card .speech-bubble {
   width: 100%;
   min-height:14rem;
   font-size:1rem;
@@ -116,7 +118,8 @@
 }
 
 .select_ruffy .ruffys .speech-bubble [class^='r_detail'],
-.select_course .course .speech-bubble [class^='r_detail'] {
+.select_course .course .speech-bubble [class^='r_detail'],
+.select_card .card .speech-bubble [class^='r_detail'] {
   display: flex;
   align-items: flex-start;
   gap: 1rem; 
@@ -126,7 +129,8 @@
 }
 
 .select_ruffy .ruffys .speech-bubble [class^='r_detail'] p,
-.select_course .course .speech-bubble [class^='r_detail'] p  {
+.select_course .course .speech-bubble [class^='r_detail'] p,
+.select_card .card .speech-bubble [class^='r_detail'] p {
   width:5rem;
   text-align:center;
   margin: 0;
@@ -138,13 +142,15 @@
 }
 
 .select_ruffy .ruffys .speech-bubble [class^='r_detail'] span,
-.select_course .course .speech-bubble [class^='r_detail'] span  {
+.select_course .course .speech-bubble [class^='r_detail'] span,
+.select_card .card .speech-bubble [class^='r_detail'] span {
   display: flex;
   flex-direction: column;
 }
 
 .select_ruffy .ruffys .speech-bubble [class^='r_detail'] span:first-child,
-.select_course .course .speech-bubble [class^='r_detail'] span:first-child {
+.select_course .course .speech-bubble [class^='r_detail'] span:first-child,
+.select_card .card .speech-bubble [class^='r_detail'] span:first-child {
   width:4rem;
   height:4rem;
   margin:0 auto;
@@ -168,23 +174,26 @@
   background-image: url('../images/hey_ruffy_temp04_b.png');
 }
 
-
-.select_course .course .speech-bubble .r_detail01 span:first-child {
+.select_course .course .speech-bubble .r_detail01 span:first-child,
+.select_card  .card  .speech-bubble .r_detail01 span:first-child {
   background-image: url('../images/course_temp01.png');
 }
-.select_course .course .speech-bubble .r_detail02 span:first-child {
+.select_course .course .speech-bubble .r_detail02 span:first-child,
+.select_card  .card  .speech-bubble .r_detail02 span:first-child {
   background-image: url('../images/course_temp02.png');
 }
-.select_course .course .speech-bubble .r_detail03 span:first-child {
+.select_course .course .speech-bubble .r_detail03 span:first-child,
+.select_card  .card  .speech-bubble .r_detail03 span:first-child {
   background-image: url('../images/course_temp03.png');
 }
-.select_course .course .speech-bubble .r_detail04 span:first-child {
+.select_course .course .speech-bubble .r_detail04 span:first-child,
+.select_card  .card  .speech-bubble .r_detail04 span:first-child {
   background-image: url('../images/course_temp04.png');
 }
 
-
 .select_ruffy .ruffys .tail,
-.select_course .course .tail {
+.select_course .course .tail,
+.select_card .card .tail {
   width: 0;
   height: 0;
   position: absolute;
@@ -195,13 +204,14 @@
 }
 
 .select_ruffy .ruffys a.on,
-.select_course .course a.on  {
+.select_course .course a.on,
+.select_card .card a.on {
   background-color: #fff!important;
 }
 
-/* 회색 테두리 역할 (배경) - 아래 방향 */
 .select_ruffy .ruffys .tail::before,
-.select_course .course .tail::before  {
+.select_course .course .tail::before,
+.select_card .card .tail::before {
   content: "";
   position: absolute;
   bottom: 0; 
@@ -212,9 +222,9 @@
   z-index: 0;
 }
 
-/* 흰색 꼬리 본체 - 아래 방향 */
 .select_ruffy .ruffys .tail::after,
-.select_course .course .tail::after  {
+.select_course .course .tail::after,
+.select_card .card .tail::after {
   content: "";
   position: absolute;
   bottom: 0.05rem;
@@ -225,30 +235,34 @@
   z-index: 1;
 }
 
-/* 러피 카드 중앙 맞춰서 이동 */
 .select_ruffy .ruffys .tail.option1,
-.select_course .course .tail.option1 {
+.select_course .course .tail.option1,
+.select_card .card .tail.option1 {
   left: 12.5%;
   transform: translateX(-50%);
 }
 .select_ruffy .ruffys .tail.option2,
-.select_course .course .tail.option2 {
+.select_course .course .tail.option2,
+.select_card .card .tail.option2 {
   left: 37.5%;
   transform: translateX(-50%);
 }
 .select_ruffy .ruffys .tail.option3,
-.select_course .course .tail.option3 {
+.select_course .course .tail.option3,
+.select_card .card .tail.option3 {
   left: 62.5%;
   transform: translateX(-50%);
 }
 .select_ruffy .ruffys .tail.option4,
-.select_course .course .tail.option4 {
+.select_course .course .tail.option4,
+.select_card .card .tail.option4 {
   left: 87.5%;
   transform: translateX(-50%);
 }
 
 .select_ruffy .speech-bubble .close-btn,
-.select_course .course .close-btn {
+.select_course .course .close-btn,
+.select_card .card .close-btn {
   width: 1rem;
   height: 1rem;
   position: absolute;
@@ -261,12 +275,12 @@
 }
 
 .select_ruffy .speech-bubble .close-btn img,
-.select_course .course .close-btn img {
+.select_course .course .close-btn img,
+.select_card .card .close-btn img {
   width: 100%;
   height: 100%;
   display: block;
 }
-
 
 .popup-close-area {
   position: absolute;
@@ -313,6 +327,7 @@
   background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
 }
 
+/* 아래 그리드 카드 스타일은 이전 구조용이므로 충돌 시 제거 또는 분리 사용 */
 .select_card {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
