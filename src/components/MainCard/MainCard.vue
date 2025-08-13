@@ -2,7 +2,7 @@
   <div class="done_group">
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
-      <div :class="['routine_card', { rt_off: isPaused, walk_mode: hasWalkResolved }]">
+      <div :class="['routine_card', cardSkinClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]">
         <button class="setting" @click.stop="togglePopup">
           <span>다짐설정</span>
         </button>
@@ -207,6 +207,11 @@ const colorClass = computed(() => {
   return `color_picker${String(n + 1).padStart(2, '0')}`
 })
 
+const cardSkinClass = computed(() => {
+  const v = props.routine?.cardSkin
+  return v ? `card_${v}` : ''
+})
+
 const repeatLabel = computed(() => {
   const t = props.routine?.repeatType
   if (t === 'weekly') return 'Weekly'
@@ -366,6 +371,10 @@ function openStatusPopup() {
   if (showPopup.value) closePopup()
   showStatusPopup.value = true
   document.body.classList.add('no-scroll')
+}
+
+function handleStatusButtonClick() {
+  openStatusPopup()
 }
 
 function closeStatusPopup() {
