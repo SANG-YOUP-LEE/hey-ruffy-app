@@ -20,7 +20,7 @@
           :options="hourLoopOptions"
           :drag-sensitivity="3"
           :touch-sensitivity="3"
-          :scroll-sensitivity="2"
+          :scroll-sensitivity="3"
         />
         <VueScrollPicker
           v-model="selectedMinute"
