@@ -207,11 +207,18 @@ const colorClass = computed(() => {
   return `color_picker${String(n + 1).padStart(2, '0')}`
 })
 
+const normalizeSkin = (v) => {
+  const m = String(v || '').match(/(\d+)/)
+  if (!m) return ''
+  const n = m[1].padStart(2, '0') // '1' -> '01'
+  return `option${n}`              // 'option01'
+}
+
 const cardSkinClass = computed(() => {
-  const v = props.routine?.cardSkin
+  const v = normalizeSkin(props.routine?.cardSkin)
   return v ? `card_${v}` : ''
 })
-
+  
 const repeatLabel = computed(() => {
   const t = props.routine?.repeatType
   if (t === 'weekly') return 'Weekly'
