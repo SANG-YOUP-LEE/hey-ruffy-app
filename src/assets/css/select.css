@@ -348,3 +348,15 @@
   background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
 }
 
+.routine_card .skin1 {
+  border:1px solid pink
+}
+.routine_card .skin2 {
+  border:1px solid yellow
+}
+.routine_card .skin3 {
+  border:1px solid skyblue
+}
+.routine_card .skin4 {
+  border:1px solid orange
+}
