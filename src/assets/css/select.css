@@ -1,10 +1,12 @@
 .select_ruffy,
-.select_course {
+.select_course,
+.select_card {
   margin:0.5rem 0 1.5rem 0;
 }
 
 .select_ruffy .ruffys,
-.select_course .course {
+.select_course .course,
+.select_card .card {
   position:relative;
   display: flex;
   flex-wrap: wrap;
@@ -14,7 +16,8 @@
 }
 
 .select_ruffy .ruffys a,
-.select_course .course a {
+.select_course .course a,
+.select_card .card a {
   width: 25%;
   display: flex;
   flex-direction: column;
@@ -26,7 +29,8 @@
 }
 
 .select_ruffy .ruffys a span,
-.select_course .course a span {
+.select_course .course a span,
+.select_card .card a span {
   width:100%;
   display:inline-block;
   text-align:center;
@@ -309,13 +313,13 @@
   background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
 }
 
-.card-selector {
+.select_card {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap:0.2rem;
   align-items: start;
 }
-.card-item {
+.select_card .card-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -323,19 +327,12 @@
   cursor: pointer;
   user-select: none;
 }
-.design {
+.select_card .design {
   width: 3rem;
   height:2rem;
   border: 1px solid #ddd;
   border-radius:1rem
 }
-.design.selected {
+.select_card .design.selected {
   border-color: #111;
-}
-.name {
-  font-size: 0.92rem;
-  line-height: 1.2;
-}
-.name.on {
-  font-weight: 600;
 }
