@@ -327,27 +327,3 @@
   background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
 }
 
-/* 아래 그리드 카드 스타일은 이전 구조용이므로 충돌 시 제거 또는 분리 사용 */
-.select_card {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap:0.2rem;
-  align-items: start;
-}
-.select_card .card-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap:0.2rem;
-  cursor: pointer;
-  user-select: none;
-}
-.select_card .design {
-  width: 3rem;
-  height:2rem;
-  border: 1px solid #ddd;
-  border-radius:1rem
-}
-.select_card .design.selected {
-  border-color: #111;
-}
