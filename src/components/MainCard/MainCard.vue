@@ -38,7 +38,15 @@
           </div>
           <div class="right"></div>
           <div class="done_set" v-if="canShowStatusButton">
-            <button class="p_white" :disabled="isPaused" @click="openStatusPopup">달성현황 체크하기</button>
+            <button
+              class="p_white"
+              :class="{ disabled_btn: isPaused }"
+              :aria-disabled="isPaused ? 'true' : 'false'"
+              :tabindex="isPaused ? -1 : 0"
+              @click="handleStatusButtonClick"
+            >
+              달성현황 체크하기
+            </button>
           </div>
           <div class="walk_check" v-if="hasWalkResolved">
             <button class="p_white" @click="openWalkPopup">산책 현황 보기</button>
