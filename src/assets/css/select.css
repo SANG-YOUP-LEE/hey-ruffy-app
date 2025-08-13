@@ -54,6 +54,8 @@
   height: 5rem;
 }
 .select_card .card a span.img {
+  width:100%;
+  border:1px solid red;
   height: 3rem;
 }
 
