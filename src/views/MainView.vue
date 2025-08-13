@@ -337,11 +337,3 @@ function handleNext() {
 }
 </script>
 
-<style scoped>
-#main_wrap{min-height:calc(var(--vh,1vh)*100);display:flex;flex-direction:column}
-#main_body{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.main_fixed{flex-shrink:0}
-.main_scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:var(--footer-h,64px)}
-.no_data{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:1.4rem;line-height:1.7rem;background-image:url('../images/ico_crying.png');background-repeat:no-repeat;background-size:5rem 5rem;background-position:top center;padding-top:5rem}
-.no_data span{display:block;color:#666;font-size:1rem;margin-top:0.5rem}
-</style>
