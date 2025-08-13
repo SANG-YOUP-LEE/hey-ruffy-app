@@ -1,5 +1,5 @@
 <template>
-  <div class="card-selector custom-radio-group">
+  <div class="select_card custom-radio-group">
     <label
       v-for="opt in options"
       :key="opt.id"
