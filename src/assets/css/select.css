@@ -348,15 +348,7 @@
   background: url('../images/hey_ruffy_temp04.png') no-repeat 0 0/cover;
 }
 
-.routine_card.skin1 {
-  border:1px solid pink!important
-}
-.routine_card.skin2 {
-  border:1px solid yellow!important
-}
-.routine_card.skin3 {
-  border:1px solid skyblue!important
-}
-.routine_card.skin4 {
-  border:1px solid orange!important
-}
+.routine_card.card_option01 { border:1px solid pink!important; }
+.routine_card.card_option02 { border:1px solid yellow!important; }
+.routine_card.card_option03 { border:1px solid skyblue!important; }
+.routine_card.card_option04 { border:1px solid orange!important; }
