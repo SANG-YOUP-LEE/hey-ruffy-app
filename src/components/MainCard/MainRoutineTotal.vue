@@ -46,17 +46,17 @@
       </span>
     </p>
 
-    <p class="filter_row">
+    <p class="filter_row" v-if="isToday">
       <span class="filter_buttons">
         <button type="button" :class="{ on: selectedRadio === 'notdone' }" @click="selectedRadio = 'notdone'">달성 전</button>
         <button type="button" :class="{ on: selectedRadio === 'done' }" @click="selectedRadio = 'done'">달성 완료</button>
         <button type="button" :class="{ on: selectedRadio === 'faildone' }" @click="selectedRadio = 'faildone'">달성 실패</button>
         <button type="button" :class="{ on: selectedRadio === 'ignored' }" @click="selectedRadio = 'ignored'">흐린 눈</button>
-        <!--button type="button" :class="{ on: selectedRadio === null }" @click="handleWeeklyClick">주간보기</button-->
       </span>
     </p>
   </div>
-    <div class="today_tools">
+
+  <div class="today_tools">
     <div class="today">
       <p>
         <a 
