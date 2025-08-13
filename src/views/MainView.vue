@@ -4,54 +4,57 @@
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
-      <MainDateScroll
-        :selectedDate="selectedDate"
-        @selectDate="handleSelectDate"
-      />
-
-      <MainRoutineTotal
-        :isFuture="isFutureDate"
-        :selectedDate="selectedDate"
-        v-model:modelValue="selectedFilter"
-        :counts="countsForDate"
-        :totalCount="totalCountForDate"
-        @changeFilter="handleFilterChange"
-        @showWeekly="showWeekly = true"
-        @requestPrev="handlePrev"
-        @requestNext="handleNext"
-      />
-
-      <div v-if="isLoading && !showWeekly" class="skeleton-wrap">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-      </div>
-
-      <div
-        v-else-if="!showWeekly && hasFetched && displayedRoutines.length === 0"
-        class="no_data"
-      >
-        <span v-if="rawRoutines.length === 0">
-          아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
-        </span>
-        <span v-else>
-          해당 조건에 맞는 다짐이 없어요.
-        </span>
-      </div>
-
-      <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
-      <template v-else>
-        <MainCard
-          v-for="rt in displayedRoutines"
-          :key="rt.id"
-          :selected="getStatus(rt)"
-          :routine="rt"
-          :isToday="isTodayDate"
-          @changeStatus="onChangeStatus"
-          @delete="onDelete"
-          @edit="openEditRoutine"
-          @togglePause="onTogglePause"
+      <div class="main_fixed">
+        <MainDateScroll
+          :selectedDate="selectedDate"
+          @selectDate="handleSelectDate"
         />
-      </template>
+        <MainRoutineTotal
+          :isFuture="isFutureDate"
+          :selectedDate="selectedDate"
+          v-model:modelValue="selectedFilter"
+          :counts="countsForDate"
+          :totalCount="totalCountForDate"
+          @changeFilter="handleFilterChange"
+          @showWeekly="showWeekly = true"
+          @requestPrev="handlePrev"
+          @requestNext="handleNext"
+        />
+      </div>
+
+      <div class="main_scroll">
+        <div v-if="isLoading && !showWeekly" class="skeleton-wrap">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <div
+          v-else-if="!showWeekly && hasFetched && displayedRoutines.length === 0"
+          class="no_data"
+        >
+          <span v-if="rawRoutines.length === 0">
+            아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
+          </span>
+          <span v-else>
+            해당 조건에 맞는 다짐이 없어요.
+          </span>
+        </div>
+
+        <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
+        <template v-else>
+          <MainCard
+            v-for="rt in displayedRoutines"
+            :key="rt.id"
+            :selected="getStatus(rt)"
+            :routine="rt"
+            :isToday="isTodayDate"
+            @changeStatus="onChangeStatus"
+            @delete="onDelete"
+            @edit="openEditRoutine"
+            @togglePause="onTogglePause"
+          />
+        </template>
+      </div>
     </div>
 
     <FooterView @refresh-main="refreshMain" />
@@ -333,3 +336,12 @@ function handleNext() {
   handleSelectDate(d, future)
 }
 </script>
+
+<style scoped>
+#main_wrap{min-height:calc(var(--vh,1vh)*100);display:flex;flex-direction:column}
+#main_body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main_fixed{flex-shrink:0}
+.main_scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:var(--footer-h,64px)}
+.no_data{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:1.4rem;line-height:1.7rem;background-image:url('../images/ico_crying.png');background-repeat:no-repeat;background-size:5rem 5rem;background-position:top center;padding-top:5rem}
+.no_data span{display:block;color:#666;font-size:1rem;margin-top:0.5rem}
+</style>
