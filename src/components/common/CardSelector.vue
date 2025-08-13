@@ -41,11 +41,10 @@ const props = defineProps({
   options: {
     type: Array,
     default: () => ([
-      { id: 'a', label: '기본카드 A' },
-      { id: 'b', label: '기본카드 B' },
-      { id: 'c', label: '기본카드 C' },
-      { id: 'd', label: '기본카드 D' },
-      { id: 'e', label: '기본카드 E' }
+      { id: 'a', label: '기본' },
+      { id: 'b', label: '나리꽃' },
+      { id: 'c', label: '커피눈물' },
+      { id: 'd', label: '노란우체국' }
     ])
   },
   name: { type: String, default: 'card-skin' }
