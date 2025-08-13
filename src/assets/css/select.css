@@ -45,7 +45,6 @@
   justify-content: center; 
   text-align: center;
   margin-bottom:0.2rem;
-  overflow:hidden;
 }
 
 .select_ruffy .ruffys a span.img {
@@ -53,10 +52,6 @@
 }
 .select_course .course a span.img {
   height: 5rem;
-}
-.select_card .card a span.img {
-  height: 3rem;
-  border:1px solid red;
 }
 
 
@@ -67,12 +62,16 @@
   border-radius: 1.5rem;
 }
 
-,
+.select_card .card a span.img {
+  height: 3rem;
+  overflow:hidden;
+  border-radius: 0.5rem;
+  border:1px solid red;
+}
+
 .select_card .card a span.img img {
   width:100%;
   height:100%;
-  border:1px solid red;
-  border-radius:0.5rem
 }
 
 .select_ruffy .ruffys a span.name,
