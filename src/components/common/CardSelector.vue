@@ -67,10 +67,10 @@ const myName = computed(() => props.uniqueName || 'card-selector')
 const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
 
 const cardOptions = [
-  { value: 'option1', name: '기본', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
-  { value: 'option2', name: '나리꽃', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
-  { value: 'option3', name: '커피눈물', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '노란우체국', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+  { value: 'option1', name: '기본', img: new URL('@/assets/images/card_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '나리꽃', img: new URL('@/assets/images/card_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '커피눈물', img: new URL('@/assets/images/card_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '노란우체국', img: new URL('@/assets/images/card_temp04.png', import.meta.url).href },
 ]
 
 const showCardPopup = ref(false)
