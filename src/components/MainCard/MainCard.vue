@@ -2,7 +2,7 @@
   <div class="done_group">
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
-      <div :class="['routine_card', { rt_off: isPaused, walk_mode: !!props.routine?.hasWalk }]">
+      <div :class="['routine_card', { rt_off: isPaused, walk_mode: hasWalkResolved }]">
         <button class="setting" @click.stop="togglePopup">
           <span>다짐설정</span>
         </button>
@@ -37,10 +37,10 @@
             <p class="comment" v-if="commentText">{{ commentText }}</p>
           </div>
           <div class="right"></div>
-          <div class="done_set" v-if="showStatusButton">
-            <button class="p_white" @click="openStatusPopup">달성현황 체크하기</button>
+          <div class="done_set" v-if="canShowStatusButton">
+            <button class="p_white" :disabled="isPaused" @click="openStatusPopup">달성현황 체크하기</button>
           </div>
-          <div class="walk_check" v-if="props.routine?.hasWalk">
+          <div class="walk_check" v-if="hasWalkResolved">
             <button class="p_white" @click="openWalkPopup">산책 현황 보기</button>
           </div>
         </div>
@@ -184,7 +184,6 @@ const showShareConfirmPopup = ref(false)
 const showStatusPopup = ref(false)
 const showWalkPopup = ref(false)
 
-/* ✅ isPaused를 props와 동기화 */
 const isPaused = ref(!!props.routine?.isPaused)
 watch(() => props.routine?.isPaused, v => { isPaused.value = !!v }, { immediate: true })
 
@@ -244,13 +243,22 @@ const alarmText = computed(() => {
   return `${a.ampm} ${pad(a.hour)}:${pad(a.minute)}`
 })
 
-const showStatusButton = computed(() => props.isToday && props.selected === 'notdone')
+const canShowStatusButton = computed(() => props.isToday && props.selected === 'notdone' && !isPaused.value)
 
 const wrapperClass = computed(() => {
   if (props.selected === 'done') return 'done'
   if (props.selected === 'faildone') return 'fail_done'
   if (props.selected === 'ignored') return 'dimmed'
   return 'not_done'
+})
+
+const hasWalkResolved = computed(() => {
+  const r = props.routine || {}
+  if (typeof r.hasWalk === 'boolean') return r.hasWalk
+  const ruf = !!r.ruffy
+  const course = !!r.course
+  const goal = !!r.goalCount
+  return ruf && course && goal
 })
 
 function pad(v) {
@@ -319,13 +327,11 @@ function closePauseRestartPopup() {
   document.body.classList.remove('no-scroll')
 }
 
-/* ✅ 실제 토글 시 부모에게 알리고(emit) 파이어스토어 갱신 유도 */
 function confirmPauseRestart() {
   const id = props.routine?.id
   const next = !isPaused.value
   closePauseRestartPopup()
   if (id) emit('togglePause', { id, isPaused: next })
-  // 낙관적 업데이트(부모가 갱신 후 다시 내려줘도 UX 자연스럽게 유지)
   isPaused.value = next
 }
 
@@ -347,6 +353,7 @@ function confirmShare() {
 }
 
 function openStatusPopup() {
+  if (isPaused.value) return
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
   showStatusPopup.value = true
