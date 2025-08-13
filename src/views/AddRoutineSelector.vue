@@ -117,6 +117,13 @@ const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
+const normalizeSkin = (v) => {
+  const m = String(v || '').match(/(\d+)/)
+  if (!m) return 'option01'
+  const n = m[1].padStart(2, '0')
+  return `option${n}`
+}
+
 const cardSkin = ref('option01')
 
 const fieldErrors = ref({
@@ -173,9 +180,10 @@ function buildPayload() {
     course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
     goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
-    cardSkin: cardSkin.value || null,
+    cardSkin: normalizeSkin(cardSkin.value),
     comment: commentRef.value?.comment ?? '',
-    hasWalk: hasWalk.value
+    hasWalk: hasWalk.value,
+    
   }
 
   const todayISO = new Date().toISOString().slice(0,10)
