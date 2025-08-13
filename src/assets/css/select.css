@@ -54,18 +54,22 @@
   height: 5rem;
 }
 .select_card .card a span.img {
-  width:100%;
-  border:1px solid red;
   height: 3rem;
 }
 
 
 .select_ruffy .ruffys a span.img img,
-.select_course .course a span.img img,
-.select_card .card a span.img img {
+.select_course .course a span.img img {
   max-height: 100%;
   width: auto;
   border-radius: 1.5rem;
+}
+
+,
+.select_card .card a span.img img {
+  width:100%;
+  border:1px solid red;
+  border-radius:0.5rem
 }
 
 .select_ruffy .ruffys a span.name,
@@ -177,21 +181,34 @@
   background-image: url('../images/hey_ruffy_temp04_b.png');
 }
 
-.select_course .course .speech-bubble .r_detail01 span:first-child,
-.select_card  .card  .speech-bubble .r_detail01 span:first-child {
+.select_course .course .speech-bubble .r_detail01 span:first-child {
   background-image: url('../images/course_temp01.png');
 }
-.select_course .course .speech-bubble .r_detail02 span:first-child,
-.select_card  .card  .speech-bubble .r_detail02 span:first-child {
+.select_course .course .speech-bubble .r_detail02 span:first-child {
   background-image: url('../images/course_temp02.png');
 }
-.select_course .course .speech-bubble .r_detail03 span:first-child,
-.select_card  .card  .speech-bubble .r_detail03 span:first-child {
+.select_course .course .speech-bubble .r_detail03 span:first-child {
   background-image: url('../images/course_temp03.png');
 }
-.select_course .course .speech-bubble .r_detail04 span:first-child,
-.select_card  .card  .speech-bubble .r_detail04 span:first-child {
+.select_course .course .speech-bubble .r_detail04 span:first-child {
   background-image: url('../images/course_temp04.png');
+}
+
+
+.select_card  .card  .speech-bubble .r_detail01 span:first-child {
+  background-image: url('../images/card_temp01.png');
+}
+
+.select_card  .card  .speech-bubble .r_detail02 span:first-child {
+  background-image: url('../images/card_temp02.png');
+}
+
+.select_card  .card  .speech-bubble .r_detail03 span:first-child {
+  background-image: url('../images/card_temp03.png');
+}
+
+.select_card  .card  .speech-bubble .r_detail04 span:first-child {
+  background-image: url('../images/card_temp04.png');
 }
 
 .select_ruffy .ruffys .tail,
