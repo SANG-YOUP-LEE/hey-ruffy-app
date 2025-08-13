@@ -166,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 
 const props = defineProps({
@@ -174,8 +174,8 @@ const props = defineProps({
   routine: { type: Object, default: () => ({}) },
   isToday: { type: Boolean, default: false }
 })
-  
-const emit = defineEmits(['delete','changeStatus','edit'])
+
+const emit = defineEmits(['delete','changeStatus','edit','togglePause'])
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
@@ -183,7 +183,11 @@ const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
 const showStatusPopup = ref(false)
 const showWalkPopup = ref(false)
-const isPaused = ref(false)
+
+/* ✅ isPaused를 props와 동기화 */
+const isPaused = ref(!!props.routine?.isPaused)
+watch(() => props.routine?.isPaused, v => { isPaused.value = !!v }, { immediate: true })
+
 const selectedStatus = ref('')
 const selectedState = ref('')
 
@@ -241,7 +245,7 @@ const alarmText = computed(() => {
 })
 
 const showStatusButton = computed(() => props.isToday && props.selected === 'notdone')
-  
+
 const wrapperClass = computed(() => {
   if (props.selected === 'done') return 'done'
   if (props.selected === 'faildone') return 'fail_done'
@@ -315,9 +319,14 @@ function closePauseRestartPopup() {
   document.body.classList.remove('no-scroll')
 }
 
+/* ✅ 실제 토글 시 부모에게 알리고(emit) 파이어스토어 갱신 유도 */
 function confirmPauseRestart() {
-  isPaused.value = !isPaused.value
+  const id = props.routine?.id
+  const next = !isPaused.value
   closePauseRestartPopup()
+  if (id) emit('togglePause', { id, isPaused: next })
+  // 낙관적 업데이트(부모가 갱신 후 다시 내려줘도 UX 자연스럽게 유지)
+  isPaused.value = next
 }
 
 function openShareConfirm() {
