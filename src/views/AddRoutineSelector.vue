@@ -42,7 +42,7 @@
 
       <div ref="cardWrap">
         <div v-if="fieldErrors.card" class="warn-message t_red01">{{ fieldErrors.card }}</div>
-        <RoutineCardSelector ref="cardRef" />
+        <RoutineCardSelector ref="cardRef" v-model="cardSkin" uniqueName="card-skin" />
       </div>
 
       <div class="off_walk">
@@ -117,6 +117,7 @@ const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 const isWalkModeOff = ref(false)
+const cardSkin = ref('option01')
 
 const fieldErrors = ref({
   title: '', repeat: '', date: '', alarm: '',
@@ -172,7 +173,7 @@ function buildPayload() {
     course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
     goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
-    cardSkin: cardRef.value?.cardSkin ?? null,
+    cardSkin: cardSkin.value || null,
     comment: commentRef.value?.comment ?? '',
     hasWalk: hasWalk.value
   }
@@ -214,6 +215,7 @@ const validateRoutine = () => {
   }
   const selectedColor = priorityRef.value?.selectedColor ?? null
   if (selectedColor === null) { showFieldError('priority','다짐 색상을 선택해주세요.'); return false }
+  if (!cardSkin.value) { showFieldError('card','카드 디자인을 선택해주세요.'); return false }
   return true
 }
 
@@ -265,6 +267,7 @@ onMounted(() => {
     cardRef.value?.setFromRoutine?.(props.routineToEdit)
     commentRef.value?.setFromRoutine?.(props.routineToEdit)
     isWalkModeOff.value = !props.routineToEdit.ruffy
+    cardSkin.value = props.routineToEdit.cardSkin || cardSkin.value
   }
 })
 
