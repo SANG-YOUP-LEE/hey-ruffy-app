@@ -31,19 +31,19 @@
           </button>
           <div class="tail" :class="selectedOption"></div>
 
-          <div v-if="selectedOption === 'option1'" class="r_detail01">
+          <div v-if="selectedOption === 'option01'" class="r_detail01">
             <p><span>기본 카드 이미지</span><span>기본</span></p>
             기본 카드 설명입니다.
           </div>
-          <div v-else-if="selectedOption === 'option2'" class="r_detail02">
+          <div v-else-if="selectedOption === 'option02'" class="r_detail02">
             <p><span>나리꽃 카드 이미지</span><span>나리꽃</span></p>
             나리꽃 카드 설명입니다.
           </div>
-          <div v-else-if="selectedOption === 'option3'" class="r_detail03">
+          <div v-else-if="selectedOption === 'option03'" class="r_detail03">
             <p><span>커피눈물 카드 이미지</span><span>커피눈물</span></p>
             커피눈물 카드 설명입니다.
           </div>
-          <div v-else-if="selectedOption === 'option4'" class="r_detail04">
+          <div v-else-if="selectedOption === 'option04'" class="r_detail04">
             <p><span>노란우체국 카드 이미지</span><span>노란우체국</span></p>
             노란우체국 카드 설명입니다.
           </div>
@@ -63,14 +63,13 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const myName = computed(() => props.uniqueName || 'card-selector')
-
 const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
 
 const cardOptions = [
-  { value: 'option1', name: '기본', img: new URL('@/assets/images/card_temp01.png', import.meta.url).href },
-  { value: 'option2', name: '나리꽃', img: new URL('@/assets/images/card_temp02.png', import.meta.url).href },
-  { value: 'option3', name: '커피눈물', img: new URL('@/assets/images/card_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '노란우체국', img: new URL('@/assets/images/card_temp04.png', import.meta.url).href },
+  { value: 'option01', name: '기본',     img: new URL('@/assets/images/card_temp01.png', import.meta.url).href },
+  { value: 'option02', name: '나리꽃',   img: new URL('@/assets/images/card_temp02.png', import.meta.url).href },
+  { value: 'option03', name: '커피눈물', img: new URL('@/assets/images/card_temp03.png', import.meta.url).href },
+  { value: 'option04', name: '노란우체국', img: new URL('@/assets/images/card_temp04.png', import.meta.url).href },
 ]
 
 const showCardPopup = ref(false)
@@ -82,22 +81,9 @@ const selectCard = (value) => {
   showCardPopup.value = true
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
+const closeCardPopup = () => { showCardPopup.value = false }
+const onBubbleOpen = (e) => { if (e?.detail?.who !== myName.value) showCardPopup.value = false }
 
-const closeCardPopup = () => {
-  showCardPopup.value = false
-}
-
-const onBubbleOpen = (e) => {
-  const who = e?.detail?.who
-  if (who && who !== myName.value) {
-    showCardPopup.value = false
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('bubble-open', onBubbleOpen)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('bubble-open', onBubbleOpen)
-})
+onMounted(() => window.addEventListener('bubble-open', onBubbleOpen))
+onBeforeUnmount(() => window.removeEventListener('bubble-open', onBubbleOpen))
 </script>
