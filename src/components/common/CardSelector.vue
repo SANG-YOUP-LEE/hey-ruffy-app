@@ -1,53 +1,103 @@
 <template>
-  <div class="select_card custom-radio-group">
-    <label
-      v-for="opt in options"
-      :key="opt.id"
-      class="card-item"
-      tabindex="0"
-      @keydown.enter.prevent="$emit('update:modelValue', opt.id)"
-    >
-      <div
-        class="design"
-        :class="{ selected: modelValue === opt.id }"
-        @click.stop="$emit('update:modelValue', opt.id)"
-      ></div>
-
-      <span class="custom-radio" @click.stop="$emit('update:modelValue', opt.id)">
-        <input
-          type="radio"
-          :name="name"
-          :value="opt.id"
-          :checked="modelValue === opt.id"
-          @change="$emit('update:modelValue', opt.id)"
-        />
-        <span class="circle"></span>
-      </span>
-
-      <span
-        class="name"
-        :class="{ on: modelValue === opt.id }"
-        @click.stop="$emit('update:modelValue', opt.id)"
+  <div class="select_card">
+    <div class="card" ref="cardRef">
+      <a
+        v-for="option in cardOptions"
+        :key="option.value"
+        href="#none"
+        :class="{ on: modelValue === option.value }"
+        @click.prevent="selectCard(option.value)"
       >
-        {{ opt.label }}
-      </span>
-    </label>
+        <span class="img"><img :src="option.img" :alt="option.name" /></span>
+        <label class="custom-radio">
+          <input 
+            type="radio" 
+            :name="uniqueName || 'choice-card'" 
+            :value="option.value" 
+            :checked="modelValue === option.value" 
+          />
+          <span class="circle"></span>
+        </label>
+        <span class="name" :class="{ on: modelValue === option.value }">
+          {{ option.name }}
+        </span>
+      </a>
+
+      <div class="speech-bubble-wrapper" v-if="showCardPopup">
+        <button class="popup-close-area" @click="closeCardPopup"></button>
+        <div class="speech-bubble" @click.stop>
+          <button class="close-btn" @click="closeCardPopup">
+            <img :src="closeIcon" alt="닫기" />
+          </button>
+          <div class="tail" :class="selectedOption"></div>
+
+          <div v-if="selectedOption === 'option1'" class="r_detail01">
+            <p><span>기본 카드 이미지</span><span>기본</span></p>
+            기본 카드 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option2'" class="r_detail02">
+            <p><span>나리꽃 카드 이미지</span><span>나리꽃</span></p>
+            나리꽃 카드 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option3'" class="r_detail03">
+            <p><span>커피눈물 카드 이미지</span><span>커피눈물</span></p>
+            커피눈물 카드 설명입니다.
+          </div>
+          <div v-else-if="selectedOption === 'option4'" class="r_detail04">
+            <p><span>노란우체국 카드 이미지</span><span>노란우체국</span></p>
+            노란우체국 카드 설명입니다.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+
 const props = defineProps({
-  modelValue: { type: [String, Number, null], default: null },
-  options: {
-    type: Array,
-    default: () => ([
-      { id: 'a', label: '기본' },
-      { id: 'b', label: '나리꽃' },
-      { id: 'c', label: '커피눈물' },
-      { id: 'd', label: '노란우체국' }
-    ])
-  },
-  name: { type: String, default: 'card-skin' }
+  modelValue: String,
+  uniqueName: { type: String, default: '' }
 })
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
+
+const myName = computed(() => props.uniqueName || 'card-selector')
+
+const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
+
+const cardOptions = [
+  { value: 'option1', name: '기본', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '나리꽃', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '커피눈물', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '노란우체국', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+]
+
+const showCardPopup = ref(false)
+const selectedOption = ref('')
+
+const selectCard = (value) => {
+  emit('update:modelValue', value)
+  selectedOption.value = value
+  showCardPopup.value = true
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
+}
+
+const closeCardPopup = () => {
+  showCardPopup.value = false
+}
+
+const onBubbleOpen = (e) => {
+  const who = e?.detail?.who
+  if (who && who !== myName.value) {
+    showCardPopup.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('bubble-open', onBubbleOpen)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('bubble-open', onBubbleOpen)
+})
 </script>
