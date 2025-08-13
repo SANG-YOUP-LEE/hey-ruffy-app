@@ -205,7 +205,6 @@
   position:relative; 
   z-index:1;
   margin-top:-2.2rem;
-  margin-bottom:1rem;
 }
 
 #main_body .routine_total .filter_row .filter_buttons {
@@ -450,10 +449,10 @@
 }
 
 #main_body .today_tools {
-  margin-bottom: 1rem;
+  margin:1rem 0 1rem 0;
   display: flex;
   justify-content: flex-end;
-  align-items: center; /* 수직 중앙 정렬 */
+  align-items: center;
   position: relative;
 }
 
