@@ -35,6 +35,13 @@
         <RoutineAlarmSelector ref="alarmRef" />
       </div>
 
+      
+      <div ref="priorityWrap">
+        <div v-if="fieldErrors.priority" class="warn-message t_red01">{{ fieldErrors.priority }}</div>
+        <RoutinePrioritySelector ref="priorityRef" />
+      </div>
+
+
       <div class="off_walk">
         <label class="checkbox-label">
           <input type="checkbox" v-model="isWalkModeOff" />
@@ -56,11 +63,6 @@
           <div v-if="fieldErrors.goal" class="warn-message t_red01">{{ fieldErrors.goal }}</div>
           <RoutineGoalCountSelector ref="goalRef" />
         </div>
-      </div>
-
-      <div ref="priorityWrap">
-        <div v-if="fieldErrors.priority" class="warn-message t_red01">{{ fieldErrors.priority }}</div>
-        <RoutinePrioritySelector ref="priorityRef" />
       </div>
 
       <div ref="commentWrap">
