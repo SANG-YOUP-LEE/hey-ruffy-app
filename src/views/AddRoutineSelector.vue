@@ -41,8 +41,16 @@
         <RoutinePrioritySelector ref="priorityRef" />
       </div>
 
+      
+      <div ref="commentWrap">
+        <RoutineCommentInput ref="commentRef" />
+        <div v-if="fieldErrors.comment" class="warn-message t_red01">{{ fieldErrors.comment }}</div>
+      </div>
+
+      
 
       <div class="off_walk">
+        <p>이제부터 러피와의 산책을 준비할까요?</p>
         <label class="checkbox-label">
           <input type="checkbox" v-model="isWalkModeOff" />
           <span class="checkmark"></span>
@@ -63,11 +71,6 @@
           <div v-if="fieldErrors.goal" class="warn-message t_red01">{{ fieldErrors.goal }}</div>
           <RoutineGoalCountSelector ref="goalRef" />
         </div>
-      </div>
-
-      <div ref="commentWrap">
-        <RoutineCommentInput ref="commentRef" />
-        <div v-if="fieldErrors.comment" class="warn-message t_red01">{{ fieldErrors.comment }}</div>
       </div>
     </div>
 
