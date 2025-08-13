@@ -35,21 +35,22 @@
         <RoutineAlarmSelector ref="alarmRef" />
       </div>
 
-      
       <div ref="priorityWrap">
         <div v-if="fieldErrors.priority" class="warn-message t_red01">{{ fieldErrors.priority }}</div>
         <RoutinePrioritySelector ref="priorityRef" />
       </div>
 
-      
+      <div ref="cardWrap">
+        <div v-if="fieldErrors.card" class="warn-message t_red01">{{ fieldErrors.card }}</div>
+        <RoutineCardSelector ref="cardRef" />
+      </div>
+
       <div ref="commentWrap">
         <RoutineCommentInput ref="commentRef" />
         <div v-if="fieldErrors.comment" class="warn-message t_red01">{{ fieldErrors.comment }}</div>
       </div>
 
-      
-
-     <div class="off_walk">
+      <div class="off_walk">
         <p>{{ isWalkModeOff ? '산책 없는 다짐은 볶음밥 없는 닭갈비ㅠ' : '이제부터 러피와의 산책을 준비할까요?' }}</p>
         <label class="checkbox-label">
           <input type="checkbox" v-model="isWalkModeOff" />
@@ -98,6 +99,7 @@ import RoutineRuffySelector from '@/components/routine/RoutineRuffySelector.vue'
 import RoutineCourseSelector from '@/components/routine/RoutineCourseSelector.vue'
 import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelector.vue'
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
+import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
@@ -105,7 +107,6 @@ const p = n => String(n).padStart(2,'0')
 function toISO(d){ if(!d) return null; return `${d.year}-${p(d.month)}-${p(d.day)}` }
 function weeklyDaysToICS(arr){ return (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean) }
 function parseInterval(s){ const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
-// ✅ 잘못된 ISO 문자열 방지
 function safeISOFromDateObj(obj){
   const s = toISO(obj)
   return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
@@ -119,7 +120,7 @@ const isWalkModeOff = ref(false)
 
 const fieldErrors = ref({
   title: '', repeat: '', date: '', alarm: '',
-  ruffy: '', course: '', goal: '', priority: '', comment: ''
+  ruffy: '', course: '', goal: '', priority: '', card: '', comment: ''
 })
 
 const errorTimers = {}
@@ -129,7 +130,7 @@ function showFieldError(key, msg) {
   fieldErrors.value[key] = msg
   if (errorTimers[key]) clearTimeout(errorTimers[key])
   errorTimers[key] = setTimeout(() => { fieldErrors.value[key] = ''; delete errorTimers[key] }, ERROR_MS)
-  const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, comment: commentWrap }
+  const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, card: cardWrap, comment: commentWrap }
   const el = wrapRefMap[key]?.value; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
@@ -138,9 +139,9 @@ function clearAllFieldErrors() {
 }
 
 const titleRef = ref(); const repeatRef = ref(); const dateRef = ref(); const alarmRef = ref()
-const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const commentRef = ref()
+const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const cardRef = ref(); const commentRef = ref()
 const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
-const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const commentWrap = ref()
+const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
 
 let scrollY = 0
 const preventTouchMove = (e) => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
@@ -171,11 +172,11 @@ function buildPayload() {
     course: isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
     goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
+    cardSkin: cardRef.value?.cardSkin ?? null,
     comment: commentRef.value?.comment ?? '',
     hasWalk: hasWalk.value
   }
 
-  // ✅ 안전한 ISO 계산 (빈값/가짜값 방지)
   const todayISO = new Date().toISOString().slice(0,10)
   const startISO = safeISOFromDateObj(base.startDate) || todayISO
   const endISO   = safeISOFromDateObj(base.endDate) || null
@@ -261,6 +262,7 @@ onMounted(() => {
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
     goalRef.value?.setFromRoutine?.(props.routineToEdit)
     priorityRef.value?.setFromRoutine?.(props.routineToEdit)
+    cardRef.value?.setFromRoutine?.(props.routineToEdit)
     commentRef.value?.setFromRoutine?.(props.routineToEdit)
     isWalkModeOff.value = !props.routineToEdit.ruffy
   }
@@ -271,4 +273,3 @@ onBeforeUnmount(() => {
   clearAllFieldErrors()
 })
 </script>
-
