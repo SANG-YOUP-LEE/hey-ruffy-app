@@ -76,7 +76,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { db } from '@/firebase'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
 
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
@@ -199,16 +199,30 @@ function onSaved(rt) {
 async function onChangeStatus({ id, status }) {
   const key = dateKey(selectedDate.value)
   if (!currentUid) return
+  const j = rawRoutines.value.findIndex(r => r.id === id)
+  const prev = j !== -1 ? rawRoutines.value[j]?.progress?.[key] : undefined
+  const r = j !== -1 ? rawRoutines.value[j] : null
+  const hasWalk = !!(r && (typeof r.hasWalk === 'boolean' ? r.hasWalk : (r.ruffy && r.course && r.goalCount)))
+  let delta = 0
+  if (hasWalk) {
+    if (prev !== 'done' && status === 'done') delta = 1
+    else if (prev === 'done' && status !== 'done') delta = -1
+  }
   try {
-    await updateDoc(doc(db, 'users', currentUid, 'routines', id), {
+    const payload = {
       [`progress.${key}`]: status,
       updatedAt: serverTimestamp(),
-    })
+      ...(delta !== 0 ? { walkDoneCount: increment(delta) } : {})
+    }
+    await updateDoc(doc(db, 'users', currentUid, 'routines', id), payload)
   } catch (e) {}
-  const j = rawRoutines.value.findIndex(r => r.id === id)
   if (j !== -1) {
     const next = { ...rawRoutines.value[j] }
     next.progress = { ...(next.progress || {}), [key]: status }
+    if (delta !== 0) {
+      const cur = Number(next.walkDoneCount || 0)
+      next.walkDoneCount = Math.max(0, cur + delta)
+    }
     rawRoutines.value.splice(j, 1, next)
   }
   selectedFilter.value = status
@@ -336,4 +350,3 @@ function handleNext() {
   handleSelectDate(d, future)
 }
 </script>
-
