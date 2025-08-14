@@ -53,15 +53,17 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-
-export const courseOptions = [
+<script>
+export const COURSE_OPTIONS = [
   { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
   { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
   { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href }
 ]
+</script>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -72,6 +74,8 @@ const emit = defineEmits(['update:modelValue'])
 const myName = computed(() => props.uniqueName || 'course-selector')
 
 const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
+
+const courseOptions = COURSE_OPTIONS
 
 const showCoursePopup = ref(false)
 const selectedOption = ref('')
