@@ -15,11 +15,11 @@
         :vb-w="testCourse.vbW"
         :vb-h="testCourse.vbH"
         :path-d="testCourse.pathD"
-        :max-points="testCourse.maxPoints"
-        :goal-count="routine?.goalCount || 20"
-        :done-count="routine?.walkDoneCount || 0"
-        :show-path="false"
-        :point-r="8"
+        :max-points="20"
+        :point-r="9"
+        point-fill="#1e90ff"
+        point-stroke="#ffffff"
+        :point-stroke-width="3"
       />
     </div>
   </div>
