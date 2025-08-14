@@ -266,7 +266,9 @@ onMounted(() => {
   if (props.routineToEdit) {
     titleRef.value?.setFromRoutine?.(props.routineToEdit)
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
-    dateRef.value?.setFromRoutine?.(props.routineToEdit)
+    const startDate = props.routineToEdit?.startDate ?? null
+    const endDate = props.routineToEdit?.endDate ?? null
+    dateRef.value?.setFromRoutine?.({ startDate, endDate })
     alarmRef.value?.setFromRoutine?.(props.routineToEdit)
     ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
