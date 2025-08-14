@@ -5,6 +5,12 @@
   height:80dvh;
 }
 
+.walk_pop [class^='walk_course'] {
+  width:100%;
+  height:100%;
+  background-color:#eee;
+}
+
 /*
 .walk_pop_wrap.course01 {
   border:1px solid red
