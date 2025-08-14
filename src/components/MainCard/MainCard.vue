@@ -265,7 +265,6 @@ const alarmText = computed(() => {
 })
 
 const canShowStatusButton = computed(() => props.isToday && props.selected === 'notdone')
-
 const wrapperClass = computed(() => {
   if (props.selected === 'done') return 'done'
   if (props.selected === 'faildone') return 'fail_done'
