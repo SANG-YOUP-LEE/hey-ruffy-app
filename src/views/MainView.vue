@@ -221,14 +221,13 @@ async function onChangeStatus({ id, status }) {
       next.walkDoneCount = Math.max(0, cur + delta)
     }
     rawRoutines.value.splice(j, 1, next)
+    if (status === 'done' && hasWalk) {
+      window.dispatchEvent(new Event('close-today-check-popup'))
+      window.dispatchEvent(new CustomEvent('open-walk-map-popup', { detail: { id: next.id, routine: next } }))
+    }
   }
   selectedFilter.value = status
   showWeekly.value = false
-
-  if (status === 'done') {
-    window.dispatchEvent(new Event('close-today-check-popup'))
-    window.dispatchEvent(new Event('open-walk-map-popup'))
-  }
 }
 
 async function onTogglePause({ id, isPaused }) {
