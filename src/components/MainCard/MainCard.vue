@@ -35,13 +35,24 @@
             <p class="se_date">{{ periodText }}</p>
             <p class="alaram">{{ alarmText }}</p>
             <p class="comment" v-if="commentText">{{ commentText }}</p>
+
+            <div class="walk_info" v-if="hasWalkResolved">
+              <div class="walk_ruffy">
+                <img :src="ruffyMeta?.img" :alt="ruffyMeta?.name" />
+                <span class="name">{{ ruffyMeta?.name }}</span>
+              </div>
+              <div class="walk_course">
+                <img :src="courseMeta?.img" :alt="courseMeta?.name" />
+                <span class="name">{{ courseMeta?.name }}</span>
+              </div>
+              <div class="walk_goal">
+                목표 {{ props.routine?.goalCount }}회
+              </div>
+            </div>
           </div>
           <div class="right"></div>
           <div class="done_set" v-if="canShowStatusButton">
-            <button
-              class="p_white"
-              @click="handleStatusButtonClick"
-            >
+            <button class="p_white" @click="handleStatusButtonClick">
               달성현황 체크하기
             </button>
           </div>
@@ -117,24 +128,15 @@
           <div class="popup_body">
             <div class="done_check_wrap">
               <div class="state_group">
-                <span
-                  class="well_done"
-                  :class="{ right: selectedState==='well_done' }"
-                  @click="onSelect('well_done')"
-                  v-show="!selectedState || selectedState==='well_done'"
-                >{{ selectedState==='well_done' ? '나 잘했지? 오늘도 다짐 성공이야!' : '다짐 달성 성공!' }}</span>
-                <span
-                  class="fail_done"
-                  :class="{ right: selectedState==='fail_done' }"
-                  @click="onSelect('fail_done')"
-                  v-show="!selectedState || selectedState==='fail_done'"
-                >{{ selectedState==='fail_done' ? '오늘은 결국 실패야ㅠㅠ' : '다짐 달성 실패ㅠ' }}</span>
-                <span
-                  class="ign_done"
-                  :class="{ right: selectedState==='ign_done' }"
-                  @click="onSelect('ign_done')"
-                  v-show="!selectedState || selectedState==='ign_done'"
-                >{{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}</span>
+                <span class="well_done" :class="{ right: selectedState==='well_done' }" @click="onSelect('well_done')" v-show="!selectedState || selectedState==='well_done'">
+                  {{ selectedState==='well_done' ? '나 잘했지? 오늘도 다짐 성공이야!' : '다짐 달성 성공!' }}
+                </span>
+                <span class="fail_done" :class="{ right: selectedState==='fail_done' }" @click="onSelect('fail_done')" v-show="!selectedState || selectedState==='fail_done'">
+                  {{ selectedState==='fail_done' ? '오늘은 결국 실패야ㅠㅠ' : '다짐 달성 실패ㅠ' }}
+                </span>
+                <span class="ign_done" :class="{ right: selectedState==='ign_done' }" @click="onSelect('ign_done')" v-show="!selectedState || selectedState==='ign_done'">
+                  {{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}
+                </span>
               </div>
               <div class="chat_group" v-if="selectedState">
                 <span class="well_done" v-show="selectedState==='well_done'">넌 역시 최고야. 대체 언제까지 멋있을래?</span>
@@ -173,6 +175,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
+import { ruffyOptions } from '@/components/common/RuffySelector.vue'
+import { courseOptions } from '@/components/common/CourseSelector.vue'
 
 const props = defineProps({
   selected: String,
@@ -192,7 +196,6 @@ const showWalkPopup = ref(false)
 const isPaused = ref(!!props.routine?.isPaused)
 watch(() => props.routine?.isPaused, v => { isPaused.value = !!v }, { immediate: true })
 
-const selectedStatus = ref('')
 const selectedState = ref('')
 
 const titleText = computed(() => props.routine?.title || '')
@@ -272,10 +275,15 @@ const wrapperClass = computed(() => {
 const hasWalkResolved = computed(() => {
   const r = props.routine || {}
   if (typeof r.hasWalk === 'boolean') return r.hasWalk
-  const ruf = !!r.ruffy
-  const course = !!r.course
-  const goal = !!r.goalCount
-  return ruf && course && goal
+  return !!r.ruffy && !!r.course && !!r.goalCount
+})
+
+const ruffyMeta = computed(() => {
+  return ruffyOptions.find(r => r.value === props.routine?.ruffy) || null
+})
+
+const courseMeta = computed(() => {
+  return courseOptions.find(c => c.value === props.routine?.course) || null
 })
 
 function pad(v) {
