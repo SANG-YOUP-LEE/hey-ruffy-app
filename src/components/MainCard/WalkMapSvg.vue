@@ -1,58 +1,56 @@
 <template>
   <svg
-    class="walk_svg"
+    xmlns="http://www.w3.org/2000/svg"
     :viewBox="`0 0 ${vbW} ${vbH}`"
     preserveAspectRatio="xMidYMid meet"
   >
-    <image v-if="mapSrc" :href="mapSrc" x="0" y="0" :width="vbW" :height="vbH" />
-    <path ref="pathRef" :d="pathD" fill="none" stroke="transparent" />
+    <!-- 배경 이미지 -->
+    <image
+      v-if="mapSrc"
+      :href="mapSrc"
+      x="0"
+      y="0"
+      :width="vbW"
+      :height="vbH"
+      :style="{ opacity: mapOpacity }"
+    />
 
-    <g v-for="i in maxPoints" :key="i">
-      <circle
-        v-if="pts[i-1]"
-        :cx="pts[i-1].x"
-        :cy="pts[i-1].y"
-        :r="pointR"
-        class="point"
-      />
-    </g>
+    <!-- 경로 -->
+    <path
+      v-if="showPath"
+      :d="pathD"
+      fill="none"
+      :stroke="pathStroke"
+      :stroke-width="pathWidth"
+      :stroke-dasharray="pathDasharray"
+    />
+
+    <!-- 점 -->
+    <circle
+      v-for="(p, idx) in points"
+      :key="idx"
+      :cx="p.x"
+      :cy="p.y"
+      :r="pointR"
+      fill="#ff3b30"
+    />
   </svg>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
-  mapSrc: { type: String, default: '' },
-  pathD: { type: String, required: true },
-  vbW: { type: Number, default: 1000 },
-  vbH: { type: Number, default: 1000 },
-  maxPoints: { type: Number, default: 20 },
-  pointR: { type: Number, default: 6 }
+  mapSrc: String,
+  vbW: Number,
+  vbH: Number,
+  pathD: String,
+  pathStroke: String,
+  pathWidth: Number,
+  pathDasharray: String,
+  showPath: Boolean,
+  pointR: Number,
+  points: { type: Array, default: () => [] },
+  mapOpacity: { type: Number, default: 1 } // 🔹 추가됨
 })
-
-const pathRef = ref(null)
-const pts = ref([])
-
-function samplePoints() {
-  const el = pathRef.value
-  if (!el) return
-  const L = el.getTotalLength()
-  const arr = []
-  for (let i = 0; i < props.maxPoints; i++) {
-    const t = i / (props.maxPoints - 1)
-    const p = el.getPointAtLength(L * t)
-    arr.push({ x: p.x, y: p.y })
-  }
-  pts.value = arr
-}
-
-onMounted(samplePoints)
-watch(() => props.pathD, samplePoints)
-watch(() => props.maxPoints, samplePoints)
 </script>
-
-<style scoped>
-.walk_svg { width: 100%; height: 100%; display: block; }
-.point { fill: #4da3ff; opacity: 0.9; }
-</style>
