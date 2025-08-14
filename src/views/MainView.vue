@@ -77,6 +77,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { db } from '@/firebase'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
+
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
@@ -91,10 +92,12 @@ const hasFetched = ref(false)
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
 const MAX_ROUTINES = 100
+
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')
 const showWeekly = ref(false)
+
 const rawRoutines = ref([])
 const routines = ref([])
 const isTodayDate = computed(() => dateKey(selectedDate.value) === dateKey(new Date()))
@@ -221,10 +224,6 @@ async function onChangeStatus({ id, status }) {
       next.walkDoneCount = Math.max(0, cur + delta)
     }
     rawRoutines.value.splice(j, 1, next)
-    if (status === 'done' && hasWalk) {
-      window.dispatchEvent(new Event('close-today-check-popup'))
-      window.dispatchEvent(new CustomEvent('open-walk-map-popup', { detail: { id: next.id, routine: next } }))
-    }
   }
   selectedFilter.value = status
   showWeekly.value = false
