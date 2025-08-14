@@ -8,15 +8,18 @@
     <div v-else class="walk_info">
       <span class="walk_empty">산책 정보가 없습니다</span>
     </div>
-
     <div class="walk_canvas">
       <WalkMapSvg
         :map-src="testCourse.image"
+        :map-opacity="0.1"
         :vb-w="testCourse.vbW"
         :vb-h="testCourse.vbH"
         :path-d="testCourse.pathD"
+        :max-points="testCourse.maxPoints"
+        :goal-count="routine?.goalCount || 20"
+        :done-count="routine?.walkDoneCount || 0"
+        :show-path="false"
         :point-r="8"
-        :map-opacity="0.1"  <!-- 🔹 투명도 조절 -->
       />
     </div>
   </div>
