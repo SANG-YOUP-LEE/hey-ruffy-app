@@ -15,7 +15,8 @@
         :vb-w="selectedCourse.vbW"
         :vb-h="selectedCourse.vbH"
         :path-d="selectedCourse.pathD"
-        :max-points="20"
+        :base-points="20"
+        :goal-count="goalCountResolved"
         :point-r="9"
         :point-stroke-width="3"
         :point-fill="selectedCourse.pointFill"
@@ -42,6 +43,11 @@ const hasWalkResolved = computed(() => {
   const r = routine.value
   if (typeof r.hasWalk === 'boolean') return r.hasWalk
   return !!r.ruffy && !!r.course && !!r.goalCount
+})
+
+const goalCountResolved = computed(() => {
+  const n = Number(routine.value?.goalCount || 20)
+  return [5,10,15,20].includes(n) ? n : 20
 })
 
 const ruffyMeta = computed(() => {
