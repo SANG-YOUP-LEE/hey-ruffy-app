@@ -15,17 +15,8 @@
         :vb-w="testCourse.vbW"
         :vb-h="testCourse.vbH"
         :path-d="testCourse.pathD"
-        :max-points="testCourse.maxPoints"
-        :goal-count="routine?.goalCount || 20"
-        :done-count="routine?.walkDoneCount || 0"
-        :show-path="true"
-        path-stroke="#ff3b30"
-        :path-width="16"
-        path-dasharray="28 18"
-        :animate="true"
-        :show-breadcrumbs="true"
-        :breadcrumb-every="32"
         :point-r="8"
+        :map-opacity="0.1"  <!-- 🔹 투명도 조절 -->
       />
     </div>
   </div>
