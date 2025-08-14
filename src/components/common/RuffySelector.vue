@@ -34,7 +34,7 @@
           </button>
           <div class="tail" :class="selectedOption"></div>
 
-          <div v-if="selectedOption === 'option1'" class="r_detail01">
+          <div v-if="selectedOption === 'option1' " class="r_detail01">
             <p><span>러피 이미지</span><span>Furry Ruffy</span></p>
             귀여운 잠보 퓨리예요. 움직이기 싫어해서 산책 한번 나가기 힘들지만 막상 나가면 날라날라~ 6개월째 생일날 받은 노란색 안대는 최애템!
           </div>
@@ -56,8 +56,17 @@
   </div>
 </template>
 
+<script>
+export const RUFFY_OPTIONS = [
+  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href }
+]
+</script>
+
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -67,20 +76,21 @@ const emit = defineEmits(['update:modelValue'])
 
 const myName = computed(() => props.uniqueName || 'ruffy-selector')
 
-const ruffyOptions = [
-  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
-  { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
-  { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href },
-]
+const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
 
-const selectRuffy = (value) => {
-  emit('update:modelValue', value)
-  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
-}
+const ruffyOptions = RUFFY_OPTIONS
 
 const showRuffyPopup = ref(false)
 const selectedOption = ref('')
+
+const selectRuffy = (value, event) => {
+  event?.stopPropagation()
+  emit('update:modelValue', value)
+  selectedOption.value = value
+  showRuffyPopup.value = true
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
+}
+
 const closeRuffyPopup = () => {
   showRuffyPopup.value = false
 }
