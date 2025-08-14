@@ -1,12 +1,14 @@
 <!-- src/components/MainCard/MainWalkStatus.vue -->
 <template>
-  <div class="walk_info" v-if="hasWalkResolved">
-    <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
-    <span class="walk_course">{{ courseMeta?.name }}</span>
-    <span class="walk_goal">목표 {{ routine?.goalCount }}회</span>
-  </div>
-  <div v-else class="walk_info">
-    <span class="walk_empty">산책 정보가 없습니다</span>
+  <div class="walk_pop_wrap">
+    <div class="walk_info" v-if="hasWalkResolved">
+      <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
+      <span class="walk_course">{{ courseMeta?.name }}</span>
+      <span class="walk_goal">목표 {{ routine?.goalCount }}회</span>
+    </div>
+    <div v-else class="walk_info">
+      <span class="walk_empty">산책 정보가 없습니다</span>
+    </div>
   </div>
 </template>
 
