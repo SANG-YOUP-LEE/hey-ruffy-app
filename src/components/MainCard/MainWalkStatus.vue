@@ -28,7 +28,7 @@
 import { computed } from 'vue'
 import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
-import WalkMapSvg from '@/components/common/WalkMapSvg.vue'
+import WalkMapSvg from '@/components/MainCard/WalkMapSvg.vue'
 import farmImg from '@/assets/images/temp_map01.JPG'
 
 const props = defineProps({
