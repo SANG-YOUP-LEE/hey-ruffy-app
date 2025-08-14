@@ -183,7 +183,6 @@ function buildPayload() {
     cardSkin: normalizeSkin(cardSkin.value),
     comment: commentRef.value?.comment ?? '',
     hasWalk: hasWalk.value,
-    
   }
 
   const todayISO = new Date().toISOString().slice(0,10)
@@ -261,12 +260,23 @@ const saveRoutine = async () => {
   }
 }
 
+function makeDateRoutineForEdit(src) {
+  const r = JSON.parse(JSON.stringify(src || {}))
+  const hasStart = !!(r.startDate && r.startDate.year && r.startDate.month && r.startDate.day)
+  const hasEnd = !!(r.endDate && r.endDate.year && r.endDate.month && r.endDate.day)
+  if (!hasStart) r.start = null
+  if (r.rule && !hasStart) r.rule.anchor = null
+  if (!hasEnd) r.end = null
+  return r
+}
+
 onMounted(() => {
   lockScroll()
   if (props.routineToEdit) {
+    const dateOnly = makeDateRoutineForEdit(props.routineToEdit)
     titleRef.value?.setFromRoutine?.(props.routineToEdit)
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
-    dateRef.value?.setFromRoutine?.(props.routineToEdit)
+    dateRef.value?.setFromRoutine?.(dateOnly)
     alarmRef.value?.setFromRoutine?.(props.routineToEdit)
     ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
