@@ -5,3 +5,28 @@
   height:80dvh;
 }
 
+.walk_pop_wrap.course01 {
+  border:1px solid red
+}
+.walk_pop_wrap.course02 {
+  border:1px solid blue
+}
+.walk_pop_wrap.course03 {
+  border:1px solid green
+}
+.walk_pop_wrap.course04 {
+  border:1px solid purple
+}
+
+.routine_card.course01 {
+  border:1px solid red
+}
+.routine_card.course02 {
+  border:1px solid blue
+}
+.routine_card.course03 {
+  border:1px solid green
+}
+.routine_card.course04 {
+  border:1px solid purple
+}
