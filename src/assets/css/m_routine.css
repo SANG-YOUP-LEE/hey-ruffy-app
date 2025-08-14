@@ -438,7 +438,7 @@
   flex-basis: 100%;
 }
 
-#main_body .routine_card .rc_inner .done_set .p_white.disabled_btn { 
+#main_body .routine_card.rt_off .done_set .p_white.disabled_btn { 
   pointer-events: none; 
 }
 
