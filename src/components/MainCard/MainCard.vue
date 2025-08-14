@@ -40,9 +40,6 @@
           <div class="done_set" v-if="canShowStatusButton">
             <button
               class="p_white"
-              :class="{ disabled_btn: isPaused }"
-              :aria-disabled="isPaused ? 'true' : 'false'"
-              :tabindex="isPaused ? -1 : 0"
               @click="handleStatusButtonClick"
             >
               달성현황 체크하기
@@ -210,8 +207,8 @@ const colorClass = computed(() => {
 const normalizeSkin = (v) => {
   const m = String(v || '').match(/(\d+)/)
   if (!m) return ''
-  const n = m[1].padStart(2, '0') // '1' -> '01'
-  return `option${n}`              // 'option01'
+  const n = m[1].padStart(2, '0')
+  return `option${n}`
 }
 
 const cardSkinClass = computed(() => {
@@ -311,7 +308,7 @@ function onEdit() {
   let rt = {}
   try {
     rt = JSON.parse(JSON.stringify(props.routine || {}))
-  } catch (e) {
+  } catch {
     rt = { ...(props.routine || {}) }
   }
   emit('edit', rt)
@@ -373,7 +370,6 @@ function confirmShare() {
 }
 
 function openStatusPopup() {
-  if (isPaused.value) return
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
   showStatusPopup.value = true
