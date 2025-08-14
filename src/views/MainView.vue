@@ -1,431 +1,354 @@
 <template>
-  <div class="done_group">
-    <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
-    <div v-else :class="wrapperClass">
-      <div :class="['routine_card', cardSkinClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]">
-        <button class="setting" @click.stop="togglePopup">
-          <span>다짐설정</span>
-        </button>
-        <div v-if="showPopup" class="setting_popup">
-          <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
-          <ul>
-            <li :class="{ disabled: isPaused }">
-              <button class="modify" :disabled="isPaused" @click="onEdit">다짐 수정하기</button>
-            </li>
-            <li>
-              <button class="lock" @click="openPauseRestartConfirm">
-                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
-              </button>
-            </li>
-            <li :class="{ disabled: isPaused }">
-              <button class="share" @click="openShareConfirm" :disabled="isPaused">다짐 공유하기</button>
-            </li>
-            <li :class="{ disabled: isPaused }">
-              <button class="del" @click="openDeleteConfirm" :disabled="isPaused">다짐 삭제하기</button>
-            </li>
-          </ul>
-        </div>
-        <div class="rc_inner">
-          <div class="left">
-            <p class="title">
-              <span :class="colorClass"></span>
-              {{ titleText }}
-            </p>
-            <p class="term"><i>{{ repeatLabel }}</i> {{ repeatDetail }}</p>
-            <p class="se_date">{{ periodText }}</p>
-            <p class="alaram">{{ alarmText }}</p>
-            <p class="comment" v-if="commentText">{{ commentText }}</p>
+  <div id="main_wrap">
+    <HeaderView @toggle-lnb="showLnb = !showLnb" />
+    <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
-            <div class="walk_info" v-if="hasWalkResolved">
-              <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
-              <span class="walk_course">{{ courseMeta?.name }}</span>
-              <span class="walk_goal">목표 {{ props.routine?.goalCount }}회</span>
-            </div>
-          </div>
-          <div class="right"></div>
-          <div class="done_set" v-if="canShowStatusButton">
-            <button class="p_white" @click="handleStatusButtonClick">
-              달성현황 체크하기
-            </button>
-          </div>
-          <div class="walk_check" v-if="hasWalkResolved">
-            <button class="p_white" @click="openWalkPopup">산책 현황 보기</button>
-          </div>
+    <div id="main_body">
+      <div class="main_fixed">
+        <MainDateScroll
+          :selectedDate="selectedDate"
+          @selectDate="handleSelectDate"
+        />
+        <MainRoutineTotal
+          :isFuture="isFutureDate"
+          :selectedDate="selectedDate"
+          v-model:modelValue="selectedFilter"
+          :counts="countsForDate"
+          :totalCount="totalCountForDate"
+          @changeFilter="handleFilterChange"
+          @showWeekly="showWeekly = true"
+          @requestPrev="handlePrev"
+          @requestNext="handleNext"
+        />
+      </div>
+
+      <div class="main_scroll">
+        <div v-if="isLoading && !showWeekly" class="skeleton-wrap">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
         </div>
+
+        <div
+          v-else-if="!showWeekly && hasFetched && displayedRoutines.length === 0"
+          class="no_data"
+        >
+          <span v-if="rawRoutines.length === 0">
+            아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?
+          </span>
+          <span v-else>
+            해당 조건에 맞는 다짐이 없어요.
+          </span>
+        </div>
+
+        <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
+        <template v-else>
+          <MainCard
+            v-for="rt in displayedRoutines"
+            :key="rt.id"
+            :selected="getStatus(rt)"
+            :routine="rt"
+            :isToday="isTodayDate"
+            @changeStatus="onChangeStatus"
+            @delete="onDelete"
+            @edit="openEditRoutine"
+            @togglePause="onTogglePause"
+          />
+        </template>
       </div>
     </div>
 
-    <teleport to="body">
-      <div v-if="showDeleteConfirmPopup" class="com_popup_wrap">
-        <div class="popup_inner alert">
-          <div class="popup_tit"><h2>정말 다짐을 삭제할까요?</h2></div>
-          <div class="popup_body">삭제된 다짐은 되돌릴 수 없어요.</div>
-          <div class="popup_btm">
-            <button @click="confirmDelete" class="p_basic">삭제</button>
-            <button @click="closeDeleteConfirm" class="p_white">취소</button>
-          </div>
-          <button class="close_btn" @click="closeDeleteConfirm"><span>닫기</span></button>
-        </div>
-      </div>
-    </teleport>
+    <FooterView @refresh-main="refreshMain" />
 
-    <teleport to="body">
-      <div v-if="showPauseRestartPopup" class="com_popup_wrap">
-        <div class="popup_inner alert">
-          <div class="popup_tit">
-            <h2>{{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}</h2>
-          </div>
-          <div class="popup_body">
-            <template v-if="isPaused">
-              다짐을 다시 시작할까요? <br />
-              지칠땐 언제든 다시 멈출 수 있어요.
-            </template>
-            <template v-else>
-              정말 다짐을 잠시 멈추실 건가요? <br />
-              다짐은 언제든 다시 시작할 수 있어요.
-            </template>
-          </div>
-          <div class="popup_btm">
-            <button @click="confirmPauseRestart" class="p_basic">
-              {{ isPaused ? '다짐 다시 시작하기' : '다짐 멈추기' }}
-            </button>
-            <button @click="closePauseRestartPopup" class="p_white">취소</button>
-          </div>
-          <button class="close_btn" @click="closePauseRestartPopup"><span>닫기</span></button>
-        </div>
-      </div>
-    </teleport>
+    <button @click="openAddRoutine" class="add">
+      <span>다짐 추가하기</span>
+    </button>
 
-    <teleport to="body">
-      <div v-if="showShareConfirmPopup" class="com_popup_wrap">
-        <div class="popup_inner alert">
-          <div class="popup_tit"><h2>다짐을 공유할까요?</h2></div>
-          <div class="popup_body">누군가에게 동기부여가 될 수 있어요. <br /> 지금 다짐을 공유할까요?</div>
-          <div class="popup_btm">
-            <button @click="confirmShare" class="p_basic">공유하기</button>
-            <button @click="closeShareConfirm" class="p_white">취소</button>
-          </div>
-          <button class="close_btn" @click="closeShareConfirm"><span>닫기</span></button>
-        </div>
-      </div>
-    </teleport>
-
-    <teleport to="body">
-      <div v-if="showStatusPopup" class="com_popup_wrap">
-        <div class="popup_inner alert">
-          <div class="popup_tit">
-            <h2>오늘의 다짐은 어땠나요?</h2>
-            <p class="noti" v-show="!selectedState">아래 세가지 중에서 선택해주세요.</p>
-          </div>
-          <div class="popup_body">
-            <div class="done_check_wrap">
-              <div class="state_group">
-                <span
-                  class="well_done"
-                  :class="{ right: selectedState==='well_done' }"
-                  @click="onSelect('well_done')"
-                  v-show="!selectedState || selectedState==='well_done'"
-                >{{ selectedState==='well_done' ? '나 잘했지? 오늘도 다짐 성공이야!' : '다짐 달성 성공!' }}</span>
-                <span
-                  class="fail_done"
-                  :class="{ right: selectedState==='fail_done' }"
-                  @click="onSelect('fail_done')"
-                  v-show="!selectedState || selectedState==='fail_done'"
-                >{{ selectedState==='fail_done' ? '오늘은 결국 실패야ㅠㅠ' : '다짐 달성 실패ㅠ' }}</span>
-                <span
-                  class="ign_done"
-                  :class="{ right: selectedState==='ign_done' }"
-                  @click="onSelect('ign_done')"
-                  v-show="!selectedState || selectedState==='ign_done'"
-                >{{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}</span>
-              </div>
-              <div class="chat_group" v-if="selectedState">
-                <span class="well_done" v-show="selectedState==='well_done'">넌 역시 최고야. 대체 언제까지 멋있을래?</span>
-                <span class="fail_done" v-show="selectedState==='fail_done'">괜찮아! 너무 완벽하면 재미없는거 알지?</span>
-                <span class="ign_done" v-show="selectedState==='ign_done'">알아. 오늘은 특별한 날이었단거. 대신 다짐 현황에는 기록하지 않을게.</span>
-              </div>
-            </div>
-          </div>
-          <div class="popup_btm">
-            <button v-if="selectedState" @click="confirmStatusCheck" class="p_basic">달성 현황 완료</button>
-            <button v-if="selectedState" @click="resetSelection" class="p_white">달성 현황 재선택</button>
-            <button @click="closeStatusPopup" class="p_white">취소</button>
-          </div>
-          <button class="close_btn" @click="closeStatusPopup"><span>닫기</span></button>
-        </div>
-      </div>
-    </teleport>
-
-    <teleport to="body">
-      <div v-if="showWalkPopup" class="com_popup_wrap walk_status">
-        <div class="popup_inner alert">
-          <div class="popup_tit"><h2>산책 현황</h2></div>
-          <div class="popup_body">
-            <WalkStatusPanel :routine="props.routine" />
-          </div>
-          <div class="popup_btm">
-            <button @click="closeWalkPopup" class="p_white">닫기</button>
-          </div>
-          <button class="close_btn" @click="closeWalkPopup"><span>닫기</span></button>
-        </div>
-      </div>
-    </teleport>
+    <AddRoutineSelector
+      v-if="isAddRoutineOpen"
+      @close="isAddRoutineOpen = false; editingRoutine = null"
+      @save="onSaved"
+      :routineToEdit="editingRoutine"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
-import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
-import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
-import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { db } from '@/firebase'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
+import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
+import HeaderView from '@/components/common/Header.vue'
+import LnbView from '@/components/common/Lnb.vue'
+import FooterView from '@/components/common/Footer.vue'
+import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
+import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
+import MainCard from '@/components/MainCard/MainCard.vue'
+import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 
-const props = defineProps({
-  selected: String,
-  routine: { type: Object, default: () => ({}) },
-  isToday: { type: Boolean, default: false }
-})
+const isLoading = ref(true)
+const hasFetched = ref(false)
+const isAddRoutineOpen = ref(false)
+const showLnb = ref(false)
+const MAX_ROUTINES = 100
+const selectedDate = ref(new Date())
+const isFutureDate = ref(false)
+const selectedFilter = ref('notdone')
+const showWeekly = ref(false)
+const rawRoutines = ref([])
+const routines = ref([])
+const isTodayDate = computed(() => dateKey(selectedDate.value) === dateKey(new Date()))
+let currentUid = null
+let editingRoutine = ref(null)
 
-const emit = defineEmits(['delete','changeStatus','edit','togglePause'])
-
-const showPopup = ref(false)
-const showDeleteConfirmPopup = ref(false)
-const showPauseRestartPopup = ref(false)
-const showShareConfirmPopup = ref(false)
-const showStatusPopup = ref(false)
-const showWalkPopup = ref(false)
-
-const isPaused = ref(!!props.routine?.isPaused)
-watch(() => props.routine?.isPaused, v => { isPaused.value = !!v }, { immediate: true })
-
-const selectedState = ref('')
-
-const titleText = computed(() => props.routine?.title || '')
-const commentText = computed(() => props.routine?.comment || '')
-
-const colorClass = computed(() => {
-  const idx = Number(props.routine?.colorIndex ?? 0)
-  const n = isNaN(idx) ? 0 : idx
-  return `color_picker${String(n + 1).padStart(2, '0')}`
-})
-
-const normalizeSkin = (v) => {
-  const m = String(v || '').match(/(\d+)/)
-  if (!m) return ''
-  const n = m[1].padStart(2, '0')
-  return `option${n}`
+function dateKey(date, tz = 'Asia/Seoul') {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
+}
+function getYMDFromAny(v) {
+  if (!v) return null
+  if (typeof v === 'string') return v.slice(0, 10)
+  if (v instanceof Date) return dateKey(v)
+  if (typeof v.toDate === 'function') return dateKey(v.toDate())
+  return null
+}
+function inDateRange(r, date) {
+  const ymd = dateKey(date)
+  const startISO = r.start || getYMDFromAny(r.startDate || r.period?.start)
+  const endISO   = r.end   || getYMDFromAny(r.endDate   || r.period?.end)
+  const rule     = r.rule || { freq: 'daily', interval: 1, anchor: startISO }
+  const anchor   = rule.anchor || startISO
+  return isActiveRule(ymd, startISO, endISO) && isDue(ymd, rule, anchor)
+}
+function mapStatus(list, date) {
+  const key = dateKey(date)
+  return list.map(r => {
+    const st = r?.progress?.[key] ?? 'notdone'
+    return { ...r, status: st }
+  })
+}
+function getStatus(r) {
+  return r?.status || 'notdone'
 }
 
-const cardSkinClass = computed(() => {
-  const v = normalizeSkin(props.routine?.cardSkin)
-  return v ? `card_${v}` : ''
-})
-  
-const repeatLabel = computed(() => {
-  const t = props.routine?.repeatType
-  if (t === 'weekly') return 'Weekly'
-  if (t === 'monthly') return 'Monthly'
-  return 'Daily'
-})
+const inRangeRoutinesForDate = computed(() =>
+  rawRoutines.value.filter(r => inDateRange(r, selectedDate.value))
+)
+const pausedRoutinesForDate = computed(() =>
+  inRangeRoutinesForDate.value.filter(r => !!r.isPaused)
+)
+const activeNonPausedForDate = computed(() =>
+  inRangeRoutinesForDate.value.filter(r => !r.isPaused)
+)
+const activeWithStatus = computed(() =>
+  mapStatus(activeNonPausedForDate.value, selectedDate.value)
+)
+const pausedWithStatus = computed(() =>
+  mapStatus(pausedRoutinesForDate.value, selectedDate.value)
+)
 
-const repeatDetail = computed(() => {
-  const r = props.routine || {}
-  if (r.repeatType === 'daily') {
-    if (Array.isArray(r.repeatDays) && r.repeatDays.length) {
-      return r.repeatDays.includes('매일') ? '매일' : r.repeatDays.join(',')
-    }
-    return ''
+watch([selectedDate, rawRoutines], () => {
+  routines.value = [...activeWithStatus.value, ...pausedWithStatus.value]
+}, { immediate: true })
+
+const countsForDate = computed(() => {
+  const c = { notdone: 0, done: 0, faildone: 0, ignored: 0 }
+  for (const r of activeWithStatus.value) {
+    const s = getStatus(r)
+    if (s === 'done') c.done++
+    else if (s === 'faildone' || s === 'fail') c.faildone++
+    else if (s === 'ignored' || s === 'skip') c.ignored++
+    else c.notdone++
   }
-  if (r.repeatType === 'weekly') {
-    const main = r.repeatWeeks || '매주'
-    const days = Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length ? r.repeatWeekDays.join(',') : ''
-    return days ? `${main} ${days}` : main
+  return c
+})
+const totalCountForDate = computed(() => activeWithStatus.value.length)
+
+const displayedRoutines = computed(() => {
+  if (showWeekly.value) return routines.value
+  const activeFiltered = activeWithStatus.value.filter(r => getStatus(r) === selectedFilter.value)
+  return [...activeFiltered, ...pausedWithStatus.value]
+})
+
+const handleSelectDate = (date, isFuture) => {
+  selectedDate.value = date
+  isFutureDate.value = isFuture
+  selectedFilter.value = 'notdone'
+  showWeekly.value = false
+}
+const handleFilterChange = () => {
+  showWeekly.value = false
+}
+
+function onSaved(rt) {
+  const norm = normalize(rt)
+  const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
+  if (idx === -1) {
+    rawRoutines.value = [{ ...norm }, ...rawRoutines.value]
+  } else {
+    rawRoutines.value.splice(idx, 1, { ...rawRoutines.value[idx], ...norm })
   }
-  if (r.repeatType === 'monthly') {
-    const days = Array.isArray(r.repeatMonthDays) && r.repeatMonthDays.length ? r.repeatMonthDays.join(', ') : ''
-    return days ? `${days}일` : ''
+  isAddRoutineOpen.value = false
+  editingRoutine.value = null
+  selectedFilter.value = 'notdone'
+  showWeekly.value = false
+}
+
+async function onChangeStatus({ id, status }) {
+  const key = dateKey(selectedDate.value)
+  if (!currentUid) return
+  const j = rawRoutines.value.findIndex(r => r.id === id)
+  const prev = j !== -1 ? rawRoutines.value[j]?.progress?.[key] : undefined
+  const r = j !== -1 ? rawRoutines.value[j] : null
+  const hasWalk = !!(r && (typeof r.hasWalk === 'boolean' ? r.hasWalk : (r.ruffy && r.course && r.goalCount)))
+  let delta = 0
+  if (hasWalk) {
+    if (prev !== 'done' && status === 'done') delta = 1
+    else if (prev === 'done' && status !== 'done') delta = -1
   }
-  return ''
-})
-
-const periodText = computed(() => {
-  const s = props.routine?.startDate || {}
-  const e = props.routine?.endDate || {}
-  const hasS = s.year && s.month && s.day
-  const hasE = e.year && e.month && e.day
-  if (!hasS && !hasE) return ''
-  const sTxt = hasS ? `${s.year}.${pad(s.month)}.${pad(s.day)}` : ''
-  const eTxt = hasE ? `${e.year}.${pad(e.month)}.${pad(e.day)}` : ''
-  return hasE ? `${sTxt} ~ ${eTxt}` : sTxt
-})
-
-const alarmText = computed(() => {
-  const a = props.routine?.alarmTime || {}
-  if (!a.hour) return ''
-  return `${a.ampm} ${pad(a.hour)}:${pad(a.minute)}`
-})
-
-const canShowStatusButton = computed(() => props.isToday && props.selected === 'notdone')
-
-const wrapperClass = computed(() => {
-  if (props.selected === 'done') return 'done'
-  if (props.selected === 'faildone') return 'fail_done'
-  if (props.selected === 'ignored') return 'dimmed'
-  return 'not_done'
-})
-
-const hasWalkResolved = computed(() => {
-  const r = props.routine || {}
-  if (typeof r.hasWalk === 'boolean') return r.hasWalk
-  return !!r.ruffy && !!r.course && !!r.goalCount
-})
-
-const ruffyMeta = computed(() => {
-  return RUFFY_OPTIONS.find(r => r.value === props.routine?.ruffy) || null
-})
-
-const courseMeta = computed(() => {
-  return COURSE_OPTIONS.find(c => c.value === props.routine?.course) || null
-})
-
-function pad(v) {
-  const n = String(v || '')
-  return n.length === 1 ? `0${n}` : n
-}
-
-function onSelect(type) {
-  selectedState.value = selectedState.value === type ? '' : type
-}
-
-function resetSelection() {
-  selectedState.value = ''
-}
-
-function togglePopup() {
-  showPopup.value = !showPopup.value
-}
-
-function closePopup() {
-  showPopup.value = false
-}
-
-function handleGlobalCloseEvents() {
-  if (showPopup.value) closePopup()
-}
-
-function onEdit() {
-  closePopup()
-  let rt = {}
   try {
-    rt = JSON.parse(JSON.stringify(props.routine || {}))
-  } catch {
-    rt = { ...(props.routine || {}) }
+    const payload = {
+      [`progress.${key}`]: status,
+      updatedAt: serverTimestamp(),
+      ...(delta !== 0 ? { walkDoneCount: increment(delta) } : {})
+    }
+    await updateDoc(doc(db, 'users', currentUid, 'routines', id), payload)
+  } catch (e) {}
+  if (j !== -1) {
+    const next = { ...rawRoutines.value[j] }
+    next.progress = { ...(next.progress || {}), [key]: status }
+    if (delta !== 0) {
+      const cur = Number(next.walkDoneCount || 0)
+      next.walkDoneCount = Math.max(0, cur + delta)
+    }
+    rawRoutines.value.splice(j, 1, next)
   }
-  emit('edit', rt)
+  selectedFilter.value = status
+  showWeekly.value = false
+
+  if (status === 'done') {
+    window.dispatchEvent(new Event('close-today-check-popup'))
+    window.dispatchEvent(new Event('open-walk-map-popup'))
+  }
 }
 
-function openDeleteConfirm() {
+async function onTogglePause({ id, isPaused }) {
+  if (!currentUid || !id) return
+  try {
+    await updateDoc(doc(db, 'users', currentUid, 'routines', id), {
+      isPaused: !!isPaused,
+      updatedAt: serverTimestamp(),
+    })
+  } catch (e) { return }
+  const j = rawRoutines.value.findIndex(r => r.id === id)
+  if (j !== -1) {
+    const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
+    rawRoutines.value.splice(j, 1, next)
+  }
+}
+
+async function onDelete(payload) {
+  const id = typeof payload === 'string' ? payload : payload?.id
+  if (!currentUid || !id) {
+    alert('삭제 실패: 잘못된 ID입니다.')
+    return
+  }
+  try {
+    await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
+    rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
+  } catch (e) {
+    alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.')
+  }
+}
+
+function openAddRoutine() {
   window.dispatchEvent(new Event('close-other-popups'))
-  closePopup()
-  showDeleteConfirmPopup.value = true
-  document.body.classList.add('no-scroll')
+  editingRoutine.value = null
+  if (rawRoutines.value.length >= MAX_ROUTINES) {
+    alert(`다짐은 최대 ${MAX_ROUTINES}개까지 만들 수 있어요.`)
+    return
+  }
+  isAddRoutineOpen.value = true
 }
-
-function closeDeleteConfirm() {
-  showDeleteConfirmPopup.value = false
-  document.body.classList.remove('no-scroll')
-}
-
-function confirmDelete() {
-  const id = props.routine?.id
-  closeDeleteConfirm()
-  if (id) emit('delete', id)
-}
-
-function openPauseRestartConfirm() {
+function openEditRoutine(rt) {
   window.dispatchEvent(new Event('close-other-popups'))
-  closePopup()
-  showPauseRestartPopup.value = true
-  document.body.classList.add('no-scroll')
+  editingRoutine.value = rt
+  isAddRoutineOpen.value = true
 }
 
-function closePauseRestartPopup() {
-  showPauseRestartPopup.value = false
-  document.body.classList.remove('no-scroll')
+function setVh() {
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+function refreshMain() {
+  window.location.reload()
 }
 
-function confirmPauseRestart() {
-  const id = props.routine?.id
-  const next = !isPaused.value
-  closePauseRestartPopup()
-  if (id) emit('togglePause', { id, isPaused: next })
-  isPaused.value = next
-}
+let stopAuth = null
+let stopRoutines = null
 
-function openShareConfirm() {
-  window.dispatchEvent(new Event('close-other-popups'))
-  closePopup()
-  showShareConfirmPopup.value = true
-  document.body.classList.add('no-scroll')
-}
-
-function closeShareConfirm() {
-  showShareConfirmPopup.value = false
-  document.body.classList.remove('no-scroll')
-}
-
-function confirmShare() {
-  closeShareConfirm()
-  alert('공유되었습니다')
-}
-
-function openStatusPopup() {
-  window.dispatchEvent(new Event('close-other-popups'))
-  if (showPopup.value) closePopup()
-  showStatusPopup.value = true
-  document.body.classList.add('no-scroll')
-}
-
-function handleStatusButtonClick() {
-  openStatusPopup()
-}
-
-function closeStatusPopup() {
-  showStatusPopup.value = false
-  document.body.classList.remove('no-scroll')
-  resetSelection()
-}
-
-function openWalkPopup() {
-  window.dispatchEvent(new Event('close-other-popups'))
-  if (showPopup.value) closePopup()
-  showWalkPopup.value = true
-  document.body.classList.add('no-scroll')
-}
-
-function closeWalkPopup() {
-  showWalkPopup.value = false
-  document.body.classList.remove('no-scroll')
-}
-
-function confirmStatusCheck() {
-  const id = props.routine?.id
-  let next = null
-  if (selectedState.value === 'well_done') next = 'done'
-  else if (selectedState.value === 'fail_done') next = 'faildone'
-  else if (selectedState.value === 'ign_done') next = 'ignored'
-  if (id && next) emit('changeStatus', { id, status: next })
-  closeStatusPopup()
-  if (next === 'done' && hasWalkResolved.value) openWalkPopup()
+const bindRoutines = (uid) => {
+  if (stopRoutines) {
+    stopRoutines()
+    stopRoutines = null
+  }
+  isLoading.value = true
+  hasFetched.value = false
+  const q = query(
+    collection(db, 'users', uid, 'routines'),
+    orderBy('createdAt', 'desc')
+  )
+  stopRoutines = onSnapshot(
+    q,
+    (snap) => {
+      const list = []
+      snap.forEach((d) => list.push({ id: d.id, ...normalize(d.data()) }))
+      rawRoutines.value = list
+      isLoading.value = false
+      hasFetched.value = true
+    },
+    () => {
+      rawRoutines.value = []
+      isLoading.value = false
+      hasFetched.value = true
+    }
+  )
 }
 
 onMounted(() => {
-  window.addEventListener('close-other-popups', handleGlobalCloseEvents)
-  window.addEventListener('popstate', handleGlobalCloseEvents)
+  setVh()
+  window.addEventListener('resize', setVh)
+  const auth = getAuth()
+  stopAuth = onAuthStateChanged(auth, (user) => {
+    if (user && user.uid !== currentUid) {
+      currentUid = user.uid
+      bindRoutines(currentUid)
+    } else if (!user) {
+      currentUid = null
+      rawRoutines.value = []
+      if (stopRoutines) { stopRoutines(); stopRoutines = null }
+      isLoading.value = false
+      hasFetched.value = true
+    }
+  })
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', setVh)
+  if (stopAuth) stopAuth()
+  if (stopRoutines) stopRoutines()
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('close-other-popups', handleGlobalCloseEvents)
-  window.removeEventListener('popstate', handleGlobalCloseEvents)
-  document.body.classList.remove('no-scroll')
-})
+function startOfDay(d){ const nd=new Date(d); nd.setHours(0,0,0,0); return nd }
+function addDays(d, days){ const nd=new Date(d); nd.setDate(nd.getDate()+days); nd.setHours(0,0,0,0); return nd }
+function isTodayDateFn(d){ return startOfDay(d).getTime()===startOfDay(new Date()).getTime() }
+
+function handlePrev() {
+  const d = addDays(selectedDate.value, -1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
+function handleNext() {
+  const d = addDays(selectedDate.value, 1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
 </script>
