@@ -69,6 +69,8 @@
       @save="onSaved"
       :routineToEdit="editingRoutine"
     />
+
+    <WalkStatusPopup v-if="isWalkStatusOpen" @close="isWalkStatusOpen = false" />
   </div>
 </template>
 
@@ -79,6 +81,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
 
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
+import WalkStatusPopup from '@/views/WalkStatusPopup.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
@@ -90,6 +93,7 @@ import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 const isLoading = ref(true)
 const hasFetched = ref(false)
 const isAddRoutineOpen = ref(false)
+const isWalkStatusOpen = ref(false)
 const showLnb = ref(false)
 const MAX_ROUTINES = 100
 
@@ -227,6 +231,9 @@ async function onChangeStatus({ id, status }) {
   }
   selectedFilter.value = status
   showWeekly.value = false
+  if (status === 'done' && hasWalk) {
+    isWalkStatusOpen.value = true
+  }
 }
 
 async function onTogglePause({ id, isPaused }) {
