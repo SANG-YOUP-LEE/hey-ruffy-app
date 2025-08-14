@@ -185,22 +185,24 @@ function buildPayload() {
     hasWalk: hasWalk.value,
   }
 
-  const todayISO = new Date().toISOString().slice(0,10)
-  const startISO = safeISOFromDateObj(base.startDate) || todayISO
-  const endISO   = safeISOFromDateObj(base.endDate) || null
+  const startISO = safeISOFromDateObj(base.startDate)
+  const endISO   = safeISOFromDateObj(base.endDate)
 
   const interval = parseInterval(base.repeatWeeks)
   const rule = {
     freq: repeatType,
     interval,
-    anchor: startISO,
+    anchor: startISO || null,
     ...(repeatType === 'weekly'  ? { byWeekday: weeklyDaysToICS(base.repeatWeekDays) } : {}),
     ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays||[]).map(Number) } : {})
   }
 
   const cleaned = {}
-  Object.entries({ ...base, tz:'Asia/Seoul', start:startISO, end:endISO, rule })
+  Object.entries({ ...base, tz:'Asia/Seoul', rule })
     .forEach(([k,v]) => { if (notU(v)) cleaned[k] = v })
+
+  if (startISO) cleaned.start = startISO
+  if (endISO) cleaned.end = endISO
 
   return cleaned
 }
@@ -255,28 +257,16 @@ const saveRoutine = async () => {
     unlockScroll()
     emit('close')
   } catch (err) {
-    console.error('다짐 저장 실패:', err)
     alert('저장에 실패했습니다.')
   }
-}
-
-function makeDateRoutineForEdit(src) {
-  const r = JSON.parse(JSON.stringify(src || {}))
-  const hasStart = !!(r.startDate && r.startDate.year && r.startDate.month && r.startDate.day)
-  const hasEnd = !!(r.endDate && r.endDate.year && r.endDate.month && r.endDate.day)
-  if (!hasStart) r.start = null
-  if (r.rule && !hasStart) r.rule.anchor = null
-  if (!hasEnd) r.end = null
-  return r
 }
 
 onMounted(() => {
   lockScroll()
   if (props.routineToEdit) {
-    const dateOnly = makeDateRoutineForEdit(props.routineToEdit)
     titleRef.value?.setFromRoutine?.(props.routineToEdit)
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
-    dateRef.value?.setFromRoutine?.(dateOnly)
+    dateRef.value?.setFromRoutine?.(props.routineToEdit)
     alarmRef.value?.setFromRoutine?.(props.routineToEdit)
     ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
