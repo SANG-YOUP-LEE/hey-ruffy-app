@@ -175,8 +175,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
-import { ruffyOptions } from '@/components/common/RuffySelector.vue'
-import { courseOptions } from '@/components/common/CourseSelector.vue'
+import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
+import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 
 const props = defineProps({
   selected: String,
@@ -279,11 +279,11 @@ const hasWalkResolved = computed(() => {
 })
 
 const ruffyMeta = computed(() => {
-  return ruffyOptions.find(r => r.value === props.routine?.ruffy) || null
+  return RUFFY_OPTIONS.find(r => r.value === props.routine?.ruffy) || null
 })
 
 const courseMeta = computed(() => {
-  return courseOptions.find(c => c.value === props.routine?.course) || null
+  return COURSE_OPTIONS.find(c => c.value === props.routine?.course) || null
 })
 
 function pad(v) {
