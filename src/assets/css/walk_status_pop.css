@@ -34,11 +34,6 @@
   background-color:#eee;
 }
 
-.walk_pop_wrap [class^='walk_course'] img {
-  border-radius:1.5rem;
-  border:1px solid red;
-  opacity:0.1;
-}
 
 /*
 .walk_pop_wrap.course01 {
