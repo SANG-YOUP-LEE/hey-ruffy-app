@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
@@ -185,14 +185,14 @@ function buildPayload() {
     hasWalk: hasWalk.value,
   }
 
-  const startISO = safeISOFromDateObj(base.startDate)
-  const endISO   = safeISOFromDateObj(base.endDate)
+  const hasStart = !!safeISOFromDateObj(base.startDate)
+  const hasEnd   = !!safeISOFromDateObj(base.endDate)
 
   const interval = parseInterval(base.repeatWeeks)
   const rule = {
     freq: repeatType,
     interval,
-    anchor: startISO || null,
+    anchor: hasStart ? safeISOFromDateObj(base.startDate) : null,
     ...(repeatType === 'weekly'  ? { byWeekday: weeklyDaysToICS(base.repeatWeekDays) } : {}),
     ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays||[]).map(Number) } : {})
   }
@@ -201,8 +201,11 @@ function buildPayload() {
   Object.entries({ ...base, tz:'Asia/Seoul', rule })
     .forEach(([k,v]) => { if (notU(v)) cleaned[k] = v })
 
-  if (startISO) cleaned.start = startISO
-  if (endISO) cleaned.end = endISO
+  if (hasStart) cleaned.start = safeISOFromDateObj(base.startDate)
+  if (hasEnd) cleaned.end = safeISOFromDateObj(base.endDate)
+
+  if (!hasStart) cleaned.startDate = null
+  if (!hasEnd) cleaned.endDate = null
 
   return cleaned
 }
@@ -261,14 +264,25 @@ const saveRoutine = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   lockScroll()
   if (props.routineToEdit) {
     titleRef.value?.setFromRoutine?.(props.routineToEdit)
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
-    const startDate = props.routineToEdit?.startDate ?? null
-    const endDate = props.routineToEdit?.endDate ?? null
-    dateRef.value?.setFromRoutine?.({ startDate, endDate })
+
+    const sd = props.routineToEdit?.startDate || null
+    const ed = props.routineToEdit?.endDate || null
+    const hasStart = !!safeISOFromDateObj(sd)
+    const hasEnd = !!safeISOFromDateObj(ed)
+
+    await nextTick()
+    dateRef.value?.setFromRoutine?.({
+      startDate: hasStart ? sd : null,
+      endDate: hasEnd ? ed : null,
+      useStart: hasStart,
+      useEnd: hasEnd
+    })
+
     alarmRef.value?.setFromRoutine?.(props.routineToEdit)
     ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
