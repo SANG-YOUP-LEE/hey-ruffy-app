@@ -8,6 +8,8 @@
     <div v-else class="walk_info">
       <span class="walk_empty">산책 정보가 없습니다</span>
     </div>
+    <div class="walk_course01">
+    </div>
   </div>
 </template>
 
