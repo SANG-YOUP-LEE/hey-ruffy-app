@@ -58,7 +58,7 @@
 
 <script>
 export const RUFFY_OPTIONS = [
-  { value: 'option1', name: '퓨리 러피2', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
+  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
   { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
   { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
   { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href }
