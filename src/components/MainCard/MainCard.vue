@@ -418,6 +418,7 @@ function confirmStatusCheck() {
   else if (selectedState.value === 'ign_done') next = 'ignored'
   closeStatusPopup()
   if (id && next) emit('changeStatus', { id, status: next })
+  if (next === 'done' && hasWalkResolved.value) openWalkPopup()
 }
 
 onMounted(() => {
