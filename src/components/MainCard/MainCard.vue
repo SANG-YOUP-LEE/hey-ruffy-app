@@ -2,7 +2,7 @@
   <div class="done_group">
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
-      <div :class="['routine_card', cardSkinClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]">
+      <div :class="['routine_card', cardSkinClass, courseClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]">
         <button class="setting" @click.stop="togglePopup">
           <span>다짐설정</span>
         </button>
@@ -206,9 +206,21 @@ const normalizeSkin = (v) => {
   return `option${n}`
 }
 
+const toCourseClass = (v) => {
+  const m = String(v || '').match(/(\d+)/)
+  if (!m) return ''
+  const n = m[1].padStart(2, '0')
+  return `course${n}`
+}
+
 const cardSkinClass = computed(() => {
   const v = normalizeSkin(props.routine?.cardSkin)
   return v ? `card_${v}` : ''
+})
+
+const courseClass = computed(() => {
+  const v = toCourseClass(props.routine?.course)
+  return v || ''
 })
   
 const repeatLabel = computed(() => {
