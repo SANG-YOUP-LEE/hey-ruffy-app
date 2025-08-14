@@ -42,6 +42,7 @@
               class="p_white"
               :class="{ disabled_btn: isPaused }"
               :aria-disabled="isPaused ? 'true' : 'false'"
+              :disabled="isPaused"
               :tabindex="isPaused ? -1 : 0"
               @click="handleStatusButtonClick"
             >
@@ -210,8 +211,8 @@ const colorClass = computed(() => {
 const normalizeSkin = (v) => {
   const m = String(v || '').match(/(\d+)/)
   if (!m) return ''
-  const n = m[1].padStart(2, '0') // '1' -> '01'
-  return `option${n}`              // 'option01'
+  const n = m[1].padStart(2, '0')
+  return `option${n}`
 }
 
 const cardSkinClass = computed(() => {
@@ -263,7 +264,7 @@ const alarmText = computed(() => {
   return `${a.ampm} ${pad(a.hour)}:${pad(a.minute)}`
 })
 
-const canShowStatusButton = computed(() => props.isToday && props.selected === 'notdone' && !isPaused.value)
+const canShowStatusButton = computed(() => props.isToday && props.selected === 'notdone')
 
 const wrapperClass = computed(() => {
   if (props.selected === 'done') return 'done'
