@@ -5,7 +5,7 @@
   display:flex;
   flex-direction:column;
 }
-/*
+
 .com_popup_wrap.walk_status .popup_tit { 
   flex:0 0 auto;
 }
@@ -19,7 +19,7 @@
 
 .com_popup_wrap.walk_status .popup_btm {
   flex:0 0 auto;
-}*/
+}
 
 .walk_pop_wrap {
   position:relative;
