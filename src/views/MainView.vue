@@ -74,9 +74,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { db } from '@/firebase'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { db, auth } from '@/firebase'                       // ✅ getAuth 대신 단일 인스턴스 사용
+import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
+import { authReadyPromise } from '@/lib/authReady'           // ✅ 인증 초기화 대기
 
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
@@ -305,6 +306,7 @@ const bindRoutines = (uid) => {
       hasFetched.value = true
     },
     () => {
+      // 에러 시에도 UI가 비지 않도록
       rawRoutines.value = []
       isLoading.value = false
       hasFetched.value = true
@@ -312,23 +314,36 @@ const bindRoutines = (uid) => {
   )
 }
 
-onMounted(() => {
+onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
-  const auth = getAuth()
+
+  // ✅ 인증 초기화 완료 후 현재 유저로 즉시 바인딩
+  await authReadyPromise
+  if (auth.currentUser) {
+    currentUid = auth.currentUser.uid
+    bindRoutines(currentUid)
+  }
+
+  // ✅ 오프라인 중 일시 null 이벤트가 와도 목록 보존
   stopAuth = onAuthStateChanged(auth, (user) => {
     if (user && user.uid !== currentUid) {
       currentUid = user.uid
       bindRoutines(currentUid)
     } else if (!user) {
-      currentUid = null
-      rawRoutines.value = []
-      if (stopRoutines) { stopRoutines(); stopRoutines = null }
-      isLoading.value = false
-      hasFetched.value = true
+      // 온라인 상태에서의 실제 로그아웃일 때만 초기화
+      if (navigator.onLine) {
+        currentUid = null
+        rawRoutines.value = []
+        if (stopRoutines) { stopRoutines(); stopRoutines = null }
+        isLoading.value = false
+        hasFetched.value = true
+      }
+      // 오프라인이면 기존 목록 유지
     }
   })
 })
+
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
   if (stopAuth) stopAuth()
@@ -350,3 +365,4 @@ function handleNext() {
   handleSelectDate(d, future)
 }
 </script>
+
