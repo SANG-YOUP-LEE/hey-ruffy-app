@@ -38,15 +38,13 @@
 
             <div class="walk_info" v-if="hasWalkResolved">
               <div class="walk_ruffy">
-                <img :src="ruffyMeta?.img" :alt="ruffyMeta?.name" />
-                <span class="name">{{ ruffyMeta?.name }}</span>
+                <span class="walk_ruffy_name">{{ ruffyMeta?.name }}</span>
               </div>
               <div class="walk_course">
-                <img :src="courseMeta?.img" :alt="courseMeta?.name" />
-                <span class="name">{{ courseMeta?.name }}</span>
+                <span class="walk_course_name">{{ courseMeta?.name }}</span>
               </div>
               <div class="walk_goal">
-                목표 {{ props.routine?.goalCount }}회
+                <span class="walk_goal_count">목표 {{ props.routine?.goalCount }}회</span>
               </div>
             </div>
           </div>
