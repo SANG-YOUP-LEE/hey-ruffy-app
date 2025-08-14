@@ -37,15 +37,9 @@
             <p class="comment" v-if="commentText">{{ commentText }}</p>
 
             <div class="walk_info" v-if="hasWalkResolved">
-              <div class="walk_ruffy">
-                <span class="walk_ruffy_name">{{ ruffyMeta?.name }}</span>
-              </div>
-              <div class="walk_course">
-                <span class="walk_course_name">{{ courseMeta?.name }}</span>
-              </div>
-              <div class="walk_goal">
-                <span class="walk_goal_count">목표 {{ props.routine?.goalCount }}회</span>
-              </div>
+              <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
+              <span class="walk_course">{{ courseMeta?.name }}</span>
+              <span class="walk_goal">목표 {{ props.routine?.goalCount }}회</span>
             </div>
           </div>
           <div class="right"></div>
