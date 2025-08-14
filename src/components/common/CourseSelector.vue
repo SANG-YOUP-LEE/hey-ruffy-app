@@ -23,7 +23,6 @@
         </span>
       </a>
 
-      <!-- 팝업 -->
       <div class="speech-bubble-wrapper" v-if="showCoursePopup">
         <button class="popup-close-area" @click="closeCoursePopup"></button>
         <div class="speech-bubble" @click.stop>
@@ -57,6 +56,13 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
+export const courseOptions = [
+  { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+]
+
 const props = defineProps({
   modelValue: String,
   uniqueName: { type: String, default: '' }
@@ -67,13 +73,6 @@ const myName = computed(() => props.uniqueName || 'course-selector')
 
 const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
 
-const courseOptions = [
-  { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
-  { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
-  { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
-]
-
 const showCoursePopup = ref(false)
 const selectedOption = ref('')
 
@@ -81,7 +80,6 @@ const selectCourse = (value) => {
   emit('update:modelValue', value)
   selectedOption.value = value
   showCoursePopup.value = true
-  // 나 열렸다고 전역 이벤트 송신
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
 
@@ -89,7 +87,6 @@ const closeCoursePopup = () => {
   showCoursePopup.value = false
 }
 
-// 다른 애가 열리면 나는 닫기
 const onBubbleOpen = (e) => {
   const who = e?.detail?.who
   if (who && who !== myName.value) {
