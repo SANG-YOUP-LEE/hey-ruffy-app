@@ -3,7 +3,8 @@
     <div class="walk_info" v-if="hasWalkResolved">
       <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
       <span class="walk_course">{{ courseMeta?.name }}</span>
-      <span class="walk_goal">목표 {{ routine?.goalCount }}회</span>
+      <span class="walk_goal">목표 {{ goalCountResolved }}회</span>
+      <span class="walk_done">진행 {{ doneCountResolved }}회</span>
     </div>
     <div v-else class="walk_info">
       <span class="walk_empty">산책 정보가 없습니다</span>
@@ -17,12 +18,14 @@
         :path-d="selectedCourse.pathD"
         :base-points="20"
         :goal-count="goalCountResolved"
+        :done-count="doneCountResolved"
         :point-r="9"
         :point-stroke-width="3"
         :point-fill="selectedCourse.pointFill"
         point-stroke="#ffffff"
       />
     </div>
+    <div v-if="isCompleted" class="walk_complete">산책 완료! 보상을 확인하세요</div>
   </div>
 </template>
 
@@ -49,6 +52,13 @@ const goalCountResolved = computed(() => {
   const n = Number(routine.value?.goalCount || 20)
   return [5,10,15,20].includes(n) ? n : 20
 })
+
+const doneCountResolved = computed(() => {
+  const n = Number(routine.value?.walkDoneCount || 0)
+  return Math.max(0, Math.min(n, goalCountResolved.value))
+})
+
+const isCompleted = computed(() => doneCountResolved.value >= goalCountResolved.value)
 
 const ruffyMeta = computed(() => {
   return RUFFY_OPTIONS.find(r => r.value === routine.value?.ruffy) || null
@@ -182,7 +192,8 @@ const selectedCourse = computed(() => {
 
 <style scoped>
 .walk_pop_wrap { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
-.walk_info { flex: 0 0 auto; text-align: center; padding: 8px 0; }
+.walk_info { flex: 0 0 auto; text-align: center; padding: 8px 0; display: flex; gap: 8px; justify-content: center; }
 .walk_canvas { flex: 1 1 auto; min-height: 0; }
 .walk_canvas :deep(svg) { width: 100%; height: 100%; }
+.walk_complete { text-align: center; padding: 10px 0; font-weight: 700; }
 </style>
