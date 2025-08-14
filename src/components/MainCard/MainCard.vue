@@ -38,12 +38,12 @@
           </div>
           <div class="right"></div>
           <div class="done_set" v-if="canShowStatusButton">
-            <button
+             <button
               class="p_white"
               :class="{ disabled_btn: isPaused }"
               :aria-disabled="isPaused ? 'true' : 'false'"
-              :disabled="isPaused"
               :tabindex="isPaused ? -1 : 0"
+              :style="isPaused ? 'pointer-events:none' : ''"
               @click="handleStatusButtonClick"
             >
               달성현황 체크하기
