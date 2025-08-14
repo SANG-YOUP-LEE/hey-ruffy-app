@@ -10,16 +10,16 @@
     </div>
     <div class="walk_canvas">
       <WalkMapSvg
-        :map-src="testCourse.image"
+        :map-src="selectedCourse.image"
         :map-opacity="0.1"
-        :vb-w="testCourse.vbW"
-        :vb-h="testCourse.vbH"
-        :path-d="testCourse.pathD"
+        :vb-w="selectedCourse.vbW"
+        :vb-h="selectedCourse.vbH"
+        :path-d="selectedCourse.pathD"
         :max-points="20"
         :point-r="9"
-        point-fill="#1e90ff"
-        point-stroke="#ffffff"
         :point-stroke-width="3"
+        :point-fill="selectedCourse.pointFill"
+        point-stroke="#ffffff"
       />
     </div>
   </div>
@@ -60,13 +60,13 @@ const courseClass = computed(() => {
   return `course${n}`
 })
 
-const testCourse = {
-  id: 'test_farm',
-  name: '테스트 코스',
+const testCourse01 = {
+  id: 'test_01',
+  name: '테스트 코스 01',
   image: farmImg,
   vbW: 1000,
   vbH: 1000,
-  maxPoints: 20,
+  pointFill: '#ff3b30',
   pathD: `
     M 80,820
     C 180,780 260,720 340,620
@@ -86,6 +86,92 @@ const testCourse = {
     C 280,740 360,800 460,820
   `
 }
+
+const testCourse02 = {
+  id: 'test_02',
+  name: '테스트 코스 02',
+  image: farmImg,
+  vbW: 1000,
+  vbH: 1000,
+  pointFill: '#1e90ff',
+  pathD: `
+    M 120,860
+    C 220,780 320,740 420,660
+    S 620,520 740,500
+    C 860,480 940,520 920,600
+    S 820,720 700,760
+    C 560,810 420,800 340,760
+    S 220,700 160,620
+    C 120,560 120,520 160,500
+    C 240,460 360,460 500,480
+    S 720,520 820,440
+    C 900,380 900,300 820,240
+    C 720,170 560,170 420,210
+    S 240,300 160,360
+    C 120,400 110,460 140,520
+    C 180,600 220,680 300,740
+    C 360,780 440,820 560,840
+  `
+}
+
+const testCourse03 = {
+  id: 'test_03',
+  name: '테스트 코스 03',
+  image: farmImg,
+  vbW: 1000,
+  vbH: 1000,
+  pointFill: '#111111',
+  pathD: `
+    M 80,200
+    C 180,260 260,320 360,380
+    S 560,480 680,520
+    C 820,570 900,640 880,720
+    S 760,820 620,840
+    C 520,860 420,840 340,800
+    S 200,720 140,640
+    C 100,580 120,520 180,500
+    C 260,470 380,480 520,500
+    S 760,560 860,520
+    C 940,480 940,420 880,380
+    C 800,330 660,320 520,340
+    S 320,380 220,420
+    C 140,460 100,540 140,620
+    C 180,700 240,760 340,820
+  `
+}
+
+const testCourse04 = {
+  id: 'test_04',
+  name: '테스트 코스 04',
+  image: farmImg,
+  vbW: 1000,
+  vbH: 1000,
+  pointFill: '#12c48b',
+  pathD: `
+    M 200,900
+    C 260,820 340,760 460,700
+    S 700,600 820,560
+    C 900,540 940,520 920,460
+    C 900,400 820,360 700,360
+    S 460,380 300,440
+    C 200,480 140,520 140,580
+    C 140,640 200,700 280,740
+    C 360,780 460,800 600,800
+    C 720,800 820,780 880,740
+  `
+}
+
+const courseMap = {
+  option1: testCourse01,
+  option2: testCourse02,
+  option3: testCourse03,
+  option4: testCourse04
+}
+
+const selectedCourse = computed(() => {
+  const key = String(routine.value?.course || '').toLowerCase()
+  return courseMap[key] || testCourse01
+})
 </script>
 
 <style scoped>
