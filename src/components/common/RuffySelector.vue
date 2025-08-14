@@ -57,14 +57,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
-
-export const ruffyOptions = [
-  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
-  { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
-  { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href },
-]
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   modelValue: String,
@@ -74,19 +67,20 @@ const emit = defineEmits(['update:modelValue'])
 
 const myName = computed(() => props.uniqueName || 'ruffy-selector')
 
-const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
+const ruffyOptions = [
+  { value: 'option1', name: '퓨리 러피', img: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href },
+  { value: 'option2', name: '빌리 러피', img: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href },
+  { value: 'option3', name: '마리 러피', img: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href },
+  { value: 'option4', name: '도리 러피', img: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href },
+]
 
-const showRuffyPopup = ref(false)
-const selectedOption = ref('')
-
-const selectRuffy = (value, event) => {
-  event?.stopPropagation()
+const selectRuffy = (value) => {
   emit('update:modelValue', value)
-  selectedOption.value = value
-  showRuffyPopup.value = true
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
 
+const showRuffyPopup = ref(false)
+const selectedOption = ref('')
 const closeRuffyPopup = () => {
   showRuffyPopup.value = false
 }
