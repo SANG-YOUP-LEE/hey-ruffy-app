@@ -1,6 +1,5 @@
-<!-- src/components/MainCard/MainWalkStatus.vue -->
 <template>
-  <div class="walk_pop_wrap">
+  <div :class="['walk_pop_wrap', courseClass]">
     <div class="walk_info" v-if="hasWalkResolved">
       <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
       <span class="walk_course">{{ courseMeta?.name }}</span>
@@ -35,5 +34,13 @@ const ruffyMeta = computed(() => {
 
 const courseMeta = computed(() => {
   return COURSE_OPTIONS.find(c => c.value === routine.value?.course) || null
+})
+
+const courseClass = computed(() => {
+  const v = String(routine.value?.course || '')
+  const m = v.match(/(\d+)/)
+  if (!m) return ''
+  const n = m[1].padStart(2,'0')
+  return `course${n}`
 })
 </script>
