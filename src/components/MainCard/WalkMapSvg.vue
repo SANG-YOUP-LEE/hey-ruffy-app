@@ -4,6 +4,16 @@
     :viewBox="`0 0 ${vbW} ${vbH}`"
     preserveAspectRatio="xMidYMid meet"
   >
+    <defs>
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
     <image
       v-if="mapSrc"
       :href="mapSrc"
@@ -14,14 +24,30 @@
       :style="{ opacity: mapOpacity }"
     />
     <path ref="pathRef" :d="pathD" fill="none" stroke="transparent" />
-    <g v-for="(p, i) in visiblePts" :key="i">
+
+    <g>
       <circle
+        v-for="(p, i) in visiblePts"
+        :key="i"
         :cx="p.x"
         :cy="p.y"
         :r="pointR"
         :fill="pointFill"
         :stroke="pointStroke"
         :stroke-width="pointStrokeWidth"
+        opacity="0.6"
+      />
+    </g>
+
+    <g v-if="activePt" class="active-dot">
+      <circle
+        :cx="activePt.x"
+        :cy="activePt.y"
+        :r="pointR * 1.6"
+        :fill="pointFill"
+        :stroke="pointStroke"
+        :stroke-width="pointStrokeWidth"
+        filter="url(#glow)"
       />
     </g>
   </svg>
@@ -41,7 +67,8 @@ const props = defineProps({
   pointStroke: { type: String, default: '#ffffff' },
   pointStrokeWidth: { type: Number, default: 3 },
   goalCount: { type: Number, default: 20 },
-  basePoints: { type: Number, default: 20 }
+  basePoints: { type: Number, default: 20 },
+  doneCount: { type: Number, default: 0 }
 })
 
 const pathRef = ref(null)
@@ -75,6 +102,13 @@ const visiblePts = computed(() => {
   return out
 })
 
+const activePt = computed(() => {
+  if ((props.doneCount || 0) <= 0) return { x: 0, y: props.vbH }
+  const N = visiblePts.value.length
+  const idx = Math.min(props.doneCount, N) - 1
+  return visiblePts.value[idx] || null
+})
+
 onMounted(sampleBasePoints)
 watch(() => props.pathD, sampleBasePoints)
 watch(() => props.basePoints, sampleBasePoints)
@@ -82,4 +116,10 @@ watch(() => props.basePoints, sampleBasePoints)
 
 <style scoped>
 svg { width: 100%; height: 100%; display: block; }
+.active-dot { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
 </style>
