@@ -83,9 +83,9 @@
             <span><em class="t_red01">[필수]</em> 14세 이상입니다.</span>
           </label>
           <div class="agree">
-            러피와 친구를 맺으면 '헤이, 러피'의<br />
-            <a href="/terms" target="_blank" rel="noopener noreferrer" @click="clearMessages">이용약관</a>과
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" @click="clearMessages">개인정보 정책</a>에 동의하게 됩니다.
+            러피와 친구를 맺으면 '헤이러피'의<br />
+            <a href="#" @click.prevent="$router.push({ name: 'TermsOfService' }); clearMessages()">이용약관</a>과
+            <a href="#" @click.prevent="$router.push({ name: 'PrivacyPolicy' }); clearMessages()">개인정보 정책</a>에 동의하게 됩니다.
           </div>
         </div>
 

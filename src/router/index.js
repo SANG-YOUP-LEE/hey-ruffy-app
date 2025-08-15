@@ -13,6 +13,16 @@ const routes = [
   { path: "/login", name: "login", component: LoginView },
   { path: "/main", name: "main", component: MainView },
   { path: "/add-routine", name: "addRoutine", component: AddRoutineSelector }, // 옵션
+  {
+    path: '/policies/terms',
+    name: 'TermsOfService',
+    component: () => import('@/components/policies/TermsOfService.vue'),
+  },
+  {
+    path: '/policies/privacy',
+    name: 'PrivacyPolicy',
+    component: () => import('@/components/policies/PrivacyPolicy.vue'),
+  },
 ]
 
 const router = createRouter({
