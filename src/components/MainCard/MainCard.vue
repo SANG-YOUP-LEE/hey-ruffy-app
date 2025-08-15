@@ -189,6 +189,7 @@ const isPaused = ref(!!props.routine?.isPaused)
 watch(() => props.routine?.isPaused, v => { isPaused.value = !!v }, { immediate: true })
 
 const selectedState = ref('')
+const pendingStatus = ref(null)
 
 const titleText = computed(() => props.routine?.title || '')
 const commentText = computed(() => props.routine?.comment || '')
@@ -408,6 +409,12 @@ function openWalkPopup() {
 function closeWalkPopup() {
   showWalkPopup.value = false
   document.body.classList.remove('no-scroll')
+  if (pendingStatus.value) {
+    const id = props.routine?.id
+    const next = pendingStatus.value
+    pendingStatus.value = null
+    if (id && next) emit('changeStatus', { id, status: next })
+  }
 }
 
 function confirmStatusCheck() {
@@ -416,9 +423,18 @@ function confirmStatusCheck() {
   if (selectedState.value === 'well_done') next = 'done'
   else if (selectedState.value === 'fail_done') next = 'faildone'
   else if (selectedState.value === 'ign_done') next = 'ignored'
+
+  const shouldOpenWalk = next === 'done' && hasWalkResolved.value
+
+  if (shouldOpenWalk) {
+    pendingStatus.value = next
+    closeStatusPopup()
+    openWalkPopup()
+    return
+  }
+
   closeStatusPopup()
   if (id && next) emit('changeStatus', { id, status: next })
-  if (next === 'done' && hasWalkResolved.value) openWalkPopup()
 }
 
 onMounted(() => {
