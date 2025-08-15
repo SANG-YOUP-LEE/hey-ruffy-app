@@ -84,8 +84,8 @@
           </label>
           <div class="agree">
             러피와 친구를 맺으면 '헤이러피'의<br />
-            <a href="#" @click.prevent="$router.push({ name: 'TermsOfService' }); clearMessages()">이용약관</a>과
-            <a href="#" @click.prevent="$router.push({ name: 'PrivacyPolicy' }); clearMessages()">개인정보 정책</a>에 동의하게 됩니다.
+            <a href="/policies/terms.html" target="_blank" @click="clearMessages()">이용약관</a>과
+            <a href="/policies/privacy.html" target="_blank" @click="clearMessages()">개인정보 정책</a>에 동의하게 됩니다.
           </div>
         </div>
 
