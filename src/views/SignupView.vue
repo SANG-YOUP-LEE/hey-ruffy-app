@@ -84,8 +84,12 @@
           </label>
           <div class="agree">
             러피와 친구를 맺으면 '헤이러피'의<br />
-            <a href="/policies/terms.html" target="_blank" @click="clearMessages()">이용약관</a>과
-            <a href="/policies/privacy.html" target="_blank" @click="clearMessages()">개인정보 정책</a>에 동의하게 됩니다.
+            <a href="#"
+                role="button"
+                @click.prevent="openTerms">이용약관</a>과
+              <a href="#"
+                role="button"
+                @click.prevent="openPrivacy">개인정보 정책</a>
           </div>
         </div>
 
@@ -169,6 +173,16 @@ const resendCooldown = ref(0)
 let resendTimer = null
 const resendClicked = ref(false)
 const router = useRouter()
+
+function openTerms() {
+  clearMessages()
+  window.open('/policies/terms.html', '_blank', 'noopener')
+}
+
+function openPrivacy() {
+  clearMessages()
+  window.open('/policies/privacy.html', '_blank', 'noopener')
+}
 
 // 러피 선택 관련
 const selectedOption = ref("")
