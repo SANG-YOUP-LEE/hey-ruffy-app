@@ -32,14 +32,18 @@
         @first-spot="onFirstSpot"
         @spots="onSpots"
       />
+
+      <svg style="position:absolute; width:0; height:0; overflow:hidden;">
+        <path ref="hiddenPathRef" :d="selectedCourse.pathD" />
+      </svg>
+
       <div
         v-if="ruffyAnchor"
         class="ruffys_item"
         ref="ruffyEl"
         :style="{
           left: ruffyAnchor.left + '%',
-          top: ruffyAnchor.top + '%',
-          transition: isTransitionOn ? `left ${stepDuration}ms ease, top ${stepDuration}ms ease` : 'none'
+          top: ruffyAnchor.top + '%'
         }"
       >
         <span :class="ruffyClass"></span>
@@ -51,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, onMounted } from 'vue'
 import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 import WalkMapSvg from '@/components/MainCard/WalkMapSvg.vue'
@@ -140,74 +144,131 @@ const ruffyClass = computed(() => {
 
 const canvasRef = ref(null)
 const ruffyEl = ref(null)
-const allSpots = ref([])
 const ruffyAnchor = ref(null)
-const isTransitionOn = ref(false)
-const isPlaying = ref(false)
+
+const hiddenPathRef = ref(null)
+const totalLen = ref(0)
+
 const wantPlayOnOpen = ref(false)
-const stepDuration = 220
+const isPlaying = ref(false)
+
+const SPEED_PX_PER_SEC = 110
+const MIN_STEP_MS = 450
+
+const scaleX = computed(() => selectedCourse.value.vbW / selectedCourse.value.pathBaseW)
+const scaleY = computed(() => selectedCourse.value.vbH / selectedCourse.value.pathBaseH)
+
+function toPctXY(x, y) {
+  const X = selectedCourse.value.offsetX + x * scaleX.value
+  const Y = selectedCourse.value.offsetY + y * scaleY.value
+  return {
+    left: (X / selectedCourse.value.vbW) * 100,
+    top: (Y / selectedCourse.value.vbH) * 100
+  }
+}
+
+function tForStep(k) {
+  const G = Math.max(1, goalCountResolved.value)
+  let t = Math.max(0, Math.min(1, k / G))
+  if (selectedCourse.value.startFromEnd) t = 1 - t
+  return t
+}
+
+function pointAtT(t) {
+  const path = hiddenPathRef.value
+  if (!path || totalLen.value === 0) return null
+  const p = path.getPointAtLength(totalLen.value * t)
+  return toPctXY(p.x, p.y)
+}
 
 function onFirstSpot(pct) {
-  if (!allSpots.value.length) ruffyAnchor.value = pct
+  if (!ruffyAnchor.value) ruffyAnchor.value = pct
 }
 
-function onSpots(arr) {
-  allSpots.value = Array.isArray(arr) ? arr : []
-  if (wantPlayOnOpen.value) playFromZeroToCurrent()
-  else updateRuffyAnchor()
+function onSpots() {}
+
+function updateRuffyAnchorInstant() {
+  const t = tForStep(doneCountResolved.value)
+  const pos = pointAtT(t)
+  if (pos) ruffyAnchor.value = pos
 }
 
-function updateRuffyAnchor() {
-  if (!allSpots.value.length || isPlaying.value) return
-  const idx = Math.max(0, Math.min(doneCountResolved.value, allSpots.value.length - 1))
-  ruffyAnchor.value = allSpots.value[idx]
+function waitRaf() {
+  return new Promise(resolve => requestAnimationFrame(() => resolve()))
 }
 
-function waitTransitionOnce() {
-  return new Promise((resolve) => {
-    let done = false
-    const el = ruffyEl.value
-    const timer = setTimeout(() => {
-      if (done) return
-      done = true
-      el && el.removeEventListener('transitionend', onEnd)
-      resolve()
-    }, stepDuration + 40)
-    const onEnd = (e) => {
-      if (done) return
-      if (e.target !== el) return
-      if (e.propertyName !== 'left' && e.propertyName !== 'top') return
-      done = true
-      clearTimeout(timer)
-      el && el.removeEventListener('transitionend', onEnd)
-      resolve()
-    }
-    el && el.addEventListener('transitionend', onEnd, { once: true })
-  })
+function segDurationMs(t0, t1) {
+  const segLen = Math.abs(t1 - t0) * totalLen.value
+  const ms = (segLen / SPEED_PX_PER_SEC) * 1000
+  return Math.max(MIN_STEP_MS, ms)
+}
+
+async function animateSegment(t0, t1) {
+  const duration = segDurationMs(t0, t1)
+  const start = performance.now()
+  let now = start
+  while (now - start < duration) {
+    const u = (now - start) / duration
+    const tt = t0 + (t1 - t0) * u
+    const pos = pointAtT(tt)
+    if (pos) ruffyAnchor.value = pos
+    await waitRaf()
+    now = performance.now()
+    if (!isPlaying.value) break
+  }
+  const posEnd = pointAtT(t1)
+  if (posEnd) ruffyAnchor.value = posEnd
 }
 
 async function playFromZeroToCurrent() {
-  if (!allSpots.value.length) { wantPlayOnOpen.value = true; return }
+  const path = hiddenPathRef.value
+  if (!path || totalLen.value === 0) { wantPlayOnOpen.value = true; return }
   wantPlayOnOpen.value = false
   isPlaying.value = true
-  const targetIdx = Math.max(0, Math.min(doneCountResolved.value, allSpots.value.length - 1))
-  isTransitionOn.value = false
-  ruffyAnchor.value = allSpots.value[0]
+  const G = Math.max(1, goalCountResolved.value)
+  const targetStep = Math.max(0, Math.min(doneCountResolved.value, G))
+  const tStart = tForStep(0)
+  const pos0 = pointAtT(tStart)
+  if (pos0) ruffyAnchor.value = pos0
   await nextTick()
-  canvasRef.value?.offsetWidth
-  isTransitionOn.value = true
-  for (let i = 1; i <= targetIdx; i++) {
+  for (let k = 1; k <= targetStep; k++) {
     if (!isPlaying.value) break
-    ruffyAnchor.value = allSpots.value[i]
-    await waitTransitionOnce()
+    const t0 = tForStep(k - 1)
+    const t1 = tForStep(k)
+    await animateSegment(t0, t1)
   }
   isPlaying.value = false
 }
+
+function recomputeTotalLength() {
+  const path = hiddenPathRef.value
+  if (!path) return
+  totalLen.value = path.getTotalLength() || 0
+}
+
+onMounted(async () => {
+  await nextTick()
+  recomputeTotalLength()
+  updateRuffyAnchorInstant()
+  if (wantPlayOnOpen.value) playFromZeroToCurrent()
+})
+
+watch(() => selectedCourse.value.pathD, async () => {
+  await nextTick()
+  recomputeTotalLength()
+  updateRuffyAnchorInstant()
+})
+
+watch(() => [selectedCourse.value.offsetX, selectedCourse.value.offsetY, selectedCourse.value.vbW, selectedCourse.value.vbH, selectedCourse.value.pathBaseW, selectedCourse.value.pathBaseH], () => {
+  updateRuffyAnchorInstant()
+})
+
+watch(doneCountResolved, () => {
+  if (!isPlaying.value) updateRuffyAnchorInstant()
+})
 
 watch(() => props.playSeq, () => {
   wantPlayOnOpen.value = true
   playFromZeroToCurrent()
 })
-
-watch(doneCountResolved, updateRuffyAnchor)
 </script>
