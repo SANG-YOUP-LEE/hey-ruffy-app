@@ -2,7 +2,7 @@
   <svg
     xmlns="http://www.w3.org/2000/svg"
     :viewBox="`0 0 ${vbW} ${vbH}`"
-    preserveAspectRatio="xMidYMid meet"
+    preserveAspectRatio="none"
   >
     <image
       v-if="mapSrc"
@@ -74,7 +74,7 @@ const visiblePts = computed(() => {
   const B = orderedPts.value.length
   if (B === 0) return []
   const target = Math.max(1, Math.min(props.goalCount, 20))
-  const N = Math.min(target + 1, B) // 0 포함 → +1
+  const N = Math.min(target + 1, B)
   if (N === B) return orderedPts.value
   if (N === 1) return [orderedPts.value[0]]
   const out = []

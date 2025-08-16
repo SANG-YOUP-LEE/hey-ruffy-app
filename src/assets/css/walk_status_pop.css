@@ -63,6 +63,11 @@
   place-items: center;
 }
 
+.walk_canvas svg {
+  width:100%;
+  height:100%;
+}
+
 .walk_canvas .ruffys_item.animate { transition: left .7s ease, top .7s ease; }
 
 .walk_canvas .ruffys_item span.ruffy01 { background-image: url('../images/hey_ruffy_temp01_b.png'); }
