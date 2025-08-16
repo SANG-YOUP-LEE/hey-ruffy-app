@@ -35,7 +35,6 @@
             <p class="se_date">{{ periodText }}</p>
             <p class="alaram">{{ alarmText }}</p>
             <p class="comment" v-if="commentText">{{ commentText }}</p>
-
             <div class="walk_info" v-if="hasWalkResolved">
               <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
               <span class="walk_course">{{ courseMeta?.name }}</span>
@@ -44,9 +43,7 @@
           </div>
           <div class="right"></div>
           <div class="done_set" v-if="canShowStatusButton">
-            <button class="p_white" @click="handleStatusButtonClick">
-              달성현황 체크하기
-            </button>
+            <button class="p_white" @click="handleStatusButtonClick">달성현황 체크하기</button>
           </div>
           <div class="walk_check" v-if="hasWalkResolved">
             <button class="p_white" @click="openWalkPopup">산책 현황 보기</button>
@@ -86,9 +83,7 @@
             </template>
           </div>
           <div class="popup_btm">
-            <button @click="confirmPauseRestart" class="p_basic">
-              {{ isPaused ? '다짐 다시 시작하기' : '다짐 멈추기' }}
-            </button>
+            <button @click="confirmPauseRestart" class="p_basic">{{ isPaused ? '다짐 다시 시작하기' : '다짐 멈추기' }}</button>
             <button @click="closePauseRestartPopup" class="p_white">취소</button>
           </div>
           <button class="close_btn" @click="closePauseRestartPopup"><span>닫기</span></button>
@@ -120,15 +115,9 @@
           <div class="popup_body">
             <div class="done_check_wrap">
               <div class="state_group">
-                <span class="well_done" :class="{ right: selectedState==='well_done' }" @click="onSelect('well_done')" v-show="!selectedState || selectedState==='well_done'">
-                  {{ selectedState==='well_done' ? '나 잘했지? 오늘도 다짐 성공이야!' : '다짐 달성 성공!' }}
-                </span>
-                <span class="fail_done" :class="{ right: selectedState==='fail_done' }" @click="onSelect('fail_done')" v-show="!selectedState || selectedState==='fail_done'">
-                  {{ selectedState==='fail_done' ? '오늘은 결국 실패야ㅠㅠ' : '다짐 달성 실패ㅠ' }}
-                </span>
-                <span class="ign_done" :class="{ right: selectedState==='ign_done' }" @click="onSelect('ign_done')" v-show="!selectedState || selectedState==='ign_done'">
-                  {{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}
-                </span>
+                <span class="well_done" :class="{ right: selectedState==='well_done' }" @click="onSelect('well_done')" v-show="!selectedState || selectedState==='well_done'">{{ selectedState==='well_done' ? '나 잘했지? 오늘도 다짐 성공이야!' : '다짐 달성 성공!' }}</span>
+                <span class="fail_done" :class="{ right: selectedState==='fail_done' }" @click="onSelect('fail_done')" v-show="!selectedState || selectedState==='fail_done'">{{ selectedState==='fail_done' ? '오늘은 결국 실패야ㅠㅠ' : '다짐 달성 실패ㅠ' }}</span>
+                <span class="ign_done" :class="{ right: selectedState==='ign_done' }" @click="onSelect('ign_done')" v-show="!selectedState || selectedState==='ign_done'">{{ selectedState==='ign_done' ? '오늘은 진짜 어쩔 수 없었다고ㅜ' : '흐린눈-_-' }}</span>
               </div>
               <div class="chat_group" v-if="selectedState">
                 <span class="well_done" v-show="selectedState==='well_done'">넌 역시 최고야. 대체 언제까지 멋있을래?</span>
@@ -152,7 +141,7 @@
         <div class="popup_inner alert">
           <div class="popup_tit"><h2>산책 현황</h2></div>
           <div class="popup_body">
-            <WalkStatusPanel :routine="props.routine" />
+            <WalkStatusPanel :routine="props.routine" :play-seq="walkPlaySeq" :done-override="walkDoneOverride" />
           </div>
           <div class="popup_btm">
             <button @click="closeWalkPopup" class="p_white">닫기</button>
@@ -165,17 +154,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 
-const props = defineProps({
-  selected: String,
-  routine: { type: Object, default: () => ({}) },
-  isToday: { type: Boolean, default: false }
-})
-
+const props = defineProps({ selected: String, routine: { type: Object, default: () => ({}) }, isToday: { type: Boolean, default: false } })
 const emit = defineEmits(['delete','changeStatus','edit','togglePause'])
 
 const showPopup = ref(false)
@@ -190,6 +174,8 @@ watch(() => props.routine?.isPaused, v => { isPaused.value = !!v }, { immediate:
 
 const selectedState = ref('')
 const pendingStatus = ref(null)
+const walkPlaySeq = ref(0)
+const walkDoneOverride = ref(null)
 
 const titleText = computed(() => props.routine?.title || '')
 const commentText = computed(() => props.routine?.comment || '')
@@ -402,13 +388,21 @@ function closeStatusPopup() {
 function openWalkPopup() {
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
+  if (pendingStatus.value === 'done' && hasWalkResolved.value) {
+    const base = Number(props.routine?.walkDoneCount || 0)
+    walkDoneOverride.value = base + 1
+  } else {
+    walkDoneOverride.value = null
+  }
   showWalkPopup.value = true
   document.body.classList.add('no-scroll')
+  nextTick(() => { walkPlaySeq.value++ })
 }
 
 function closeWalkPopup() {
   showWalkPopup.value = false
   document.body.classList.remove('no-scroll')
+  walkDoneOverride.value = null
   if (pendingStatus.value) {
     const id = props.routine?.id
     const next = pendingStatus.value
@@ -423,16 +417,13 @@ function confirmStatusCheck() {
   if (selectedState.value === 'well_done') next = 'done'
   else if (selectedState.value === 'fail_done') next = 'faildone'
   else if (selectedState.value === 'ign_done') next = 'ignored'
-
   const shouldOpenWalk = next === 'done' && hasWalkResolved.value
-
   if (shouldOpenWalk) {
     pendingStatus.value = next
     closeStatusPopup()
     openWalkPopup()
     return
   }
-
   closeStatusPopup()
   if (id && next) emit('changeStatus', { id, status: next })
 }
