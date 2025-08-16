@@ -88,3 +88,11 @@ svg { width: 100%; height: auto; display: block; }
 .walk_canvas .ruffys_item span.ruffy04 {
   background-image: url('../images/hey_ruffy_temp04_b.png');
 }
+.rc_inner .walk_info {
+  display: flex;
+  justify-content: flex-start;
+  margin:0;
+  padding:0;
+}
+.rc_inner .walk_info span{
+}

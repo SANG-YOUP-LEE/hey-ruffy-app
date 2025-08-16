@@ -35,10 +35,11 @@
       <div
         v-if="ruffyAnchor"
         class="ruffys_item"
+        ref="ruffyEl"
         :style="{
           left: ruffyAnchor.left + '%',
           top: ruffyAnchor.top + '%',
-          transition: isTransitionOn ? 'left .8s ease, top .8s ease' : 'none'
+          transition: isTransitionOn ? `left ${stepDuration}ms ease, top ${stepDuration}ms ease` : 'none'
         }"
       >
         <span :class="ruffyClass"></span>
@@ -138,11 +139,13 @@ const ruffyClass = computed(() => {
 })
 
 const canvasRef = ref(null)
+const ruffyEl = ref(null)
 const allSpots = ref([])
 const ruffyAnchor = ref(null)
 const isTransitionOn = ref(false)
 const isPlaying = ref(false)
 const wantPlayOnOpen = ref(false)
+const stepDuration = 220
 
 function onFirstSpot(pct) {
   if (!allSpots.value.length) ruffyAnchor.value = pct
@@ -160,22 +163,45 @@ function updateRuffyAnchor() {
   ruffyAnchor.value = allSpots.value[idx]
 }
 
+function waitTransitionOnce() {
+  return new Promise((resolve) => {
+    let done = false
+    const el = ruffyEl.value
+    const timer = setTimeout(() => {
+      if (done) return
+      done = true
+      el && el.removeEventListener('transitionend', onEnd)
+      resolve()
+    }, stepDuration + 40)
+    const onEnd = (e) => {
+      if (done) return
+      if (e.target !== el) return
+      if (e.propertyName !== 'left' && e.propertyName !== 'top') return
+      done = true
+      clearTimeout(timer)
+      el && el.removeEventListener('transitionend', onEnd)
+      resolve()
+    }
+    el && el.addEventListener('transitionend', onEnd, { once: true })
+  })
+}
+
 async function playFromZeroToCurrent() {
   if (!allSpots.value.length) { wantPlayOnOpen.value = true; return }
   wantPlayOnOpen.value = false
   isPlaying.value = true
   const targetIdx = Math.max(0, Math.min(doneCountResolved.value, allSpots.value.length - 1))
-  const p0 = allSpots.value[0]
-  const pt = allSpots.value[targetIdx]
   isTransitionOn.value = false
-  ruffyAnchor.value = { left: p0.left, top: p0.top }
+  ruffyAnchor.value = allSpots.value[0]
   await nextTick()
   canvasRef.value?.offsetWidth
-  requestAnimationFrame(() => {
-    isTransitionOn.value = true
-    ruffyAnchor.value = { left: pt.left, top: pt.top }
-    setTimeout(() => { isPlaying.value = false }, 850)
-  })
+  isTransitionOn.value = true
+  for (let i = 1; i <= targetIdx; i++) {
+    if (!isPlaying.value) break
+    ruffyAnchor.value = allSpots.value[i]
+    await waitTransitionOnce()
+  }
+  isPlaying.value = false
 }
 
 watch(() => props.playSeq, () => {
