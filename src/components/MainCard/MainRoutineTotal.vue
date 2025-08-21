@@ -13,7 +13,7 @@
           <a
             href="#none"
             class="not_done"
-            :class="{ on: selectedRadio === 'notdone' }"
+            :class="{ uline: selectedRadio === 'notdone' }"
             @click.prevent="selectedRadio = 'notdone'"
           >
             <strong>미달성</strong> <em class="t_on">{{ displayCounts.notdone }}</em>
@@ -21,7 +21,7 @@
           <a
             href="#none"
             class="done"
-            :class="{ on: selectedRadio === 'done' }"
+            :class="{ uline: selectedRadio === 'done' }"
             @click.prevent="selectedRadio = 'done'"
           >
             <strong>달성완료</strong> <em class="t_on">{{ displayCounts.done }}</em>
@@ -29,7 +29,7 @@
           <a
             href="#none"
             class="fail_done"
-            :class="{ on: selectedRadio === 'faildone' }"
+            :class="{ uline: selectedRadio === 'faildone' }"
             @click.prevent="selectedRadio = 'faildone'"
           >
             <strong>달성실패</strong> <em class="t_on">{{ displayCounts.faildone }}</em>
@@ -37,7 +37,7 @@
           <a
             href="#none"
             class="ignored"
-            :class="{ on: selectedRadio === 'ignored' }"
+            :class="{ uline: selectedRadio === 'ignored' }"
             @click.prevent="selectedRadio = 'ignored'"
           >
             <strong>흐린눈</strong> <em class="t_on">{{ displayCounts.ignored }}</em>
