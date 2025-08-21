@@ -92,9 +92,9 @@
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
-  width:2rem;
-  height:2rem;
-  flex: 0 0 2rem;
+  width:2.5rem;
+  height:2.5rem;
+  flex: 0 0 2.5rem;
   flex-direction: column;
   justify-content: center;
   align-items: center;
