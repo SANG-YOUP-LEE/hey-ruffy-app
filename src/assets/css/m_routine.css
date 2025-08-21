@@ -104,6 +104,7 @@
 #main_body .routine_total {
   margin:0;
   position:relative;
+  border:1px solid red;
 }
 
 #main_body .routine_total p:first-child {
