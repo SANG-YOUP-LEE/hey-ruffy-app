@@ -92,14 +92,19 @@
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
+  width:1.5rem;
+  heigth:1.5rem
   flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 0.5rem;
-  line-height: 1.1rem;
-  font-size: 1rem;
+  line-height: 1rem;
+  font-size: 0.9rem;
   color: #b3b3b3;
   box-sizing: border-box;
+  border:1px solid #eaeaea;
+  
+  border-radius:50%;
 }
 #main_body .date_scroll .date_group i,
 #main_body .date_fixed_today i {
