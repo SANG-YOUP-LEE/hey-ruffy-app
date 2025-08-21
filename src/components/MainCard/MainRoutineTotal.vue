@@ -61,7 +61,12 @@
       </p>
     </div>
     <div class="tools">
-      <a href="#none" class="move"><span>다짐이동</span></a>
+      <a href="#none" class="r_card"><span>다짐카드보기/span></a>
+      <a href="#none" class="r_block"><span>다짐블록보기/span></a>
+      <a href="#none" class="r_list"><span>다짐목록보기/span></a>
+      <a href="#none" class="r_select"><span>다짐선택</span></a>
+      <a href="#none" class="r_del"><span>다짐삭제</span></a>
+      <a href="#none" class="r_move"><span>다짐이동</span></a>
     </div>
   </div>
 </template>
