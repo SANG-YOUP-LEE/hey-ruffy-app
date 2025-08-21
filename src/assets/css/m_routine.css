@@ -92,8 +92,8 @@
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
-  width:1.5rem;
-  heigth:1.5rem;
+  width:2.5rem;
+  heigth:2.5rem;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -118,6 +118,7 @@
   font-weight:bold!important;
   color:#333!important;
   background-color:#fff!important;
+  border:1px solid #333!important
  }
 
 #main_body .date_fixed_today span.on,
