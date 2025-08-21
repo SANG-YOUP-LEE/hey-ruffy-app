@@ -111,6 +111,7 @@
 #main_body .date_fixed_today span.on {
   font-weight:bold!important;
   color:#333!important;
+  background-color:#fff!important;
  }
 
 #main_body .date_fixed_today span.on {
@@ -131,10 +132,6 @@
 }
 
 #main_body .routine_total p:first-child {
-  background-color:#797eff;
-  border-bottom-right-radius:1.5rem;
-  border-bottom-left-radius:1.5rem;
-  padding:0 1rem 0.3rem 0;
   font-size:0.9rem;
   letter-spacing:-0.02rem;
   display: flex;
@@ -142,21 +139,14 @@
   align-items: center;
   position:relative; 
   z-index:2;
-  color:#fff
+  background-color:Red;
 }
 
 #main_body .routine_total p:first-child span:first-child {
   display:inline-block;
-  background-color:#fff;
-  padding:0.25rem 1rem 0.25rem 1rem;
   line-height:2.2rem;
-  border-radius:1.5rem;
-  border-top-left-radius:0;
-  border-top-right-radius:0;
-  margin-bottom:0.2rem;
-  border:1px solid #eaeaea;
-  border-top:none;
   color:#333;
+  background-color:green;
 }
 
 #main_body .routine_total p:first-child span em {
