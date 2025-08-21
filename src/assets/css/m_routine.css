@@ -44,6 +44,11 @@
   border-top:1px solid #0994ff;;
 }
 
+#main_body .date_scroll .top_line {
+  width:100%;
+  height:1px;
+}
+
 #main_body .date_scroll .ruffys_item {
   grid-area: ruffys;
   width:100%;
