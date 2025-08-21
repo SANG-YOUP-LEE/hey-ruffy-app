@@ -38,8 +38,12 @@
 }
 
 #main_body .date_scroll .ruffys_item {
-  border:1px solid red
+  width: 100%;              
+  display: flex;            
+  justify-content: center; 
+  gap: 0.2rem;                
 }
+
 
 #main_body .date_fixed_today {
   flex-shrink: 0;
