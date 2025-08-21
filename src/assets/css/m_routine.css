@@ -49,8 +49,8 @@
   justify-content:center;
   align-items:center;
   gap:0.8rem;
-  padding:0rem 0 0.5rem 0;
-  border-top:1px solid #333
+  padding:0rem 0 1rem 0;
+  border-bottom:1px solid #eaeaea
 }
 
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
