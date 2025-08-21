@@ -1,7 +1,7 @@
 <template>
   <!--div class="top_line on"></div-->
   <div class="date_scroll">
-    <div class="ruffys_item">
+    <div class="ruffys_item uline">
       <span class="ruffy01"></span>
       <span class="ruffy02"></span>
       <span class="ruffy03"></span>
