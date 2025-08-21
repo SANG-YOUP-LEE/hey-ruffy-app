@@ -242,51 +242,51 @@
 }
 
 #main_body .tools a.r_move {
-  background: url('../images/ico_move.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_move.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_del {
-  background: url('../images/ico_del.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_del.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_select {
-  background: url('../images/ico_check.png') no-repeat 50% 50%/90%;
+  background: url('../images/ico_check.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_block {
-  background: url('../images/ico_block.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_block.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_card {
-  background: url('../images/ico_card.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_card.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_list {
-  background: url('../images/ico_list.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_list.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_move.on {
-  background: url('../images/ico_move_w.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_move_w.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_del.on {
-  background: url('../images/ico_del_w.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_del_w.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_select.on {
-  background: url('../images/ico_check_w.png') no-repeat 50% 50%/90%;
+  background: url('../images/ico_check_w.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_block.on {
-  background: url('../images/ico_block_w.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_block_w.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_card.on {
-  background: url('../images/ico_card_w.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_card_w.png') no-repeat 50% 50%/50%;
 }
 
 #main_body .tools a.r_list.on {
-  background: url('../images/ico_list_w.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_list_w.png') no-repeat 50% 50%/50%;
 }
 
 
