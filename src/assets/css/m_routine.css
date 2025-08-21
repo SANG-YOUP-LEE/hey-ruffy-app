@@ -174,8 +174,11 @@
 
 #main_body .routine_total p span a.on {
   background-color:none!important;
+  border-bottom:2px solid!important;
+}
+
+#main_body .routine_total p span a.on strong {
   color:#333!important;
-  border-bottom:2px solid;
 }
 
 #main_body .routine_total p span a strong {
