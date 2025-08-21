@@ -141,7 +141,7 @@
   z-index:2;
   border:1px solid #eaeaea;
   padding:0.5rem;
-  border-radius:1rem;
+  border-radius:1.5rem;
   margin-top:0.5rem;
 }
 
@@ -169,12 +169,8 @@
   box-sizing: border-box;  
   border-radius:1rem;
   text-decoration:none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
-}
-
-
-#main_body .routine_total p span a em.t_on {
-  color:#333!important
+  padding:0.5rem;
+  border:1px solid #333;
 }
 
 #main_body .routine_card .rc_inner i {
