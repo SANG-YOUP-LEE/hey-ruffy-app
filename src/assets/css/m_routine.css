@@ -22,7 +22,6 @@
   font-family:'S-CoreDream-4Regular'
 }
 
-/* ▼ 상단 날짜 영역을 2행 그리드: 1행=러피들(전체폭), 2행=오늘버튼+월별스크롤 */
 #main_body .date_scroll {
   width:100%;
   display:grid;
@@ -43,20 +42,17 @@
   border-bottom:none;
   padding:0.5rem 1rem 0.2rem 1rem;
   z-index:3;
-  /* 이전의 overflow-x:auto 는 제거 (가로스크롤은 date_group에게만 부여) */
 }
 
-/* 1) 러피 줄: 가로 100%, 가운데 정렬, 일정 간격 */
 #main_body .date_scroll .ruffys_item {
   grid-area: ruffys;
   width:100%;
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:0.2rem;
+  gap:0.5rem;
 }
 
-/* 필요 시 아이콘 사이즈 통일 */
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
   display:inline-block;
   width:2rem;
@@ -65,7 +61,6 @@
   background-repeat:no-repeat;
 }
 
-/* 2) 아래줄: 오늘 고정 + 날짜 스크롤 */
 #main_body .date_scroll .date_fixed_today {
   grid-area: today;
   position: sticky;
@@ -83,13 +78,15 @@
   align-items:center;
   gap:0.2rem;
 
-  overflow-x:auto;                 /* 가로 스크롤 이쪽에만 */
+  overflow-x:auto;                
   -webkit-overflow-scrolling:touch;
   white-space:nowrap;
   -ms-overflow-style:none;
   scrollbar-width:none;
 }
-#main_body .date_scroll .date_group::-webkit-scrollbar { display:none; }
+#main_body .date_scroll .date_group::-webkit-scrollbar { 
+  display:none; 
+}
 
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
