@@ -169,10 +169,12 @@
   box-sizing: border-box;
   text-decoration:none;
   color:#333;
-  gap:0.5rem;
 }
+
 #main_body .routine_total p span a.on {
   border:1px solid red!important
+  background-color:none!important;
+  color:#333!important;
 }
 
 #main_body .routine_card .rc_inner i {
