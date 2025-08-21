@@ -76,7 +76,6 @@
   justify-content:flex-start;
   align-items:center;
   gap:0.2rem;
-
   overflow-x:auto;                
   -webkit-overflow-scrolling:touch;
   white-space:nowrap;
@@ -97,7 +96,7 @@
   line-height: 1.1rem;
   font-size: 1rem;
   color: #999;
-  background-color:#ccc
+  background-color:#ccc;
   box-sizing: border-box;
 }
 #main_body .date_scroll .date_group i,
