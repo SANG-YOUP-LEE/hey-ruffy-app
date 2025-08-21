@@ -169,6 +169,7 @@
   text-decoration:none;
   color:#333;
   line-height:1.1rem;
+  margin-right:0.5rem;
 }
 
 #main_body .routine_total p span a.on {
@@ -179,15 +180,6 @@
 
 #main_body .routine_total p span a strong {
   border:1px solid red
-}
-
-#main_body .routine_total p span a em {
-  border:1px solid green;
-  margin-right:0.5rem;
-}
-
-#main_body .routine_total p span a em:last-child {
-  margin-right:0
 }
 
 #main_body .routine_card .rc_inner i {
