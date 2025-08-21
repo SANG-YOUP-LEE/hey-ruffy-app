@@ -92,39 +92,38 @@
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
+  width:3rem;
+  height:3rem;
+  flex: 0 0 3rem;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
-  width: 3.5rem;
-  height: 3.5rem;         /* heigth → height */
-  flex: 0 0 3.5rem;       /* 수축 금지 + 고정 너비 */
-
-  box-sizing: border-box; /* 테두리 포함해도 정원 유지 */
-  border: 1px solid #eaeaea;
-  border-radius: 50%;
-  padding: 0;             /* 패딩 제거 (원형 왜곡 방지) */
-
-  line-height: 1;         /* 텍스트 줄간격 영향 최소화 */
+  line-height: 1rem;
   font-size: 0.9rem;
   color: #b3b3b3;
+  box-sizing: border-box;
+  border:1px solid #eaeaea;
+  border-radius:50%;
+}
+#main_body .date_scroll .date_group i,
+#main_body .date_fixed_today i {
+  display:block;
+  line-height:0.8rem;
+  font-style:normal;
+  font-size:0.6rem;
 }
 
-/* on 상태에서도 크기 변화 없도록 패딩/보더만 유지 */
 #main_body .date_scroll .date_group span.on {
-  font-weight: bold !important;
-  color: #333 !important;
-  background-color: #fff !important;
-  border: 1px solid #333 !important;
-}
+  font-weight:bold!important;
+  color:#333!important;
+  background-color:#fff!important;
+  border:1px solid #333!important
+ }
 
-/* today 칩도 같은 원형 규칙 유지 */
 #main_body .date_fixed_today span.on,
 #main_body .date_fixed_today span.on.on {
-  color: #fff !important;
-  font-weight: bold !important;
-  background-color: #4a90e2 !important; /* 필요 색상으로 */
-  border: 1px solid #4a90e2 !important;
+  color:#fff!important;
+  font-weight:bold!important;
 }
 
 /*#main_body .date_fixed_today span.on_w_nt {
