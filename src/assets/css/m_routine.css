@@ -174,7 +174,7 @@
 
 #main_body .routine_total p span a.uline {
   background-color:none!important;
-  border-bottom:2px solid!important;
+  border-bottom-width: 2px!important;
   color:#333!important
 }
 
