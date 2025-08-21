@@ -189,6 +189,57 @@
   margin-right:0.2rem;
 }
 
+#main_body .today_tools {
+  margin:1rem 0 1rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+#main_body .today_tools .today {
+  position: static;
+  transform: none;
+  font-family: 'S-CoreDream-6Bold';
+  font-size: 1rem;
+  text-align: left;
+}
+
+#main_body .today_tools a span {
+  display: none;
+}
+
+#main_body .today_tools a {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  vertical-align:middle;
+}
+
+#main_body .today_tools a.prev {
+  background: url('../images/ico_prev.png') no-repeat 0 0/100%;
+}
+#main_body .today_tools a.next {
+  background: url('../images/ico_next.png') no-repeat 0 0/100%;
+}
+#main_body .today_tools a.move {
+  background: url('../images/ico_move.png') no-repeat 0 0/100%;
+}
+#main_body .today_tools a.weekly {
+  background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
+}
+
+#main_body .today_tools .today .prev.hidden { visibility: hidden; }
+
+#main_body .tools {
+  margin-left: auto;
+}
+
+
+
+
+
+
 #main_body .routine_card .rc_inner i {
   display:inline-block;
   font-size:0.7rem;
@@ -400,49 +451,4 @@
   background-size:100%!important
 }
 
-#main_body .today_tools {
-  margin:1rem 0 1rem 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  position: relative;
-}
 
-#main_body .today_tools .today {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'S-CoreDream-6Bold';
-  font-size: 1rem;
-  text-align: center;
-}
-
-#main_body .today_tools a span {
-  display: none;
-}
-
-#main_body .today_tools a {
-  width: 1rem;
-  height: 1rem;
-  display: inline-block;
-  vertical-align:middle;
-}
-
-#main_body .today_tools a.prev {
-  background: url('../images/ico_prev.png') no-repeat 0 0/100%;
-}
-#main_body .today_tools a.next {
-  background: url('../images/ico_next.png') no-repeat 0 0/100%;
-}
-#main_body .today_tools a.move {
-  background: url('../images/ico_move.png') no-repeat 0 0/100%;
-}
-#main_body .today_tools a.weekly {
-  background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
-}
-
-#main_body .today_tools .today .prev.hidden { visibility: hidden; }
-
-#main_body .tools {
-  margin-left: auto;
-}
