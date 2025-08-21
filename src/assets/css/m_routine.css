@@ -167,14 +167,15 @@
   font-weight: bold;
   box-sizing: border-box;
   text-decoration:none;
-  color:#333;
-  line-height:1.1rem;
+  color:#b3b3b3;
+  line-height:1.5rem;
   margin-right:0.5rem;
 }
 
 #main_body .routine_total p span a.on {
   background-color:none!important;
   color:#333!important;
+  border-bottom:2px solid;
 }
 
 #main_body .routine_total p span a strong {
