@@ -39,7 +39,7 @@
   background-color:#fff;
   border:1px solid #eaeaea;
   border-bottom:none;*/
-  padding:0.5rem 1rem 0.2rem 1rem;
+  padding:0.5rem 0rem 0.2rem 0rem;
   z-index:3;
 }
 
@@ -68,6 +68,9 @@
   margin-right:0.2rem;
   flex-shrink:0;
   font-weight:bold;
+  border-radius:1rem;
+  background-color:#ff6c6c;
+  color:#fff;
 }
 
 #main_body .date_scroll .date_group {
