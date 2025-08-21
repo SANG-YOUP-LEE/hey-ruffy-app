@@ -9,7 +9,7 @@
     </div>
     <div class="date_fixed_today">
       <span
-        class="on"
+        class="basic"
         :class="{ on: selectedIndex === 0 }"
         @click="selectToday"
       >
