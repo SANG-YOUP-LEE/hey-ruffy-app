@@ -96,7 +96,6 @@
   line-height: 1.1rem;
   font-size: 1rem;
   color: #999;
-  background-color:#ccc!important;
   box-sizing: border-box;
 }
 #main_body .date_scroll .date_group i,
@@ -118,7 +117,7 @@
 }
 
 #main_body .date_fixed_today span.on_w_nt {
-  border-radius:1rem;
+  border-radius:0.5rem;
   background-color:#ff6c6c!important;
   color:#fff!important;
 }
