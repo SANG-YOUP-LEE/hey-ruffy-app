@@ -1,5 +1,6 @@
 <template>
   <div class="date_scroll">
+    <div class="top_line on"></div>
     <div class="ruffys_item">
       <span class="ruffy01"></span>
       <span class="ruffy02"></span>
