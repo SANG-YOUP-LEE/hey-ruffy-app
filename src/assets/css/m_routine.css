@@ -172,14 +172,16 @@
   margin-right:0.5rem;
 }
 
-#main_body .routine_total p span a.on {
+#main_body .routine_total p span a.uline {
   background-color:none!important;
   border-bottom:2px solid!important;
+  color:#333!important
 }
 
-#main_body .routine_total p span a.on strong {
-  color:#333!important;
+#main_body .routine_total p span a em {
+  font-weight:bold
 }
+
 
 #main_body .routine_total p span a strong {
   margin-right:0.2rem;
