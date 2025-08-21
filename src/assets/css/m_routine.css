@@ -222,17 +222,16 @@
 #main_body .today_tools a.next {
   background: url('../images/ico_next.png') no-repeat 0 0/100%;
 }
-#main_body .today_tools a.move {
-  background: url('../images/ico_move.png') no-repeat 0 0/100%;
-}
-#main_body .today_tools a.weekly {
-  background: url('../images/ico_weekly.png') no-repeat 0 0/100%;
-}
 
 #main_body .today_tools .today .prev.hidden { visibility: hidden; }
 
 #main_body .tools {
   margin-left: auto;
+}
+
+#main_body .tools a {
+  border:1px solid #eee;
+  border-radius:0.5rem;
 }
 
 
