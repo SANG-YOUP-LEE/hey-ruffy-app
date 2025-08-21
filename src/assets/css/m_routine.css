@@ -22,11 +22,19 @@
   font-family:'S-CoreDream-4Regular'
 }
 
+/* ▼ 상단 날짜 영역을 2행 그리드: 1행=러피들(전체폭), 2행=오늘버튼+월별스크롤 */
 #main_body .date_scroll {
   width:100%;
-  display: flex;
+  display:grid;
+  grid-template-columns: auto 1fr;            /* 좌: 오늘 버튼, 우: 스크롤 */
+  grid-template-rows: auto auto;              /* 1행 러피, 2행 날짜줄 */
+  grid-template-areas:
+    "ruffys ruffys"
+    "today  group";
+  align-items: center;
+  gap: 0.3rem 0.2rem;
+
   position: relative;
-  overflow-x: auto;
   border-radius:1.5rem;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -34,43 +42,54 @@
   border:1px solid #eaeaea;
   border-bottom:none;
   padding:0.5rem 1rem 0.2rem 1rem;
-  position:relative; 
-  z-index: 3;
+  z-index:3;
+  /* 이전의 overflow-x:auto 는 제거 (가로스크롤은 date_group에게만 부여) */
 }
 
+/* 1) 러피 줄: 가로 100%, 가운데 정렬, 일정 간격 */
 #main_body .date_scroll .ruffys_item {
-  width: 100%;              
-  display: flex;            
-  justify-content: center; 
-  gap: 0.2rem;        
-  border:1px solid red;
+  grid-area: ruffys;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:0.2rem;
 }
 
+/* 필요 시 아이콘 사이즈 통일 */
+#main_body .date_scroll .ruffys_item span[class^="ruffy"] {
+  display:inline-block;
+  width:2rem;
+  height:2rem;
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+}
 
-#main_body .date_fixed_today {
-  flex-shrink: 0;
+/* 2) 아래줄: 오늘 고정 + 날짜 스크롤 */
+#main_body .date_scroll .date_fixed_today {
+  grid-area: today;
   position: sticky;
   left: 0;
   z-index: 10;
   margin-right:0.2rem;
-  font-weight:bold
+  flex-shrink:0;
+  font-weight:bold;
 }
 
 #main_body .date_scroll .date_group {
-  display: flex;
-  justify-content: flex-start;    
-  align-items: center;        
-  gap: 0.2rem;      
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-  -ms-overflow-style: none; 
-  scrollbar-width: none;
-}
+  grid-area: group;
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  gap:0.2rem;
 
-#main_body .date_scroll::-webkit-scrollbar {
-  display: none;
+  overflow-x:auto;                 /* 가로 스크롤 이쪽에만 */
+  -webkit-overflow-scrolling:touch;
+  white-space:nowrap;
+  -ms-overflow-style:none;
+  scrollbar-width:none;
 }
+#main_body .date_scroll .date_group::-webkit-scrollbar { display:none; }
 
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
