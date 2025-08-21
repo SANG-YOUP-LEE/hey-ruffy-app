@@ -49,7 +49,7 @@
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:0.5rem;
+  gap:0.8rem;
 }
 
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
@@ -68,9 +68,6 @@
   margin-right:0.2rem;
   flex-shrink:0;
   font-weight:bold;
-  border-radius:1rem;
-  background-color:#ff6c6c;
-  color:#fff;
 }
 
 #main_body .date_scroll .date_group {
@@ -113,9 +110,7 @@
 
 #main_body .date_scroll .date_group span.on,
 #main_body .date_fixed_today span.on {
-  color:#333!important;
   font-weight:bold!important;
-  background-color:#fff!important;
   border:none!important;
  }
 
@@ -124,8 +119,9 @@
 }
 
 #main_body .date_fixed_today span.on_w_nt {
-  border:none!important;
-  background: url('https://img.icons8.com/ios-glyphs/30/full-stop--v1.png') no-repeat top center/0.5rem 0.5rem;
+  border-radius:1rem;
+  background-color:#ff6c6c;
+  color:#fff;
 }
 
 
