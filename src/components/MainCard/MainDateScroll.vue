@@ -1,7 +1,10 @@
 <template>
   <div class="date_scroll">
-    <div class="date_dogs">
-      <span class=""></span>
+    <div class="ruffys_item">
+      <span class="riffy01"></span>
+      <span class="riffy02"></span>
+      <span class="riffy03"></span>
+      <span class="riffy04"></span>
     </div>
     <div class="date_fixed_today">
       <span
