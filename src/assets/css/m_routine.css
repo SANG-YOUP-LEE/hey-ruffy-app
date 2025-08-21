@@ -158,7 +158,6 @@
 #main_body .routine_total p span {
   display: flex;
   align-items: center;
-  gap: 0.2rem; 
 }
 
 #main_body .routine_total p span a {
