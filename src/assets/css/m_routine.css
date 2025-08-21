@@ -119,7 +119,7 @@
 }
 
 #main_body .date_fixed_today span.on_w_nt {
-  border-radius:0.8rem;
+  border-radius:1rem;
   background-color:#ff6c6c!important;
   border:1px solid #ff6c6c!important;
   color:#fff!important;
@@ -142,6 +142,7 @@
   border:1px solid #eaeaea;
   padding:0.5rem;
   border-radius:1rem;
+  margin:0.5rem;
 }
 
 #main_body .routine_total p:first-child span:first-child {
