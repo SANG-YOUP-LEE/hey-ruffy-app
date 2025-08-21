@@ -93,7 +93,7 @@
 #main_body .date_fixed_today span {
   display: flex;
   width:1.5rem;
-  heigth:1.5rem
+  heigth:1.5rem;
   flex-direction: column;
   justify-content: center;
   align-items: center;
