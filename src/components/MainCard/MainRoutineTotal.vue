@@ -1,5 +1,5 @@
 <template>
-  <div class="routine_total">
+  <div class="routine_total on_w">
     <p>
       <span>
         <strong>{{ isFuture ? '이날의 다짐' : '오늘의 다짐' }}</strong>
