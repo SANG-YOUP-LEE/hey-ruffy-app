@@ -62,7 +62,7 @@
   left: 0;
   width: 70%;
   height: calc(var(--vh, 1vh) * 100);
-  /*background-color: #fff;*/
+  background-color: #fff;
   padding: 2rem;
   z-index: 1000; 
   overflow-y: auto;
