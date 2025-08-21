@@ -242,27 +242,27 @@
 }
 
 #main_body .tools a.r_move {
-  background: url('../images/ico_move.png') no-repeat 50% 50%/80%;
+  background: url('../images/ico_move.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_del {
-  background: url('../images/ico_del.png') no-repeat 50% 50%/80%;
+  background: url('../images/ico_del.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_select {
-  background: url('../images/ico_select.png') no-repeat 50% 50%/80%;
+  background: url('../images/ico_check.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_block {
-  background: url('../images/ico_block.png') no-repeat 50% 50%/80%;
+  background: url('../images/ico_block.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_card {
-  background: url('../images/ico_card.png') no-repeat 50% 50%/80%;
+  background: url('../images/ico_card.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools a.r_list {
-  background: url('../images/ico_list.png') no-repeat 50% 50%/80%;
+  background: url('../images/ico_list.png') no-repeat 50% 50%/70%;
 }
 
 
