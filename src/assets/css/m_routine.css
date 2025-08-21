@@ -50,6 +50,7 @@
   justify-content:center;
   align-items:center;
   gap:0.8rem;
+  padding-bottom:0.5rem;
 }
 
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
@@ -109,7 +110,9 @@
 #main_body .date_scroll .date_group span.on,
 #main_body .date_fixed_today span.on {
   font-weight:bold!important;
-  border:none!important;
+  border:1px solid #333!important;
+  background-color:#fff!important;
+  color:#333!important
  }
 
 #main_body .date_fixed_today span.on {
@@ -117,8 +120,9 @@
 }
 
 #main_body .date_fixed_today span.on_w_nt {
-  border-radius:0.5rem;
+  border-radius:0.8rem;
   background-color:#ff6c6c!important;
+  border:1px solid #ff6c6c!important;
   color:#fff!important;
 }
 
