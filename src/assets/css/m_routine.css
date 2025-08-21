@@ -37,6 +37,10 @@
   z-index: 3;
 }
 
+#main_body .date_scroll .ruffys_item {
+  border:1px solid red
+}
+
 #main_body .date_fixed_today {
   flex-shrink: 0;
   position: sticky;
