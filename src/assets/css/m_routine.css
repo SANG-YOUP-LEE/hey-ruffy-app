@@ -118,8 +118,8 @@
 #main_body .date_fixed_today span.on,
 #main_body .date_fixed_today span.on.on {
   color:#fff!important;
-  border-radius:1rem;
-  border:1px solid red!important;
+  border-radius:0.5rem;
+  font-weight:bold!important;
 }
 
 /*#main_body .date_fixed_today span.on_w_nt {
