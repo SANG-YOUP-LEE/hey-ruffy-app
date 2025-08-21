@@ -118,7 +118,7 @@
 #main_body .date_fixed_today span.on,
 #main_body .date_fixed_today span.on.on {
   color:#fff!important;
-  border-radius:0.5rem;
+  border-radius:50%;
   font-weight:bold!important;
 }
 
