@@ -154,7 +154,7 @@
 }
 
 #main_body .routine_total p:first-child span:first-child strong {
-  margin-right:0.5rem
+  margin-right:0.2rem
 }
 
 #main_body .routine_total p:first-child span em {
@@ -241,7 +241,29 @@
   border-radius:0.5rem;
 }
 
+#main_body .tools a.r_move {
+  background: url('../images/ico_move.png') no-repeat 50% 50%/80%;
+}
 
+#main_body .tools a.r_del {
+  background: url('../images/ico_del.png') no-repeat 50% 50%/80%;
+}
+
+#main_body .tools a.r_select {
+  background: url('../images/ico_select.png') no-repeat 50% 50%/80%;
+}
+
+#main_body .tools a.r_block {
+  background: url('../images/ico_block.png') no-repeat 50% 50%/80%;
+}
+
+#main_body .tools a.r_card {
+  background: url('../images/ico_card.png') no-repeat 50% 50%/80%;
+}
+
+#main_body .tools a.r_list {
+  background: url('../images/ico_list.png') no-repeat 50% 50%/80%;
+}
 
 
 
