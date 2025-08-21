@@ -38,7 +38,7 @@
   align-items: center;
   gap: 0.3rem 0.2rem;
   position: relative;
-  padding:0.5rem 0rem 0.2rem 0rem;
+  padding:0rem 0rem 0.2rem 0rem;
   z-index:3;
 }
 
@@ -68,6 +68,7 @@
   margin-right:0.2rem;
   flex-shrink:0;
   font-weight:bold;
+  padding-top:0.5rem;
 }
 
 #main_body .date_scroll .date_group {
@@ -81,6 +82,7 @@
   white-space:nowrap;
   -ms-overflow-style:none;
   scrollbar-width:none;
+  padding-top:0.5rem;
 }
 
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
