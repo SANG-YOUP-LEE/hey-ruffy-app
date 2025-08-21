@@ -6,7 +6,6 @@
   text-align: center;
   font-size:1.4rem;
   line-height:1.7rem;
-  /*background-image: url('../images/ico_crying.png');*/
   background-repeat: no-repeat;
   background-size: 5rem 5rem;
   background-position: top center;
@@ -83,6 +82,7 @@
   -ms-overflow-style:none;
   scrollbar-width:none;
 }
+
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
   display:none; 
 }
@@ -173,91 +173,11 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
 }
 
-#main_body .routine_total p span a strong {
-  display: none
-}
 
 #main_body .routine_total p span a em.t_on {
   color:#333!important
 }
-/*
-#main_body .routine_total p span a.not_done {
-  background: url('../images/ico_notdone.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
-}
 
-#main_body .routine_total p span a.not_done {
-  background-color:#fff!important
-}
-
-#main_body .routine_total p span a.done {
-  background: url('../images/ico_done.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
-}
-
-#main_body .routine_total p span a.done {
- background-color:#80daff!important
-}
-
-#main_body .routine_total p span a.fail_done {
-  background: url('../images/ico_fail.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
-}
-
-#main_body .routine_total p span a.fail_done {
-  background-color:#f1afff!important;
-}
-
-#main_body .routine_total p span a.ignored {
-  background: url('../images/ico_ignored.png') no-repeat 0.2rem 50%/1.5rem 1.5rem;
-}
-
-#main_body .routine_total p span a.ignored {
-  background-color:#cfcfcf!important;
-}
-*/
-#main_body .routine_total .filter_row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size:0.9rem;
-  position:relative; 
-  z-index:1;
-  margin-top:-2.2rem;
-}
-
-#main_body .routine_total .filter_row .filter_buttons {
-  margin:0;
-  padding:0;
-  width:100%;
-  overflow:hidden;
-  display:grid; 
-  grid-template-columns:repeat(4, minmax(0,1fr));
-  gap:0;
-}
-
-#main_body .routine_total .filter_row .filter_buttons button {
-  display:inline-block; 
-  background-color:#ebeffd;
-  border:1px solid #ebeffd;
-  text-align:center;
-  color:#93a7ff;
-  font-size:0.9rem;
-  font-weight:bold;
-  margin:0;
-  padding:2.5rem 0 0.5rem 0;
-  border-radius:0;
-  border-bottom-left-radius:1.5rem;
-  border-bottom-right-radius:1.5rem;
-  box-sizing:border-box;
-}
-
-#main_body .routine_total .filter_row .filter_buttons button.on {
-  background-color:#797eff!important;
-  border:1px solid #797eff!important;
-  font-size:1rem;
-  color:#fff
-}
-
-
-#main_body .routine_total .filter_row .today,
 #main_body .routine_card .rc_inner i {
   display:inline-block;
   font-size:0.7rem;
