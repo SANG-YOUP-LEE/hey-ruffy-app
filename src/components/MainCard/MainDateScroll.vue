@@ -1,5 +1,5 @@
 <template>
-  <div class="top_line on"></div>
+  <!--div class="top_line on"></div-->
   <div class="date_scroll">
     <div class="ruffys_item">
       <span class="ruffy01"></span>
