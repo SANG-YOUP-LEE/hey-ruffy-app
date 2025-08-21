@@ -96,7 +96,7 @@
   padding: 0.5rem;
   line-height: 1.1rem;
   font-size: 1rem;
-  color: #999;
+  color: #b3b3b3;
   box-sizing: border-box;
 }
 #main_body .date_scroll .date_group i,
@@ -110,10 +110,7 @@
 #main_body .date_scroll .date_group span.on,
 #main_body .date_fixed_today span.on {
   font-weight:bold!important;
-  border:1px solid #333!important;
-  background-color:#fff!important;
   color:#333!important;
-  border-radius:0.8rem!important;
  }
 
 #main_body .date_fixed_today span.on {
