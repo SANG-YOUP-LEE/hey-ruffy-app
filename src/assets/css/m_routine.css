@@ -32,14 +32,13 @@
     "today  group";
   align-items: center;
   gap: 0.3rem 0.2rem;
-
   position: relative;
-  border-radius:1.5rem;
+  /*border-radius:1.5rem;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   background-color:#fff;
   border:1px solid #eaeaea;
-  border-bottom:none;
+  border-bottom:none;*/
   padding:0.5rem 1rem 0.2rem 1rem;
   z-index:3;
 }
