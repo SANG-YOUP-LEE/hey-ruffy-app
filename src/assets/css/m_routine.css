@@ -253,7 +253,8 @@
   border-radius:0.5rem;
 }
 
-#main_body .today_tools .on_w.light {
+#main_body .today_tools .on_w.light,
+#main_body .today_tools .basic {
   text-decoration:none;
   font-weight:bold;
   line-height:1.8rem;
@@ -261,9 +262,7 @@
 }
 
 #main_body .today_tools .basic {
-  height:1.8rem;
-  line-height:1.8rem;
-  border-radius:0.5rem;
+  width:4rem;
   padding:0 0.5rem 0 0.5rem;
 }
 #main_body .tools a.r_move {
