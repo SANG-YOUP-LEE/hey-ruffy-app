@@ -393,9 +393,7 @@
   flex: 0;
 }
 
-#main_body .routine_card .rc_inner .left span[class^='color'],
-#main_body .routine_block .rb_head .title span[class^='color'],
-#main_body .routine_list  .rl_head .title span[class^='color'] {
+#main_body .routine_card .rc_inner .left span[class^='color'] {
   width:1rem;
   height:1rem;
   border-radius:50%;
