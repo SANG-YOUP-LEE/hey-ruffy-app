@@ -166,9 +166,9 @@ function weekKorean(n){
 }
 
 const centerTitle = computed(() => {
-  if (props.periodMode === 'W') return 'Weekly'
-  if (props.periodMode === 'M') return 'Monthly'
-  return 'Today'
+  if (props.periodMode === 'W') return '주간'
+  if (props.periodMode === 'M') return '월간'
+  return '일간'
 })
 
 const centerText = computed(() => {
