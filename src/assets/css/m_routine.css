@@ -333,6 +333,7 @@
   position: relative;
 }
 
+
 #main_body .routine_card .rc_inner {
   display: flex;
   align-items: flex-start;
@@ -343,15 +344,30 @@
 
 #main_body .routine_card .rc_inner .state_button {
   width:100%;
-  background-color:red;
+  display:flex;
+  gap:0;
+}
+
+#main_body .routine_card .rc_inner .state_button .done_set,
+#main_body .routine_card .rc_inner .state_button .walk_check {
+  flex:1 1 100%;
+  width:100%;
+}
+
+#main_body .routine_card .rc_inner .state_button .p_basic {
+  width:100%;
 }
 
 #main_body .routine_card .rc_inner .state_button.twice {
+  gap:0.5rem;
 }
+
 #main_body .routine_card .rc_inner .state_button.twice .done_set,
-#main_body .routine_card .rc_inner .state_button.twice .walk_check{
-  width:50%;
+#main_body .routine_card .rc_inner .state_button.twice .walk_check {
+  flex:1 1 0;
+  width:auto;
 }
+
 
 
 #main_body .routine_card .rc_inner i {
