@@ -31,11 +31,8 @@
   padding:1rem;
   margin:0 0 1rem 0;
   border-radius:1.5rem;
-  background-color:#eee;
+  background-color:#ff4ba;
   border:1px solid #e6e6e6;
-  box-shadow: 
-  inset -3px 0 6px rgba(0,0,0,0.15),
-  inset 0 -3px 6px rgba(0,0,0,0.15);
 }
 
 #main_body .ruffys_item span[class^="ruffy"] {
