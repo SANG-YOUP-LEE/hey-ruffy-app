@@ -257,6 +257,7 @@
   text-decoration:none;
   font-weight:bold;
   line-height:1.8rem;
+  text-align:center;
 }
 
 #main_body .tools a.r_move {
