@@ -50,13 +50,15 @@
   align-items:center;
   gap:0.8rem;
   padding:1rem;
+  margin:0.5rem 0 0.5rem 0;
   border-radius:1.5rem;
-  background-color:#ffdc71
+  background-color:#ffec85;
 }
 
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
   width:2.5rem;
   height:2.5rem;
+  background-size:100% 100%;
 }
 
 #main_body .date_scroll .date_fixed_today {
