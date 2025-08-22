@@ -56,17 +56,17 @@
           :class="{ hidden: isToday }" 
           @click.prevent="$emit('requestPrev')"
         ><span>전날</span></a>
-        <a href="#none" class="today on">T</a>
+        <a href="#none" class="on_w light">T</a>
         {{ formattedDate }}
         <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>다음날</span></a>
       </p>
     </div>
     <div class="term">
-      <a href="#none" class="weekly">W</a>
-      <a href="#none" class="monthly">M</a>
+      <a href="#none" class="on_w light">W</a>
+      <a href="#none" class="on_w light">M</a>
     </div>
     <div class="tools">
-      <a href="#none" class="r_card on"><span>다짐카드보기</span></a>
+      <a href="#none" class="r_card"><span>다짐카드보기</span></a>
       <a href="#none" class="r_block"><span>다짐블록보기</span></a>
       <a href="#none" class="r_list"><span>다짐목록보기</span></a>
       <a href="#none" class="r_select"><span>다짐선택</span></a>
