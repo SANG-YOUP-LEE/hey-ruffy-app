@@ -23,13 +23,13 @@
 
 #main_body .ruffys_item {
   grid-area: ruffys;
-  width:auto;
+  width:100%;
   display:flex;
   justify-content:center;
   align-items:center;
   gap:0.8rem;
   padding:1rem;
-  margin:1rem;
+  margin:0 0 1rem 0;
   border-radius:1.5rem;
   background-color:#fafafa;
   border:1px solid #e6e6e6;
