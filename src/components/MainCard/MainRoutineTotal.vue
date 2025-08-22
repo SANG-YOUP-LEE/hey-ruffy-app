@@ -59,6 +59,8 @@
         {{ formattedDate }}
         <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>다음날</span></a>
       </p>
+      <a href="#none" class="r_card on"><span>다짐카드보기</span></a>
+      <a href="#none" class="r_block"><span>다짐블록보기</span></a>
     </div>
     <div class="tools">
       <a href="#none" class="r_card on"><span>다짐카드보기</span></a>
