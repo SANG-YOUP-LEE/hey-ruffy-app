@@ -21,10 +21,24 @@
   font-family:'S-CoreDream-4Regular'
 }
 
-#main_body .top_line.on {
-  width:100%;
-  height:1px;
-  margin-bottom:0.5rem;
+#main_body .ruffys_item {
+  grid-area: ruffys;
+  width:auto;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:0.8rem;
+  padding:1rem;
+  margin:1rem;
+  /*border-radius:1.5rem;
+  background-color:#fafafa;
+  border:1px solid #e6e6e6;*/
+}
+
+#main_body .ruffys_item span[class^="ruffy"] {
+  width:2.5rem;
+  height:2.5rem;
+  background-size:100% 100%;
 }
 
 #main_body .date_scroll {
@@ -39,27 +53,11 @@
   gap: 0.3rem 0.2rem;
   position: relative;
   padding:0rem 0rem 0.2rem 0rem;
-  z-index:3;
-}
-
-#main_body .date_scroll .ruffys_item {
-  grid-area: ruffys;
-  width:auto;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:0.8rem;
-  padding:1rem;
-  margin:1rem;
-  /*border-radius:1.5rem;
-  background-color:#fafafa;
-  border:1px solid #e6e6e6;*/
-}
-
-#main_body .date_scroll .ruffys_item span[class^="ruffy"] {
-  width:2.5rem;
-  height:2.5rem;
-  background-size:100% 100%;
+  z-index:3;  
+  border:1px solid #e6e6e6;
+  border-bottom:none;
+  border-radius:1.5rem 1.5rem 0 0;
+  overflow:hidden;
 }
 
 #main_body .date_scroll .date_fixed_today {
@@ -98,6 +96,10 @@
   display:none; 
 }
 
+#main_body .date_scroll .date_fixed_today,
+#main_body .date_scroll .date_group {
+  border:none;
+}
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
@@ -113,6 +115,7 @@
   box-sizing: border-box;
   border-radius:50%;
 }
+
 #main_body .date_scroll .date_group i,
 #main_body .date_fixed_today i {
   display:block;
@@ -135,7 +138,6 @@
   border:none!important
 }
 
-
 #main_body .routine_total {
   margin:0;
   position:relative;
@@ -155,23 +157,7 @@
   border-bottom-right-radius: 1.5rem;
   border-bottom-left-radius: 1.5rem;
  }
-#main_body .date_scroll {
-  border:1px solid #e6e6e6;
-  border-bottom:none;
-  border-radius:1.5rem 1.5rem 0 0;
-  overflow:hidden;
-}
 
-#main_body .date_scroll .date_fixed_today,
-#main_body .date_scroll .date_group {
-  border:none;
-}
-
-#main_body .routine_total p:first-child {
-  border:1px solid #e6e6e6;
-  border-top:none;
-  border-radius:0 0 1.5rem 1.5rem;
-}
 #main_body .routine_total p:first-child span:first-child {
   display:inline-block;
   line-height:2.2rem;
