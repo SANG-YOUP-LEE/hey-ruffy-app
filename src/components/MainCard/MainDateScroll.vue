@@ -1,12 +1,11 @@
 <template>
-  <!--div class="top_line on"></div-->
+  <div class="ruffys_item">
+    <span class="ruffy01"></span>
+    <span class="ruffy02"></span>
+    <span class="ruffy03"></span>
+    <span class="ruffy04"></span>
+  </div>
   <div class="date_scroll">
-    <div class="ruffys_item">
-      <span class="ruffy01"></span>
-      <span class="ruffy02"></span>
-      <span class="ruffy03"></span>
-      <span class="ruffy04"></span>
-    </div>
     <div class="date_fixed_today">
       <span
         class="on"
