@@ -290,11 +290,11 @@
   color: #333 !important;
 }
 
-#main_body .routine_card.vblock {
+#main_body .routine_card .vblock {
   border:1px solid red
 }
 
-#main_body .routine_card.vlist {
+#main_body .routine_card .vlist {
   border:1px solid green
 }
 
