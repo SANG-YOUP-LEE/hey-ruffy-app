@@ -254,6 +254,8 @@
 }
 
 #main_body .today_tools .on_w.light {
+  width:auto;
+  padding:0 0.5re 0 0.5rem;
   text-decoration:none;
   font-weight:bold;
   line-height:1.8rem;
