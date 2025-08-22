@@ -159,13 +159,35 @@ function addDays(d, days){ const nd=new Date(d); nd.setDate(nd.getDate()+days); 
 function addMonths(d, months){ const nd=new Date(d); nd.setMonth(nd.getMonth()+months); nd.setHours(0,0,0,0); return nd }
 function isTodayDateFn(d){ return startOfDay(d).getTime()===startOfDay(new Date()).getTime() }
 
+function getWeekOfMonth(d){
+  const first = startOfMonth(d)
+  const firstDay = first.getDay()
+  const offset = d.getDate() + firstDay
+  return Math.ceil(offset / 7)
+}
+function weeksInMonth(d){
+  const first = startOfMonth(d)
+  const days = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate()
+  const firstDay = first.getDay()
+  return Math.ceil((firstDay + days) / 7)
+}
+function weekRangeInMonth(d){
+  const mStart = startOfMonth(d)
+  const mEnd = endOfMonth(d)
+  const wStart = startOfWeekSun(d)
+  const wEnd = endOfWeekSun(d)
+  const s = new Date(Math.max(wStart.getTime(), mStart.getTime()))
+  const e = new Date(Math.min(wEnd.getTime(), mEnd.getTime()))
+  return { s, e }
+}
+
 const periodStart = computed(() => {
-  if (selectedPeriod.value==='W') return startOfWeekSun(selectedDate.value)
+  if (selectedPeriod.value==='W') return weekRangeInMonth(selectedDate.value).s
   if (selectedPeriod.value==='M') return startOfMonth(selectedDate.value)
   return startOfDay(selectedDate.value)
 })
 const periodEnd = computed(() => {
-  if (selectedPeriod.value==='W') return endOfWeekSun(selectedDate.value)
+  if (selectedPeriod.value==='W') return weekRangeInMonth(selectedDate.value).e
   if (selectedPeriod.value==='M') return endOfMonth(selectedDate.value)
   return endOfDay(selectedDate.value)
 })
@@ -332,10 +354,10 @@ async function onDelete(payload) {
   }
   try {
     await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
-    rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
   } catch (e) {
     alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.')
   }
+  rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
 }
 
 function openAddRoutine() {
@@ -426,13 +448,25 @@ onBeforeUnmount(() => {
 
 function handlePrev() {
   if (selectedPeriod.value === 'W') {
-    const d = addDays(selectedDate.value, -7)
-    handleSelectDate(d, false)
-    return
+    const cur = new Date(selectedDate.value)
+    const idx = getWeekOfMonth(cur)
+    const first = startOfMonth(cur)
+    if (idx > 1) {
+      const target = new Date(first.getFullYear(), first.getMonth(), 1 + (idx - 2) * 7)
+      handleSelectDate(target, false)
+      return
+    } else {
+      const prevFirst = addMonths(first, -1)
+      const lastIdx = weeksInMonth(prevFirst)
+      const target = new Date(prevFirst.getFullYear(), prevFirst.getMonth(), 1 + (lastIdx - 1) * 7)
+      handleSelectDate(target, false)
+      return
+    }
   }
   if (selectedPeriod.value === 'M') {
-    const d = addMonths(selectedDate.value, -1)
-    handleSelectDate(d, false)
+    const first = startOfMonth(selectedDate.value)
+    const target = addMonths(first, -1)
+    handleSelectDate(target, false)
     return
   }
   const d = addDays(selectedDate.value, -1)
@@ -441,13 +475,25 @@ function handlePrev() {
 }
 function handleNext() {
   if (selectedPeriod.value === 'W') {
-    const d = addDays(selectedDate.value, 7)
-    handleSelectDate(d, false)
-    return
+    const cur = new Date(selectedDate.value)
+    const idx = getWeekOfMonth(cur)
+    const first = startOfMonth(cur)
+    const lastIdx = weeksInMonth(cur)
+    if (idx < lastIdx) {
+      const target = new Date(first.getFullYear(), first.getMonth(), 1 + idx * 7)
+      handleSelectDate(target, false)
+      return
+    } else {
+      const nextFirst = addMonths(first, 1)
+      const target = new Date(nextFirst.getFullYear(), nextFirst.getMonth(), 1)
+      handleSelectDate(target, false)
+      return
+    }
   }
   if (selectedPeriod.value === 'M') {
-    const d = addMonths(selectedDate.value, 1)
-    handleSelectDate(d, false)
+    const first = startOfMonth(selectedDate.value)
+    const target = addMonths(first, 1)
+    handleSelectDate(target, false)
     return
   }
   const d = addDays(selectedDate.value, 1)
