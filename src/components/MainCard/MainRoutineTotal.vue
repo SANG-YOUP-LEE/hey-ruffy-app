@@ -2,7 +2,7 @@
   <div class="routine_total">
     <p>
       <span>
-        <strong>{{ isFuture ? '이날의 다짐' : '오늘의 다짐' }}</strong>
+        <strong>{{ isFuture ? '이날의 다짐' : headerTitle }}</strong>
         <em class="t_on">{{ displayTotal }}</em>
       </span>
       <span>
@@ -50,43 +50,68 @@
   <div class="today_tools">
     <div class="today">
       <p>
-        <a 
-          href="#none" 
-          class="prev" 
-          :class="{ hidden: isToday }" 
+        <a
+          href="#none"
+          class="prev"
+          :class="{ hidden: periodMode==='T' && isToday }"
           @click.prevent="$emit('requestPrev')"
-        ><span>전날</span></a>
-        <a href="#none" class="on_w light">T</a>
-        {{ formattedDate }}
-        <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>다음날</span></a>
+        ><span>{{ prevLabel }}</span></a>
+        <a href="#none" class="on_w light on">{{ centerTitle }}</a>
+        {{ centerText }}
+        <a
+          href="#none"
+          class="next"
+          @click.prevent="$emit('requestNext')"
+        ><span>{{ nextLabel }}</span></a>
       </p>
     </div>
+
     <div class="term">
-      <a href="#none" class="on_w light">W</a>
-      <a href="#none" class="on_w light">M</a>
+      <a
+        v-if="periodMode!=='T'"
+        href="#none"
+        class="on_w light"
+        :class="{ on: periodMode==='T' }"
+        @click.prevent="$emit('changePeriod','T')"
+      >T</a>
+      <a
+        v-if="periodMode!=='W'"
+        href="#none"
+        class="on_w light"
+        :class="{ on: periodMode==='W' }"
+        @click.prevent="$emit('changePeriod','W')"
+      >W</a>
+      <a
+        v-if="periodMode!=='M'"
+        href="#none"
+        class="on_w light"
+        :class="{ on: periodMode==='M' }"
+        @click.prevent="$emit('changePeriod','M')"
+      >M</a>
     </div>
+
     <div class="tools">
-      <a 
-        href="#none" 
-        class="r_card" 
-        :class="{ on: viewMode==='card' }" 
+      <a
+        href="#none"
+        class="r_card"
+        :class="{ on: viewMode==='card' }"
         @click.prevent="$emit('changeView','card')"
       ><span>다짐카드보기</span></a>
-    
-      <a 
-        href="#none" 
-        class="r_block" 
-        :class="{ on: viewMode==='block' }" 
+
+      <a
+        href="#none"
+        class="r_block"
+        :class="{ on: viewMode==='block' }"
         @click.prevent="$emit('changeView','block')"
       ><span>다짐블록보기</span></a>
-    
-      <a 
-        href="#none" 
-        class="r_list" 
-        :class="{ on: viewMode==='list' }" 
+
+      <a
+        href="#none"
+        class="r_list"
+        :class="{ on: viewMode==='list' }"
         @click.prevent="$emit('changeView','list')"
       ><span>다짐목록보기</span></a>
-    
+
       <a href="#none" class="r_select"><span>다짐선택</span></a>
       <a href="#none" class="r_move"><span>다짐이동</span></a>
     </div>
@@ -96,14 +121,15 @@
 <script setup>
 import { computed } from 'vue'
 
-const emit = defineEmits(['update:modelValue','changeFilter','showWeekly','requestPrev','requestNext','changeView'])
+const emit = defineEmits(['update:modelValue','changeFilter','requestPrev','requestNext','changeView','changePeriod'])
 const props = defineProps({
   isFuture: { type: Boolean, default: false },
   modelValue: { type: [String, null], default: 'notdone' },
   counts: { type: Object, default: null },
   totalCount: { type: Number, default: null },
   selectedDate: { type: Date, required: true },
-  viewMode: { type: String, default: 'card' }
+  viewMode: { type: String, default: 'card' },
+  periodMode: { type: String, default: 'T' }
 })
 
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
@@ -120,9 +146,55 @@ const isToday = computed(() => {
   return a.getTime() === b.getTime()
 })
 
+const headerTitle = computed(() => {
+  if (props.periodMode === 'W') return '이번 주 다짐'
+  if (props.periodMode === 'M') return '이번 달 다짐'
+  return '오늘의 다짐'
+})
+
 const formattedDate = computed(() => {
   const d = props.selectedDate
   const dayNames = ['일','월','화','수','목','금','토']
   return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}.${dayNames[d.getDay()]}`
+})
+
+function getWeekOfMonth(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), 1)
+  const firstDay = d.getDay()
+  const offsetDate = date.getDate() + firstDay
+  return Math.ceil(offsetDate / 7)
+}
+function weekKorean(n){
+  return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,(n-1)))]
+}
+
+const centerTitle = computed(() => {
+  if (props.periodMode === 'W') return 'Weekly'
+  if (props.periodMode === 'M') return 'Monthly'
+  return 'Today'
+})
+
+const centerText = computed(() => {
+  if (props.periodMode === 'W') {
+    const d = props.selectedDate
+    const wk = weekKorean(getWeekOfMonth(d))
+    return `${d.getMonth()+1}월 ${wk}`
+  }
+  if (props.periodMode === 'M') {
+    const d = props.selectedDate
+    return `${d.getMonth()+1}월`
+  }
+  return formattedDate.value
+})
+
+const prevLabel = computed(() => {
+  if (props.periodMode === 'W') return '이전주'
+  if (props.periodMode === 'M') return '이전달'
+  return '전날'
+})
+const nextLabel = computed(() => {
+  if (props.periodMode === 'W') return '다음주'
+  if (props.periodMode === 'M') return '다음달'
+  return '다음날'
 })
 </script>
