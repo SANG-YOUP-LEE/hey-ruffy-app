@@ -56,7 +56,7 @@
           :class="{ hidden: periodMode==='T' && isToday }"
           @click.prevent="$emit('requestPrev')"
         ><span>{{ prevLabel }}</span></a>
-        <a href="#none" class="on_w light on">{{ centerTitle }}</a>
+        <a href="#none" class="basic">{{ centerTitle }}</a>
         {{ centerText }}
         <a
           href="#none"
@@ -68,18 +68,21 @@
 
     <div class="term">
       <a
+        v-if="periodMode!=='T'"
         href="#none"
-        class="basic"
+        class="on_w light"
         @click.prevent="$emit('changePeriod','T')"
       >T</a>
       <a
+        v-if="periodMode!=='W'"
         href="#none"
-        class="basic"
+        class="on_w light"
         @click.prevent="$emit('changePeriod','W')"
       >W</a>
       <a
+        v-if="periodMode!=='M'"
         href="#none"
-        class="basic"
+        class="on_w light"
         @click.prevent="$emit('changePeriod','M')"
       >M</a>
     </div>
