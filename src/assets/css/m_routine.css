@@ -328,11 +328,10 @@
   background-color:#f5f5f5
 }
 
-#main_body .routine_card.rt_off .rc_inner .done_set,
-#main_body .routine_card.rt_off .rc_inner .walk_check{
-  width:50%;
+#main_body .routine_card.rt_off .rc_inner {
+  opacity: 0.3;
+  position: relative;
 }
-
 
 #main_body .routine_card .rc_inner {
   display: flex;
@@ -342,7 +341,11 @@
   flex-wrap: wrap;
 }
 
-#main_body .routine_card .rc_inner .state_button.twice 
+#main_body .routine_card .rc_inner .state_button.twice .done_set,
+#main_body .routine_card .rc_inner .state_button.twice .walk_check{
+  width:50%;
+}
+
 
 #main_body .routine_card .rc_inner i {
   font-style:normal;
