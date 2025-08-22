@@ -47,7 +47,7 @@
               <button class="p_basic" @click="handleStatusButtonClick">달성현황 체크하기</button>
             </div>
             <div class="walk_check" v-if="hasWalkResolved">
-              <button class="p_basic" @click="openWalkPopup">산책 현황 보기</button>
+              <button class="p_basic_white" @click="openWalkPopup">산책 현황 보기</button>
             </div>
           </div>
         </div>
