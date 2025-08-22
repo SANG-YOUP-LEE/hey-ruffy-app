@@ -254,15 +254,15 @@
 }
 
 #main_body .today_tools .on_w.light {
-  height:1.8rem;
-  min-width:1.8rem;
-  padding:0 0.5rem 0 0.5rem;
   text-decoration:none;
   font-weight:bold;
   line-height:1.8rem;
   text-align:center;
 }
 
+#main_body .today_tools .basic {
+ width:3rem;
+}
 #main_body .tools a.r_move {
   background: url('../images/ico_move.png') no-repeat 50% 50%/50%;
 }
