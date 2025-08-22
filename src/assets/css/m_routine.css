@@ -155,7 +155,23 @@
   border-bottom-right-radius: 1.5rem;
   border-bottom-left-radius: 1.5rem;
  }
+#main_body .date_scroll {
+  border:1px solid #e6e6e6;
+  border-bottom:none;
+  border-radius:1.5rem 1.5rem 0 0;
+  overflow:hidden;
+}
 
+#main_body .date_scroll .date_fixed_today,
+#main_body .date_scroll .date_group {
+  border:none;
+}
+
+#main_body .routine_total p:first-child {
+  border:1px solid #e6e6e6;
+  border-top:none;
+  border-radius:0 0 1.5rem 1.5rem;
+}
 #main_body .routine_total p:first-child span:first-child {
   display:inline-block;
   line-height:2.2rem;
