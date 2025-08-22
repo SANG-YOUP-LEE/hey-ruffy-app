@@ -30,11 +30,13 @@
           <span :class="ui.colorClass"></span>
           {{ ui.titleText }}
         </p>
-        <p class="term"><i>{{ ui.repeatLabel }}</i> {{ ui.repeatDetail }}</p>
-        <p class="se_date">{{ ui.periodText }}</p>
-        <p class="alaram">{{ ui.alarmText }}</p>
-        <p class="comment" v-if="ui.commentText">{{ ui.commentText }}</p>
-        <div class="walk_info" v-if="flags.hasWalkResolved">
+
+        <p class="term" v-show="expanded"><i>{{ ui.repeatLabel }}</i> {{ ui.repeatDetail }}</p>
+        <p class="se_date" v-show="expanded">{{ ui.periodText }}</p>
+        <p class="alaram" v-show="expanded">{{ ui.alarmText }}</p>
+        <p class="comment" v-if="ui.commentText" v-show="expanded">{{ ui.commentText }}</p>
+
+        <div class="walk_info" v-if="flags.hasWalkResolved" v-show="expanded">
           <span class="walk_ruffy">{{ ui.ruffyName }}</span>
           <span class="walk_course">{{ ui.courseName }}</span>
           <span class="walk_goal">목표 {{ ui.goalCount }}회</span>
@@ -44,11 +46,15 @@
       <div class="right"></div>
 
       <div :class="['state_button', { twice: flags.hasTwoButtons }]">
-        <div class="done_set" v-if="flags.canShowStatusButton">
+        <div class="done_set" v-if="flags.canShowStatusButton" v-show="expanded">
           <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
         </div>
-        <div class="walk_check" v-if="flags.hasWalkResolved">
+        <div class="walk_check" v-if="flags.hasWalkResolved" v-show="expanded">
           <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
+        </div>
+
+        <div class="done_set">
+          <button class="p_white" @click="expanded = !expanded">{{ expanded ? '접기' : '자세히' }}</button>
         </div>
       </div>
     </div>
@@ -56,6 +62,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 defineProps({
   cls: { type: [Array,Object,String], default: () => [] },
   ui: { type: Object, required: true },
@@ -63,4 +70,5 @@ defineProps({
   actions: { type: Object, required: true },
   showPopup: { type: Boolean, default: false }
 })
+const expanded = ref(false)
 </script>
