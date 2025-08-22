@@ -185,9 +185,9 @@ body.red .monthly-grid span.m_s_btn.selected  {
 }
 
 body.red .on_w.light {
-  background-color:#ffeef4;
-  border:1px solid #ff4160;
-  color:#ff4160
+  background-color:#ffeef4!important;
+  border:1px solid #ff4160!important;
+  color:#ff4160!important;
 }
 
 /* skin color green*/
@@ -250,9 +250,9 @@ body.green .monthly-grid span.m_s_btn.selected {
 
 
 body.green .on_w.light {
-  background-color:#d5f3ee;
-  border:1px solid #00ac6d;
-  color:#00ac6d
+  background-color:#d5f3ee!important;
+  border:1px solid #00ac6d!important;
+  color:#00ac6d!important;
 }
 
 /* skin color bw*/
@@ -314,9 +314,9 @@ body.bw .monthly-grid span.m_s_btn.selected  {
 }
 
 body.bw .on_w.light {
-  background-color:#f5f5f5;
-  border:1px solid #333;
-  color:#333
+  background-color:#f5f5f5!important;
+  border:1px solid #333!important;
+  color:#333!important;
 }
 
 
