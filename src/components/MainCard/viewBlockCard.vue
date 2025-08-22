@@ -32,10 +32,8 @@
         </p>
         <p class="term"><i>{{ ui.repeatLabel }}</i> {{ ui.repeatDetail }}</p>
         <p class="se_date">{{ ui.periodText }}</p>
-
         <p class="alaram" v-show="expanded">{{ ui.alarmText }}</p>
         <p class="comment" v-if="ui.commentText" v-show="expanded">{{ ui.commentText }}</p>
-
         <div class="walk_info" v-if="flags.hasWalkResolved" v-show="expanded">
           <span class="walk_ruffy">{{ ui.ruffyName }}</span>
           <span class="walk_course">{{ ui.courseName }}</span>
@@ -45,14 +43,13 @@
 
       <div class="right"></div>
 
-      <div :class="['state_button', { twice: flags.hasTwoButtons }]">
+      <div class="state_button">
         <div class="done_set" v-if="flags.canShowStatusButton">
           <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
         </div>
         <div class="walk_check" v-if="flags.hasWalkResolved">
           <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
         </div>
-
         <div class="done_set">
           <button class="p_white" @click="expanded = !expanded">{{ expanded ? '접기' : '더 보기' }}</button>
         </div>
