@@ -68,21 +68,18 @@
 
     <div class="term">
       <a
-        v-if="periodMode!=='T'"
         href="#none"
         class="on_w light"
         :class="{ on: periodMode==='T' }"
         @click.prevent="$emit('changePeriod','T')"
       >T</a>
       <a
-        v-if="periodMode!=='W'"
         href="#none"
         class="on_w light"
         :class="{ on: periodMode==='W' }"
         @click.prevent="$emit('changePeriod','W')"
       >W</a>
       <a
-        v-if="periodMode!=='M'"
         href="#none"
         class="on_w light"
         :class="{ on: periodMode==='M' }"
