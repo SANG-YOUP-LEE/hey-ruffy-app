@@ -52,7 +52,8 @@
   padding:1rem;
   margin:0rem 0 0.5rem 0;
   border-radius:1.5rem;
-  background-color:#ffec85;
+  background-color:#fafafa;
+  border:1px solid #e6e6e6;
 }
 
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
@@ -66,11 +67,13 @@
   position: sticky;
   left: 0;
   z-index: 10;
-  margin-right:0.2rem;
   flex-shrink:0;
   font-weight:bold;
-  padding-top:0.5rem;
+  padding:1rem;
   border:1px solid #e6e6e6;
+  border-right:none;
+  border-bottom:none;
+  border-top-left-radius: 1.5rem;
 }
 
 #main_body .date_scroll .date_group {
@@ -84,8 +87,11 @@
   white-space:nowrap;
   -ms-overflow-style:none;
   scrollbar-width:none;
-  padding-top:0.5rem;
+  padding:1rem;
   border:1px solid #e6e6e6;
+  border-left:none;
+  border-bottom:none;
+  border-top-right-radius: 1.5rem;
 }
 
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
@@ -143,10 +149,11 @@
   align-items: center;
   position:relative; 
   z-index:2;
-  border:1px solid #eaeaea;
-  padding:0.5rem 1rem 0.5rem 1rem;
-  border-radius:1.5rem;
-  margin-top:0.5rem;
+  padding:1rem;
+  border:1px solid #e6e6e6;
+  border-top:none;
+  border-bottom-right-radius: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
  }
 
 #main_body .routine_total p:first-child span:first-child {
