@@ -42,11 +42,13 @@
             </div>
           </div>
           <div class="right"></div>
-          <div class="done_set" v-if="canShowStatusButton">
-            <button class="p_white" @click="handleStatusButtonClick">달성현황 체크하기</button>
-          </div>
-          <div class="walk_check" v-if="hasWalkResolved">
-            <button class="p_white" @click="openWalkPopup">산책 현황 보기</button>
+          <div :class="['state_button', { twice: hasTwoButtons }]">
+            <div class="done_set" v-if="canShowStatusButton">
+              <button class="p_basic" @click="handleStatusButtonClick">달성현황 체크하기</button>
+            </div>
+            <div class="walk_check" v-if="hasWalkResolved">
+              <button class="p_basic" @click="openWalkPopup">산책 현황 보기</button>
+            </div>
           </div>
         </div>
       </div>
@@ -275,6 +277,13 @@ const ruffyMeta = computed(() => {
 
 const courseMeta = computed(() => {
   return COURSE_OPTIONS.find(c => c.value === props.routine?.course) || null
+})
+
+const hasTwoButtons = computed(() => {
+  let count = 0
+  if (canShowStatusButton.value) count++
+  if (hasWalkResolved.value) count++
+  return count === 2
 })
 
 function pad(v) {
