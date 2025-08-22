@@ -306,15 +306,13 @@
   border:1px solid red!important;
 }
 
-/* vblock이 있을 때만 2열 그리드 + 같은 줄 동일 높이 */
-#main_body .main_scroll:has(.routine_card.vblock) {
+#main_body .done_group:has(.routine_card.vblock) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: stretch;
 }
 
-/* vblock에 주었던 inline-block/폭/마진 규칙 제거(무력화) */
 #main_body .routine_card.vblock {
   display: block;
   width: auto;
