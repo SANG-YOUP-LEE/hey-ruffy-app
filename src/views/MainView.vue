@@ -16,20 +16,19 @@
           :counts="countsForDate"
           :totalCount="totalCountForDate"
           @changeFilter="handleFilterChange"
-          @showWeekly="showWeekly = true"
           @requestPrev="handlePrev"
           @requestNext="handleNext"
         />
       </div>
 
       <div class="main_scroll">
-        <div v-if="isLoading && !showWeekly" class="skeleton-wrap">
+        <div v-if="isLoading" class="skeleton-wrap">
           <div class="skeleton-card"></div>
           <div class="skeleton-card"></div>
         </div>
 
         <div
-          v-else-if="!showWeekly && hasFetched && displayedRoutines.length === 0"
+          v-else-if="hasFetched && displayedRoutines.length === 0"
           class="no_data"
         >
           <span v-if="rawRoutines.length === 0">
@@ -40,7 +39,6 @@
           </span>
         </div>
 
-        <MainCard v-if="showWeekly" :selected="'weekly'" :routine="{}" />
         <template v-else>
           <MainCard
             v-for="rt in displayedRoutines"
@@ -74,10 +72,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { db, auth } from '@/firebase'                       // ✅ getAuth 대신 단일 인스턴스 사용
+import { db, auth } from '@/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
-import { authReadyPromise } from '@/lib/authReady'           // ✅ 인증 초기화 대기
+import { authReadyPromise } from '@/lib/authReady'
 
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
@@ -97,7 +95,6 @@ const MAX_ROUTINES = 100
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')
-const showWeekly = ref(false)
 
 const rawRoutines = ref([])
 const routines = ref([])
@@ -168,7 +165,6 @@ const countsForDate = computed(() => {
 const totalCountForDate = computed(() => activeWithStatus.value.length)
 
 const displayedRoutines = computed(() => {
-  if (showWeekly.value) return routines.value
   const activeFiltered = activeWithStatus.value.filter(r => getStatus(r) === selectedFilter.value)
   return [...activeFiltered, ...pausedWithStatus.value]
 })
@@ -177,11 +173,8 @@ const handleSelectDate = (date, isFuture) => {
   selectedDate.value = date
   isFutureDate.value = isFuture
   selectedFilter.value = 'notdone'
-  showWeekly.value = false
 }
-const handleFilterChange = () => {
-  showWeekly.value = false
-}
+const handleFilterChange = () => {}
 
 function onSaved(rt) {
   const norm = normalize(rt)
@@ -194,7 +187,6 @@ function onSaved(rt) {
   isAddRoutineOpen.value = false
   editingRoutine.value = null
   selectedFilter.value = 'notdone'
-  showWeekly.value = false
 }
 
 async function onChangeStatus({ id, status }) {
@@ -227,7 +219,6 @@ async function onChangeStatus({ id, status }) {
     rawRoutines.value.splice(j, 1, next)
   }
   selectedFilter.value = status
-  showWeekly.value = false
 }
 
 async function onTogglePause({ id, isPaused }) {
@@ -306,7 +297,6 @@ const bindRoutines = (uid) => {
       hasFetched.value = true
     },
     () => {
-      // 에러 시에도 UI가 비지 않도록
       rawRoutines.value = []
       isLoading.value = false
       hasFetched.value = true
@@ -318,20 +308,17 @@ onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
 
-  // ✅ 인증 초기화 완료 후 현재 유저로 즉시 바인딩
   await authReadyPromise
   if (auth.currentUser) {
     currentUid = auth.currentUser.uid
     bindRoutines(currentUid)
   }
 
-  // ✅ 오프라인 중 일시 null 이벤트가 와도 목록 보존
   stopAuth = onAuthStateChanged(auth, (user) => {
     if (user && user.uid !== currentUid) {
       currentUid = user.uid
       bindRoutines(currentUid)
     } else if (!user) {
-      // 온라인 상태에서의 실제 로그아웃일 때만 초기화
       if (navigator.onLine) {
         currentUid = null
         rawRoutines.value = []
@@ -339,7 +326,6 @@ onMounted(async () => {
         isLoading.value = false
         hasFetched.value = true
       }
-      // 오프라인이면 기존 목록 유지
     }
   })
 })
@@ -365,4 +351,3 @@ function handleNext() {
   handleSelectDate(d, future)
 }
 </script>
-
