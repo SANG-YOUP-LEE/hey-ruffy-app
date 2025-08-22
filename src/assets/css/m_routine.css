@@ -426,8 +426,8 @@
   margin-bottom:0.5rem;
   line-height:1.4rem;
   letter-spacing:-0.02rem;
-  padding:0 0 0.5rem 0;
-  text-indent:-1.3rem; 
+  padding:0 0 0.5rem 1rem;
+  text-indent:-1.5rem; 
 }
 
 #main_body .routine_card .rc_inner p.title span {
