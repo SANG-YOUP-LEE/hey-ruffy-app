@@ -2,56 +2,40 @@
   <div class="done_group">
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
-      <div :class="['routine_card', cardSkinClass, courseClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]">
-        <button class="setting" @click.stop="togglePopup">
-          <span>다짐설정</span>
-        </button>
-        <div v-if="showPopup" class="setting_popup">
-          <button class="close_spop" @click="closePopup"><span>설정팝업닫기</span></button>
-          <ul>
-            <li :class="{ disabled: isPaused }">
-              <button class="modify" :disabled="isPaused" @click="onEdit">다짐 수정하기</button>
-            </li>
-            <li>
-              <button class="lock" @click="openPauseRestartConfirm">
-                {{ isPaused ? '다짐 다시 시작하기' : '다짐 잠시 멈추기' }}
-              </button>
-            </li>
-            <li :class="{ disabled: isPaused }">
-              <button class="share" @click="openShareConfirm" :disabled="isPaused">다짐 공유하기</button>
-            </li>
-            <li :class="{ disabled: isPaused }">
-              <button class="del" @click="openDeleteConfirm" :disabled="isPaused">다짐 삭제하기</button>
-            </li>
-          </ul>
-        </div>
-        <div class="rc_inner">
-          <div class="left">
-            <p class="title">
-              <span :class="colorClass"></span>
-              {{ titleText }}
-            </p>
-            <p class="term"><i>{{ repeatLabel }}</i> {{ repeatDetail }}</p>
-            <p class="se_date">{{ periodText }}</p>
-            <p class="alaram">{{ alarmText }}</p>
-            <p class="comment" v-if="commentText">{{ commentText }}</p>
-            <div class="walk_info" v-if="hasWalkResolved">
-              <span class="walk_ruffy">{{ ruffyMeta?.name }}</span>
-              <span class="walk_course">{{ courseMeta?.name }}</span>
-              <span class="walk_goal">목표 {{ props.routine?.goalCount }}회</span>
-            </div>
-          </div>
-          <div class="right"></div>
-          <div :class="['state_button', { twice: hasTwoButtons }]">
-            <div class="done_set" v-if="canShowStatusButton">
-              <button class="p_basic" @click="handleStatusButtonClick">달성현황 체크하기</button>
-            </div>
-            <div class="walk_check" v-if="hasWalkResolved">
-              <button class="p_basic_white" @click="openWalkPopup">산책 현황 보기</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <component
+        :is="layout"
+        :cls="['routine_card', cardSkinClass, courseClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]"
+        :ui="{
+          titleText,
+          repeatLabel,
+          repeatDetail,
+          periodText,
+          alarmText,
+          commentText,
+          colorClass,
+          ruffyName: ruffyMeta?.name || '',
+          courseName: courseMeta?.name || '',
+          goalCount: props.routine?.goalCount ?? null
+        }"
+        :flags="{
+          isPaused,
+          hasWalkResolved,
+          canShowStatusButton,
+          hasTwoButtons
+        }"
+        :actions="{
+          togglePopup,
+          closePopup,
+          onEdit,
+          openPauseRestartConfirm,
+          openShareConfirm,
+          openDeleteConfirm,
+          openStatusPopup,
+          handleStatusButtonClick,
+          openWalkPopup
+        }"
+        :show-popup="showPopup"
+      />
     </div>
 
     <teleport to="body">
@@ -161,7 +145,12 @@ import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 
-const props = defineProps({ selected: String, routine: { type: Object, default: () => ({}) }, isToday: { type: Boolean, default: false } })
+const props = defineProps({
+  selected: String,
+  routine: { type: Object, default: () => ({}) },
+  isToday: { type: Boolean, default: false },
+  layout: { type: [Object, Function], required: true }
+})
 const emit = defineEmits(['delete','changeStatus','edit','togglePause'])
 
 const showPopup = ref(false)
@@ -211,7 +200,7 @@ const courseClass = computed(() => {
   const v = toCourseClass(props.routine?.course)
   return v || ''
 })
-  
+
 const repeatLabel = computed(() => {
   const t = props.routine?.repeatType
   if (t === 'weekly') return 'Weekly'
