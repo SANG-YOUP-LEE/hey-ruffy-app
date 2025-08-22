@@ -72,19 +72,19 @@
         href="#none"
         class="on_w light"
         @click.prevent="$emit('changePeriod','T')"
-      >T</a>
+      >일</a>
       <a
         v-if="periodMode!=='W'"
         href="#none"
         class="on_w light"
         @click.prevent="$emit('changePeriod','W')"
-      >W</a>
+      >주</a>
       <a
         v-if="periodMode!=='M'"
         href="#none"
         class="on_w light"
         @click.prevent="$emit('changePeriod','M')"
-      >M</a>
+      >월</a>
     </div>
 
     <div class="tools">
@@ -94,21 +94,18 @@
         :class="{ on: viewMode==='card' }"
         @click.prevent="$emit('changeView','card')"
       ><span>다짐카드보기</span></a>
-
       <a
         href="#none"
         class="r_block"
         :class="{ on: viewMode==='block' }"
         @click.prevent="$emit('changeView','block')"
       ><span>다짐블록보기</span></a>
-
       <a
         href="#none"
         class="r_list"
         :class="{ on: viewMode==='list' }"
         @click.prevent="$emit('changeView','list')"
       ><span>다짐목록보기</span></a>
-
       <a href="#none" class="r_select"><span>다짐선택</span></a>
       <a href="#none" class="r_move"><span>다짐이동</span></a>
     </div>
@@ -166,9 +163,9 @@ function weekKorean(n){
 }
 
 const centerTitle = computed(() => {
-  if (props.periodMode === 'W') return '주간'
-  if (props.periodMode === 'M') return '월간'
-  return '일간'
+  if (props.periodMode === 'W') return '주'
+  if (props.periodMode === 'M') return '월'
+  return '일'
 })
 
 const centerText = computed(() => {
