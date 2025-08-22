@@ -15,9 +15,11 @@
           v-model:modelValue="selectedFilter"
           :counts="countsForDate"
           :totalCount="totalCountForDate"
+          :viewMode="selectedView"
           @changeFilter="handleFilterChange"
           @requestPrev="handlePrev"
           @requestNext="handleNext"
+          @changeView="v => selectedView = v"
         />
       </div>
 
@@ -46,6 +48,7 @@
             :selected="getStatus(rt)"
             :routine="rt"
             :isToday="isTodayDate"
+            :layout="currentLayout"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
             @edit="openEditRoutine"
@@ -84,6 +87,11 @@ import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
+
+import viewBasicCard from '@/components/MainCard/viewBasicCard.vue'
+import viewBlockCard from '@/components/MainCard/viewBlockCard.vue'
+import viewListCard from '@/components/MainCard/viewListCard.vue'
+
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 
 const isLoading = ref(true)
@@ -95,6 +103,13 @@ const MAX_ROUTINES = 100
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')
+
+const selectedView = ref('card') // 'card' | 'block' | 'list'
+const currentLayout = computed(() => {
+  if (selectedView.value === 'block') return viewBlockCard
+  if (selectedView.value === 'list')  return viewListCard
+  return viewBasicCard
+})
 
 const rawRoutines = ref([])
 const routines = ref([])
