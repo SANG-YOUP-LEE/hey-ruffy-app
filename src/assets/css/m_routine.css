@@ -315,7 +315,7 @@
 #main_body .routine_card.vblock {
   display: block;
   width: auto;
-  height:20rem;
+  min-height:10rem;
   margin: 0;
   box-sizing: border-box;
 }
@@ -426,7 +426,8 @@
   margin-bottom:0.5rem;
   line-height:1.2rem;
   letter-spacing:-0.02rem;
-  padding:0 0 0.5rem 0
+  padding:0 0 0.5rem 1.3rem;
+  text-indent:-1.3rem; 
 }
 
 #main_body .routine_card .rc_inner p.title span {
