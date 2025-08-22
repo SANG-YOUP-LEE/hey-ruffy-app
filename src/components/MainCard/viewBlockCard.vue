@@ -1,8 +1,8 @@
 <template>
   <div :class="['vblock', cls]">
-    <button class="setting" @click.stop="actions.togglePopup">
+    <!--button class="setting" @click.stop="actions.togglePopup">
       <span>다짐설정</span>
-    </button>
+    </button-->
 
     <div v-if="showPopup" class="setting_popup">
       <button class="close_spop" @click="actions.closePopup"><span>설정팝업닫기</span></button>
