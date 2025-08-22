@@ -6,6 +6,7 @@
     <div id="main_body">
       <div class="main_fixed">
         <MainDateScroll
+          v-if="selectedPeriod==='T'"
           :selectedDate="selectedDate"
           @selectDate="handleSelectDate"
         />
@@ -16,10 +17,12 @@
           :counts="countsForDate"
           :totalCount="totalCountForDate"
           :viewMode="selectedView"
+          :periodMode="selectedPeriod"
           @changeFilter="handleFilterChange"
           @requestPrev="handlePrev"
           @requestNext="handleNext"
           @changeView="v => selectedView = v"
+          @changePeriod="handleChangePeriod"
         />
       </div>
 
@@ -104,7 +107,8 @@ const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
 const selectedFilter = ref('notdone')
 
-const selectedView = ref('card') // 'card' | 'block' | 'list'
+const selectedPeriod = ref('T')
+const selectedView = ref('card')
 const currentLayout = computed(() => {
   if (selectedView.value === 'block') return viewBlockCard
   if (selectedView.value === 'list')  return viewListCard
@@ -353,16 +357,44 @@ onBeforeUnmount(() => {
 
 function startOfDay(d){ const nd=new Date(d); nd.setHours(0,0,0,0); return nd }
 function addDays(d, days){ const nd=new Date(d); nd.setDate(nd.getDate()+days); nd.setHours(0,0,0,0); return nd }
+function addMonths(d, months){ const nd=new Date(d); nd.setMonth(nd.getMonth()+months); nd.setHours(0,0,0,0); return nd }
 function isTodayDateFn(d){ return startOfDay(d).getTime()===startOfDay(new Date()).getTime() }
 
 function handlePrev() {
+  if (selectedPeriod.value === 'W') {
+    const d = addDays(selectedDate.value, -7)
+    handleSelectDate(d, false)
+    return
+  }
+  if (selectedPeriod.value === 'M') {
+    const d = addMonths(selectedDate.value, -1)
+    handleSelectDate(d, false)
+    return
+  }
   const d = addDays(selectedDate.value, -1)
   const future = d > new Date() && !isTodayDateFn(d)
   handleSelectDate(d, future)
 }
 function handleNext() {
+  if (selectedPeriod.value === 'W') {
+    const d = addDays(selectedDate.value, 7)
+    handleSelectDate(d, false)
+    return
+  }
+  if (selectedPeriod.value === 'M') {
+    const d = addMonths(selectedDate.value, 1)
+    handleSelectDate(d, false)
+    return
+  }
   const d = addDays(selectedDate.value, 1)
   const future = d > new Date() && !isTodayDateFn(d)
   handleSelectDate(d, future)
+}
+
+function handleChangePeriod(mode) {
+  selectedPeriod.value = mode
+  if (mode === 'T') selectedView.value = 'card'
+  else if (mode === 'W') selectedView.value = 'block'
+  else if (mode === 'M') selectedView.value = 'list'
 }
 </script>
