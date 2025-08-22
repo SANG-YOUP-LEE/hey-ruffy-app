@@ -303,7 +303,6 @@
 #main_body .routine_card.vblock .state_button,
 #main_body .routine_card.vlist .state_button {
   display:none!important;
-  border:1px solid red!important;
 }
 
 #main_body .main_scroll:has(.routine_card.vblock) {
@@ -316,9 +315,9 @@
 #main_body .routine_card.vblock {
   display: block;
   width: auto;
+  height:20rem;
   margin: 0;
   box-sizing: border-box;
-  border:1px solid green!important
 }
 
 
