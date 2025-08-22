@@ -66,9 +66,27 @@
       <a href="#none" class="on_w light">M</a>
     </div>
     <div class="tools">
-      <a href="#none" class="r_card" :class="{ uline: viewMode==='card' }" @click.prevent="$emit('changeView','card')"><span>다짐카드보기</span></a>
-      <a href="#none" class="r_block" :class="{ uline: viewMode==='block' }" @click.prevent="$emit('changeView','block')"><span>다짐블록보기</span></a>
-      <a href="#none" class="r_list" :class="{ uline: viewMode==='list' }" @click.prevent="$emit('changeView','list')"><span>다짐목록보기</span></a>
+      <a 
+        href="#none" 
+        class="r_card" 
+        :class="{ on: viewMode==='card' }" 
+        @click.prevent="$emit('changeView','card')"
+      ><span>다짐카드보기</span></a>
+    
+      <a 
+        href="#none" 
+        class="r_block" 
+        :class="{ on: viewMode==='block' }" 
+        @click.prevent="$emit('changeView','block')"
+      ><span>다짐블록보기</span></a>
+    
+      <a 
+        href="#none" 
+        class="r_list" 
+        :class="{ on: viewMode==='list' }" 
+        @click.prevent="$emit('changeView','list')"
+      ><span>다짐목록보기</span></a>
+    
       <a href="#none" class="r_select"><span>다짐선택</span></a>
       <a href="#none" class="r_move"><span>다짐이동</span></a>
     </div>
