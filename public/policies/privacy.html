@@ -2,13 +2,21 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>한국 개인정보 처리방침 (2025/05 개정)</title>
 <style>
   body{margin:0;background:#fff;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",Segoe UI,Roboto,Helvetica,Arial,"Malgun Gothic",sans-serif}
-  .top{position:sticky;top:0;display:flex;align-items:center;justify-content:center;height:48px;border-bottom:1px solid #eee;background:#fff;z-index:10}
-  .top h1{font-size:16px;font-weight:700}
-  .close{position:absolute;right:10px;top:9px;height:30px;padding:0 10px;border:1px solid #e5e5e5;border-radius:8px;background:#f7f7f7;cursor:pointer}
+  .top{position:sticky;top:0;display:flex;align-items:center;justify-content:center;height:56px;border-bottom:1px solid #eee;background:#fff;z-index:10}
+  .top h1{font-size:16px;font-weight:700;margin:0}
+  .close{
+    position:absolute;right:10px;top:10px;
+    min-width:78px;height:36px;padding:0 16px;
+    font-size:15px;font-weight:600;
+    border:1px solid #e5e5e5;border-radius:8px;
+    background:#f7f7f7;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation
+  }
+  .close:active{background:#e0e0e0}
   .wrap{max-width:920px;margin:0 auto;padding:16px 14px 40px}
   main h1{font-size:20px;line-height:1.3;font-weight:800;margin:18px 0 10px;text-align:center}
   main h2{font-size:16px;line-height:1.5;font-weight:700;margin:16px 0 8px}
@@ -24,7 +32,7 @@
 <body>
   <div class="top">
     <h1>개인정보 처리방침</h1>
-    <button class="close" onclick="(history.length>1?history.back():window.close())">닫기</button>
+    <button class="close" id="closeBtn" type="button" aria-label="닫기">닫힘</button>
   </div>
 
   <div class="wrap">
@@ -127,5 +135,26 @@
       <p>본 개인정보 처리방침은 2025년 5월 1일부터 적용됩니다.</p>
     </main>
   </div>
+
+  <script>
+    function safeClose(){
+      try{ document.activeElement && document.activeElement.blur(); }catch(e){}
+      const ref = document.referrer ? new URL(document.referrer, location.origin) : null;
+      const cameFromPolicy = !!(ref && ref.pathname.startsWith('/policies/'));
+      if (!cameFromPolicy && document.referrer) { location.replace(document.referrer); return; }
+      if (history.length > 1) { history.back(); return; }
+      location.replace('/signup');
+    }
+    function bindClose(){
+      const btn = document.getElementById('closeBtn');
+      if (!btn) return;
+      btn.onclick = null;
+      btn.addEventListener('click', safeClose, { passive:false });
+      btn.addEventListener('pointerup', safeClose, { passive:false });
+      btn.addEventListener('touchend', safeClose, { passive:false });
+    }
+    window.addEventListener('DOMContentLoaded', bindClose, { once:true });
+    window.addEventListener('pageshow', function(e){ if (e.persisted) bindClose(); });
+  </script>
 </body>
 </html>
