@@ -305,18 +305,21 @@
   display:none!important;
   border:1px solid red!important;
 }
-#main_body .routine_card.vblock {
+#main_body .done_group:has(.routine_card.vblock) {
   display: inline-block;
   vertical-align: top;
-  width: calc(50% - 0.5rem);
+  width: calc(50% - 1rem);
   margin-right: 1rem;
-  margin-bottom: 1rem;
-  box-sizing: border-box;
-  border:1px solid red;
 }
 
-#main_body .routine_card.vblock:nth-child(2n) {
+#main_body .done_group:has(.routine_card.vblock):nth-of-type(2n) {
   margin-right: 0;
+}
+
+#main_body .done_group:has(.routine_card.vblock) .routine_card.vblock {
+  width: 100%;
+  margin-bottom: 1rem;
+  display: block;
 }
 #main_body .routine_card.vlist {
   border:1px solid green!important
