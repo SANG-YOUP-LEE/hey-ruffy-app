@@ -121,9 +121,9 @@ body.blue .monthly-grid span.m_s_btn.selected {
 
 body .on_w.light,
 body.blue .on_w.light {
-  background-color:#ddf2ff;
-  border:1px solid #0994ff;
-  color:#0994ff
+  background-color:#ddf2ff!important;
+  border:1px solid #0994ff!important;
+  color:#0994ff!important;
 }
 
 /* skin color red*/
