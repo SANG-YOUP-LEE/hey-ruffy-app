@@ -44,16 +44,16 @@
 
 #main_body .date_scroll .ruffys_item {
   grid-area: ruffys;
-  width:100%;
+  width:auto;
   display:flex;
   justify-content:center;
   align-items:center;
   gap:0.8rem;
   padding:1rem;
   margin:1rem;
-  border-radius:1.5rem;
+  /*border-radius:1.5rem;
   background-color:#fafafa;
-  border:1px solid #e6e6e6;
+  border:1px solid #e6e6e6;*/
 }
 
 #main_body .date_scroll .ruffys_item span[class^="ruffy"] {
