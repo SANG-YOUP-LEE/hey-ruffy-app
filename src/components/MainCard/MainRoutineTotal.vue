@@ -69,20 +69,17 @@
     <div class="term">
       <a
         href="#none"
-        class="on_w light"
-        :class="{ on: periodMode==='T' }"
+        class="basic"
         @click.prevent="$emit('changePeriod','T')"
       >T</a>
       <a
         href="#none"
-        class="on_w light"
-        :class="{ on: periodMode==='W' }"
+        class="basic"
         @click.prevent="$emit('changePeriod','W')"
       >W</a>
       <a
         href="#none"
-        class="on_w light"
-        :class="{ on: periodMode==='M' }"
+        class="basic"
         @click.prevent="$emit('changePeriod','M')"
       >M</a>
     </div>
