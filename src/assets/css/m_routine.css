@@ -301,9 +301,17 @@
 }
 
 #main_body .routine_card.vblock {
-  border:1px solid red!important
+  display: inline-block;
+  vertical-align: top;
+  width: calc(50% - 0.5rem);
+  margin-right: 1rem;
+  box-sizing: border-box;
+  border:1px solid red;
 }
 
+#main_body .routine_card.vblock:nth-child(2n) {
+  margin-right: 0;
+}
 #main_body .routine_card.vlist {
   border:1px solid green!important
 }
