@@ -341,6 +341,13 @@
   flex-wrap: wrap;
 }
 
+#main_body .routine_card .rc_inner .state_button {
+  width:100%;
+  background-color:red;
+}
+
+#main_body .routine_card .rc_inner .state_button.twice {
+}
 #main_body .routine_card .rc_inner .state_button.twice .done_set,
 #main_body .routine_card .rc_inner .state_button.twice .walk_check{
   width:50%;
