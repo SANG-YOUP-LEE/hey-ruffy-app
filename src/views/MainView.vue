@@ -6,7 +6,6 @@
     <div id="main_body">
       <div class="main_fixed">
         <MainDateScroll
-          v-if="selectedPeriod==='T'"
           :selectedDate="selectedDate"
           @selectDate="handleSelectDate"
         />
@@ -256,10 +255,12 @@ const displayedRoutines = computed(() => {
   return [...activeFiltered, ...paused]
 })
 
-const handleSelectDate = (date, isFuture) => {
+function handleSelectDate(date, isFuture) {
   selectedDate.value = date
   isFutureDate.value = isFuture
   selectedFilter.value = 'notdone'
+  selectedPeriod.value = 'T'
+  selectedView.value = 'card'
 }
 const handleFilterChange = () => {}
 
@@ -461,5 +462,4 @@ function handleChangePeriod(mode) {
   else if (mode === 'M') selectedView.value = 'list'
   selectedFilter.value = 'notdone'
 }
-
 </script>
