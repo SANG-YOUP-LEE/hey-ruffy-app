@@ -300,6 +300,10 @@
   position:relative;
 }
 
+#main_body .routine_card.vblock .state_button,
+#main_body .routine_card.vlist .state_button {
+  display:none
+}
 #main_body .routine_card.vblock {
   display: inline-block;
   vertical-align: top;
