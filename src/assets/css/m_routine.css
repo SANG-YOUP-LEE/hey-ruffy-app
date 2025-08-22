@@ -50,7 +50,7 @@
   align-items:center;
   gap:0.8rem;
   padding:1rem;
-  margin:0.5rem 0 0.5rem 0;
+  margin:0rem 0 0.5rem 0;
   border-radius:1.5rem;
   background-color:#ffec85;
 }
@@ -70,6 +70,7 @@
   flex-shrink:0;
   font-weight:bold;
   padding-top:0.5rem;
+  border:1px solid #e6e6e6;
 }
 
 #main_body .date_scroll .date_group {
@@ -84,6 +85,7 @@
   -ms-overflow-style:none;
   scrollbar-width:none;
   padding-top:0.5rem;
+  border:1px solid #e6e6e6;
 }
 
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
@@ -103,7 +105,6 @@
   font-size: 0.9rem;
   color: #b3b3b3;
   box-sizing: border-box;
-  border:1px solid #eaeaea;
   border-radius:50%;
 }
 #main_body .date_scroll .date_group i,
