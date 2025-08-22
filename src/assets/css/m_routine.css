@@ -290,7 +290,13 @@
   color: #333 !important;
 }
 
+#main_body .routine_card.vblock {
+  border:1px solid red
+}
 
+#main_body .routine_card.vlist {
+  border:1px solid green
+}
 
 
 #main_body .routine_card .rc_inner i {
