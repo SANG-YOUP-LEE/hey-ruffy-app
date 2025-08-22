@@ -1,5 +1,5 @@
 <template>
-  <div :class="['vlist', cls]">
+  <div :class="[cls]">
     <button class="setting" @click.stop="actions.togglePopup">
       <span>다짐설정</span>
     </button>
@@ -24,7 +24,7 @@
       </ul>
     </div>
 
-    <div class="rc_inner">
+    <div class="rc_inner vlist">
       <div class="left">
         <p class="title">
           <span :class="ui.colorClass"></span>
