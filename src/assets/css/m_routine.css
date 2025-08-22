@@ -306,7 +306,7 @@
   border:1px solid red!important;
 }
 
-#main_body .done_group:has(.routine_card.vblock) {
+#main_body .main_scroll:has(.routine_card.vblock) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -318,9 +318,6 @@
   width: auto;
   margin: 0;
   box-sizing: border-box;
-}
-
-#main_body .routine_card.vlist {
   border:1px solid green!important
 }
 
