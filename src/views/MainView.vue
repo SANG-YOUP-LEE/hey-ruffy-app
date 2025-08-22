@@ -462,9 +462,4 @@ function handleChangePeriod(mode) {
   selectedFilter.value = 'notdone'
 }
 
-function handleSelectDate(date, isFuture) {
-  selectedDate.value = date
-  isFutureDate.value = isFuture
-  selectedFilter.value = 'notdone'
-}
 </script>
