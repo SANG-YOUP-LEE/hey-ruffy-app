@@ -30,9 +30,9 @@
   gap:0.8rem;
   padding:1rem;
   margin:1rem;
-  /*border-radius:1.5rem;
+  border-radius:1.5rem;
   background-color:#fafafa;
-  border:1px solid #e6e6e6;*/
+  border:1px solid #e6e6e6;
 }
 
 #main_body .ruffys_item span[class^="ruffy"] {
