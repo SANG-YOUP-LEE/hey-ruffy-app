@@ -151,15 +151,53 @@ const formattedDate = computed(() => {
   return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}.${dayNames[d.getDay()]}`
 })
 
-function getWeekOfMonth(date) {
-  const d = new Date(date.getFullYear(), date.getMonth(), 1)
-  const firstDay = d.getDay()
-  const offsetDate = date.getDate() + firstDay
-  return Math.ceil(offsetDate / 7)
+function startOfWeekSun(d){ const nd=new Date(d); nd.setHours(0,0,0,0); nd.setDate(nd.getDate()-nd.getDay()); return nd }
+function endOfWeekSun(d){ const s=startOfWeekSun(d); const nd=new Date(s); nd.setDate(s.getDate()+6); nd.setHours(23,59,59,999); return nd }
+
+function dateInRange(target, s, e){ return target.getTime()>=s.getTime() && target.getTime()<=e.getTime() }
+
+function firstOfMonth(y, m){ const d=new Date(y,m,1); d.setHours(0,0,0,0); return d }
+
+function getWeekIndexForMonth(weekStart, monthDate){
+  const mFirst = firstOfMonth(monthDate.getFullYear(), monthDate.getMonth())
+  const w1 = startOfWeekSun(mFirst)
+  const diffWeeks = Math.round((weekStart.getTime() - w1.getTime()) / (7*24*60*60*1000))
+  return diffWeeks + 1
 }
-function weekKorean(n){
-  return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,(n-1)))]
+
+function weekLabelFor(date){
+  const ws = startOfWeekSun(date)
+  const we = endOfWeekSun(date)
+  const curY = ws.getFullYear(), curM = ws.getMonth()
+  const nextM = (curM+1)%12, nextY = curM===11 ? curY+1 : curY
+  const curFirst = firstOfMonth(curY, curM)
+  const nextFirst = firstOfMonth(nextY, nextM)
+  if (dateInRange(curFirst, ws, we)) {
+    const idx = 1
+    return { month: curFirst.getMonth(), year: curFirst.getFullYear(), idx }
+  }
+  if (dateInRange(nextFirst, ws, we)) {
+    const idx = 1
+    return { month: nextFirst.getMonth(), year: nextFirst.getFullYear(), idx }
+  }
+  let displayMonth = date.getMonth()
+  let displayYear = date.getFullYear()
+  let daysInDisplayMonth = 0
+  for (let i=0;i<7;i++){
+    const d=new Date(ws); d.setDate(ws.getDate()+i); d.setHours(0,0,0,0)
+    if (d.getMonth()===date.getMonth()) daysInDisplayMonth++
+  }
+  if (daysInDisplayMonth<4){
+    for (let i=0;i<7;i++){
+      const d=new Date(ws); d.setDate(ws.getDate()+i); d.setHours(0,0,0,0)
+      if (d.getMonth()!==date.getMonth()){ displayMonth=d.getMonth(); displayYear=d.getFullYear(); break }
+    }
+  }
+  const idx = getWeekIndexForMonth(ws, new Date(displayYear, displayMonth, 1))
+  return { month: displayMonth, year: displayYear, idx }
 }
+
+function weekKorean(n){ return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,n-1))] }
 
 const centerTitle = computed(() => {
   if (props.periodMode === 'W') return '주'
@@ -169,9 +207,8 @@ const centerTitle = computed(() => {
 
 const centerText = computed(() => {
   if (props.periodMode === 'W') {
-    const d = props.selectedDate
-    const wk = weekKorean(getWeekOfMonth(d))
-    return `${d.getMonth()+1}월 ${wk}`
+    const info = weekLabelFor(props.selectedDate)
+    return `${info.month+1}월 ${weekKorean(info.idx)}`
   }
   if (props.periodMode === 'M') {
     const d = props.selectedDate
@@ -191,3 +228,6 @@ const nextLabel = computed(() => {
   return '다음날'
 })
 </script>
+
+
+

@@ -44,12 +44,12 @@
 #header .title h1{
   margin:0;
   font-size:1.8rem;
-  line-height:3.2rem;
+  line-height:3.4rem;
 }
 
 #header .title p{
   margin:0;
-  font-size:0.9rem;
+  font-size:1rem;
   letter-spacing:-0.02rem;
   display:flex;
   align-items:center;

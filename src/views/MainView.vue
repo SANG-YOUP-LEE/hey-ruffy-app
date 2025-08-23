@@ -160,18 +160,6 @@ function addDays(d, days){ const nd=new Date(d); nd.setDate(nd.getDate()+days); 
 function addMonths(d, months){ const nd=new Date(d); nd.setMonth(nd.getMonth()+months); nd.setHours(0,0,0,0); return nd }
 function isTodayDateFn(d){ return startOfDay(d).getTime()===startOfDay(new Date()).getTime() }
 
-function getWeekOfMonth(d){
-  const first = startOfMonth(d)
-  const firstDay = first.getDay()
-  const offset = d.getDate() + firstDay
-  return Math.ceil(offset / 7)
-}
-function weeksInMonth(d){
-  const first = startOfMonth(d)
-  const days = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate()
-  const firstDay = first.getDay()
-  return Math.ceil((firstDay + days) / 7)
-}
 function weekRangeInMonth(d){
   const mStart = startOfMonth(d)
   const mEnd = endOfMonth(d)
@@ -182,7 +170,7 @@ function weekRangeInMonth(d){
   return { s, e }
 }
 
-const periodStart = computed(() => {
+const periodStartRaw = computed(() => {
   if (selectedPeriod.value==='W') return weekRangeInMonth(selectedDate.value).s
   if (selectedPeriod.value==='M') return startOfMonth(selectedDate.value)
   return startOfDay(selectedDate.value)
@@ -192,6 +180,11 @@ const periodEnd = computed(() => {
   if (selectedPeriod.value==='M') return endOfMonth(selectedDate.value)
   return endOfDay(selectedDate.value)
 })
+const todayStart = computed(() => startOfDay(new Date()))
+const effectivePeriodStart = computed(() => {
+  if (selectedPeriod.value==='T') return periodStartRaw.value
+  return new Date(Math.max(periodStartRaw.value.getTime(), todayStart.value.getTime()))
+})
 
 function isActiveOnAnyDay(r, s, e){
   const cur = new Date(s)
@@ -199,17 +192,22 @@ function isActiveOnAnyDay(r, s, e){
   while (cur <= last) {
     if (inDateRange(r, cur)) return true
     cur.setDate(cur.getDate()+1)
+    cur.setHours(0,0,0,0)
   }
   return false
 }
 function latestStatusInRange(r, s, e){
   const cur = new Date(e)
-  while (cur >= s) {
+  cur.setHours(23,59,59,999)
+  const start = new Date(s)
+  start.setHours(0,0,0,0)
+  while (cur >= start) {
     if (inDateRange(r, cur)) {
       const k = dateKey(cur)
       return r?.progress?.[k] ?? 'notdone'
     }
     cur.setDate(cur.getDate()-1)
+    cur.setHours(23,59,59,999)
   }
   return 'notdone'
 }
@@ -218,7 +216,7 @@ const inRangeRoutinesForDate = computed(() =>
   rawRoutines.value.filter(r => inDateRange(r, selectedDate.value))
 )
 const inRangeRoutinesForPeriod = computed(() =>
-  rawRoutines.value.filter(r => isActiveOnAnyDay(r, periodStart.value, periodEnd.value))
+  rawRoutines.value.filter(r => isActiveOnAnyDay(r, effectivePeriodStart.value, periodEnd.value))
 )
 
 const pausedRoutinesForDate = computed(() =>
@@ -243,10 +241,10 @@ const pausedWithStatusDay = computed(() =>
 )
 
 const activeWithStatusPeriod = computed(() =>
-  activeNonPausedForPeriod.value.map(r => ({ ...r, status: latestStatusInRange(r, periodStart.value, periodEnd.value) }))
+  activeNonPausedForPeriod.value.map(r => ({ ...r, status: latestStatusInRange(r, effectivePeriodStart.value, periodEnd.value) }))
 )
 const pausedWithStatusPeriod = computed(() =>
-  pausedRoutinesForPeriod.value.map(r => ({ ...r, status: latestStatusInRange(r, periodStart.value, periodEnd.value) }))
+  pausedRoutinesForPeriod.value.map(r => ({ ...r, status: latestStatusInRange(r, effectivePeriodStart.value, periodEnd.value) }))
 )
 
 watch([selectedDate, rawRoutines, selectedPeriod], () => {
@@ -450,24 +448,20 @@ onBeforeUnmount(() => {
 function handlePrev() {
   if (selectedPeriod.value === 'W') {
     const cur = new Date(selectedDate.value)
-    const idx = getWeekOfMonth(cur)
-    const first = startOfMonth(cur)
-    if (idx > 1) {
-      const target = new Date(first.getFullYear(), first.getMonth(), 1 + (idx - 2) * 7)
-      handleSelectDate(target, false)
-      return
-    } else {
-      const prevFirst = addMonths(first, -1)
-      const lastIdx = weeksInMonth(prevFirst)
-      const target = new Date(prevFirst.getFullYear(), prevFirst.getMonth(), 1 + (lastIdx - 1) * 7)
-      handleSelectDate(target, false)
-      return
-    }
+    const anchor = startOfWeekSun(cur)
+    const prev = new Date(anchor); prev.setDate(prev.getDate()-7)
+    selectedDate.value = prev
+    isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
+    selectedFilter.value = 'notdone'
+    return
   }
   if (selectedPeriod.value === 'M') {
-    const first = startOfMonth(selectedDate.value)
-    const target = addMonths(first, -1)
-    handleSelectDate(target, false)
+    const cur = new Date(selectedDate.value)
+    const firstOfCur = startOfMonth(cur)
+    const prev = addMonths(firstOfCur, -1)
+    selectedDate.value = prev
+    isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
+    selectedFilter.value = 'notdone'
     return
   }
   const d = addDays(selectedDate.value, -1)
@@ -477,24 +471,20 @@ function handlePrev() {
 function handleNext() {
   if (selectedPeriod.value === 'W') {
     const cur = new Date(selectedDate.value)
-    const idx = getWeekOfMonth(cur)
-    const first = startOfMonth(cur)
-    const lastIdx = weeksInMonth(cur)
-    if (idx < lastIdx) {
-      const target = new Date(first.getFullYear(), first.getMonth(), 1 + idx * 7)
-      handleSelectDate(target, false)
-      return
-    } else {
-      const nextFirst = addMonths(first, 1)
-      const target = new Date(nextFirst.getFullYear(), nextFirst.getMonth(), 1)
-      handleSelectDate(target, false)
-      return
-    }
+    const anchor = startOfWeekSun(cur)
+    const next = new Date(anchor); next.setDate(next.getDate()+7)
+    selectedDate.value = next
+    isFutureDate.value = next > new Date() && !isTodayDateFn(next)
+    selectedFilter.value = 'notdone'
+    return
   }
   if (selectedPeriod.value === 'M') {
-    const first = startOfMonth(selectedDate.value)
-    const target = addMonths(first, 1)
-    handleSelectDate(target, false)
+    const cur = new Date(selectedDate.value)
+    const firstOfCur = startOfMonth(cur)
+    const next = addMonths(firstOfCur, 1)
+    selectedDate.value = next
+    isFutureDate.value = next > new Date() && !isTodayDateFn(next)
+    selectedFilter.value = 'notdone'
     return
   }
   const d = addDays(selectedDate.value, 1)
@@ -504,9 +494,21 @@ function handleNext() {
 
 function handleChangePeriod(mode) {
   selectedPeriod.value = mode
-  if (mode === 'T') selectedView.value = 'card'
-  else if (mode === 'W') selectedView.value = 'block'
-  else if (mode === 'M') selectedView.value = 'list'
+  if (mode === 'T') {
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    selectedDate.value = today
+    isFutureDate.value = false
+    selectedView.value = 'card'
+  } else if (mode === 'W') {
+    const cur = new Date(selectedDate.value)
+    selectedDate.value = startOfWeekSun(cur)
+    selectedView.value = 'block'
+  } else if (mode === 'M') {
+    const cur = new Date(selectedDate.value)
+    selectedDate.value = startOfMonth(cur)
+    selectedView.value = 'list'
+  }
   selectedFilter.value = 'notdone'
 }
 </script>
