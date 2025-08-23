@@ -93,6 +93,8 @@
           </div>
         </div>
 
+
+        <!-- 버튼 -->
         <!-- 버튼 -->
         <div :class="['button', { mt1: resendClicked }]">
           <button
