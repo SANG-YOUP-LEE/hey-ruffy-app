@@ -1,8 +1,22 @@
 <template>
-  <div :class="['vlist', cls]">
+  <div :class="['vlist', cls, { close: !expanded }]">
     <button class="setting" @click.stop="actions.togglePopup">
       <span>다짐설정</span>
     </button>
+
+    <div class="state_button">
+      <div class="done_set" v-if="flags.canShowStatusButton">
+        <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
+      </div>
+      <div class="walk_check" v-if="flags.hasWalkResolved">
+        <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
+      </div>
+      <div class="done_set">
+        <button class="p_white" :class="{ close: expanded }" @click="expanded = !expanded">
+          {{ expanded ? '접기' : '열기' }}
+        </button>
+      </div>
+    </div>
 
     <div v-if="showPopup" class="setting_popup">
       <button class="close_spop" @click="actions.closePopup"><span>설정팝업닫기</span></button>
@@ -26,6 +40,7 @@
 
     <div class="rc_inner">
       <div class="left">
+        <p class="today" v-if="ui.dateText">{{ ui.dateText }}</p>
         <p class="title">
           <span :class="ui.colorClass"></span>
           {{ ui.titleText }}
@@ -40,20 +55,7 @@
           <span class="walk_goal">목표 {{ ui.goalCount }}회</span>
         </div>
       </div>
-
       <div class="right"></div>
-
-      <div class="">
-        <div class="done_set" v-if="flags.canShowStatusButton" v-show="expanded">
-          <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
-        </div>
-        <div class="walk_check" v-if="flags.hasWalkResolved" v-show="expanded">
-          <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
-        </div>
-        <div class="done_set">
-          <button class="p_white" @click="expanded = !expanded">{{ expanded ? '접기' : '자세히' }}</button>
-        </div>
-      </div>
     </div>
   </div>
 </template>

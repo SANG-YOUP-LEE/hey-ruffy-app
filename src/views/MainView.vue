@@ -51,6 +51,7 @@
             :selected="getStatus(rt)"
             :routine="rt"
             :isToday="isRoutineForToday(rt)"
+            :assigned-date="getAssignedDate(rt)"
             :layout="currentLayout"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
@@ -210,6 +211,18 @@ function latestStatusInRange(r, s, e){
     cur.setHours(23,59,59,999)
   }
   return 'notdone'
+}
+function lastActiveDateInRange(r, s, e){
+  const cur = new Date(e)
+  cur.setHours(23,59,59,999)
+  const start = new Date(s)
+  start.setHours(0,0,0,0)
+  while (cur >= start) {
+    if (inDateRange(r, cur)) return new Date(cur)
+    cur.setDate(cur.getDate()-1)
+    cur.setHours(23,59,59,999)
+  }
+  return null
 }
 
 const inRangeRoutinesForDate = computed(() =>
@@ -561,5 +574,12 @@ function isRoutineForToday(r) {
   const today = new Date()
   return inDateRange(r, today)
 }
+
+function getAssignedDate(r) {
+  if (selectedPeriod.value === 'T') return new Date(selectedDate.value)
+  const d = lastActiveDateInRange(r, effectivePeriodStart.value, periodEnd.value)
+  return d ? d : new Date(effectivePeriodStart.value)
+}
 </script>
+
 

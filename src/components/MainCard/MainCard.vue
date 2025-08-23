@@ -15,7 +15,8 @@
           colorClass,
           ruffyName: ruffyMeta?.name || '',
           courseName: courseMeta?.name || '',
-          goalCount: props.routine?.goalCount ?? null
+          goalCount: props.routine?.goalCount ?? null,
+          dateText
         }"
         :flags="{
           isPaused,
@@ -149,7 +150,8 @@ const props = defineProps({
   selected: String,
   routine: { type: Object, default: () => ({}) },
   isToday: { type: Boolean, default: false },
-  layout: { type: [Object, Function], required: true }
+  layout: { type: [Object, Function], required: true },
+  assignedDate: { type: [String, Date, Number], default: null }
 })
 const emit = defineEmits(['delete','changeStatus','edit','togglePause'])
 
@@ -281,6 +283,17 @@ function pad(v) {
   const n = String(v || '')
   return n.length === 1 ? `0${n}` : n
 }
+
+const dateText = computed(() => {
+  const v = props.assignedDate
+  if (!v && v !== 0) return ''
+  const d = v instanceof Date ? v : new Date(v)
+  if (isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}.${m}.${day}`
+})
 
 function onSelect(type) {
   selectedState.value = selectedState.value === type ? '' : type
@@ -439,3 +452,4 @@ onBeforeUnmount(() => {
   document.body.classList.remove('no-scroll')
 })
 </script>
+

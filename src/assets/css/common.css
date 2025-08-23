@@ -177,11 +177,12 @@ label {
 button {
   text-align: center;
   vertical-align:middle;
+  line-height:2.2rem;
 }
 
 .button button,
 .button a {
-  margin-bottom:0.5rem
+  margin-bottom:0.5rem;
 }
 
 [class^="b_"] {

@@ -307,23 +307,116 @@
   position:relative;
 }
 
-#main_body .routine_card.vblock .state_button,
-#main_body .routine_card.vlist .state_button {
+#main_body .routine_card.vblock {
+  display: block;
+  width: auto;
+  margin: 0;
+  box-sizing: border-box;
 }
+
+
+#main_body .routine_card.vblock .left {
+  margin-top:1rem!important;
+}
+
+#main_body .routine_card.vblock .state_button,
+#main_body .routine_card.vlist .state_button  {
+  display:flex;
+  margin-top:-0.2rem;
+}
+
+#main_body .routine_card.vlist .rc_inner {
+  display:block!important
+}
+
+#main_body .routine_card.vlist .rc_inner::after {
+  content:"";display:block;clear:both
+}
+
+#main_body .routine_card.vlist .state_button {
+  float:right;
+  display:inline-flex;
+  align-items:center;
+  gap:0.4rem;
+  width:auto!important;
+  flex:none!important;
+  margin:0 1rem 0.2rem 0.8rem
+}
+
+#main_body .routine_card.vlist .rc_inner .left { 
+  flex:none
+}
+
+#main_body .routine_card.vlist.close {
+  padding-bottom:0.5rem
+}
+
+#main_body .routine_card.vblock .rc_inner p.today,
+#main_body .routine_card.vlist .rc_inner p.today { 
+  font-weight:bold;
+  padding:0;
+}
+
+#main_body .routine_card.vlist .rc_inner .state_button .done_set,
+#main_body .routine_card.vlist .rc_inner .state_button .walk_check {
+  flex:0 0 auto!important;
+  width:auto!important
+}
+
+#main_body .routine_card.vlist .state_button {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  width: auto !important;
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 0 auto;
+  width: auto !important;
+  margin:-0.4rem 1rem 0 1rem;
+}
+
+#main_body .routine_card.vblock .state_button button,
+#main_body .routine_card.vlist .state_button button {
+  height:1.8rem;
+  width:1.8rem;
+  font-size:0!important;
+  border-radius: 0.5rem;
+  margin:0 0.2rem 0 0;
+  border:1px solid #e6e6e6!important;
+}
+
+#main_body .routine_card.vblock .state_button .p_basic,
+#main_body .routine_card.vlist .state_button .p_basic  {
+  background: url('../images/ico_done_check.png') no-repeat 50% 50%/60%
+} 
+
+#main_body .routine_card.vblock .state_button .p_basic_white,
+#main_body .routine_card.vlist .state_button .p_basic_white  {
+  background: url('../images/ico_dog_walk.png') no-repeat 50% 50%/60%
+} 
+
+#main_body .routine_card.vblock .state_button .p_white,
+#main_body .routine_card.vlist .state_button .p_white {
+  background: url('../images/ico_down_view.png') no-repeat 50% 50%/80%
+} 
+
+#main_body .routine_card.vblock .state_button .p_white.close,
+#main_body .routine_card.vlist .state_button .p_white.close {
+  background: url('../images/ico_down_view.png') no-repeat 50% 50%/80%;
+  transform: rotate(180deg);
+}
+
 
 #main_body .main_scroll:has(.routine_card.vblock) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: stretch;
-}
-
-#main_body .routine_card.vblock {
-  display: block;
-  width: auto;
-  min-height:12rem;
-  margin: 0;
-  box-sizing: border-box;
 }
 
 
@@ -429,7 +522,7 @@
   margin-bottom:0.5rem;
   line-height:1.4rem;
   letter-spacing:-0.02rem;
-  padding:0 0 0.5rem 1rem;
+  padding:0 0 0.5rem 1.5rem;
   text-indent:-1.5rem; 
 }
 
