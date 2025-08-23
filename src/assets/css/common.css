@@ -68,7 +68,7 @@ html, body {
 }
 /* iPhone SE 등 아주 작은 폭 보호 */
 @media (max-width: 375px) {
-  :root, html { font-size: 0.8em; }
+  :root, html { font-size: 0.79em; }
 }
 .no-touch {
   width: 100vw;

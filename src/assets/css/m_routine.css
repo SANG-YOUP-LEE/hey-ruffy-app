@@ -10,7 +10,7 @@
   align-items: center;
   gap: 0.3rem 0.2rem;
   position: relative;
-  margin-top:1.5rem;
+  margin-top:1rem;
   padding:0rem 0rem 0.2rem 0rem;
   z-index:3;  
   border:1px solid #e6e6e6;
@@ -65,14 +65,14 @@
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
-  width:2.5rem;
-  height:2.5rem;
-  flex: 0 0 2.5rem;
+  width:2.8rem;
+  height:2.8rem;
+  flex: 0 0 2.8rem;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  line-height: 1rem;
-  font-size: 0.9rem;
+  line-height: 1.2rem;
+  font-size: 1rem;
   color: #b3b3b3;
   box-sizing: border-box;
   border-radius:50%;
@@ -252,6 +252,7 @@
   font-weight:bold;
   line-height:1.8rem;
   text-align:center;
+  width:2.5rem
 }
 
 #main_body .today_tools .basic {

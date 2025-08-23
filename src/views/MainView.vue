@@ -166,9 +166,13 @@ function weekRangeInMonth(d){
   const mEnd = endOfMonth(d)
   const wStart = startOfWeekSun(d)
   const wEnd = endOfWeekSun(d)
-  const s = new Date(Math.max(wStart.getTime(), mStart.getTime()))
-  const e = new Date(Math.min(wEnd.getTime(), mEnd.getTime()))
-  return { s, e }
+  if (wStart.getMonth() !== d.getMonth()) {
+    return { s: mStart, e: new Date(Math.min(wEnd.getTime(), mEnd.getTime())) }
+  }
+  if (wEnd.getMonth() !== d.getMonth()) {
+    return { s: new Date(Math.max(wStart.getTime(), mStart.getTime())), e: mEnd }
+  }
+  return { s: new Date(Math.max(wStart.getTime(), mStart.getTime())), e: new Date(Math.min(wEnd.getTime(), mEnd.getTime())) }
 }
 
 const periodStartRaw = computed(() => {
@@ -181,95 +185,96 @@ const periodEnd = computed(() => {
   if (selectedPeriod.value==='M') return endOfMonth(selectedDate.value)
   return endOfDay(selectedDate.value)
 })
-const todayStart = computed(() => startOfDay(new Date()))
-const effectivePeriodStart = computed(() => {
-  if (selectedPeriod.value==='T') return periodStartRaw.value
-  return new Date(Math.max(periodStartRaw.value.getTime(), todayStart.value.getTime()))
-})
 
-function isActiveOnAnyDay(r, s, e){
+function eachDate(s, e) {
+  const out = []
   const cur = new Date(s)
+  cur.setHours(0,0,0,0)
   const last = new Date(e)
-  while (cur <= last) {
-    if (inDateRange(r, cur)) return true
+  last.setHours(0,0,0,0)
+  while (cur.getTime() <= last.getTime()) {
+    out.push(new Date(cur))
     cur.setDate(cur.getDate()+1)
     cur.setHours(0,0,0,0)
   }
+  return out
+}
+
+const occurrencesActiveDay = computed(() => {
+  const d = startOfDay(selectedDate.value)
+  const list = rawRoutines.value.filter(r => !r.isPaused && inDateRange(r, d))
+  const key = dateKey(d)
+  return list.map(r => ({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-${key}` }))
+})
+const occurrencesPausedDay = computed(() => {
+  const d = startOfDay(selectedDate.value)
+  const list = rawRoutines.value.filter(r => !!r.isPaused && inDateRange(r, d))
+  const key = dateKey(d)
+  return list.map(r => ({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-paused-${key}` }))
+})
+
+const occurrencesActivePeriod = computed(() => {
+  const days = eachDate(periodStartRaw.value, periodEnd.value)
+  const out = []
+  for (const r of rawRoutines.value) {
+    if (r.isPaused) continue
+    for (const d of days) {
+      if (inDateRange(r, d)) {
+        const key = dateKey(d)
+        out.push({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-${key}` })
+      }
+    }
+  }
+  return out
+})
+
+function isActiveOnAnyDay(r, s, e){
+  const days = eachDate(s, e)
+  for (const d of days) if (inDateRange(r, d)) return true
   return false
 }
 function latestStatusInRange(r, s, e){
-  const cur = new Date(e)
-  cur.setHours(23,59,59,999)
-  const start = new Date(s)
-  start.setHours(0,0,0,0)
-  while (cur >= start) {
-    if (inDateRange(r, cur)) {
-      const k = dateKey(cur)
+  const days = eachDate(s, e)
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i]
+    if (inDateRange(r, d)) {
+      const k = dateKey(d)
       return r?.progress?.[k] ?? 'notdone'
     }
-    cur.setDate(cur.getDate()-1)
-    cur.setHours(23,59,59,999)
   }
   return 'notdone'
 }
 function lastActiveDateInRange(r, s, e){
-  const cur = new Date(e)
-  cur.setHours(23,59,59,999)
-  const start = new Date(s)
-  start.setHours(0,0,0,0)
-  while (cur >= start) {
-    if (inDateRange(r, cur)) return new Date(cur)
-    cur.setDate(cur.getDate()-1)
-    cur.setHours(23,59,59,999)
+  const days = eachDate(s, e)
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i]
+    if (inDateRange(r, d)) return new Date(d)
   }
   return null
 }
 
-const inRangeRoutinesForDate = computed(() =>
-  rawRoutines.value.filter(r => inDateRange(r, selectedDate.value))
-)
-const inRangeRoutinesForPeriod = computed(() =>
-  rawRoutines.value.filter(r => isActiveOnAnyDay(r, effectivePeriodStart.value, periodEnd.value))
-)
-
-const pausedRoutinesForDate = computed(() =>
-  inRangeRoutinesForDate.value.filter(r => !!r.isPaused)
-)
-const pausedRoutinesForPeriod = computed(() =>
-  inRangeRoutinesForPeriod.value.filter(r => !!r.isPaused)
-)
-
-const activeNonPausedForDate = computed(() =>
-  inRangeRoutinesForDate.value.filter(r => !r.isPaused)
-)
-const activeNonPausedForPeriod = computed(() =>
-  inRangeRoutinesForPeriod.value.filter(r => !r.isPaused)
-)
-
-const activeWithStatusDay = computed(() =>
-  mapStatus(activeNonPausedForDate.value, selectedDate.value)
-)
-const pausedWithStatusDay = computed(() =>
-  mapStatus(pausedRoutinesForDate.value, selectedDate.value)
-)
-
-const activeWithStatusPeriod = computed(() =>
-  activeNonPausedForPeriod.value.map(r => ({ ...r, status: latestStatusInRange(r, effectivePeriodStart.value, periodEnd.value) }))
-)
-const pausedWithStatusPeriod = computed(() =>
-  pausedRoutinesForPeriod.value.map(r => ({ ...r, status: latestStatusInRange(r, effectivePeriodStart.value, periodEnd.value) }))
-)
+const occurrencesPausedPeriod = computed(() => {
+  const s = periodStartRaw.value
+  const e = periodEnd.value
+  return rawRoutines.value
+    .filter(r => !!r.isPaused && isActiveOnAnyDay(r, s, e))
+    .map(r => {
+      const d = lastActiveDateInRange(r, s, e) || s
+      const k = dateKey(d)
+      return { ...r, status: r?.progress?.[k] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-paused-period-${dateKey(d)}` }
+    })
+})
 
 watch([selectedDate, rawRoutines, selectedPeriod], () => {
   if (selectedPeriod.value === 'T') {
-    routines.value = [...activeWithStatusDay.value, ...pausedWithStatusDay.value]
+    routines.value = [...occurrencesActiveDay.value, ...occurrencesPausedDay.value]
   } else {
-    routines.value = [...activeWithStatusPeriod.value, ...pausedWithStatusPeriod.value]
+    routines.value = [...occurrencesActivePeriod.value, ...occurrencesPausedPeriod.value]
   }
 }, { immediate: true })
 
 const headerCounts = computed(() => {
-  const src = selectedPeriod.value === 'T' ? activeWithStatusDay.value : activeWithStatusPeriod.value
+  const src = selectedPeriod.value === 'T' ? occurrencesActiveDay.value : occurrencesActivePeriod.value
   const c = { notdone: 0, done: 0, faildone: 0, ignored: 0 }
   for (const r of src) {
     const s = getStatus(r)
@@ -280,13 +285,13 @@ const headerCounts = computed(() => {
   }
   return c
 })
-const headerTotal = computed(() => (selectedPeriod.value === 'T' ? activeWithStatusDay.value.length : activeWithStatusPeriod.value.length))
+const headerTotal = computed(() => (selectedPeriod.value === 'T' ? occurrencesActiveDay.value.length : occurrencesActivePeriod.value.length))
 
 const displayedRoutines = computed(() => {
-  const src = selectedPeriod.value === 'T' ? activeWithStatusDay.value : activeWithStatusPeriod.value
-  const activeFiltered = src.filter(r => getStatus(r) === selectedFilter.value)
-  const paused = selectedPeriod.value === 'T' ? pausedWithStatusDay.value : pausedWithStatusPeriod.value
-  return [...activeFiltered, ...paused]
+  const activeSrc = selectedPeriod.value === 'T' ? occurrencesActiveDay.value : occurrencesActivePeriod.value
+  const pausedSrc = selectedPeriod.value === 'T' ? occurrencesPausedDay.value : occurrencesPausedPeriod.value
+  const activeFiltered = activeSrc.filter(r => getStatus(r) === selectedFilter.value)
+  return [...activeFiltered, ...pausedSrc]
 })
 
 function handleSelectDate(date, isFuture) {
@@ -314,7 +319,8 @@ function onSaved(rt) {
 async function onChangeStatus({ id, status }) {
   const key = dateKey(selectedDate.value)
   if (!currentUid) return
-  const j = rawRoutines.value.findIndex(r => r.id === id)
+  const rid = id.split('-')[0]
+  const j = rawRoutines.value.findIndex(r => r.id === rid)
   const prev = j !== -1 ? rawRoutines.value[j]?.progress?.[key] : undefined
   const r = j !== -1 ? rawRoutines.value[j] : null
   const hasWalk = !!(r && (typeof r.hasWalk === 'boolean' ? r.hasWalk : (r.ruffy && r.course && r.goalCount)))
@@ -329,7 +335,7 @@ async function onChangeStatus({ id, status }) {
       updatedAt: serverTimestamp(),
       ...(delta !== 0 ? { walkDoneCount: increment(delta) } : {})
     }
-    await updateDoc(doc(db, 'users', currentUid, 'routines', id), payload)
+    await updateDoc(doc(db, 'users', currentUid, 'routines', rid), payload)
   } catch (e) {}
   if (j !== -1) {
     const next = { ...rawRoutines.value[j] }
@@ -344,14 +350,15 @@ async function onChangeStatus({ id, status }) {
 }
 
 async function onTogglePause({ id, isPaused }) {
-  if (!currentUid || !id) return
+  const rid = typeof id === 'string' ? id.split('-')[0] : id
+  if (!currentUid || !rid) return
   try {
-    await updateDoc(doc(db, 'users', currentUid, 'routines', id), {
+    await updateDoc(doc(db, 'users', currentUid, 'routines', rid), {
       isPaused: !!isPaused,
       updatedAt: serverTimestamp(),
     })
   } catch (e) { return }
-  const j = rawRoutines.value.findIndex(r => r.id === id)
+  const j = rawRoutines.value.findIndex(r => r.id === rid)
   if (j !== -1) {
     const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
     rawRoutines.value.splice(j, 1, next)
@@ -359,17 +366,18 @@ async function onTogglePause({ id, isPaused }) {
 }
 
 async function onDelete(payload) {
-  const id = typeof payload === 'string' ? payload : payload?.id
-  if (!currentUid || !id) {
+  const ridRaw = typeof payload === 'string' ? payload : payload?.id
+  const rid = typeof ridRaw === 'string' ? ridRaw.split('-')[0] : ridRaw
+  if (!currentUid || !rid) {
     alert('삭제 실패: 잘못된 ID입니다.')
     return
   }
   try {
-    await deleteDoc(doc(db, 'users', currentUid, 'routines', id))
+    await deleteDoc(doc(db, 'users', currentUid, 'routines', rid))
   } catch (e) {
     alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.')
   }
-  rawRoutines.value = rawRoutines.value.filter(r => r.id !== id)
+  rawRoutines.value = rawRoutines.value.filter(r => r.id !== rid)
 }
 
 function openAddRoutine() {
@@ -499,18 +507,15 @@ watch(isScrolled, () => {
 
 function handlePrev() {
   if (selectedPeriod.value === 'W') {
-    const cur = new Date(selectedDate.value)
-    const anchor = startOfWeekSun(cur)
-    const prev = new Date(anchor); prev.setDate(prev.getDate()-7)
-    selectedDate.value = prev
-    isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
+    const d = addDays(selectedDate.value, -7)
+    selectedDate.value = d
+    isFutureDate.value = d > new Date() && !isTodayDateFn(d)
     selectedFilter.value = 'notdone'
     return
   }
   if (selectedPeriod.value === 'M') {
     const cur = new Date(selectedDate.value)
-    const firstOfCur = startOfMonth(cur)
-    const prev = addMonths(firstOfCur, -1)
+    const prev = addMonths(cur, -1)
     selectedDate.value = prev
     isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
     selectedFilter.value = 'notdone'
@@ -522,18 +527,15 @@ function handlePrev() {
 }
 function handleNext() {
   if (selectedPeriod.value === 'W') {
-    const cur = new Date(selectedDate.value)
-    const anchor = startOfWeekSun(cur)
-    const next = new Date(anchor); next.setDate(next.getDate()+7)
-    selectedDate.value = next
-    isFutureDate.value = next > new Date() && !isTodayDateFn(next)
+    const d = addDays(selectedDate.value, 7)
+    selectedDate.value = d
+    isFutureDate.value = d > new Date() && !isTodayDateFn(d)
     selectedFilter.value = 'notdone'
     return
   }
   if (selectedPeriod.value === 'M') {
     const cur = new Date(selectedDate.value)
-    const firstOfCur = startOfMonth(cur)
-    const next = addMonths(firstOfCur, 1)
+    const next = addMonths(cur, 1)
     selectedDate.value = next
     isFutureDate.value = next > new Date() && !isTodayDateFn(next)
     selectedFilter.value = 'notdone'
@@ -558,12 +560,8 @@ function handleChangePeriod(mode) {
     if (todayEl) todayEl.classList.remove('top')
     if (dateScrollEl) dateScrollEl.style.display = ''
   } else if (mode === 'W') {
-    const cur = new Date(selectedDate.value)
-    selectedDate.value = startOfWeekSun(cur)
     selectedView.value = 'block'
   } else if (mode === 'M') {
-    const cur = new Date(selectedDate.value)
-    selectedDate.value = startOfMonth(cur)
     selectedView.value = 'list'
   }
   selectedFilter.value = 'notdone'
@@ -572,14 +570,19 @@ function handleChangePeriod(mode) {
 
 function isRoutineForToday(r) {
   const today = new Date()
-  return inDateRange(r, today)
+  const ad = r?.assignedDate ? new Date(r.assignedDate) : today
+  const a = startOfDay(ad).getTime()
+  const b = startOfDay(today).getTime()
+  return a === b
 }
 
 function getAssignedDate(r) {
+  if (r?.assignedDate) return new Date(r.assignedDate)
   if (selectedPeriod.value === 'T') return new Date(selectedDate.value)
-  const d = lastActiveDateInRange(r, effectivePeriodStart.value, periodEnd.value)
-  return d ? d : new Date(effectivePeriodStart.value)
+  const d = lastActiveDateInRange(r, periodStartRaw.value, periodEnd.value)
+  return d ? d : new Date(periodStartRaw.value)
 }
 </script>
+
 
 

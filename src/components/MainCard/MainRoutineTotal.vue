@@ -74,19 +74,19 @@
         href="#none"
         class="on_w"
         @click.prevent="$emit('changePeriod','T')"
-      >일</a>
+      >일간</a>
       <a
         v-if="periodMode!=='W'"
         href="#none"
         class="on_w"
         @click.prevent="$emit('changePeriod','W')"
-      >주</a>
+      >주간</a>
       <a
         v-if="periodMode!=='M'"
         href="#none"
         class="on_w"
         @click.prevent="$emit('changePeriod','M')"
-      >월</a>
+      >월간</a>
       <a
         href="#none"
         class="r_card"
