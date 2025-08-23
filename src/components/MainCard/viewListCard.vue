@@ -43,7 +43,7 @@
 
       <div class="right"></div>
 
-      <div class="state_button">
+      <div class="">
         <div class="done_set" v-if="flags.canShowStatusButton" v-show="expanded">
           <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
         </div>

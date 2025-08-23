@@ -50,7 +50,7 @@
             :key="rt.id"
             :selected="getStatus(rt)"
             :routine="rt"
-            :isToday="isTodayDate"
+            :isToday="isRoutineForToday(rt)"
             :layout="currentLayout"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
@@ -555,6 +555,11 @@ function handleChangePeriod(mode) {
   }
   selectedFilter.value = 'notdone'
   updateScrolledUI()
+}
+
+function isRoutineForToday(r) {
+  const today = new Date()
+  return inDateRange(r, today)
 }
 </script>
 

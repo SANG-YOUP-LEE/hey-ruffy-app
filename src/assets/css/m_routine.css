@@ -168,7 +168,7 @@
 }
 
 #main_body .routine_total.top {
-  margin-top:0rem;
+  margin-top:1rem;
   padding-top:1rem;
   background-color:#fff;
   border:1px solid #e6e6e6;
@@ -178,7 +178,7 @@
 #main_body .routine_total.top p:first-child {
   border:none
 }
-
+/*
 #main_body .date_wscroll {
   padding:0;
   margin:0;
@@ -196,7 +196,7 @@
 #main_body .date_wscroll a span {
   display:none
 }
-
+*/
 
 #main_body .today_tools {
   margin:1rem 0 1rem 0;
@@ -309,7 +309,6 @@
 
 #main_body .routine_card.vblock .state_button,
 #main_body .routine_card.vlist .state_button {
-  display:none!important;
 }
 
 #main_body .main_scroll:has(.routine_card.vblock) {
@@ -327,16 +326,6 @@
   box-sizing: border-box;
 }
 
-
-#main_body .routine_card .rc_inner i {
-  display:inline-block;
-  font-size:0.7rem;
-  font-weight:bold;
-  padding:0 0.3rem 0 0.3rem;
-  border-radius:1rem;
-  background-color:#ffde00;
-  border:1px solid #ffc600;
-}
 
 #main_body .routine_card.rt_off {
   border:1px solid #e6e6e6;
@@ -386,9 +375,16 @@
 
 
 #main_body .routine_card .rc_inner i {
+  display:inline-block;
+  font-size:0.7rem;
+  font-weight:bold;
+  padding:0 0.3rem 0 0.3rem;
+  border-radius:1rem;
   font-style:normal;
   background-color:#fff;
-  border:1px solid #333
+  border:1px solid #333;
+  position:relative;
+  top:-0.1rem
 }
 
 #main_body .routine_card .rc_inner .left,
@@ -422,7 +418,7 @@
   color:#666;
   font-size:0.9rem;
   letter-spacing:-0.02rem;
-  line-height:1.2rem;
+  line-height:1.rem;
   margin-bottom:0.3rem;
 }
 
