@@ -182,7 +182,7 @@ async function confirmDelete() {
 
 <style scoped>
 #lnb{display:flex;flex-direction:column;height:100%}
-.lnb_header{padding:1rem;border-bottom:1px solid #eee}
+.lnb_header{padding:1rem;border-bottom:1px solid #e6e6e6}
 .lnb_user{padding:1rem;border-bottom:1px solid #f2f2f2}
 .user_row{display:flex;align-items:center;gap:.75rem}
 .avatar{width:2.5rem;height:2.5rem;border-radius:50%;overflow:hidden;background:#f1f1f1}
@@ -190,7 +190,7 @@ async function confirmDelete() {
 .meta .email{font-size:.85rem;color:#666}
 .lnb_menu{flex:1;overflow-y:auto;padding:1rem}
 .menu_danger{width:100%;padding:.9rem 1rem;border-radius:.75rem;border:1px solid #ffd9d9;background:#fff2f2;color:#c00}
-.lnb_footer{padding:1rem;border-top:1px solid #eee;display:grid;gap:.5rem}
+.lnb_footer{padding:1rem;border-top:1px solid #e6e6e6;display:grid;gap:.5rem}
 .btn_login,.btn_logout{width:100%;padding:.9rem 1rem;border:1px solid #ddd;background:#fff}
 .btn_logout:disabled{opacity:.6;cursor:default}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}

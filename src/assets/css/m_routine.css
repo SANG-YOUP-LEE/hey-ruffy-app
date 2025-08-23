@@ -1,63 +1,23 @@
-#main_body .no_data { 
-  position: fixed;
-  top: 50%; 
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  font-size:1.4rem;
-  line-height:1.7rem;
-  background-repeat: no-repeat;
-  background-size: 5rem 5rem;
-  background-position: top center;
-  font-family:'S-CoreDream-6Bold';
-  padding-top:5rem;
-}
-
-#main_body .no_data span {
-  display:block;
-  color:#666;
-  font-size:1rem;
-  margin-top:0.5rem;
-  font-family:'S-CoreDream-4Regular'
-}
-
-#main_body .ruffys_item {
-  grid-area: ruffys;
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:0.8rem;
-  padding:1rem;
-  margin:0 0 1rem 0;
-  border-radius:1.5rem;
-  background-color:#fafafa;
-  border:1px solid #e6e6e6;;
-}
-
-#main_body .ruffys_item span[class^="ruffy"] {
-  width:2.5rem;
-  height:2.5rem;
-  background-size:100% 100%;
-}
 
 #main_body .date_scroll {
   width:100%;
   display:grid;
-  grid-template-columns: auto 1fr;            /* 좌: 오늘 버튼, 우: 스크롤 */
-  grid-template-rows: auto auto;              /* 1행 러피, 2행 날짜줄 */
+  grid-template-columns: auto 1fr;            
+  grid-template-rows: auto auto;             
   grid-template-areas:
     "ruffys ruffys"
     "today  group";
   align-items: center;
   gap: 0.3rem 0.2rem;
   position: relative;
+  margin-top:1.5rem;
   padding:0rem 0rem 0.2rem 0rem;
   z-index:3;  
   border:1px solid #e6e6e6;
   border-bottom:none;
   border-radius:1.5rem 1.5rem 0 0;
   overflow:hidden;
+  background-color:#fff;
 }
 
 #main_body .date_scroll .date_fixed_today {
@@ -67,7 +27,7 @@
   z-index: 10;
   flex-shrink:0;
   font-weight:bold;
-  padding:1rem 1rem 0.5rem 1rem;
+  padding:1rem 0.5rem 0.5rem 1rem;
   border:1px solid #e6e6e6;
   border-right:none;
   border-bottom:none;
@@ -78,18 +38,19 @@
   grid-area: group;
   display:flex;
   justify-content:flex-start;
-  gap:0.5rem;
+  gap:0.2rem;
   align-items:center;
   overflow-x:auto;                
   -webkit-overflow-scrolling:touch;
   white-space:nowrap;
   -ms-overflow-style:none;
   scrollbar-width:none;
-  padding:1rem 1rem 0.5rem 1rem;
+  padding:1rem 0 0.5rem 0;
   border:1px solid #e6e6e6;
   border-left:none;
   border-bottom:none;
   border-top-right-radius: 1.5rem;
+  margin-right:1rem;
 }
 
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
@@ -100,6 +61,7 @@
 #main_body .date_scroll .date_group {
   border:none;
 }
+
 #main_body .date_scroll .date_group span,
 #main_body .date_fixed_today span {
   display: flex;
@@ -141,6 +103,7 @@
 #main_body .routine_total {
   margin:0;
   position:relative;
+  background-color:#fff;
 }
 
 #main_body .routine_total p:first-child {
@@ -249,11 +212,11 @@
   width:1.8rem;
   height:1.8rem;
   margin-left:0.2rem;
-  border:1px solid #eee;
+  border:1px solid #e6e6e6;
   border-radius:0.5rem;
 }
 
-#main_body .today_tools .on_w.light{
+#main_body .today_tools .on_w {
   text-decoration:none;
   font-weight:bold;
   line-height:1.8rem;
@@ -263,46 +226,49 @@
 #main_body .today_tools .basic {
   width:auto!important;
   height:1.8rem;
-  padding:0 0.5rem 0 0.5rem;
+  padding:0 0.3rem 0 0.3rem;
   text-decoration:none;
   font-weight:bold;
   line-height:1.8rem;
   text-align:center;
   border-radius:0.5rem;
 }
+
 #main_body .tools a.r_move {
-  background: url('../images/ico_move.png') no-repeat 50% 50%/50%;
+  background: url('../images/ico_move.png') no-repeat 50% 50%/60%;
 }
 
 #main_body .tools a.r_del {
-  background: url('../images/ico_del.png') no-repeat 50% 50%/50%;
+  background: url('../images/ico_del.png') no-repeat 50% 50%/60%;
 }
 
 #main_body .tools a.r_select {
-  background: url('../images/ico_check.png') no-repeat 50% 50%/70%;
+  background: url('../images/ico_check.png') no-repeat 50% 50%/90%;
 }
 
 #main_body .tools a.r_block {
-  background: url('../images/ico_block.png') no-repeat 50% 50%/50%;
+  background: url('../images/ico_block.png') no-repeat 50% 50%/60%;
 }
 
 #main_body .tools a.r_card {
-  background: url('../images/ico_card.png') no-repeat 50% 50%/50%;
+  background: url('../images/ico_card.png') no-repeat 50% 50%/60%;
 }
 
 #main_body .tools a.r_list {
-  background: url('../images/ico_list.png') no-repeat 50% 50%/50%;
+  background: url('../images/ico_list.png') no-repeat 50% 50%/60%;
 }
 
+#main_body .tools a {
+  background-color: #fff !important
+}
 #main_body .tools [class$='on'] {
   border: 1px solid #333 !important;
-  background-color: #fff !important;
   color: #333 !important;
 }
 
 #main_body .routine_card {
   background-color: #fff;
-  border: 1px solid #eaeaea;
+  border: 1px solid #e6e6e6;
   border-radius: 1.5rem;
   padding: 1.5rem;
   text-align: left;
@@ -342,7 +308,7 @@
 }
 
 #main_body .routine_card.rt_off {
-  border:1px solid #eee;
+  border:1px solid #e6e6e6;
   background-color:#f5f5f5
 }
 

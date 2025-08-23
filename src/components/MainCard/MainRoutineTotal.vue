@@ -1,5 +1,5 @@
 <template>
-  <div class="routine_total">
+  <div class="routine_total" v-if="periodMode==='T'">
     <p>
       <span>
         <strong>{{ isFuture ? '이날의 다짐' : headerTitle }}</strong>
@@ -56,7 +56,9 @@
           :class="{ hidden: periodMode==='T' && isToday }"
           @click.prevent="$emit('requestPrev')"
         ><span>{{ prevLabel }}</span></a>
-        <a href="#none" class="basic">{{ centerTitle }}</a>
+        <a href="#none" class="basic">
+          {{ periodMode==='T' ? '일간' : periodMode==='W' ? '주간' : '월간' }}
+        </a>
         {{ centerText }}
         <a
           href="#none"
@@ -66,28 +68,25 @@
       </p>
     </div>
 
-    <div class="term">
+    <div class="tools">
       <a
         v-if="periodMode!=='T'"
         href="#none"
-        class="on_w light"
+        class="on_w"
         @click.prevent="$emit('changePeriod','T')"
       >일</a>
       <a
         v-if="periodMode!=='W'"
         href="#none"
-        class="on_w light"
+        class="on_w"
         @click.prevent="$emit('changePeriod','W')"
       >주</a>
       <a
         v-if="periodMode!=='M'"
         href="#none"
-        class="on_w light"
+        class="on_w"
         @click.prevent="$emit('changePeriod','M')"
       >월</a>
-    </div>
-
-    <div class="tools">
       <a
         href="#none"
         class="r_card"

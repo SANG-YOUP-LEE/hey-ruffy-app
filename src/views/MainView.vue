@@ -6,6 +6,7 @@
     <div id="main_body">
       <div class="main_fixed">
         <MainDateScroll
+          v-if="selectedPeriod==='T'"
           :selectedDate="selectedDate"
           @selectDate="handleSelectDate"
         />

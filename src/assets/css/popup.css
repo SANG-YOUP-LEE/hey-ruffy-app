@@ -81,7 +81,7 @@ body.no-scroll {
 .com_popup_wrap .picker_group {
   display: flex;
   gap: 0.5rem;
-  border: 1px solid #eee;
+  border: 1px solid #e6e6e6;
   border-radius: 1.5rem;
   margin-top: 0.5rem;
   background-color: #f9f9f9;

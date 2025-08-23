@@ -57,7 +57,7 @@
 	background-color:#fff;
 	padding:0 1.5rem 2rem 2rem;
   border-radius:1.5rem;
-  border:1px solid #ececec;
+  border:1px solid #e6e6e6;
 	/*box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
 }
 
@@ -134,7 +134,7 @@
 
 .form_box_g .detail_box.weekly .s_group_wrap {
   background-color:#f9f9f9;
-  border:1px solid #eee;
+  border:1px solid #e6e6e6;
   padding:1rem;
   margin-top:0.5rem;
   border-radius:1.5rem;
@@ -159,7 +159,7 @@
 
 .form_box_g .detail_box.daily [class$="s_btn"],
 .form_box_g .detail_box.weekly [class$="s_btn"]{
-  border:1px solid #eee;
+  border:1px solid #e6e6e6;
 }
 
 .form_box_g .detail_box .s_group_wrap [class$="s_btn"] {
