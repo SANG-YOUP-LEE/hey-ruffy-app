@@ -413,9 +413,38 @@ const bindRoutines = (uid) => {
   )
 }
 
+const isScrolled = ref(false)
+let scrollEl = null
+function onScrollHandler() {
+  if (selectedPeriod.value === 'T') {
+    isScrolled.value = (scrollEl?.scrollTop || 0) > 0
+  }
+}
+function updateScrolledUI() {
+  const routineTotalEl = document.querySelector('.routine_total')
+  const dateScrollEl = document.querySelector('.date_scroll')
+  const v = isScrolled.value
+  if (routineTotalEl) {
+    if (selectedPeriod.value === 'T' && v) routineTotalEl.classList.add('top')
+    else routineTotalEl.classList.remove('top')
+  }
+  if (dateScrollEl) {
+    if (selectedPeriod.value === 'T') {
+      dateScrollEl.style.display = v ? 'none' : ''
+    } else {
+      dateScrollEl.style.display = ''
+    }
+  }
+}
+
 onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
+
+  scrollEl = document.querySelector('.main_scroll')
+  if (scrollEl) {
+    scrollEl.addEventListener('scroll', onScrollHandler)
+  }
 
   await authReadyPromise
   if (auth.currentUser) {
@@ -437,12 +466,22 @@ onMounted(async () => {
       }
     }
   })
+
+  updateScrolledUI()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
+  if (scrollEl) {
+    scrollEl.removeEventListener('scroll', onScrollHandler)
+    scrollEl = null
+  }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
+})
+
+watch(isScrolled, () => {
+  updateScrolledUI()
 })
 
 function handlePrev() {
@@ -500,6 +539,11 @@ function handleChangePeriod(mode) {
     selectedDate.value = today
     isFutureDate.value = false
     selectedView.value = 'card'
+    isScrolled.value = false
+    const todayEl = document.querySelector('.date_fixed_today')
+    const dateScrollEl = document.querySelector('.date_scroll')
+    if (todayEl) todayEl.classList.remove('top')
+    if (dateScrollEl) dateScrollEl.style.display = ''
   } else if (mode === 'W') {
     const cur = new Date(selectedDate.value)
     selectedDate.value = startOfWeekSun(cur)
@@ -510,5 +554,7 @@ function handleChangePeriod(mode) {
     selectedView.value = 'list'
   }
   selectedFilter.value = 'notdone'
+  updateScrolledUI()
 }
 </script>
+

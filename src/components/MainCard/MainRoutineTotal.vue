@@ -1,4 +1,7 @@
 <template>
+  <div class="date_wscroll">
+    <a href="#none"><span>월간 스크롤 보기</span></a>
+  </div>
   <div class="routine_total" v-if="periodMode==='T'">
     <p>
       <span>
@@ -112,7 +115,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 
 const emit = defineEmits(['update:modelValue','changeFilter','requestPrev','requestNext','changeView','changePeriod'])
 const props = defineProps({
@@ -227,7 +230,91 @@ const nextLabel = computed(() => {
   if (props.periodMode === 'M') return '다음달'
   return '다음날'
 })
+
+let scrollEl=null, dateScrollEl=null, dateWscrollEl=null, routineTotalEl=null, isAutoScroll=false
+function hide(el){ if(el) el.style.display='none' }
+function show(el){ if(el) el.style.display='' }
+function addTop(){ if(routineTotalEl) routineTotalEl.classList.add('top') }
+function removeTop(){ if(routineTotalEl) routineTotalEl.classList.remove('top') }
+
+function handleDailyScrolled(st){
+  if(st>0){
+    hide(dateScrollEl)
+    show(dateWscrollEl)
+    addTop()
+  }else{
+    removeTop()
+    hide(dateWscrollEl)
+    show(dateScrollEl)
+  }
+}
+
+function onScroll(){
+  if(props.periodMode!=='T' || !scrollEl) return
+  const st = scrollEl.scrollTop || 0
+  if(isAutoScroll){
+    if(st===0){ isAutoScroll=false; handleDailyScrolled(0) }
+    return
+  }
+  handleDailyScrolled(st)
+}
+
+function bindDom(){
+  scrollEl = document.querySelector('.main_scroll')
+  dateScrollEl = document.querySelector('.date_scroll')
+  dateWscrollEl = document.querySelector('.date_wscroll')
+  routineTotalEl = document.querySelector('.routine_total')
+  if(dateWscrollEl){
+    dateWscrollEl.addEventListener('click', onClickDateWscroll, { passive: false })
+    hide(dateWscrollEl)
+  }
+  if(scrollEl){
+    scrollEl.addEventListener('scroll', onScroll, { passive: true })
+  }
+  handleDailyScrolled(scrollEl ? scrollEl.scrollTop||0 : 0)
+}
+
+function unbindDom(){
+  if(scrollEl){ scrollEl.removeEventListener('scroll', onScroll); scrollEl=null }
+  if(dateWscrollEl){ dateWscrollEl.removeEventListener('click', onClickDateWscroll); dateWscrollEl=null }
+  dateScrollEl=null
+  routineTotalEl=null
+  isAutoScroll=false
+}
+
+function onClickDateWscroll(e){
+  const a = e.target.closest('a')
+  if(!a) return
+  e.preventDefault()
+  isAutoScroll=true
+  removeTop()
+  hide(dateWscrollEl)
+  show(dateScrollEl)
+  if(scrollEl) scrollEl.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  nextTick(bindDom)
+})
+
+onBeforeUnmount(() => {
+  unbindDom()
+})
+
+watch(() => props.periodMode, async (v) => {
+  await nextTick()
+  if(v==='T'){
+    bindDom()
+  }else{
+    removeTop()
+    if(dateWscrollEl) hide(dateWscrollEl)
+    if(dateScrollEl) show(dateScrollEl)
+    unbindDom()
+  }
+})
 </script>
+
+
 
 
 

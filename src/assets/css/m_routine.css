@@ -103,7 +103,6 @@
 #main_body .routine_total {
   margin:0;
   position:relative;
-  background-color:#fff;
 }
 
 #main_body .routine_total p:first-child {
@@ -119,6 +118,7 @@
   border-top:none;
   border-bottom-right-radius: 1.5rem;
   border-bottom-left-radius: 1.5rem;
+  background-color:#fff;
  }
 
 #main_body .routine_total p:first-child span:first-child {
@@ -166,6 +166,37 @@
 #main_body .routine_total p span a strong {
   margin-right:0.2rem;
 }
+
+#main_body .routine_total.top {
+  margin-top:0rem;
+  padding-top:1rem;
+  background-color:#fff;
+  border:1px solid #e6e6e6;
+  border-radius: 1.5rem;
+}
+
+#main_body .routine_total.top p:first-child {
+  border:none
+}
+
+#main_body .date_wscroll {
+  padding:0;
+  margin:0;
+}
+
+#main_body .date_wscroll a {
+  width:1.5rem;
+  height:1rem;
+  display:inline-block;
+  background: url('../images/ico_wscroll.png') no-repeat 50% 50% /100%;
+  padding:0;
+  margin:0.5rem 0 0 0;
+}
+
+#main_body .date_wscroll a span {
+  display:none
+}
+
 
 #main_body .today_tools {
   margin:1rem 0 1rem 0;
