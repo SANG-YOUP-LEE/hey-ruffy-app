@@ -288,10 +288,43 @@ const headerCounts = computed(() => {
 const headerTotal = computed(() => (selectedPeriod.value === 'T' ? occurrencesActiveDay.value.length : occurrencesActivePeriod.value.length))
 
 const displayedRoutines = computed(() => {
-  const activeSrc = selectedPeriod.value === 'T' ? occurrencesActiveDay.value : occurrencesActivePeriod.value
-  const pausedSrc = selectedPeriod.value === 'T' ? occurrencesPausedDay.value : occurrencesPausedPeriod.value
-  const activeFiltered = activeSrc.filter(r => getStatus(r) === selectedFilter.value)
-  return [...activeFiltered, ...pausedSrc]
+  const base = selectedPeriod.value === 'T'
+    ? [...occurrencesActiveDay.value, ...occurrencesPausedDay.value]
+    : [...occurrencesActivePeriod.value, ...occurrencesPausedPeriod.value]
+
+  const filtered = base.filter(r => getStatus(r) === selectedFilter.value)
+
+  const toMs = (v) => {
+    if (!v) return 0
+    if (v instanceof Date) return v.getTime()
+    if (typeof v.toDate === 'function') {
+      const d = v.toDate()
+      return d instanceof Date ? d.getTime() : 0
+    }
+    if (typeof v === 'number') return v
+    if (typeof v === 'string') {
+      const d = new Date(v)
+      return isNaN(d) ? 0 : d.getTime()
+    }
+    return 0
+  }
+
+  const arr = filtered.slice()
+  arr.sort((a, b) => {
+    if (selectedPeriod.value === 'T') {
+      const ca = toMs(a.createdAt)
+      const cb = toMs(b.createdAt)
+      return cb - ca
+    } else {
+      const da = toMs(a.assignedDate)
+      const db = toMs(b.assignedDate)
+      if (da !== db) return da - db
+      const ca = toMs(a.createdAt)
+      const cb = toMs(b.createdAt)
+      return cb - ca
+    }
+  })
+  return arr
 })
 
 function handleSelectDate(date, isFuture) {
