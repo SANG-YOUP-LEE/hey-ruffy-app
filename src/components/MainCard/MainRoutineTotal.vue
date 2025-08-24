@@ -72,17 +72,17 @@
         <a
           href="#none"
           :class="periodMode==='T' ? 'basic' : 'on_w'"
-          @click.prevent="$emit('changePeriod','T')"
+          @click.prevent="onChangePeriod('T')"
         >일간</a>
         <a
           href="#none"
           :class="periodMode==='W' ? 'basic' : 'on_w'"
-          @click.prevent="$emit('changePeriod','W')"
+          @click.prevent="onChangePeriod('W')"
         >주간</a>
         <a
           href="#none"
           :class="periodMode==='M' ? 'basic' : 'on_w'"
-          @click.prevent="$emit('changePeriod','M')"
+          @click.prevent="onChangePeriod('M')"
         >월간</a>
       </span>
 
@@ -91,21 +91,25 @@
           href="#none"
           class="r_card"
           :class="{ on: viewMode==='card' }"
-          @click.prevent="$emit('changeView','card')"
+          @click.prevent="onChangeView('card')"
         ><span>다짐카드보기</span></a>
         <a
           href="#none"
           class="r_block"
           :class="{ on: viewMode==='block' }"
-          @click.prevent="$emit('changeView','block')"
+          @click.prevent="onChangeView('block')"
         ><span>다짐블록보기</span></a>
         <a
           href="#none"
           class="r_list"
           :class="{ on: viewMode==='list' }"
-          @click.prevent="$emit('changeView','list')"
+          @click.prevent="onChangeView('list')"
         ><span>다짐목록보기</span></a>
-        <a href="#none" class="r_select"><span>다짐선택</span></a>
+        <a
+          href="#none"
+          :class="deleteMode ? 'r_del' : 'r_select'"
+          @click.prevent="toggleDeleteMode"
+        ><span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span></a>
       </span>
     </div>
   </div>
@@ -114,7 +118,7 @@
 <script setup>
 import { computed } from 'vue'
 
-const emit = defineEmits(['update:modelValue','changeFilter','requestPrev','requestNext','changeView','changePeriod'])
+const emit = defineEmits(['update:modelValue','changeFilter','requestPrev','requestNext','changeView','changePeriod','toggleDeleteMode'])
 const props = defineProps({
   isFuture: { type: Boolean, default: false },
   modelValue: { type: [String, null], default: 'notdone' },
@@ -122,8 +126,21 @@ const props = defineProps({
   totalCount: { type: Number, default: null },
   selectedDate: { type: Date, required: true },
   viewMode: { type: String, default: 'card' },
-  periodMode: { type: String, default: 'T' }
+  periodMode: { type: String, default: 'T' },
+  deleteMode: { type: Boolean, default: false }
 })
+
+function toggleDeleteMode() {
+  emit('toggleDeleteMode', !props.deleteMode)
+}
+
+function onChangePeriod(mode){
+  emit('changePeriod', mode)
+}
+
+function onChangeView(view){
+  emit('changeView', view)
+}
 
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal = computed(() => props.totalCount ?? 15)

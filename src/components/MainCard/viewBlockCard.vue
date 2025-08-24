@@ -1,8 +1,18 @@
 <template>
   <div :class="['vblock', cls]">
+    <label class="checkbox-label" v-show="isSelectMode">
+      <input
+        type="checkbox"
+        :checked="isSelected"
+        @change="e => actions?.toggleSelect?.(e.target.checked)"
+      />
+      <span class="checkmark"></span>
+    </label>
+
     <button class="setting" @click.stop="actions.togglePopup">
       <span>다짐설정</span>
     </button>
+
     <div class="state_button">
       <div class="done_set" v-if="flags.canShowStatusButton">
         <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
@@ -39,7 +49,7 @@
 
     <div class="rc_inner">
       <div class="left">
-        <p class="today" v-if="ui.dateText">{{ ui.dateText }}</p>
+        <p class="today" v-if="ui.dateText && periodMode !== 'T'">{{ ui.dateText }}</p>
         <p class="title">
           <span :class="ui.colorClass"></span>
           {{ ui.titleText }}
@@ -66,7 +76,10 @@ defineProps({
   ui: { type: Object, required: true },
   flags: { type: Object, required: true },
   actions: { type: Object, required: true },
-  showPopup: { type: Boolean, default: false }
+  showPopup: { type: Boolean, default: false },
+  periodMode: { type: String, required: true },
+  isSelectMode: { type: Boolean, default: false },
+  isSelected: { type: Boolean, default: false }
 })
 const expanded = ref(false)
 </script>

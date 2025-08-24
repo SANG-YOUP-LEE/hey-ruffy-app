@@ -33,9 +33,13 @@
           openDeleteConfirm,
           openStatusPopup,
           handleStatusButtonClick,
-          openWalkPopup
+          openWalkPopup,
+          toggleSelect
         }"
         :show-popup="showPopup"
+        :period-mode="periodMode"
+        :is-select-mode="deleteMode"
+        :is-selected="isSelected"
       />
     </div>
 
@@ -151,9 +155,13 @@ const props = defineProps({
   routine: { type: Object, default: () => ({}) },
   isToday: { type: Boolean, default: false },
   layout: { type: [Object, Function], required: true },
-  assignedDate: { type: [String, Date, Number], default: null }
+  assignedDate: { type: [String, Date, Number], default: null },
+  periodMode: { type: String, default: 'T' },
+  deleteTargets: { type: [Array, String], default: null },
+  deleteMode: { type: Boolean, default: false }
 })
-const emit = defineEmits(['delete','changeStatus','edit','togglePause'])
+
+const emit = defineEmits(['delete','changeStatus','edit','togglePause','toggleSelect'])
 
 const showPopup = ref(false)
 const showDeleteConfirmPopup = ref(false)
@@ -295,6 +303,14 @@ const dateText = computed(() => {
   return `${y}.${m}.${day}`
 })
 
+const baseId = computed(() => String(props.routine?.id || '').split('-')[0])
+const isSelected = computed(() => Array.isArray(props.deleteTargets) && props.deleteTargets.includes(baseId.value))
+
+function toggleSelect(checked) {
+  const id = baseId.value
+  if (id) emit('toggleSelect', { id, checked })
+}
+
 function onSelect(type) {
   selectedState.value = selectedState.value === type ? '' : type
 }
@@ -339,9 +355,9 @@ function closeDeleteConfirm() {
 }
 
 function confirmDelete() {
-  const id = props.routine?.id
+  const ids = Array.isArray(props.deleteTargets) ? props.deleteTargets : [props.routine?.id]
   closeDeleteConfirm()
-  if (id) emit('delete', id)
+  if (ids.length) emit('delete', ids)
 }
 
 function openPauseRestartConfirm() {
@@ -452,4 +468,3 @@ onBeforeUnmount(() => {
   document.body.classList.remove('no-scroll')
 })
 </script>
-

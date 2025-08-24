@@ -277,7 +277,7 @@
 }
 
 #main_body .tools .tools_wrap a.r_del {
-  background: url('../images/ico_del.png') no-repeat 50% 50%/60%;
+  background: url('../images/ico_del.png') no-repeat 50% 50%/70%;
 }
 
 #main_body .tools .tools_wrap a.r_select {
@@ -351,8 +351,7 @@
   padding-bottom:0.5rem
 }
 
-#main_body .routine_card.vblock .rc_inner p.today,
-#main_body .routine_card.vlist .rc_inner p.today { 
+#main_body .routine_card .rc_inner p.today { 
   font-weight:bold;
   padding:0;
 }
@@ -531,9 +530,21 @@
   margin-top:-0.1rem
 }
 
+
+#main_body .routine_card.vlist .state_button.check {
+  margin-right:4rem;
+}
+
+#main_body .routine_card .checkbox-label {
+  position:absolute;
+  top:1.4rem;
+  right:3rem;
+}
+
+
 #main_body .routine_card .setting {
-  height:1rem;
-  width:1rem;
+  height:1.2rem;
+  width:1.2rem;
   position:absolute;
   top:1.5rem;
   right:1rem;

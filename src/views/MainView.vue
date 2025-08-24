@@ -1,5 +1,5 @@
 <template>
-  <div id="main_wrap">
+  <div id="main_wrap" :class="{ selecting: deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
@@ -18,11 +18,13 @@
           :totalCount="headerTotal"
           :viewMode="selectedView"
           :periodMode="selectedPeriod"
+          :deleteMode="deleteMode"
           @changeFilter="handleFilterChange"
           @requestPrev="handlePrev"
           @requestNext="handleNext"
-          @changeView="v => selectedView = v"
+          @changeView="v => handleChangeView(v)"
           @changePeriod="handleChangePeriod"
+          @toggleDeleteMode="handleToggleDeleteMode"
         />
       </div>
 
@@ -53,10 +55,14 @@
             :isToday="isRoutineForToday(rt)"
             :assigned-date="getAssignedDate(rt)"
             :layout="currentLayout"
+            :period-mode="selectedPeriod"
+            :delete-targets="selectedIds"
+            :delete-mode="deleteMode"
             @changeStatus="onChangeStatus"
             @delete="onDelete"
             @edit="openEditRoutine"
             @togglePause="onTogglePause"
+            @toggleSelect="onToggleSelect"
           />
         </template>
       </div>
@@ -74,6 +80,20 @@
       @save="onSaved"
       :routineToEdit="editingRoutine"
     />
+
+    <teleport to="body">
+      <div v-if="showBulkDeleteConfirm" class="com_popup_wrap">
+        <div class="popup_inner alert">
+          <div class="popup_tit"><h2>선택한 다짐을 삭제할까요?</h2></div>
+          <div class="popup_body">삭제된 다짐은 되돌릴 수 없어요.</div>
+          <div class="popup_btm">
+            <button @click="confirmBulkDelete" class="p_basic">삭제</button>
+            <button @click="closeBulkDeleteConfirm" class="p_white">취소</button>
+          </div>
+          <button class="close_btn" @click="closeBulkDeleteConfirm"><span>닫기</span></button>
+        </div>
+      </div>
+    </teleport>
   </div>
 </template>
 
@@ -121,6 +141,51 @@ const routines = ref([])
 const isTodayDate = computed(() => dateKey(selectedDate.value) === dateKey(new Date()))
 let currentUid = null
 let editingRoutine = ref(null)
+
+const deleteMode = ref(false)
+const selectedIds = ref([])
+const showBulkDeleteConfirm = ref(false)
+
+function handleToggleDeleteMode(v) {
+  const next = !!v
+  if (deleteMode.value && !next) {
+    if (selectedIds.value.length > 0) {
+      showBulkDeleteConfirm.value = true
+      document.body.classList.add('no-scroll')
+      return
+    }
+  }
+  deleteMode.value = next
+  if (!deleteMode.value) selectedIds.value = []
+  toggleListStateButtonClass(deleteMode.value)
+}
+
+function onToggleSelect({ id, checked }) {
+  const base = String(id).split('-')[0]
+  if (!base) return
+  const idx = selectedIds.value.indexOf(base)
+  if (checked && idx === -1) selectedIds.value = [...selectedIds.value, base]
+  if (!checked && idx !== -1) selectedIds.value = selectedIds.value.filter(x => x !== base)
+}
+
+function closeBulkDeleteConfirm() {
+  showBulkDeleteConfirm.value = false
+  document.body.classList.remove('no-scroll')
+  deleteMode.value = false
+  selectedIds.value = []
+  toggleListStateButtonClass(false)
+}
+
+async function confirmBulkDelete() {
+  const ids = selectedIds.value.slice()
+  closeBulkDeleteConfirm()
+  await onDelete(ids)
+}
+
+function toggleListStateButtonClass(on) {
+  const els = document.querySelectorAll('.vlist .state_button')
+  els.forEach(el => el.classList.toggle('check', !!on))
+}
 
 function dateKey(date, tz = 'Asia/Seoul') {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(date)
@@ -334,6 +399,7 @@ function handleSelectDate(date, isFuture) {
   selectedPeriod.value = 'T'
   selectedView.value = 'card'
 }
+
 const handleFilterChange = () => {}
 
 function onSaved(rt) {
@@ -399,18 +465,28 @@ async function onTogglePause({ id, isPaused }) {
 }
 
 async function onDelete(payload) {
-  const ridRaw = typeof payload === 'string' ? payload : payload?.id
-  const rid = typeof ridRaw === 'string' ? ridRaw.split('-')[0] : ridRaw
-  if (!currentUid || !rid) {
+  const ids = Array.isArray(payload) ? payload : [payload]
+  const ridList = ids
+    .map(x => typeof x === 'string' ? x.split('-')[0] : x?.id ? String(x.id).split('-')[0] : null)
+    .filter(Boolean)
+
+  if (!currentUid || ridList.length === 0) {
     alert('삭제 실패: 잘못된 ID입니다.')
     return
   }
+
   try {
-    await deleteDoc(doc(db, 'users', currentUid, 'routines', rid))
+    await Promise.all(ridList.map(rid => deleteDoc(doc(db, 'users', currentUid, 'routines', rid))))
   } catch (e) {
     alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.')
   }
-  rawRoutines.value = rawRoutines.value.filter(r => r.id !== rid)
+
+  rawRoutines.value = rawRoutines.value.filter(r => !ridList.includes(r.id))
+  if (deleteMode.value) {
+    selectedIds.value = []
+    deleteMode.value = false
+    toggleListStateButtonClass(false)
+  }
 }
 
 function openAddRoutine() {
@@ -448,7 +524,7 @@ const bindRoutines = (uid) => {
   hasFetched.value = false
   const q = query(
     collection(db, 'users', uid, 'routines'),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'asc')
   )
   stopRoutines = onSnapshot(
     q,
@@ -525,6 +601,23 @@ onMounted(async () => {
     }
   })
 
+  window.addEventListener('routine-delete-open', () => {
+    if (!deleteMode.value) {
+      deleteMode.value = true
+      toggleListStateButtonClass(true)
+    }
+  })
+  window.addEventListener('routine-delete-cancel', () => {
+    deleteMode.value = false
+    selectedIds.value = []
+    toggleListStateButtonClass(false)
+  })
+  window.addEventListener('routine-delete-confirm', () => {
+    deleteMode.value = false
+    selectedIds.value = []
+    toggleListStateButtonClass(false)
+  })
+
   updateScrolledUI()
 })
 
@@ -536,6 +629,9 @@ onBeforeUnmount(() => {
   }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
+  window.removeEventListener('routine-delete-open', () => {})
+  window.removeEventListener('routine-delete-cancel', () => {})
+  window.removeEventListener('routine-delete-confirm', () => {})
 })
 
 watch(isScrolled, () => {
@@ -598,18 +694,28 @@ function handleChangePeriod(mode) {
     if (todayEl) todayEl.classList.remove('top')
     if (dateScrollEl) dateScrollEl.style.display = ''
   } else if (mode === 'W') {
-    selectedView.value = 'block'
+    if (selectedView.value === 'card') selectedView.value = 'block'
     const v = (scrollEl?.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
   } else if (mode === 'M') {
-    selectedView.value = 'list'
+    if (selectedView.value === 'card') selectedView.value = 'list'
     const v = (scrollEl?.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
   }
   selectedFilter.value = 'notdone'
+  deleteMode.value = false
+  selectedIds.value = []
+  toggleListStateButtonClass(false)
   updateScrolledUI()
+}
+
+function handleChangeView(v) {
+  selectedView.value = v
+  deleteMode.value = false
+  selectedIds.value = []
+  toggleListStateButtonClass(false)
 }
 
 function isRoutineForToday(r) {

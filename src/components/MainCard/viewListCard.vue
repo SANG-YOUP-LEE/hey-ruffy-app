@@ -4,7 +4,7 @@
       <span>다짐설정</span>
     </button>
 
-    <div class="state_button">
+    <div class="state_button" :class="{ check: isSelectMode }">
       <div class="done_set" v-if="flags.canShowStatusButton">
         <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
       </div>
@@ -40,8 +40,16 @@
 
     <div class="rc_inner">
       <div class="left">
-        <p class="today" v-if="ui.dateText">{{ ui.dateText }}</p>
+        <p class="today" v-if="ui.dateText && periodMode !== 'T'">{{ ui.dateText }}</p>
         <p class="title">
+          <label class="checkbox-label" v-if="isSelectMode">
+            <input
+              type="checkbox"
+              :checked="isSelected"
+              @change="e => actions?.toggleSelect?.(e.target.checked)"
+            />
+            <span class="checkmark"></span>
+          </label>
           <span :class="ui.colorClass"></span>
           {{ ui.titleText }}
         </p>
@@ -55,7 +63,7 @@
           <span class="walk_goal">목표 {{ ui.goalCount }}회</span>
         </div>
       </div>
-      <div class="right"></div>
+      <div class="right"> </div>
     </div>
   </div>
 </template>
@@ -67,7 +75,10 @@ defineProps({
   ui: { type: Object, required: true },
   flags: { type: Object, required: true },
   actions: { type: Object, required: true },
-  showPopup: { type: Boolean, default: false }
+  showPopup: { type: Boolean, default: false },
+  periodMode: { type: String, required: true },
+  isSelectMode: { type: Boolean, default: false },
+  isSelected: { type: Boolean, default: false }
 })
 const expanded = ref(false)
 </script>
