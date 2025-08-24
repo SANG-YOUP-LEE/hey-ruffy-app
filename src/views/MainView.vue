@@ -563,7 +563,7 @@ function updateScrolledUI() {
     if (selectedPeriod.value === 'T') {
       dateScrollEl.classList.toggle('hidden', v)
     } else {
-      dateScrollEl.style.display = ''
+      dateScrollEl.classList.remove('hidden')
     }
   }
 }
