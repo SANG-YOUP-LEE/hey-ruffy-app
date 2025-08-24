@@ -53,7 +53,7 @@
   box-sizing: border-box;
 }
 
-html, body {
+html, body, #app {
   height: 100%;
   font-family: 'S-CoreDream-4Regular',/*'SUIT-Regular',*/ 'Apple SD Gothic Neo', sans-serif;
   font-size: 0.9rem;
@@ -64,6 +64,8 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   text-align: center;
+  overscroll-behavior: none;
+  touch-action: none;
   overscroll-behavior: none;
 }
 /* iPhone SE 등 아주 작은 폭 보호 */

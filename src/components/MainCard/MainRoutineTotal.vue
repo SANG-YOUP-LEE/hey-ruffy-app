@@ -106,7 +106,6 @@
           @click.prevent="$emit('changeView','list')"
         ><span>다짐목록보기</span></a>
         <a href="#none" class="r_select"><span>다짐선택</span></a>
-        <a href="#none" class="r_move"><span>다짐이동</span></a>
       </span>
     </div>
   </div>
