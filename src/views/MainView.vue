@@ -98,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { db, auth } from '@/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
@@ -171,9 +171,6 @@ function onToggleSelect({ id, checked }) {
 function closeBulkDeleteConfirm() {
   showBulkDeleteConfirm.value = false
   document.body.classList.remove('no-scroll')
-  deleteMode.value = false
-  selectedIds.value = []
-  toggleListStateButtonClass(false)
 }
 
 async function confirmBulkDelete() {
@@ -398,8 +395,8 @@ function handleSelectDate(date, isFuture) {
   selectedFilter.value = 'notdone'
   selectedPeriod.value = 'T'
   selectedView.value = 'card'
+  nextTick(recomputeScrollability)
 }
-
 const handleFilterChange = () => {}
 
 function onSaved(rt) {
@@ -413,6 +410,7 @@ function onSaved(rt) {
   isAddRoutineOpen.value = false
   editingRoutine.value = null
   selectedFilter.value = 'notdone'
+  nextTick(recomputeScrollability)
 }
 
 async function onChangeStatus({ id, status }) {
@@ -446,6 +444,7 @@ async function onChangeStatus({ id, status }) {
     rawRoutines.value.splice(j, 1, next)
   }
   selectedFilter.value = status
+  nextTick(recomputeScrollability)
 }
 
 async function onTogglePause({ id, isPaused }) {
@@ -462,6 +461,7 @@ async function onTogglePause({ id, isPaused }) {
     const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
     rawRoutines.value.splice(j, 1, next)
   }
+  nextTick(recomputeScrollability)
 }
 
 async function onDelete(payload) {
@@ -487,6 +487,7 @@ async function onDelete(payload) {
     deleteMode.value = false
     toggleListStateButtonClass(false)
   }
+  nextTick(recomputeScrollability)
 }
 
 function openAddRoutine() {
@@ -524,7 +525,7 @@ const bindRoutines = (uid) => {
   hasFetched.value = false
   const q = query(
     collection(db, 'users', uid, 'routines'),
-    orderBy('createdAt', 'asc')
+    orderBy('createdAt', 'desc')
   )
   stopRoutines = onSnapshot(
     q,
@@ -534,23 +535,50 @@ const bindRoutines = (uid) => {
       rawRoutines.value = list
       isLoading.value = false
       hasFetched.value = true
+      nextTick(recomputeScrollability)
     },
     () => {
       rawRoutines.value = []
       isLoading.value = false
       hasFetched.value = true
+      nextTick(recomputeScrollability)
     }
   )
 }
 
 const isScrolled = ref(false)
 const headerShort = ref(false)
+const canScroll = ref(false)
 let scrollEl = null
+
+function recomputeScrollability() {
+  const el = scrollEl
+  if (!el) return
+  const scrollable = el.scrollHeight > el.clientHeight + 1
+  canScroll.value = scrollable
+  if (!scrollable) {
+    el.scrollTop = 0
+    isScrolled.value = false
+    headerShort.value = false
+    const rt = document.querySelector('.routine_total')
+    rt && rt.classList.remove('top')
+    const ds = document.querySelector('.date_scroll')
+    ds && ds.classList.remove('hidden')
+    if (ds) ds.style.display = ''
+  }
+}
+
 function onScrollHandler() {
+  if (!canScroll.value) {
+    isScrolled.value = false
+    headerShort.value = false
+    return
+  }
   const v = (scrollEl?.scrollTop || 0) > 0
   isScrolled.value = v
   headerShort.value = v
 }
+
 function updateScrolledUI() {
   const routineTotalEl = document.querySelector('.routine_total')
   const dateScrollEl = document.querySelector('.date_scroll')
@@ -561,16 +589,22 @@ function updateScrolledUI() {
   }
   if (dateScrollEl) {
     if (selectedPeriod.value === 'T') {
-      dateScrollEl.classList.toggle('hidden', v)
+      dateScrollEl.style.display = v ? 'none' : ''
     } else {
-      dateScrollEl.classList.remove('hidden')
+      dateScrollEl.style.display = ''
     }
   }
+}
+
+function safeUpdateScrolledUI() {
+  if (!canScroll.value) return
+  updateScrolledUI()
 }
 
 onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
+  window.addEventListener('resize', recomputeScrollability)
 
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
@@ -597,45 +631,32 @@ onMounted(async () => {
         if (stopRoutines) { stopRoutines(); stopRoutines = null }
         isLoading.value = false
         hasFetched.value = true
+        nextTick(recomputeScrollability)
       }
     }
   })
 
-  window.addEventListener('routine-delete-open', () => {
-    if (!deleteMode.value) {
-      deleteMode.value = true
-      toggleListStateButtonClass(true)
-    }
-  })
-  window.addEventListener('routine-delete-cancel', () => {
-    deleteMode.value = false
-    selectedIds.value = []
-    toggleListStateButtonClass(false)
-  })
-  window.addEventListener('routine-delete-confirm', () => {
-    deleteMode.value = false
-    selectedIds.value = []
-    toggleListStateButtonClass(false)
-  })
-
+  nextTick(recomputeScrollability)
   updateScrolledUI()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
+  window.removeEventListener('resize', recomputeScrollability)
   if (scrollEl) {
     scrollEl.removeEventListener('scroll', onScrollHandler)
     scrollEl = null
   }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
-  window.removeEventListener('routine-delete-open', () => {})
-  window.removeEventListener('routine-delete-cancel', () => {})
-  window.removeEventListener('routine-delete-confirm', () => {})
 })
 
 watch(isScrolled, () => {
-  updateScrolledUI()
+  safeUpdateScrolledUI()
+})
+
+watch([displayedRoutines, selectedPeriod, selectedView], () => {
+  nextTick(recomputeScrollability)
 })
 
 function handlePrev() {
@@ -644,6 +665,7 @@ function handlePrev() {
     selectedDate.value = d
     isFutureDate.value = d > new Date() && !isTodayDateFn(d)
     selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
     return
   }
   if (selectedPeriod.value === 'M') {
@@ -652,6 +674,7 @@ function handlePrev() {
     selectedDate.value = prev
     isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
     selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
     return
   }
   const d = addDays(selectedDate.value, -1)
@@ -664,6 +687,7 @@ function handleNext() {
     selectedDate.value = d
     isFutureDate.value = d > new Date() && !isTodayDateFn(d)
     selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
     return
   }
   if (selectedPeriod.value === 'M') {
@@ -672,6 +696,7 @@ function handleNext() {
     selectedDate.value = next
     isFutureDate.value = next > new Date() && !isTodayDateFn(next)
     selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
     return
   }
   const d = addDays(selectedDate.value, 1)
@@ -705,17 +730,8 @@ function handleChangePeriod(mode) {
     headerShort.value = v
   }
   selectedFilter.value = 'notdone'
-  deleteMode.value = false
-  selectedIds.value = []
-  toggleListStateButtonClass(false)
+  nextTick(recomputeScrollability)
   updateScrolledUI()
-}
-
-function handleChangeView(v) {
-  selectedView.value = v
-  deleteMode.value = false
-  selectedIds.value = []
-  toggleListStateButtonClass(false)
 }
 
 function isRoutineForToday(r) {

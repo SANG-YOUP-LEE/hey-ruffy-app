@@ -20,15 +20,6 @@
   background-color:#fff;
 }
 
-#main_body .date_scroll.hidden {
-  height:0 !important;
-  padding:0 !important;
-  margin:0 !important;
-  border-width:0 !important;
-  overflow:hidden !important;
-  visibility:hidden !important;
-}
-
 #main_body .date_scroll .date_fixed_today {
   grid-area: today;
   position: sticky;
