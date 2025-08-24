@@ -214,21 +214,24 @@
   text-align: left;
 }
 
-#main_body .today_tools a span {
-  display: none;
-}
-
 #main_body .today_tools a {
-  width: 1rem;
-  height: 1rem;
   display: inline-block;
   vertical-align:middle;
 }
 
-#main_body .today_tools a.prev {
+#main_body .today_tools a span {
+  display: none;
+}
+
+#main_body .today_tools .today a {
+  width: 1rem;
+  height: 1rem;
+}
+
+#main_body .today_tools .today a.prev {
   background: url('../images/ico_prev.png') no-repeat 0 0/100%;
 }
-#main_body .today_tools a.next {
+#main_body .today_tools .today a.next {
   background: url('../images/ico_next.png') no-repeat 0 0/100%;
 }
 
@@ -238,65 +241,61 @@
   margin-left: auto;
 }
 
-#main_body .tools a,
-#main_body .today_tools .on_w.light {
+#main_body .tools .term_wrap {
+  margin-right:0.3rem
+}
+
+#main_body .tools .term_wrap a {
+  width:auto;
+  height:1.8rem;
+  line-height:1.8rem;
+  margin-left:0.2rem;
+  border-radius:0.5rem;
+  text-decoration: none;
+  font-weight: bold;
+  padding:0 0.3rem 0 0.3rem
+} 
+
+#main_body .tools .tools_wrap a {
   width:1.8rem;
   height:1.8rem;
   margin-left:0.2rem;
   border:1px solid #e6e6e6;
   border-radius:0.5rem;
+  background-color: #fff !important;
 }
 
-#main_body .today_tools .on_w {
-  text-decoration:none;
-  font-weight:bold;
-  line-height:1.8rem;
-  text-align:center;
-  width:2.5rem
+#main_body .tools .tools_wrap [class$='on'] {
+  border: 1px solid #333 !important;
+  color: #333 !important;
+  background-color: #fff !important;
+  
 }
 
-#main_body .today_tools .basic {
-  width:auto!important;
-  height:1.8rem;
-  padding:0 0.3rem 0 0.3rem;
-  text-decoration:none;
-  font-weight:bold;
-  line-height:1.8rem;
-  text-align:center;
-  border-radius:0.5rem;
-}
-
-#main_body .tools a.r_move {
+#main_body .tools .tools_wrap a.r_move {
   background: url('../images/ico_move.png') no-repeat 50% 50%/60%;
 }
 
-#main_body .tools a.r_del {
+#main_body .tools .tools_wrap a.r_del {
   background: url('../images/ico_del.png') no-repeat 50% 50%/60%;
 }
 
-#main_body .tools a.r_select {
+#main_body .tools .tools_wrap a.r_select {
   background: url('../images/ico_check.png') no-repeat 50% 50%/90%;
 }
 
-#main_body .tools a.r_block {
+#main_body .tools .tools_wrap a.r_block {
   background: url('../images/ico_block.png') no-repeat 50% 50%/60%;
 }
 
-#main_body .tools a.r_card {
+#main_body .tools .tools_wrap a.r_card {
   background: url('../images/ico_card.png') no-repeat 50% 50%/60%;
 }
 
-#main_body .tools a.r_list {
+#main_body .tools .tools_wrap a.r_list {
   background: url('../images/ico_list.png') no-repeat 50% 50%/60%;
 }
 
-#main_body .tools a {
-  background-color: #fff !important
-}
-#main_body .tools [class$='on'] {
-  border: 1px solid #333 !important;
-  color: #333 !important;
-}
 
 #main_body .routine_card {
   background-color: #fff;

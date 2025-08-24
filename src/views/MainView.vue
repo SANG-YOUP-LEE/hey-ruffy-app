@@ -1,6 +1,6 @@
 <template>
   <div id="main_wrap">
-    <HeaderView @toggle-lnb="showLnb = !showLnb" />
+    <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
 
     <div id="main_body">
@@ -435,11 +435,12 @@ const bindRoutines = (uid) => {
 }
 
 const isScrolled = ref(false)
+const headerShort = ref(false)
 let scrollEl = null
 function onScrollHandler() {
-  if (selectedPeriod.value === 'T') {
-    isScrolled.value = (scrollEl?.scrollTop || 0) > 0
-  }
+  const v = (scrollEl?.scrollTop || 0) > 0
+  isScrolled.value = v
+  headerShort.value = v
 }
 function updateScrolledUI() {
   const routineTotalEl = document.querySelector('.routine_total')
@@ -465,6 +466,9 @@ onMounted(async () => {
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
+    const v = (scrollEl.scrollTop || 0) > 0
+    isScrolled.value = v
+    headerShort.value = v
   }
 
   await authReadyPromise
@@ -555,14 +559,21 @@ function handleChangePeriod(mode) {
     isFutureDate.value = false
     selectedView.value = 'card'
     isScrolled.value = false
+    headerShort.value = false
     const todayEl = document.querySelector('.date_fixed_today')
     const dateScrollEl = document.querySelector('.date_scroll')
     if (todayEl) todayEl.classList.remove('top')
     if (dateScrollEl) dateScrollEl.style.display = ''
   } else if (mode === 'W') {
     selectedView.value = 'block'
+    const v = (scrollEl?.scrollTop || 0) > 0
+    isScrolled.value = v
+    headerShort.value = v
   } else if (mode === 'M') {
     selectedView.value = 'list'
+    const v = (scrollEl?.scrollTop || 0) > 0
+    isScrolled.value = v
+    headerShort.value = v
   }
   selectedFilter.value = 'notdone'
   updateScrolledUI()
@@ -583,6 +594,3 @@ function getAssignedDate(r) {
   return d ? d : new Date(periodStartRaw.value)
 }
 </script>
-
-
-

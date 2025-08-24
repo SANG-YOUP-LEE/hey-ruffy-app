@@ -56,10 +56,9 @@
           :class="{ hidden: periodMode==='T' && isToday }"
           @click.prevent="$emit('requestPrev')"
         ><span>{{ prevLabel }}</span></a>
-        <a href="#none" class="basic">
-          {{ periodMode==='T' ? '일간' : periodMode==='W' ? '주간' : '월간' }}
-        </a>
+
         {{ centerText }}
+
         <a
           href="#none"
           class="next"
@@ -69,44 +68,46 @@
     </div>
 
     <div class="tools">
-      <a
-        v-if="periodMode!=='T'"
-        href="#none"
-        class="on_w"
-        @click.prevent="$emit('changePeriod','T')"
-      >일간</a>
-      <a
-        v-if="periodMode!=='W'"
-        href="#none"
-        class="on_w"
-        @click.prevent="$emit('changePeriod','W')"
-      >주간</a>
-      <a
-        v-if="periodMode!=='M'"
-        href="#none"
-        class="on_w"
-        @click.prevent="$emit('changePeriod','M')"
-      >월간</a>
-      <a
-        href="#none"
-        class="r_card"
-        :class="{ on: viewMode==='card' }"
-        @click.prevent="$emit('changeView','card')"
-      ><span>다짐카드보기</span></a>
-      <a
-        href="#none"
-        class="r_block"
-        :class="{ on: viewMode==='block' }"
-        @click.prevent="$emit('changeView','block')"
-      ><span>다짐블록보기</span></a>
-      <a
-        href="#none"
-        class="r_list"
-        :class="{ on: viewMode==='list' }"
-        @click.prevent="$emit('changeView','list')"
-      ><span>다짐목록보기</span></a>
-      <a href="#none" class="r_select"><span>다짐선택</span></a>
-      <a href="#none" class="r_move"><span>다짐이동</span></a>
+      <span class="term_wrap">
+        <a
+          href="#none"
+          :class="periodMode==='T' ? 'basic' : 'on_w'"
+          @click.prevent="$emit('changePeriod','T')"
+        >일간</a>
+        <a
+          href="#none"
+          :class="periodMode==='W' ? 'basic' : 'on_w'"
+          @click.prevent="$emit('changePeriod','W')"
+        >주간</a>
+        <a
+          href="#none"
+          :class="periodMode==='M' ? 'basic' : 'on_w'"
+          @click.prevent="$emit('changePeriod','M')"
+        >월간</a>
+      </span>
+
+      <span class="tools_wrap">
+        <a
+          href="#none"
+          class="r_card"
+          :class="{ on: viewMode==='card' }"
+          @click.prevent="$emit('changeView','card')"
+        ><span>다짐카드보기</span></a>
+        <a
+          href="#none"
+          class="r_block"
+          :class="{ on: viewMode==='block' }"
+          @click.prevent="$emit('changeView','block')"
+        ><span>다짐블록보기</span></a>
+        <a
+          href="#none"
+          class="r_list"
+          :class="{ on: viewMode==='list' }"
+          @click.prevent="$emit('changeView','list')"
+        ><span>다짐목록보기</span></a>
+        <a href="#none" class="r_select"><span>다짐선택</span></a>
+        <a href="#none" class="r_move"><span>다짐이동</span></a>
+      </span>
     </div>
   </div>
 </template>
@@ -153,18 +154,14 @@ const formattedDate = computed(() => {
 
 function startOfWeekSun(d){ const nd=new Date(d); nd.setHours(0,0,0,0); nd.setDate(nd.getDate()-nd.getDay()); return nd }
 function endOfWeekSun(d){ const s=startOfWeekSun(d); const nd=new Date(s); nd.setDate(s.getDate()+6); nd.setHours(23,59,59,999); return nd }
-
 function dateInRange(target, s, e){ return target.getTime()>=s.getTime() && target.getTime()<=e.getTime() }
-
 function firstOfMonth(y, m){ const d=new Date(y,m,1); d.setHours(0,0,0,0); return d }
-
 function getWeekIndexForMonth(weekStart, monthDate){
   const mFirst = firstOfMonth(monthDate.getFullYear(), monthDate.getMonth())
   const w1 = startOfWeekSun(mFirst)
   const diffWeeks = Math.round((weekStart.getTime() - w1.getTime()) / (7*24*60*60*1000))
   return diffWeeks + 1
 }
-
 function weekLabelFor(date){
   const ws = startOfWeekSun(date)
   const we = endOfWeekSun(date)
@@ -172,14 +169,8 @@ function weekLabelFor(date){
   const nextM = (curM+1)%12, nextY = curM===11 ? curY+1 : curY
   const curFirst = firstOfMonth(curY, curM)
   const nextFirst = firstOfMonth(nextY, nextM)
-  if (dateInRange(curFirst, ws, we)) {
-    const idx = 1
-    return { month: curFirst.getMonth(), year: curFirst.getFullYear(), idx }
-  }
-  if (dateInRange(nextFirst, ws, we)) {
-    const idx = 1
-    return { month: nextFirst.getMonth(), year: nextFirst.getFullYear(), idx }
-  }
+  if (dateInRange(curFirst, ws, we)) return { month: curFirst.getMonth(), year: curFirst.getFullYear(), idx: 1 }
+  if (dateInRange(nextFirst, ws, we)) return { month: nextFirst.getMonth(), year: nextFirst.getFullYear(), idx: 1 }
   let displayMonth = date.getMonth()
   let displayYear = date.getFullYear()
   let daysInDisplayMonth = 0
@@ -196,14 +187,7 @@ function weekLabelFor(date){
   const idx = getWeekIndexForMonth(ws, new Date(displayYear, displayMonth, 1))
   return { month: displayMonth, year: displayYear, idx }
 }
-
 function weekKorean(n){ return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,n-1))] }
-
-const centerTitle = computed(() => {
-  if (props.periodMode === 'W') return '주'
-  if (props.periodMode === 'M') return '월'
-  return '일'
-})
 
 const centerText = computed(() => {
   if (props.periodMode === 'W') {

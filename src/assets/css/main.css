@@ -78,6 +78,14 @@
   background-size:100% 100%;
 }
 
+#header.short {
+  padding:0.5rem 1rem 0.5rem 1rem;
+}
+
+#header.short .title p,
+#header.short .ruffys_item {
+  display: none;
+}
 
 #lnb {
   position: fixed;
@@ -132,7 +140,7 @@
 .main_scroll {
   flex:1;overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:var(--footer-h,64px)
+  padding-bottom:var(--footer-h,8rem)
 }
 
 button.lnb {
