@@ -122,7 +122,6 @@ const isLoading = ref(true)
 const hasFetched = ref(false)
 const isAddRoutineOpen = ref(false)
 const showLnb = ref(false)
-const MAX_ROUTINES = 100
 
 const selectedDate = ref(new Date())
 const isFutureDate = ref(false)
@@ -495,10 +494,6 @@ async function onDelete(payload) {
 function openAddRoutine() {
   window.dispatchEvent(new Event('close-other-popups'))
   editingRoutine.value = null
-  if (rawRoutines.value.length >= MAX_ROUTINES) {
-    alert(`다짐은 최대 ${MAX_ROUTINES}개까지 만들 수 있어요.`)
-    return
-  }
   isAddRoutineOpen.value = true
 }
 function openEditRoutine(rt) {
@@ -552,31 +547,30 @@ const isScrolled = ref(false)
 const headerShort = ref(false)
 const canScroll = ref(false)
 let scrollEl = null
+const SCROLL_EPS = 8
 
 function recomputeScrollability() {
   const el = scrollEl
   if (!el) return
-  const scrollable = el.scrollHeight > el.clientHeight + 1
+  const scrollable = (el.scrollHeight - el.clientHeight) > SCROLL_EPS
   canScroll.value = scrollable
+  const v = scrollable && (el.scrollTop || 0) > 0
+  isScrolled.value = v
+  headerShort.value = v
   if (!scrollable) {
-    el.scrollTop = 0
-    isScrolled.value = false
-    headerShort.value = false
     const rt = document.querySelector('.routine_total')
     rt && rt.classList.remove('top')
     const ds = document.querySelector('.date_scroll')
-    ds && ds.classList.remove('hidden')
     if (ds) ds.style.display = ''
   }
 }
 
 function onScrollHandler() {
-  if (!canScroll.value) {
-    isScrolled.value = false
-    headerShort.value = false
-    return
-  }
-  const v = (scrollEl?.scrollTop || 0) > 0
+  const el = scrollEl
+  if (!el) return
+  const scrollable = (el.scrollHeight - el.clientHeight) > SCROLL_EPS
+  canScroll.value = scrollable
+  const v = scrollable && (el.scrollTop || 0) > 0
   isScrolled.value = v
   headerShort.value = v
 }
@@ -611,7 +605,7 @@ onMounted(async () => {
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
-    const v = (scrollEl.scrollTop || 0) > 0
+    const v = (scrollEl.scrollHeight - scrollEl.clientHeight) > SCROLL_EPS && (scrollEl.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
   }
@@ -713,29 +707,6 @@ function handleChangeView(v) {
 
 function handleChangePeriod(mode) {
   selectedPeriod.value = mode
-  if (mode === 'T') {
-    const today = new Date()
-    today.setHours(0,0,0,0)
-    selectedDate.value = today
-    isFutureDate.value = false
-    selectedView.value = 'card'
-    isScrolled.value = false
-    headerShort.value = false
-    const todayEl = document.querySelector('.date_fixed_today')
-    const dateScrollEl = document.querySelector('.date_scroll')
-    if (todayEl) todayEl.classList.remove('top')
-    if (dateScrollEl) dateScrollEl.style.display = ''
-  } else if (mode === 'W') {
-    selectedView.value = 'block'
-    const v = (scrollEl?.scrollTop || 0) > 0
-    isScrolled.value = v
-    headerShort.value = v
-  } else if (mode === 'M') {
-    selectedView.value = 'list'
-    const v = (scrollEl?.scrollTop || 0) > 0
-    isScrolled.value = v
-    headerShort.value = v
-  }
   selectedFilter.value = 'notdone'
   nextTick(recomputeScrollability)
   updateScrolledUI()
@@ -756,4 +727,3 @@ function getAssignedDate(r) {
   return d ? d : new Date(periodStartRaw.value)
 }
 </script>
-
