@@ -20,10 +20,8 @@
       <div class="walk_check" v-if="flags.hasWalkResolved">
         <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
       </div>
-      <div class="done_set">
-        <button class="p_white" :class="{ close: expanded }" @click="expanded = !expanded">
-          {{ expanded ? '접기' : '열기' }}
-        </button>
+      <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
+        <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
       </div>
     </div>
 
