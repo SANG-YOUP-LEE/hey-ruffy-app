@@ -2,8 +2,8 @@
   <div class="done_group">
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
-      <component
-        :is="layout"
+      <ViewCardSet
+        :variant="variant"
         :cls="['routine_card', cardSkinClass, courseClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]"
         :ui="{
           titleText,
@@ -149,12 +149,13 @@ import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
+import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 
 const props = defineProps({
   selected: String,
   routine: { type: Object, default: () => ({}) },
   isToday: { type: Boolean, default: false },
-  layout: { type: [Object, Function], required: true },
+  layout: { type: [Object, Function], required: true },      // 그대로 유지(호환)
   assignedDate: { type: [String, Date, Number], default: null },
   periodMode: { type: String, default: 'T' },
   deleteTargets: { type: [Array, String], default: null },
@@ -272,13 +273,11 @@ const hasWalkResolved = computed(() => {
   return !!r.ruffy && !!r.course && !!r.goalCount
 })
 
-const ruffyMeta = computed(() => {
-  return RUFFY_OPTIONS.find(r => r.value === props.routine?.ruffy) || null
-})
+const { RUFFY_OPTIONS: _RO } = await Promise.resolve({ RUFFY_OPTIONS })
+const ruffyMeta = computed(() => _RO.find(r => r.value === props.routine?.ruffy) || null)
 
-const courseMeta = computed(() => {
-  return COURSE_OPTIONS.find(c => c.value === props.routine?.course) || null
-})
+const { COURSE_OPTIONS: _CO } = await Promise.resolve({ COURSE_OPTIONS })
+const courseMeta = computed(() => _CO.find(c => c.value === props.routine?.course) || null)
 
 const hasTwoButtons = computed(() => {
   let count = 0
@@ -311,6 +310,15 @@ function toggleSelect(checked) {
   if (id) emit('toggleSelect', { id, checked })
 }
 
+const variant = computed(() => {
+  const name = (props.layout && ((props.layout).__name || (props.layout).name || '')).toLowerCase()
+  if (name.includes('list')) return 'list'
+  if (name.includes('block')) return 'block'
+  return 'basic'
+})
+
+const selectedState = ref('')
+
 function onSelect(type) {
   selectedState.value = selectedState.value === type ? '' : type
 }
@@ -319,13 +327,9 @@ function resetSelection() {
   selectedState.value = ''
 }
 
-function togglePopup() {
-  showPopup.value = !showPopup.value
-}
-
-function closePopup() {
-  showPopup.value = false
-}
+const showPopup = ref(false)
+function togglePopup() { showPopup.value = !showPopup.value }
+function closePopup() { showPopup.value = false }
 
 function handleGlobalCloseEvents() {
   if (showPopup.value) closePopup()
@@ -334,44 +338,39 @@ function handleGlobalCloseEvents() {
 function onEdit() {
   closePopup()
   let rt = {}
-  try {
-    rt = JSON.parse(JSON.stringify(props.routine || {}))
-  } catch {
-    rt = { ...(props.routine || {}) }
-  }
+  try { rt = JSON.parse(JSON.stringify(props.routine || {})) }
+  catch { rt = { ...(props.routine || {}) } }
   emit('edit', rt)
 }
 
+const showDeleteConfirmPopup = ref(false)
 function openDeleteConfirm() {
   window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
   showDeleteConfirmPopup.value = true
   document.body.classList.add('no-scroll')
 }
-
 function closeDeleteConfirm() {
   showDeleteConfirmPopup.value = false
   document.body.classList.remove('no-scroll')
 }
-
 function confirmDelete() {
   const ids = Array.isArray(props.deleteTargets) ? props.deleteTargets : [props.routine?.id]
   closeDeleteConfirm()
   if (ids.length) emit('delete', ids)
 }
 
+const showPauseRestartPopup = ref(false)
 function openPauseRestartConfirm() {
   window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
   showPauseRestartPopup.value = true
   document.body.classList.add('no-scroll')
 }
-
 function closePauseRestartPopup() {
   showPauseRestartPopup.value = false
   document.body.classList.remove('no-scroll')
 }
-
 function confirmPauseRestart() {
   const id = props.routine?.id
   const next = !isPaused.value
@@ -380,40 +379,38 @@ function confirmPauseRestart() {
   isPaused.value = next
 }
 
+const showShareConfirmPopup = ref(false)
 function openShareConfirm() {
   window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
   showShareConfirmPopup.value = true
   document.body.classList.add('no-scroll')
 }
-
 function closeShareConfirm() {
   showShareConfirmPopup.value = false
   document.body.classList.remove('no-scroll')
 }
-
 function confirmShare() {
   closeShareConfirm()
   alert('공유되었습니다')
 }
 
+const showStatusPopup = ref(false)
 function openStatusPopup() {
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
   showStatusPopup.value = true
   document.body.classList.add('no-scroll')
 }
-
-function handleStatusButtonClick() {
-  openStatusPopup()
-}
-
+function handleStatusButtonClick() { openStatusPopup() }
 function closeStatusPopup() {
   showStatusPopup.value = false
   document.body.classList.remove('no-scroll')
   resetSelection()
 }
 
+const walkPlaySeq = ref(0)
+const walkDoneOverride = ref(null)
 function openWalkPopup() {
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
@@ -427,7 +424,6 @@ function openWalkPopup() {
   document.body.classList.add('no-scroll')
   nextTick(() => { walkPlaySeq.value++ })
 }
-
 function closeWalkPopup() {
   showWalkPopup.value = false
   document.body.classList.remove('no-scroll')
