@@ -54,7 +54,7 @@
       <div class="right"></div>
 
       <div :class="['state_button', { twice: flags.hasTwoButtons }]">
-        <div class="done_set" v-if="flags.canShowStatusButton">
+        <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
           <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
         </div>
         <div class="walk_check" v-if="flags.hasWalkResolved">
