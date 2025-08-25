@@ -753,4 +753,16 @@ function getAssignedDate(r) {
   const d = lastActiveDateInRange(r, periodStartRaw.value, periodEnd.value)
   return d ? d : new Date(periodStartRaw.value)
 }
+
+function startOfWeekSun(d){ const nd=new Date(d); nd.setHours(0,0,0,0); nd.setDate(nd.getDate()-nd.getDay()); return nd }
+function firstOfMonth(y,m){ const d=new Date(y,m,1); d.setHours(0,0,0,0); return d }
+function weekIndexForMonth(weekStart, y, m){
+  const w1 = startOfWeekSun(firstOfMonth(y,m))
+  return Math.round((weekStart - w1)/(7*24*60*60*1000)) + 1
+}
+function weekTagForDay(dayDate){
+  const ws = startOfWeekSun(dayDate)
+  const y  = dayDate.getFullYear(), m = dayDate.getMonth()
+  return `${m+1}월 ${weekIndexForMonth(ws,y,m)}주`
+}
 </script>
