@@ -1,3 +1,5 @@
+좋아 이건 메인루틴토탈뷰야. 어때 이것도 좀 고쳐줘 주석없이. 헤더라벨을 바꾸라면서
+
 <template>
   <div class="routine_total" v-if="periodMode==='T'">
     <p>
@@ -133,9 +135,11 @@ const props = defineProps({
 function toggleDeleteMode() {
   emit('toggleDeleteMode', !props.deleteMode)
 }
+
 function onChangePeriod(mode){
   emit('changePeriod', mode)
 }
+
 function onChangeView(view){
   emit('changeView', view)
 }
@@ -173,7 +177,7 @@ function firstOfMonth(y, m){ const d=new Date(y,m,1); d.setHours(0,0,0,0); retur
 function getWeekIndexForMonth(weekStart, monthDate){
   const mFirst = firstOfMonth(monthDate.getFullYear(), monthDate.getMonth())
   const w1 = startOfWeekSun(mFirst)
-  const diffWeeks = Math.floor((weekStart.getTime() - w1.getTime()) / (7*24*60*60*1000))
+  const diffWeeks = Math.round((weekStart.getTime() - w1.getTime()) / (7*24*60*60*1000))
   return diffWeeks + 1
 }
 function weekLabelFor(date){
@@ -201,15 +205,12 @@ function weekLabelFor(date){
   const idx = getWeekIndexForMonth(ws, new Date(displayYear, displayMonth, 1))
   return { month: displayMonth, year: displayYear, idx }
 }
-function weekOrdinal(n){
-  const map = ['첫째주','둘째주','셋째주','넷째주','다섯째주','여섯째주']
-  return map[n-1] ?? `${n}주차`
-}
+function weekKorean(n){ return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,n-1))] }
 
 const centerText = computed(() => {
   if (props.periodMode === 'W') {
     const info = weekLabelFor(props.selectedDate)
-    return `${info.month+1}월 ${weekOrdinal(info.idx)}`
+    return `${info.month+1}월 ${weekKorean(info.idx)}`
   }
   if (props.periodMode === 'M') {
     const d = props.selectedDate
