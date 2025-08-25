@@ -238,12 +238,12 @@ function weekRangeInMonth(d){
 }
 
 const periodStartRaw = computed(() => {
-  if (selectedPeriod.value==='W') return startOfWeekSun(selectedDate.value) // ✅ 월 경계로 자르지 않음
+  if (selectedPeriod.value==='W') return startOfWeekSun(selectedDate.value)
   if (selectedPeriod.value==='M') return startOfMonth(selectedDate.value)
   return startOfDay(selectedDate.value)
 })
 const periodEnd = computed(() => {
-  if (selectedPeriod.value==='W') return endOfWeekSun(selectedDate.value)   // ✅ 풀 주
+  if (selectedPeriod.value==='W') return endOfWeekSun(selectedDate.value)
   if (selectedPeriod.value==='M') return endOfMonth(selectedDate.value)
   return endOfDay(selectedDate.value)
 })
@@ -275,21 +275,6 @@ const occurrencesPausedDay = computed(() => {
   return list.map(r => ({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-paused-${key}` }))
 })
 
-const occurrencesActivePeriod = computed(() => {
-  const days = eachDate(periodStartRaw.value, periodEnd.value)
-  const out = []
-  for (const r of rawRoutines.value) {
-    if (r.isPaused) continue
-    for (const d of days) {
-      if (inDateRange(r, d)) {
-        const key = dateKey(d)
-        out.push({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-${key}` })
-      }
-    }
-  }
-  return out
-})
-
 function isActiveOnAnyDay(r, s, e){
   const days = eachDate(s, e)
   for (const d of days) if (inDateRange(r, d)) return true
@@ -315,6 +300,17 @@ function lastActiveDateInRange(r, s, e){
   return null
 }
 
+const occurrencesActivePeriod = computed(() => {
+  const s = periodStartRaw.value
+  const e = periodEnd.value
+  return rawRoutines.value
+    .filter(r => !r.isPaused && isActiveOnAnyDay(r, s, e))
+    .map(r => {
+      const d = lastActiveDateInRange(r, s, e) || s
+      const k = dateKey(d)
+      return { ...r, status: r?.progress?.[k] ?? 'notdone', assignedDate: new Date(d), id: r.id }
+    })
+})
 const occurrencesPausedPeriod = computed(() => {
   const s = periodStartRaw.value
   const e = periodEnd.value
@@ -323,7 +319,7 @@ const occurrencesPausedPeriod = computed(() => {
     .map(r => {
       const d = lastActiveDateInRange(r, s, e) || s
       const k = dateKey(d)
-      return { ...r, status: r?.progress?.[k] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-paused-period-${dateKey(d)}` }
+      return { ...r, status: r?.progress?.[k] ?? 'notdone', assignedDate: new Date(d), id: r.id }
     })
 })
 
@@ -336,7 +332,9 @@ watch([selectedDate, rawRoutines, selectedPeriod], () => {
 }, { immediate: true })
 
 const headerCounts = computed(() => {
-  const src = selectedPeriod.value === 'T' ? occurrencesActiveDay.value : occurrencesActivePeriod.value
+  const src = selectedPeriod.value === 'T'
+    ? [...occurrencesActiveDay.value]
+    : [...occurrencesActivePeriod.value, ...occurrencesPausedPeriod.value]
   const c = { notdone: 0, done: 0, faildone: 0, ignored: 0 }
   for (const r of src) {
     const s = getStatus(r)
@@ -347,7 +345,11 @@ const headerCounts = computed(() => {
   }
   return c
 })
-const headerTotal = computed(() => (selectedPeriod.value === 'T' ? occurrencesActiveDay.value.length : occurrencesActivePeriod.value.length))
+const headerTotal = computed(() => {
+  return selectedPeriod.value === 'T'
+    ? occurrencesActiveDay.value.length
+    : occurrencesActivePeriod.value.length + occurrencesPausedPeriod.value.length
+})
 
 const displayedRoutines = computed(() => {
   const base = selectedPeriod.value === 'T'
@@ -754,3 +756,4 @@ function getAssignedDate(r) {
   return d ? d : new Date(periodStartRaw.value)
 }
 </script>
+
