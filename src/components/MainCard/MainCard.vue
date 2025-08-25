@@ -256,7 +256,7 @@ const alarmText = computed(() => {
 })
 
 const canShowStatusButton = computed(() => {
-  return props.isToday && props.selected === 'notdone'
+  return props.periodMode === 'T' && props.isToday && props.selected === 'notdone'
 })
 
 const wrapperClass = computed(() => {
