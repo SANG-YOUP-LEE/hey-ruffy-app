@@ -155,13 +155,12 @@ const props = defineProps({
   selected: String,
   routine: { type: Object, default: () => ({}) },
   isToday: { type: Boolean, default: false },
-  layout: { type: [Object, Function], required: true },      // 그대로 유지(호환)
+  layout: { type: [Object, Function], required: true },
   assignedDate: { type: [String, Date, Number], default: null },
   periodMode: { type: String, default: 'T' },
   deleteTargets: { type: [Array, String], default: null },
   deleteMode: { type: Boolean, default: false }
 })
-
 const emit = defineEmits(['delete','changeStatus','edit','togglePause','toggleSelect'])
 
 const showPopup = ref(false)
@@ -194,7 +193,6 @@ const normalizeSkin = (v) => {
   const n = m[1].padStart(2, '0')
   return `option${n}`
 }
-
 const toCourseClass = (v) => {
   const m = String(v || '').match(/(\d+)/)
   if (!m) return ''
@@ -206,7 +204,6 @@ const cardSkinClass = computed(() => {
   const v = normalizeSkin(props.routine?.cardSkin)
   return v ? `card_${v}` : ''
 })
-
 const courseClass = computed(() => {
   const v = toCourseClass(props.routine?.course)
   return v || ''
@@ -218,7 +215,6 @@ const repeatLabel = computed(() => {
   if (t === 'monthly') return 'Monthly'
   return 'Daily'
 })
-
 const repeatDetail = computed(() => {
   const r = props.routine || {}
   if (r.repeatType === 'daily') {
@@ -273,11 +269,8 @@ const hasWalkResolved = computed(() => {
   return !!r.ruffy && !!r.course && !!r.goalCount
 })
 
-const { RUFFY_OPTIONS: _RO } = await Promise.resolve({ RUFFY_OPTIONS })
-const ruffyMeta = computed(() => _RO.find(r => r.value === props.routine?.ruffy) || null)
-
-const { COURSE_OPTIONS: _CO } = await Promise.resolve({ COURSE_OPTIONS })
-const courseMeta = computed(() => _CO.find(c => c.value === props.routine?.course) || null)
+const ruffyMeta = computed(() => RUFFY_OPTIONS.find(r => r.value === props.routine?.ruffy) || null)
+const courseMeta = computed(() => COURSE_OPTIONS.find(c => c.value === props.routine?.course) || null)
 
 const hasTwoButtons = computed(() => {
   let count = 0
@@ -304,7 +297,6 @@ const dateText = computed(() => {
 
 const baseId = computed(() => String(props.routine?.id || '').split('-')[0])
 const isSelected = computed(() => Array.isArray(props.deleteTargets) && props.deleteTargets.includes(baseId.value))
-
 function toggleSelect(checked) {
   const id = baseId.value
   if (id) emit('toggleSelect', { id, checked })
@@ -317,23 +309,12 @@ const variant = computed(() => {
   return 'basic'
 })
 
-const selectedState = ref('')
+function onSelect(type) { selectedState.value = selectedState.value === type ? '' : type }
+function resetSelection() { selectedState.value = '' }
 
-function onSelect(type) {
-  selectedState.value = selectedState.value === type ? '' : type
-}
-
-function resetSelection() {
-  selectedState.value = ''
-}
-
-const showPopup = ref(false)
 function togglePopup() { showPopup.value = !showPopup.value }
 function closePopup() { showPopup.value = false }
-
-function handleGlobalCloseEvents() {
-  if (showPopup.value) closePopup()
-}
+function handleGlobalCloseEvents() { if (showPopup.value) closePopup() }
 
 function onEdit() {
   closePopup()
@@ -343,7 +324,6 @@ function onEdit() {
   emit('edit', rt)
 }
 
-const showDeleteConfirmPopup = ref(false)
 function openDeleteConfirm() {
   window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
@@ -360,7 +340,6 @@ function confirmDelete() {
   if (ids.length) emit('delete', ids)
 }
 
-const showPauseRestartPopup = ref(false)
 function openPauseRestartConfirm() {
   window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
@@ -379,7 +358,6 @@ function confirmPauseRestart() {
   isPaused.value = next
 }
 
-const showShareConfirmPopup = ref(false)
 function openShareConfirm() {
   window.dispatchEvent(new Event('close-other-popups'))
   closePopup()
@@ -395,7 +373,6 @@ function confirmShare() {
   alert('공유되었습니다')
 }
 
-const showStatusPopup = ref(false)
 function openStatusPopup() {
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
@@ -409,8 +386,6 @@ function closeStatusPopup() {
   resetSelection()
 }
 
-const walkPlaySeq = ref(0)
-const walkDoneOverride = ref(null)
 function openWalkPopup() {
   window.dispatchEvent(new Event('close-other-popups'))
   if (showPopup.value) closePopup()
@@ -457,7 +432,6 @@ onMounted(() => {
   window.addEventListener('close-other-popups', handleGlobalCloseEvents)
   window.addEventListener('popstate', handleGlobalCloseEvents)
 })
-
 onBeforeUnmount(() => {
   window.removeEventListener('close-other-popups', handleGlobalCloseEvents)
   window.removeEventListener('popstate', handleGlobalCloseEvents)
