@@ -238,12 +238,12 @@ function weekRangeInMonth(d){
 }
 
 const periodStartRaw = computed(() => {
-  if (selectedPeriod.value==='W') return weekRangeInMonth(selectedDate.value).s
+  if (selectedPeriod.value==='W') return startOfWeekSun(selectedDate.value) // ✅ 월 경계로 자르지 않음
   if (selectedPeriod.value==='M') return startOfMonth(selectedDate.value)
   return startOfDay(selectedDate.value)
 })
 const periodEnd = computed(() => {
-  if (selectedPeriod.value==='W') return weekRangeInMonth(selectedDate.value).e
+  if (selectedPeriod.value==='W') return endOfWeekSun(selectedDate.value)   // ✅ 풀 주
   if (selectedPeriod.value==='M') return endOfMonth(selectedDate.value)
   return endOfDay(selectedDate.value)
 })
