@@ -704,6 +704,11 @@ function handleNext() {
   handleSelectDate(d, future)
 }
 
+function handleChangeView(v) {
+  selectedView.value = v
+  nextTick(recomputeScrollability)
+}
+
 function handleChangePeriod(mode) {
   selectedPeriod.value = mode
   if (mode === 'T') {
@@ -719,12 +724,12 @@ function handleChangePeriod(mode) {
     if (todayEl) todayEl.classList.remove('top')
     if (dateScrollEl) dateScrollEl.style.display = ''
   } else if (mode === 'W') {
-    if (selectedView.value === 'card') selectedView.value = 'block'
+    selectedView.value = 'block'
     const v = (scrollEl?.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
   } else if (mode === 'M') {
-    if (selectedView.value === 'card') selectedView.value = 'list'
+    selectedView.value = 'list'
     const v = (scrollEl?.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
