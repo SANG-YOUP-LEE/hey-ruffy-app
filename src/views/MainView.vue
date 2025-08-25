@@ -708,7 +708,13 @@ function handleChangeView(v) {
 function handleChangePeriod(mode) {
   if (selectedPeriod.value !== mode) {
     selectedPeriod.value = mode
-    selectedView.value = 'card'   // 기간 바꿀 때 항상 카드형으로 초기화
+    selectedView.value = 'card'  
+    if (mode === 'T') {
+      const today = new Date()
+      today.setHours(0,0,0,0)
+      selectedDate.value = today
+      isFutureDate.value = false
+    }
     selectedFilter.value = 'notdone'
     nextTick(recomputeScrollability)
     updateScrolledUI()
