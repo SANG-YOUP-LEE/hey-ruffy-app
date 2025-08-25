@@ -21,7 +21,7 @@
         :flags="{
           isPaused,
           hasWalkResolved,
-          canShowStatusButton,
+          canShowStatusButton: periodMode === 'T' && canShowStatusButton,
           hasTwoButtons
         }"
         :actions="{
