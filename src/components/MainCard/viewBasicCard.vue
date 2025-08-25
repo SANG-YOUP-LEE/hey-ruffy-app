@@ -1,3 +1,16 @@
+<script setup>
+defineProps({
+  cls: { type: [Array,Object,String], default: () => [] },
+  ui: { type: Object, required: true },
+  flags: { type: Object, required: true },
+  actions: { type: Object, required: true },
+  showPopup: { type: Boolean, default: false },
+  periodMode: { type: String, required: true },
+  isSelectMode: { type: Boolean, default: false },
+  isSelected: { type: Boolean, default: false }
+})
+</script>
+
 <template>
   <div :class="cls">
     <label class="checkbox-label" v-show="isSelectMode">
@@ -25,17 +38,17 @@
           </button>
         </li>
         <li :class="{ disabled: flags.isPaused }">
-          <button class="share" @click="actions.openShareConfirm" :disabled="flags.isPaused">다짐 공유하기</button>
+          <button class="share" :disabled="flags.isPaused" @click="actions.openShareConfirm">다짐 공유하기</button>
         </li>
         <li :class="{ disabled: flags.isPaused }">
-          <button class="del" @click="actions.openDeleteConfirm" :disabled="flags.isPaused">다짐 삭제하기</button>
+          <button class="del" :disabled="flags.isPaused" @click="actions.openDeleteConfirm">다짐 삭제하기</button>
         </li>
       </ul>
     </div>
 
     <div class="rc_inner">
       <div class="left">
-        <p class="today" v-if="ui.dateText && periodMode !== 'T'">{{ ui.dateText }}</p>
+        <p class="today" v-if="ui.dateText">{{ ui.dateText }}</p>
         <p class="title">
           <span :class="ui.colorClass"></span>
           {{ ui.titleText }}
@@ -53,7 +66,7 @@
 
       <div class="right"></div>
 
-      <div :class="['state_button', { twice: (periodMode==='T' && flags.canShowStatusButton) && flags.hasWalkResolved }]">
+      <div class="state_button" :class="{ twice: flags.hasTwoButtons }">
         <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
           <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
         </div>
@@ -64,16 +77,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-defineProps({
-  cls: { type: [Array,Object,String], default: () => [] },
-  ui: { type: Object, required: true },
-  flags: { type: Object, required: true },
-  actions: { type: Object, required: true },
-  showPopup: { type: Boolean, default: false },
-  periodMode: { type: String, required: true },
-  isSelectMode: { type: Boolean, default: false },
-  isSelected: { type: Boolean, default: false }
-})
-</script>
