@@ -706,10 +706,13 @@ function handleChangeView(v) {
 }
 
 function handleChangePeriod(mode) {
-  selectedPeriod.value = mode
-  selectedFilter.value = 'notdone'
-  nextTick(recomputeScrollability)
-  updateScrolledUI()
+  if (selectedPeriod.value !== mode) {
+    selectedPeriod.value = mode
+    selectedView.value = 'card'   // 기간 바꿀 때 항상 카드형으로 초기화
+    selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
+    updateScrolledUI()
+  }
 }
 
 function isRoutineForToday(r) {
