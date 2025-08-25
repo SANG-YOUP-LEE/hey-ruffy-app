@@ -5,14 +5,11 @@
     </button>
 
     <div class="state_button" :class="{ check: isSelectMode }">
-      <div class="done_set" v-if="flags.canShowStatusButton">
+      <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
         <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
       </div>
       <div class="walk_check" v-if="flags.hasWalkResolved">
         <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
-      </div>
-      <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
-        <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
       </div>
     </div>
 
@@ -61,7 +58,7 @@
           <span class="walk_goal">목표 {{ ui.goalCount }}회</span>
         </div>
       </div>
-      <div class="right"> </div>
+      <div class="right"></div>
     </div>
   </div>
 </template>
