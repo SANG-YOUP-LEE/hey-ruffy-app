@@ -1,23 +1,27 @@
 // src/router/index.js
-import { createRouter, createWebHistory } from "vue-router"
+import { createRouter, createWebHistory, createWebHashHistory } from "vue-router"
+import { Capacitor } from "@capacitor/core"
 
 import IntroView from "../views/IntroView.vue"
 import SignupView from "../views/SignupView.vue"
 import LoginView from "../views/LoginView.vue"
 import MainView from "../views/MainView.vue"
-import AddRoutineSelector from "../views/AddRoutineSelector.vue" // 필요 시 라우트로 접근 가능
+import AddRoutineSelector from "../views/AddRoutineSelector.vue"
 
 const routes = [
   { path: "/", name: "intro", component: IntroView },
   { path: "/signup", name: "signup", component: SignupView },
   { path: "/login", name: "login", component: LoginView },
   { path: "/main", name: "main", component: MainView },
-  { path: "/add-routine", name: "addRoutine", component: AddRoutineSelector }, // 옵션
+  { path: "/add-routine", name: "addRoutine", component: AddRoutineSelector },
 ]
 
+const isNative = Capacitor?.isNativePlatform?.() || !!window.Capacitor
+
 const router = createRouter({
-  history: createWebHistory(),
+  history: isNative ? createWebHashHistory() : createWebHistory(import.meta.env.BASE_URL),
   routes,
+  scrollBehavior() { return { top: 0 } },
 })
 
 export default router

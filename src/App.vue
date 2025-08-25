@@ -1,5 +1,7 @@
 <template>
-  <RouterView />
+  <div class="app-root safe-area">
+    <RouterView />
+  </div>
 </template>
 
 <script setup>
