@@ -14,14 +14,16 @@
     </button>
 
     <div class="state_button">
-      <div class="done_set" v-if="flags.canShowStatusButton">
+      <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
         <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
       </div>
       <div class="walk_check" v-if="flags.hasWalkResolved">
         <button class="p_basic_white" @click="actions.openWalkPopup">산책 현황 보기</button>
       </div>
-      <div class="done_set" v-if="periodMode==='T' && flags.canShowStatusButton">
-        <button class="p_basic" @click="actions.handleStatusButtonClick">달성현황 체크하기</button>
+      <div class="done_set">
+        <button class="p_white" :class="{ close: expanded }" @click="expanded = !expanded">
+          {{ expanded ? '접기' : '열기' }}
+        </button>
       </div>
     </div>
 
@@ -52,8 +54,8 @@
           <span :class="ui.colorClass"></span>
           {{ ui.titleText }}
         </p>
-        <p class="term"><i>{{ ui.repeatLabel }}</i> {{ ui.repeatDetail }}</p>
-        <p class="se_date">{{ ui.periodText }}</p>
+        <p class="term" v-show="expanded"><i>{{ ui.repeatLabel }}</i> {{ ui.repeatDetail }}</p>
+        <p class="se_date" v-show="expanded">{{ ui.periodText }}</p>
         <p class="alaram" v-show="expanded">{{ ui.alarmText }}</p>
         <p class="comment" v-if="ui.commentText" v-show="expanded">{{ ui.commentText }}</p>
         <div class="walk_info" v-if="flags.hasWalkResolved" v-show="expanded">
