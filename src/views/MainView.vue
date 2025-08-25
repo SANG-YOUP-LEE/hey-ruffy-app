@@ -238,12 +238,12 @@ function weekRangeInMonth(d){
 }
 
 const periodStartRaw = computed(() => {
-  if (selectedPeriod.value==='W') return startOfWeekSun(selectedDate.value)
+  if (selectedPeriod.value==='W') return startOfWeekSun(selectedDate.value) // ✅ 월 경계로 자르지 않음
   if (selectedPeriod.value==='M') return startOfMonth(selectedDate.value)
   return startOfDay(selectedDate.value)
 })
 const periodEnd = computed(() => {
-  if (selectedPeriod.value==='W') return endOfWeekSun(selectedDate.value)
+  if (selectedPeriod.value==='W') return endOfWeekSun(selectedDate.value)   // ✅ 풀 주
   if (selectedPeriod.value==='M') return endOfMonth(selectedDate.value)
   return endOfDay(selectedDate.value)
 })
@@ -262,27 +262,495 @@ function eachDate(s, e) {
   return out
 }
 
-function weekIndexForMonthBy(dateOfWeek, baseYear, baseMonth) {
-  const weekStart = startOfWeekSun(dateOfWeek)
-  const monthFirst = new Date(baseYear, baseMonth, 1)
-  const firstWeekStart = startOfWeekSun(monthFirst)
-  const diffWeeks = Math.floor(
-    (startOfDay(weekStart) - startOfDay(firstWeekStart)) / (7 * 24 * 60 * 60 * 1000)
-  )
-  return diffWeeks + 1
+const occurrencesActiveDay = computed(() => {
+  const d = startOfDay(selectedDate.value)
+  const list = rawRoutines.value.filter(r => !r.isPaused && inDateRange(r, d))
+  const key = dateKey(d)
+  return list.map(r => ({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-${key}` }))
+})
+const occurrencesPausedDay = computed(() => {
+  const d = startOfDay(selectedDate.value)
+  const list = rawRoutines.value.filter(r => !!r.isPaused && inDateRange(r, d))
+  const key = dateKey(d)
+  return list.map(r => ({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-paused-${key}` }))
+})
+
+const occurrencesActivePeriod = computed(() => {
+  const days = eachDate(periodStartRaw.value, periodEnd.value)
+  const out = []
+  for (const r of rawRoutines.value) {
+    if (r.isPaused) continue
+    for (const d of days) {
+      if (inDateRange(r, d)) {
+        const key = dateKey(d)
+        out.push({ ...r, status: r?.progress?.[key] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-${key}` })
+      }
+    }
+  }
+  return out
+})
+
+function isActiveOnAnyDay(r, s, e){
+  const days = eachDate(s, e)
+  for (const d of days) if (inDateRange(r, d)) return true
+  return false
+}
+function latestStatusInRange(r, s, e){
+  const days = eachDate(s, e)
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i]
+    if (inDateRange(r, d)) {
+      const k = dateKey(d)
+      return r?.progress?.[k] ?? 'notdone'
+    }
+  }
+  return 'notdone'
+}
+function lastActiveDateInRange(r, s, e){
+  const days = eachDate(s, e)
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i]
+    if (inDateRange(r, d)) return new Date(d)
+  }
+  return null
 }
 
-function weekLabelForDate(date) {
-  const ws = startOfWeekSun(date)
-  let cur=0, oth=0, othM=null, othY=null
-  for (let i=0;i<7;i++) {
-    const d = new Date(ws); d.setDate(ws.getDate()+i)
-    if (d.getMonth()===date.getMonth()) cur++
-    else { oth++; othM=d.getMonth(); othY=d.getFullYear() }
+const occurrencesPausedPeriod = computed(() => {
+  const s = periodStartRaw.value
+  const e = periodEnd.value
+  return rawRoutines.value
+    .filter(r => !!r.isPaused && isActiveOnAnyDay(r, s, e))
+    .map(r => {
+      const d = lastActiveDateInRange(r, s, e) || s
+      const k = dateKey(d)
+      return { ...r, status: r?.progress?.[k] ?? 'notdone', assignedDate: new Date(d), id: `${r.id}-paused-period-${dateKey(d)}` }
+    })
+})
+
+watch([selectedDate, rawRoutines, selectedPeriod], () => {
+  if (selectedPeriod.value === 'T') {
+    routines.value = [...occurrencesActiveDay.value, ...occurrencesPausedDay.value]
+  } else {
+    routines.value = [...occurrencesActivePeriod.value, ...occurrencesPausedPeriod.value]
   }
-  const baseMonth = cur >= 4 ? date.getMonth() : othM
-  const baseYear  = cur >= 4 ? date.getFullYear() : othY
-  const idx = weekIndexForMonthBy(ws, baseYear, baseMonth)
-  return { year: baseYear, month: baseMonth, idx }
+}, { immediate: true })
+
+const headerCounts = computed(() => {
+  const src = selectedPeriod.value === 'T' ? occurrencesActiveDay.value : occurrencesActivePeriod.value
+  const c = { notdone: 0, done: 0, faildone: 0, ignored: 0 }
+  for (const r of src) {
+    const s = getStatus(r)
+    if (s === 'done') c.done++
+    else if (s === 'faildone' || s === 'fail') c.faildone++
+    else if (s === 'ignored' || s === 'skip') c.ignored++
+    else c.notdone++
+  }
+  return c
+})
+const headerTotal = computed(() => (selectedPeriod.value === 'T' ? occurrencesActiveDay.value.length : occurrencesActivePeriod.value.length))
+
+const displayedRoutines = computed(() => {
+  const base = selectedPeriod.value === 'T'
+    ? [...occurrencesActiveDay.value, ...occurrencesPausedDay.value]
+    : [...occurrencesActivePeriod.value, ...occurrencesPausedPeriod.value]
+
+  const filtered = base.filter(r => getStatus(r) === selectedFilter.value)
+
+  const toMs = (v) => {
+    if (!v) return 0
+    if (v instanceof Date) return v.getTime()
+    if (typeof v.toDate === 'function') {
+      const d = v.toDate()
+      return d instanceof Date ? d.getTime() : 0
+    }
+    if (typeof v === 'number') return v
+    if (typeof v === 'string') {
+      const d = new Date(v)
+      return isNaN(d) ? 0 : d.getTime()
+    }
+    return 0
+  }
+
+  const arr = filtered.slice()
+  arr.sort((a, b) => {
+    if (selectedPeriod.value === 'T') {
+      const ca = toMs(a.createdAt)
+      const cb = toMs(b.createdAt)
+      return cb - ca
+    } else {
+      const da = toMs(a.assignedDate)
+      const db = toMs(b.assignedDate)
+      if (da !== db) return da - db
+      const ca = toMs(a.createdAt)
+      const cb = toMs(b.createdAt)
+      return cb - ca
+    }
+  })
+  return arr
+})
+
+function handleSelectDate(date, isFuture) {
+  selectedDate.value = date
+  isFutureDate.value = isFuture
+  selectedFilter.value = 'notdone'
+  selectedPeriod.value = 'T'
+  selectedView.value = 'card'
+  nextTick(recomputeScrollability)
+}
+const handleFilterChange = () => {}
+
+function onSaved(rt) {
+  const norm = normalize(rt)
+  const idx = rawRoutines.value.findIndex(r => r.id === rt.id)
+  if (idx === -1) {
+    rawRoutines.value = [{ ...norm }, ...rawRoutines.value]
+  } else {
+    rawRoutines.value.splice(idx, 1, { ...rawRoutines.value[idx], ...norm })
+  }
+  isAddRoutineOpen.value = false
+  editingRoutine.value = null
+  selectedFilter.value = 'notdone'
+  nextTick(recomputeScrollability)
+}
+
+async function onChangeStatus({ id, status }) {
+  const key = dateKey(selectedDate.value)
+  if (!currentUid) return
+  const rid = id.split('-')[0]
+  const j = rawRoutines.value.findIndex(r => r.id === rid)
+  const prev = j !== -1 ? rawRoutines.value[j]?.progress?.[key] : undefined
+  const r = j !== -1 ? rawRoutines.value[j] : null
+  const hasWalk = !!(r && (typeof r.hasWalk === 'boolean' ? r.hasWalk : (r.ruffy && r.course && r.goalCount)))
+  let delta = 0
+  if (hasWalk) {
+    if (prev !== 'done' && status === 'done') delta = 1
+    else if (prev === 'done' && status !== 'done') delta = -1
+  }
+  try {
+    const payload = {
+      [`progress.${key}`]: status,
+      updatedAt: serverTimestamp(),
+      ...(delta !== 0 ? { walkDoneCount: increment(delta) } : {})
+    }
+    await updateDoc(doc(db, 'users', currentUid, 'routines', rid), payload)
+  } catch (e) {}
+  if (j !== -1) {
+    const next = { ...rawRoutines.value[j] }
+    next.progress = { ...(next.progress || {}), [key]: status }
+    if (delta !== 0) {
+      const cur = Number(next.walkDoneCount || 0)
+      next.walkDoneCount = Math.max(0, cur + delta)
+    }
+    rawRoutines.value.splice(j, 1, next)
+  }
+  selectedFilter.value = status
+  nextTick(recomputeScrollability)
+}
+
+async function onTogglePause({ id, isPaused }) {
+  const rid = typeof id === 'string' ? id.split('-')[0] : id
+  if (!currentUid || !rid) return
+  try {
+    await updateDoc(doc(db, 'users', currentUid, 'routines', rid), {
+      isPaused: !!isPaused,
+      updatedAt: serverTimestamp(),
+    })
+  } catch (e) { return }
+  const j = rawRoutines.value.findIndex(r => r.id === rid)
+  if (j !== -1) {
+    const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
+    rawRoutines.value.splice(j, 1, next)
+  }
+  nextTick(recomputeScrollability)
+}
+
+async function onDelete(payload) {
+  const ids = Array.isArray(payload) ? payload : [payload]
+  const ridList = ids
+    .map(x => typeof x === 'string' ? x.split('-')[0] : x?.id ? String(x.id).split('-')[0] : null)
+    .filter(Boolean)
+
+  if (!currentUid || ridList.length === 0) {
+    alert('삭제 실패: 잘못된 ID입니다.')
+    return
+  }
+
+  try {
+    await Promise.all(ridList.map(rid => deleteDoc(doc(db, 'users', currentUid, 'routines', rid))))
+  } catch (e) {
+    alert('파이어베이스 삭제에 실패했습니다. 콘솔 로그를 확인해주세요.')
+  }
+
+  rawRoutines.value = rawRoutines.value.filter(r => !ridList.includes(r.id))
+  if (deleteMode.value) {
+    selectedIds.value = []
+    deleteMode.value = false
+    toggleListStateButtonClass(false)
+  }
+  nextTick(recomputeScrollability)
+}
+
+function openAddRoutine() {
+  window.dispatchEvent(new Event('close-other-popups'))
+  editingRoutine.value = null
+  if (rawRoutines.value.length >= MAX_ROUTINES) {
+    alert(`다짐은 최대 ${MAX_ROUTINES}개까지 만들 수 있어요.`)
+    return
+  }
+  isAddRoutineOpen.value = true
+}
+function openEditRoutine(rt) {
+  window.dispatchEvent(new Event('close-other-popups'))
+  editingRoutine.value = rt
+  isAddRoutineOpen.value = true
+}
+
+function setVh() {
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+function refreshMain() {
+  window.location.reload()
+}
+
+let stopAuth = null
+let stopRoutines = null
+
+const bindRoutines = (uid) => {
+  if (stopRoutines) {
+    stopRoutines()
+    stopRoutines = null
+  }
+  isLoading.value = true
+  hasFetched.value = false
+  const q = query(
+    collection(db, 'users', uid, 'routines'),
+    orderBy('createdAt', 'desc')
+  )
+  stopRoutines = onSnapshot(
+    q,
+    (snap) => {
+      const list = []
+      snap.forEach((d) => list.push({ id: d.id, ...normalize(d.data()) }))
+      rawRoutines.value = list
+      isLoading.value = false
+      hasFetched.value = true
+      nextTick(recomputeScrollability)
+    },
+    () => {
+      rawRoutines.value = []
+      isLoading.value = false
+      hasFetched.value = true
+      nextTick(recomputeScrollability)
+    }
+  )
+}
+
+const isScrolled = ref(false)
+const headerShort = ref(false)
+const canScroll = ref(false)
+let scrollEl = null
+
+function recomputeScrollability() {
+  const el = scrollEl
+  if (!el) return
+  const scrollable = el.scrollHeight > el.clientHeight + 1
+  canScroll.value = scrollable
+  if (!scrollable) {
+    el.scrollTop = 0
+    isScrolled.value = false
+    headerShort.value = false
+    const rt = document.querySelector('.routine_total')
+    rt && rt.classList.remove('top')
+    const ds = document.querySelector('.date_scroll')
+    ds && ds.classList.remove('hidden')
+    if (ds) ds.style.display = ''
+  }
+}
+
+function onScrollHandler() {
+  if (!canScroll.value) {
+    isScrolled.value = false
+    headerShort.value = false
+    return
+  }
+  const v = (scrollEl?.scrollTop || 0) > 0
+  isScrolled.value = v
+  headerShort.value = v
+}
+
+function updateScrolledUI() {
+  const routineTotalEl = document.querySelector('.routine_total')
+  const dateScrollEl = document.querySelector('.date_scroll')
+  const v = isScrolled.value
+  if (routineTotalEl) {
+    if (selectedPeriod.value === 'T' && v) routineTotalEl.classList.add('top')
+    else routineTotalEl.classList.remove('top')
+  }
+  if (dateScrollEl) {
+    if (selectedPeriod.value === 'T') {
+      dateScrollEl.style.display = v ? 'none' : ''
+    } else {
+      dateScrollEl.style.display = ''
+    }
+  }
+}
+
+function safeUpdateScrolledUI() {
+  if (!canScroll.value) return
+  updateScrolledUI()
+}
+
+onMounted(async () => {
+  setVh()
+  window.addEventListener('resize', setVh)
+  window.addEventListener('resize', recomputeScrollability)
+
+  scrollEl = document.querySelector('.main_scroll')
+  if (scrollEl) {
+    scrollEl.addEventListener('scroll', onScrollHandler)
+    const v = (scrollEl.scrollTop || 0) > 0
+    isScrolled.value = v
+    headerShort.value = v
+  }
+
+  await authReadyPromise
+  if (auth.currentUser) {
+    currentUid = auth.currentUser.uid
+    bindRoutines(currentUid)
+  }
+
+  stopAuth = onAuthStateChanged(auth, (user) => {
+    if (user && user.uid !== currentUid) {
+      currentUid = user.uid
+      bindRoutines(currentUid)
+    } else if (!user) {
+      if (navigator.onLine) {
+        currentUid = null
+        rawRoutines.value = []
+        if (stopRoutines) { stopRoutines(); stopRoutines = null }
+        isLoading.value = false
+        hasFetched.value = true
+        nextTick(recomputeScrollability)
+      }
+    }
+  })
+
+  nextTick(recomputeScrollability)
+  updateScrolledUI()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', setVh)
+  window.removeEventListener('resize', recomputeScrollability)
+  if (scrollEl) {
+    scrollEl.removeEventListener('scroll', onScrollHandler)
+    scrollEl = null
+  }
+  if (stopAuth) stopAuth()
+  if (stopRoutines) stopRoutines()
+})
+
+watch(isScrolled, () => {
+  safeUpdateScrolledUI()
+})
+
+watch([displayedRoutines, selectedPeriod, selectedView], () => {
+  nextTick(recomputeScrollability)
+})
+
+function handlePrev() {
+  if (selectedPeriod.value === 'W') {
+    const d = addDays(selectedDate.value, -7)
+    selectedDate.value = d
+    isFutureDate.value = d > new Date() && !isTodayDateFn(d)
+    selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
+    return
+  }
+  if (selectedPeriod.value === 'M') {
+    const cur = new Date(selectedDate.value)
+    const prev = addMonths(cur, -1)
+    selectedDate.value = prev
+    isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
+    selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
+    return
+  }
+  const d = addDays(selectedDate.value, -1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
+function handleNext() {
+  if (selectedPeriod.value === 'W') {
+    const d = addDays(selectedDate.value, 7)
+    selectedDate.value = d
+    isFutureDate.value = d > new Date() && !isTodayDateFn(d)
+    selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
+    return
+  }
+  if (selectedPeriod.value === 'M') {
+    const cur = new Date(selectedDate.value)
+    const next = addMonths(cur, 1)
+    selectedDate.value = next
+    isFutureDate.value = next > new Date() && !isTodayDateFn(next)
+    selectedFilter.value = 'notdone'
+    nextTick(recomputeScrollability)
+    return
+  }
+  const d = addDays(selectedDate.value, 1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
+
+function handleChangeView(v) {
+  selectedView.value = v
+  nextTick(recomputeScrollability)
+}
+
+function handleChangePeriod(mode) {
+  selectedPeriod.value = mode
+  if (mode === 'T') {
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    selectedDate.value = today
+    isFutureDate.value = false
+    selectedView.value = 'card'
+    isScrolled.value = false
+    headerShort.value = false
+    const todayEl = document.querySelector('.date_fixed_today')
+    const dateScrollEl = document.querySelector('.date_scroll')
+    if (todayEl) todayEl.classList.remove('top')
+    if (dateScrollEl) dateScrollEl.style.display = ''
+  } else if (mode === 'W') {
+    selectedView.value = 'block'
+    const v = (scrollEl?.scrollTop || 0) > 0
+    isScrolled.value = v
+    headerShort.value = v
+  } else if (mode === 'M') {
+    selectedView.value = 'list'
+    const v = (scrollEl?.scrollTop || 0) > 0
+    isScrolled.value = v
+    headerShort.value = v
+  }
+  selectedFilter.value = 'notdone'
+  nextTick(recomputeScrollability)
+  updateScrolledUI()
+}
+
+function isRoutineForToday(r) {
+  const today = new Date()
+  const ad = r?.assignedDate ? new Date(r.assignedDate) : today
+  const a = startOfDay(ad).getTime()
+  const b = startOfDay(today).getTime()
+  return a === b
+}
+
+function getAssignedDate(r) {
+  if (r?.assignedDate) return new Date(r.assignedDate)
+  if (selectedPeriod.value === 'T') return new Date(selectedDate.value)
+  const d = lastActiveDateInRange(r, periodStartRaw.value, periodEnd.value)
+  return d ? d : new Date(periodStartRaw.value)
 }
 </script>
