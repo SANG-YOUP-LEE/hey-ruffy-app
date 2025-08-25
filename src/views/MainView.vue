@@ -52,7 +52,7 @@
             :key="rt.id"
             :selected="getStatus(rt)"
             :routine="rt"
-            :isToday="isRoutineForToday(rt)"
+            :isToday="selectedPeriod==='T' && isRoutineForToday(rt)"
             :assigned-date="getAssignedDate(rt)"
             :layout="currentLayout"
             :period-mode="selectedPeriod"
