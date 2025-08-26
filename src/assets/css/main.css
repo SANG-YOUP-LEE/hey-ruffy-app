@@ -224,7 +224,6 @@ button.control {
   right: 0;
   height: 100%;
   background: #fff;
-  box-shadow: -6px 0 16px rgba(0,0,0,.12);
   will-change: transform;
 }
 
