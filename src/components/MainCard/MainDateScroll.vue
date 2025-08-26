@@ -2,19 +2,19 @@
   <div class="date_scroll">
     <div class="date_fixed_today">
       <span
-        class="on"
-        :class="{ on: selectedIndex === 0 }"
+        :class="{ on: isSameDay(selectedDate, today) }"
         @click="selectToday"
       >
         <i>{{ getDayLabel(today) }}</i>{{ today.getDate() }}
       </span>
     </div>
+
     <div class="date_group">
       <span
-        v-for="(date, index) in filteredDateList"
-        :key="index"
-        :class="{ on: selectedIndex === index + 1 }"
-        @click="selectDate(index + 1)"
+        v-for="(date, i) in scrollDates"
+        :key="i"
+        :class="{ on: isSameDay(selectedDate, date) }"
+        @click="selectFromScroll(date)"
       >
         <i>{{ getDayLabel(date) }}</i>{{ date.getDate() }}
       </span>
@@ -23,42 +23,36 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { computed } from 'vue'
 
 const emit = defineEmits(['selectDate'])
-const props = defineProps({
-  selectedDate: { type: Date, required: true }
-})
+const props = defineProps({ selectedDate: { type: Date, required: true } })
 
-const selectedIndex = ref(0)
+const pastDays = 30
+const futureDays = 30
+
 const today = new Date()
+today.setHours(0,0,0,0)
 
-const dateList = Array.from({ length: 30 }, (_, i) => {
-  const d = new Date()
-  d.setDate(today.getDate() + i)
-  d.setHours(0,0,0,0)
-  return d
-})
-const filteredDateList = dateList.slice(1)
-
-const getDayLabel = (date) => ['일','월','화','수','목','금','토'][date.getDay()]
 const isSameDay = (a,b)=> a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate()
+const getDayLabel = (d)=> ['일','월','화','수','목','금','토'][d.getDay()]
 
-const syncFromProp = () => {
-  const idx = dateList.findIndex(d => isSameDay(d, props.selectedDate))
-  selectedIndex.value = idx >= 0 ? idx : 0
+const scrollDates = computed(() => {
+  const arr = []
+  for (let off = -pastDays; off <= futureDays; off++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + off)
+    arr.push(d)
+  }
+  return arr
+})
+
+const emitSelection = (date) => {
+  const now = new Date(); now.setHours(0,0,0,0)
+  const isFuture = date > now && !isSameDay(date, now)
+  emit('selectDate', date, isFuture)
 }
 
-const selectDate = (index) => {
-  selectedIndex.value = index
-  const selected = dateList[index]
-  const now = new Date()
-  const isFuture = selected > now && !isSameDay(selected, now)
-  emit('selectDate', selected, isFuture)
-}
-
-const selectToday = () => { selectDate(0) }
-
-watch(() => props.selectedDate, syncFromProp, { immediate: true })
-onMounted(syncFromProp)
+const selectToday = () => emitSelection(today)
+const selectFromScroll = (date) => emitSelection(date)
 </script>
