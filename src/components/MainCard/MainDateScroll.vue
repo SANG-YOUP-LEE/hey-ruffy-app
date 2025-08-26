@@ -59,8 +59,11 @@ const selectFromScroll = (date, i) => { activeIndex.value = i; emitSelection(dat
 onMounted(async () => {
   await nextTick()
   if (!scroller.value) return
-  const idx = pastAsc.value.length
+  const idx = pastAsc.value.length   // 내일의 인덱스
   const el = scroller.value.children[idx]
-  if (el) scroller.value.scrollLeft = el.offsetLeft
+  if (!el) return
+  const rWrap = scroller.value.getBoundingClientRect()
+  const rEl   = el.getBoundingClientRect()
+  scroller.value.scrollLeft += (rEl.left - rWrap.left) // 27일이 정확히 시작 위치에 오게
 })
 </script>
