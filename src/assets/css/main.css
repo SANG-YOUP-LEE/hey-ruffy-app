@@ -96,6 +96,7 @@ button.add {
   background-color:green;
   padding:0;
   height:3.4rem;
+  line-height:3.4rem;
 }
 
 #header .left,
