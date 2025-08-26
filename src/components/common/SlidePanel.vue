@@ -1,8 +1,8 @@
 <template>
   <teleport to="body">
-    <transition name="sp-slide" appear>
+    <transition name="sp-slide">
       <div v-if="show" class="sp" :style="{ zIndex: String(zIndex) }">
-        <transition name="sp-fade" appear>
+        <transition name="sp-fade">
           <div v-if="dim" class="sp_overlay" @click="$emit('close')"></div>
         </transition>
         <div class="sp_panel" :style="{ width, height: 'calc(var(--vh, 1vh) * 100)' }">
@@ -13,8 +13,8 @@
   </teleport>
 </template>
 
+
 <script setup>
-import { computed } from 'vue'
 defineProps({
   show: { type: Boolean, default: false },
   width: { type: String, default: '100%' },
