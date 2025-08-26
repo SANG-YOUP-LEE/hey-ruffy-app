@@ -1,7 +1,9 @@
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: deleteMode, 'lnb-open': showLnb }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
-    <LnbView @close-lnb="showLnb = false" />
+    <SlidePanel :show="showLnb" @close="showLnb = false">
+      <LnbView @close-lnb="showLnb = false" />
+    </SlidePanel>
     <div class="lnb_dim" v-show="showLnb" @click="showLnb = false"></div>
   
     <div id="main_body">
@@ -118,6 +120,7 @@ import viewBlockCard from '@/components/MainCard/viewBlockCard.vue'
 import viewListCard from '@/components/MainCard/viewListCard.vue'
 
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
+import SlidePanel from '@/components/common/SlidePanel.vue'
 
 const isLoading = ref(true)
 const hasFetched = ref(false)
