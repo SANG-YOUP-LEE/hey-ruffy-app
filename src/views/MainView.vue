@@ -1,8 +1,9 @@
 <template>
-  <div id="main_wrap" :class="{ selecting: deleteMode }">
+  <div id="main_wrap" :class="{ selecting: deleteMode, 'lnb-open': showLnb }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
     <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
-
+    <div class="lnb_dim" v-show="showLnb" @click="showLnb = false"></div>
+  
     <div id="main_body">
       <div class="main_fixed">
         <MainDateScroll
