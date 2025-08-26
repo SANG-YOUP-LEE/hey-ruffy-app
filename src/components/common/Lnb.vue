@@ -1,7 +1,7 @@
 <template>
-  <div id="lnb">
+  <div class="lnb">
     <div class="lnb_header">
-      <a href="#none" @click.prevent="$emit('close-lnb')">닫기</a>
+      <a href="#none" @click.prevent="$emit('close')">닫기</a>
     </div>
 
     <div class="lnb_user" v-if="authReady && currentUser">
@@ -14,7 +14,7 @@
         </div>
       </div>
     </div>
-
+    
     <nav class="lnb_menu">
       <button
         type="button"
@@ -25,7 +25,7 @@
         {{ deleting ? '삭제 중...' : '다짐 모두 삭제하기' }}
       </button>
     </nav>
-
+    
     <div class="lnb_footer">
       <button
         v-if="authReady && currentUser"
@@ -34,7 +34,7 @@
         :disabled="loggingOut"
         @click="logout"
       >{{ loggingOut ? '로그아웃 중...' : '로그아웃' }}</button>
-
+    
       <button
         v-if="authReady && !currentUser"
         type="button"
@@ -42,7 +42,7 @@
         @click="goLogin"
       >로그인</button>
     </div>
-
+    
     <div v-if="showStep1" class="modal" @click.self="closeAll">
       <div class="modal_box">
         <h3>정말 삭제하시겠습니까?</h3>
@@ -53,7 +53,7 @@
         </div>
       </div>
     </div>
-
+    
     <div v-if="showStep2" class="modal" @click.self="closeAll">
       <div class="modal_box">
         <h3>정말로 모두 삭제할까요?</h3>
@@ -75,7 +75,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth'
 import { doc, getDoc, collection, query, where, limit, getDocs, writeBatch } from 'firebase/firestore'
-import { db } from '@/firebase'   // alias('@' -> 'src') 쓰는 프로젝트
+import { db } from '@/firebase'
 
 const router = useRouter()
 const loggingOut = ref(false)
@@ -179,3 +179,4 @@ async function confirmDelete() {
   }
 }
 </script>
+
