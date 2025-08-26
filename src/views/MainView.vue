@@ -734,6 +734,20 @@ function handleChangePeriod(mode) {
   }
 }
 
+function handleToggleDeleteMode(v, force = false) {
+  const next = !!v
+  if (deleteMode.value && !next && !force) {
+    if (selectedIds.value.length > 0) {
+      showBulkDeleteConfirm.value = true
+      document.body.classList.add('no-scroll')
+      return
+    }
+  }
+  deleteMode.value = next
+  if (!deleteMode.value) selectedIds.value = []
+  toggleListStateButtonClass(deleteMode.value)
+}
+
 function isRoutineForToday(r) {
   const today = new Date()
   const ad = r?.assignedDate ? new Date(r.assignedDate) : today
