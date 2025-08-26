@@ -1,18 +1,17 @@
 <template>
   <teleport to="body">
-    <transition name="sp-slide">
-      <div v-if="show" class="sp" :style="{ zIndex: String(zIndex) }">
-        <transition name="sp-fade">
-          <div v-if="dim" class="sp_overlay" @click="$emit('close')"></div>
-        </transition>
-        <div class="sp_panel" :style="{ width, height: 'calc(var(--vh, 1vh) * 100)' }">
+    <div class="sp" :style="{ zIndex: String(zIndex) }">
+      <transition name="sp-fade">
+        <div v-if="show && dim" class="sp_overlay" @click="$emit('close')"></div>
+      </transition>
+      <transition name="sp-slide">
+        <div v-if="show" class="sp_panel" :style="{ width, height: 'calc(var(--vh, 1vh) * 100)' }">
           <slot />
         </div>
-      </div>
-    </transition>
+      </transition>
+    </div>
   </teleport>
 </template>
-
 
 <script setup>
 defineProps({
