@@ -272,7 +272,7 @@ button.control {
   background-color:red;
 }
 
-.lnb .lnb_header a {
+.lnb .lnb_header a.close {
   width:1.8rem;
   height:1.8rem;
   display:inline-block;
