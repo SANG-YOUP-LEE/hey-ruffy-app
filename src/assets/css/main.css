@@ -94,6 +94,8 @@ button.add {
   align-items: center;
   width: 100%;
   background-color:green;
+  padding:0;
+  height:3.4rem;
 }
 
 #header .left,
