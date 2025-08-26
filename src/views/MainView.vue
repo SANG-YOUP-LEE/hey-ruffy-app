@@ -1,5 +1,5 @@
 <template>
-  <div id="main_wrap" v-cloak :class="{ selecting: deleteMode, 'lnb-open': showLnb }">
+  <div id="main_wrap" v-cloak :class="{ selecting: deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
     <SlidePanel :show="showLnb" @close="showLnb = false">
       <LnbView @close-lnb="showLnb = false" />
