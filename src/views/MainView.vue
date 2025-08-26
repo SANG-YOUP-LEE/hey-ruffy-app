@@ -148,20 +148,6 @@ const deleteMode = ref(false)
 const selectedIds = ref([])
 const showBulkDeleteConfirm = ref(false)
 
-function handleToggleDeleteMode(v) {
-  const next = !!v
-  if (deleteMode.value && !next) {
-    if (selectedIds.value.length > 0) {
-      showBulkDeleteConfirm.value = true
-      document.body.classList.add('no-scroll')
-      return
-    }
-  }
-  deleteMode.value = next
-  if (!deleteMode.value) selectedIds.value = []
-  toggleListStateButtonClass(deleteMode.value)
-}
-
 function onToggleSelect({ id, checked }) {
   const base = String(id).split('-')[0]
   if (!base) return
