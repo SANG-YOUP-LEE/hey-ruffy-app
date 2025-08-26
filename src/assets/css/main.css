@@ -280,6 +280,9 @@ button.control {
   background: url('../images/ico_prev.png') no-repeat 0 0/100%;
 }
 
+.lnb .lnb_header a.close span {
+  display:none
+}
 
 #main_body .no_data {
   position: fixed;
