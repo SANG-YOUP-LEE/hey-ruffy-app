@@ -57,6 +57,7 @@
             :isToday="selectedPeriod==='T' && isRoutineForToday(rt)"
             :assigned-date="getAssignedDate(rt)"
             :layout="currentLayout"
+            :layout-variant="currentVariant"
             :period-mode="selectedPeriod"
             :delete-targets="selectedIds"
             :delete-mode="deleteMode"
@@ -129,12 +130,14 @@ const selectedFilter = ref('notdone')
 
 const selectedPeriod = ref('T')
 const selectedView = ref('card')
-const currentLayout = computed(() => {
-  if (selectedView.value === 'block') return viewBlockCard
-  if (selectedView.value === 'list')  return viewListCard
-  return viewBasicCard
-})
 
+const currentLayout = ViewCardSetView
+const currentVariant = computed(() =>
+  selectedView.value === 'block' ? 'block'
+  : selectedView.value === 'list' ? 'list'
+  : 'basic'
+)
+  
 const rawRoutines = ref([])
 const routines = ref([])
 const isTodayDate = computed(() => dateKey(selectedDate.value) === dateKey(new Date()))
