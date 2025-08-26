@@ -1,7 +1,7 @@
 <template>
   <div class="lnb">
     <div class="lnb_header">
-      <a href="#none" @click.prevent="$emit('close')">닫기</a>
+      <a href="#none" @click.prevent="$emit('close')" class="close"><span>닫기</span></a>
     </div>
 
     <div class="lnb_user" v-if="authReady && currentUser">
