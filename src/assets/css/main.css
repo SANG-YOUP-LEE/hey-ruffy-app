@@ -7,65 +7,47 @@
   overflow-x:hidden;
 }
 
-.lnb-open #main_body{ 
-  transform:translateX(var(--lnb-w)); 
-  transition:transform .28s ease; 
-}
-.lnb-open .main_fixed,
-.lnb-open .main_scroll,
-.lnb-open .add,
-.lnb-open footer{ 
-  filter:blur(2px) brightness(.92); 
-  transition:filter .2s ease; 
-}
-
-#lnb{ z-index: 1201; }
-
 .lnb-open #header,
 .lnb-open #main_body,
 .lnb-open #footer,
-.lnb-open button.add{
+.lnb-open button.add {
   transform: translateX(var(--lnb-w));
   transition: transform .28s ease;
 }
 
-.lnb-open .main_fixed,
-.lnb-open .main_scroll,
-.lnb-open .add,
-.lnb-open footer{
-  filter: none;
+#lnb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--lnb-w);
+  height: calc(var(--vh, 1vh) * 100);
+  background-color: #fff;
+  padding: 2rem;
+  z-index: 1200;
+  overflow-y: auto;
+  border-right:1px solid #aaa;
 }
 
-.lnb_dim{ 
-  position:fixed; 
-  inset:0; 
-  background:rgba(0,0,0,.25); 
-  opacity:0; 
-  pointer-events:none; 
-  transition:opacity .28s ease; 
-  z-index:1100; 
+.lnb_dim {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.25);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease;
+  z-index:1100;
 }
-.lnb-open .lnb_dim{ 
-  opacity:1; 
-  pointer-events:auto; 
+.lnb-open .lnb_dim {
+  opacity:1;
+  pointer-events:auto;
 }
-
-.lnb-open .lnb-view, .lnb-view{ 
-  position:fixed; 
-  top:0; 
-  left:0; 
-  width:var(--lnb-w); 
-  height:100%; 
-  z-index:1200; 
-}
-
 
 #main_wrap button {
   display:inline-block;
 }
 
 #main_wrap button span {
-  display:none
+  display:none;
 }
 
 #header {
@@ -77,32 +59,32 @@
   border-bottom:1px solid #e6e6e6;
 }
 
-#header .h1{
+#header .h1 {
   display:flex;
   align-items:center;
   width:100%;
 }
 
 #header .left,
-#header .right{
+#header .right {
   flex:0 0 1.8rem; 
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-#header .title{
+#header .title {
   flex:1;
   text-align:center;
 }
 
-#header .title h1{
+#header .title h1 {
   margin:0;
   font-size:1.8rem;
   line-height:3.4rem;
 }
 
-#header .title p{
+#header .title p {
   margin:0;
   font-size:1rem;
   letter-spacing:-0.02rem;
@@ -113,12 +95,12 @@
 }
 
 #header .left button,
-#header .right button{
+#header .right button {
   width:1.5rem;
   height:1.5rem;
 }
 
-#header .ruffys_item{
+#header .ruffys_item {
   width:100%;
   display:flex;
   justify-content:center;
@@ -127,7 +109,7 @@
   margin:1rem 0 1rem 0;
 }
 
-#header .ruffys_item span[class^="ruffy"]{
+#header .ruffys_item span[class^="ruffy"] {
   width:2.5rem;
   height:2.5rem;
   background-size:100% 100%;
@@ -140,19 +122,6 @@
 #header.short .title p,
 #header.short .ruffys_item {
   display: none;
-}
-
-#lnb {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 70%;
-  height: calc(var(--vh, 1vh) * 100);
-  background-color: #fff;
-  padding: 2rem;
-  z-index: 1000; 
-  overflow-y: auto;
-  border-right:1px solid #aaa
 }
 
 #footer {
@@ -184,9 +153,10 @@
   -webkit-overflow-scrolling: touch;
   padding:0rem 1rem 0 1rem;
   background-color:#fafafa;
-  flex:1;display:flex;
+  flex:1;
+  display:flex;
   flex-direction:column;
-  overflow:hidden
+  overflow:hidden;
 }
 
 .main_fixed {
@@ -194,9 +164,10 @@
 }
 
 .main_scroll {
-  flex:1;overflow-y:auto;
+  flex:1;
+  overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:var(--footer-h,8rem)
+  padding-bottom:var(--footer-h,8rem);
 }
 
 button.lnb {
@@ -216,7 +187,7 @@ button.add {
   border-radius:50%;
   background: url('../images/ico_add.png') no-repeat 0 0/100%;
   background-color:#fff;
-  z-index:1!important
+  z-index:1!important;
 }
 
 button.home {
@@ -275,25 +246,5 @@ button.control {
   color:#666;
   font-size:1rem;
   margin-top:0.5rem;
-  font-family:'S-CoreDream-4Regular'
+  font-family:'S-CoreDream-4Regular';
 }
-
-/*
-.no_data {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  font-size:1.4rem;
-  line-height:1.7rem;
-  padding-top:10rem
-}
-
-.no_data span {
-  display:block;
-  color:#666;
-  font-size:1rem;
-  margin-top:0.5rem
-}
-*/
