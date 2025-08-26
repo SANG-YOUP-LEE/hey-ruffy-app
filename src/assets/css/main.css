@@ -270,6 +270,59 @@ button.control {
   background: url('../images/ico_shop.png') no-repeat 0 0/100%;
 }
 
+.sp {
+  position: fixed;
+  inset: 0;
+}
+
+.sp_overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+}
+
+.sp_panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: #fff;
+  box-shadow: -6px 0 16px rgba(0,0,0,.12);
+  will-change: transform;
+}
+
+/* slide */
+.sp-slide-enter-from .sp_panel {
+  transform: translateX(100%);
+}
+.sp-slide-enter-to .sp_panel {
+  transform: translateX(0);
+}
+.sp-slide-leave-from .sp_panel {
+  transform: translateX(0);
+}
+.sp-slide-leave-to .sp_panel {
+  transform: translateX(100%);
+}
+.sp-slide-enter-active .sp_panel,
+.sp-slide-leave-active .sp_panel {
+  transition: transform .45s cubic-bezier(.22,.61,.36,1);
+}
+
+/* fade */
+.sp-fade-enter-from,
+.sp-fade-leave-to {
+  opacity: 0;
+}
+.sp-fade-enter-to,
+.sp-fade-leave-from {
+  opacity: 1;
+}
+.sp-fade-enter-active,
+.sp-fade-leave-active {
+  transition: opacity .36s cubic-bezier(.22,.61,.36,1);
+}
+
 #main_body .no_data {
   position: fixed;
   top: 50%;
