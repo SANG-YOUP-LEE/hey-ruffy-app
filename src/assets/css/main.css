@@ -90,6 +90,7 @@ button.add {
   display: flex;
   align-items: center;
   width: 100%;
+  min-height: 3.4rem;
 }
 
 #header .left,
