@@ -266,6 +266,20 @@ button.control {
   transition: opacity .36s cubic-bezier(.22,.61,.36,1);
 }
 
+#main_body .lnb {
+  padding:2rem;
+  text-align:left;
+  background-color:red;
+}
+#main_body .lnb .lnb_header a {
+  width:1.8rem;
+  height:1.8rem;
+  display:inline-block;
+  border:1px solid red;
+  background: url('../images/ico_prev.png') no-repeat 0 0/100%;
+}
+
+
 #main_body .no_data {
   position: fixed;
   top: 50%;
