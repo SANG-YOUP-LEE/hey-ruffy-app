@@ -114,8 +114,7 @@ import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
-import ViewCardSetView from '@/components/MainCard/viewCardSetView.vue'
-
+import ViewCardSetView from '@/components/MainCard/ViewCardSet.vue'
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 import SlidePanel from '@/components/common/SlidePanel.vue'
   
