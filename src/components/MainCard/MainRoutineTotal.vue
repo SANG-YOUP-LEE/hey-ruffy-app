@@ -131,14 +131,14 @@ const props = defineProps({
 
 function toggleDeleteMode() { emit('toggleDeleteMode', !props.deleteMode) }
 function onChangePeriod(mode){
-  if (props.deleteMode) emit('toggleDeleteMode', false)
+  if (props.deleteMode) emit('toggleDeleteMode', false, true)
   emit('changePeriod', mode)
 }
 function onChangeView(view){
-  if (props.deleteMode) emit('toggleDeleteMode', false)
+  if (props.deleteMode) emit('toggleDeleteMode', false, true)
   emit('changeView', view)
 }
-
+  
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal = computed(() => props.totalCount ?? 15)
 
