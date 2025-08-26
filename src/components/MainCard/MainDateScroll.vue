@@ -36,8 +36,9 @@ const getDayLabel = (d)=> ['일','월','화','수','목','금','토'][d.getDay()
 const addDays = (base, n)=> { const d = new Date(base); d.setDate(base.getDate()+n); d.setHours(0,0,0,0); return d }
 
 const pastAsc = computed(() =>
-  Array.from({length: pastDays}, (_,i)=> addDays(today, -(pastDays - i)))
+  Array.from({length: pastDays}, (_,i)=> addDays(today, -(pastDays - 1 - i)))
 )
+
 const tomorrow = computed(() => addDays(today, 1))
 const futureAsc = computed(() =>
   Array.from({length: futureDays-1}, (_,i)=> addDays(today, i+2))
