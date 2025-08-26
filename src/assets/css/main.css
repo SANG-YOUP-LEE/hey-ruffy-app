@@ -2,29 +2,26 @@
   height: calc(var(--vh, 1vh) * 100);
   display: flex;
   flex-direction: column;
-  --lnb-w:100%; 
-  position:relative; 
+  position:relative;
   overflow-x:hidden;
-}
-
-.lnb-open #header,
-.lnb-open #main_body,
-.lnb-open #footer,
-.lnb-open button.add {
-  transition: transform .18s cubic-bezier(.22,.61,.36,1);
-  will-change: transform;
 }
 
 #lnb {
   position: fixed;
   top: 0;
   left: 0;
-  width: var(--lnb-w);
+  width: 100%;
   height: calc(var(--vh, 1vh) * 100);
   background-color: #fff;
   padding: 2rem;
   z-index: 1200;
   overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform .25s ease;
+}
+
+.lnb-open #lnb {
+  transform: translateX(0);
 }
 
 .lnb_dim {
@@ -33,7 +30,7 @@
   background:rgba(0,0,0,.25);
   opacity:0;
   pointer-events:none;
-  transition: opacity .18s cubic-bezier(.22,.61,.36,1);
+  transition: opacity .25s ease;
   z-index:1100;
 }
 .lnb-open .lnb_dim {
