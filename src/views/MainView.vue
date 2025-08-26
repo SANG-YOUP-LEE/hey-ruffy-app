@@ -114,7 +114,8 @@ import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
-import ViewCardSetView from '@/components/MainCard/ViewCardSet.vue'
+import MainCardSet from '@/components/MainCard/MainCardSet.vue'
+
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 import SlidePanel from '@/components/common/SlidePanel.vue'
   
@@ -130,7 +131,7 @@ const selectedFilter = ref('notdone')
 const selectedPeriod = ref('T')
 const selectedView = ref('card')
 
-const currentLayout = ViewCardSetView
+const currentLayout = MainCardSet
 const currentVariant = computed(() =>
   selectedView.value === 'block' ? 'block'
   : selectedView.value === 'list' ? 'list'
