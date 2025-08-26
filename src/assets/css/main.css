@@ -150,7 +150,7 @@
   flex-grow: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding:0rem 1rem 0 1rem;
+  padding:0rem 2rem 0 2rem;
   background-color:#fafafa;
   flex:1;
   display:flex;
