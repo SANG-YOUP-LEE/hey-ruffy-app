@@ -81,7 +81,7 @@ button.add {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 1rem 1rem 0 1rem;
+  padding: 0.5rem 1rem 0 1rem;
   box-sizing: border-box;
   border-bottom: 1px solid #e6e6e6;
 }
@@ -123,8 +123,6 @@ button.add {
 
 #header .left button,
 #header .right button {
-  width: 2rem;
-  height: 2rem;
 }
 
 #header .ruffys_item {
@@ -143,7 +141,7 @@ button.add {
 }
 
 #header.short {
-  /*padding: 0.5rem 1rem 0.5rem 1rem;*/
+  padding: 0.5rem 1rem 0.5rem 1rem;
 }
 
 #header.short .title p,
@@ -168,9 +166,7 @@ button.add {
 }
 
 #footer .button button {
-  width: 2rem;
-  height: 2rem;
-  flex: 0 0 1.5rem;
+  flex: 0 0 1.8rem;
   display: inline-block;
 }
 
