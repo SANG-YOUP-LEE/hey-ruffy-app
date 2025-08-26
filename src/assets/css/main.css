@@ -61,27 +61,48 @@
 #main_wrap button span { display:none; }
 
 #header {
+  position: sticky;
+  top: 0;
+  background:#fff;
+  z-index:100;
+  height: 6.2rem;
+  overflow: hidden;
   display:flex;
   flex-direction:column;
   width:100%;
-  padding:1rem 1rem 0 1rem;
+  padding:0 1rem;
   box-sizing:border-box;
   border-bottom:1px solid #e6e6e6;
 }
 #header .h1 { display:flex; align-items:center; width:100%; }
 #header .left, #header .right { flex:0 0 1.8rem; display:flex; align-items:center; justify-content:center; }
 #header .title { flex:1; text-align:center; }
-#header .title h1 { margin:0; font-size:1.8rem; line-height:3.4rem; }
+#header .title h1 { margin:0; font-size:1.8rem; line-height:3.4rem; transform-origin: top left; }
 #header .title p { margin:0; font-size:1rem; letter-spacing:-0.02rem; display:flex; align-items:center; justify-content:center; font-family:'S-CoreDream-4Regular'; }
-#header .left button, #header .right button { width:1.5rem; height:1.5rem; }
+#header .left button, 
+#header .right button { width:2rem; height:2rem; }
 #header .ruffys_item { width:100%; display:flex; justify-content:center; align-items:center; gap:0.8rem; margin:1rem 0 1rem 0; }
-#header .ruffys_item span[class^="ruffy"] { width:2.5rem; height:2.5rem; background-size:100% 100%; }
-#header.short { padding:0.5rem 1rem 0.5rem 1rem; }
-#header.short .title p, #header.short .ruffys_item { display: none; }
+
+#header .h1,
+#header .title h1,
+#header .title p,
+#header .ruffys_item{
+  transition: transform .24s ease, opacity .24s ease;
+  will-change: transform, opacity;
+}
+
+#header.short .h1{ transform: translateY(-.35rem); }
+#header.short .title p,
+#header.short .ruffys_item{
+  opacity: 0;
+  transform: translateY(-.6rem);
+  pointer-events: none;
+}
+#header.short .title h1{ transform: translateY(-.1rem) scale(.98); }
 
 #footer { padding:1.5rem; border-top:1px solid #e6e6e6; display:flex; }
 #footer .button { width:100%; margin:0 auto; flex-shrink:0; display:flex; justify-content:space-around; align-items:center; gap:1.5rem; }
-#footer .button button { width:1.5rem; height:1.5rem; flex:0 0 1.5rem; display:inline-block; }
+#footer .button button { width:2rem; height:2rem; flex:0 0 1.5rem; display:inline-block; }
 
 #main_body {
   flex-grow: 1;
