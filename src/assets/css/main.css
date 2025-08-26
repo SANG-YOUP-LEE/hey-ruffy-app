@@ -273,6 +273,8 @@ button.control {
 }
 
 .lnb .lnb_header a.close {
+  width:1.8rem;
+  height:1.8rem;
   display:inline-block;
   border:1px solid red;
   background: url('../images/ico_prev.png') no-repeat 0 0/100%;
