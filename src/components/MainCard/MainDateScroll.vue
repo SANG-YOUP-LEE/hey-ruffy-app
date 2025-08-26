@@ -53,7 +53,18 @@ const emitSelection = (date) => {
   emit('selectDate', date, date > today && !isToday, isToday)
 }
 
-const selectToday = () => { activeIndex.value = null; emitSelection(today) }
+const selectToday = () => {
+  activeIndex.value = null
+  emitSelection(today)
+  if (!scroller.value) return
+  const idx = pastAsc.value.length + 1
+  const el = scroller.value.children[idx]
+  if (!el) return
+  const rWrap = scroller.value.getBoundingClientRect()
+  const rEl = el.getBoundingClientRect()
+  scroller.value.scrollLeft += (rEl.left - rWrap.left)
+}
+  
 const selectFromScroll = (date, i) => { activeIndex.value = i; emitSelection(date) }
 
 onMounted(async () => {
