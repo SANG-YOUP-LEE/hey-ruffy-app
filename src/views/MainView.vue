@@ -2,10 +2,9 @@
   <div id="main_wrap" v-cloak :class="{ selecting: deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
     <SlidePanel :show="showLnb" @close="showLnb = false">
-      <LnbView @close-lnb="showLnb = false" />
+      <LnbView @close="showLnb = false" />
     </SlidePanel>
-    <div class="lnb_dim" v-show="showLnb" @click="showLnb = false"></div>
-  
+    
     <div id="main_body">
       <div class="main_fixed">
         <MainDateScroll
