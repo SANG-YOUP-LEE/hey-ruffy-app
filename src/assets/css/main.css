@@ -173,6 +173,8 @@ button.add {
 #footer .button {
   width:1.8rem;
   height:1.8rem;
+  border:1px solid red;
+  display:inline-block;
 }
 
 #main_body {
