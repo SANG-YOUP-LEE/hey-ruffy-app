@@ -95,8 +95,6 @@ button.add {
   width: 100%;
   background-color:green;
   padding:0;
-  height:3.4rem;
-  line-height:3.4rem;
 }
 
 #header .left,
@@ -120,6 +118,7 @@ button.add {
   flex: 1;
   text-align: center;
   padding: 0;
+  height:5rem;
 }
 
 #header .title h1 {
