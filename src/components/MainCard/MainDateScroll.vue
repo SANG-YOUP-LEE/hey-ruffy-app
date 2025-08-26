@@ -59,10 +59,8 @@ const selectFromScroll = (date, i) => { activeIndex.value = i; emitSelection(dat
 onMounted(async () => {
   await nextTick()
   if (!scroller.value) return
-  const pastCount = pastAsc.value.length
-  const nodes = scroller.value.children
-  let w = 0
-  for (let i = 0; i < pastCount && i < nodes.length; i++) w += nodes[i].offsetWidth
-  scroller.value.scrollLeft = w
+  const idx = pastAsc.value.length
+  const el = scroller.value.children[idx]
+  if (el) scroller.value.scrollLeft = el.offsetLeft
 })
 </script>
