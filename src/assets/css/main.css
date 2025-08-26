@@ -78,6 +78,7 @@ button.add {
 }
 
 #header {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -87,24 +88,34 @@ button.add {
 }
 
 #header .h1 {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   width: 100%;
-  min-height: 3.4rem;
+  height: 3.4rem;
 }
 
 #header .left,
 #header .right {
-  flex: 0 0 1.8rem;
+  position: absolute;
+  top: 1.3rem;
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin-top: 0.8rem;
+  justify-content: center;
+}
+
+#header .left {
+  left: 1rem;
+}
+
+#header .right {
+  right: 1rem;
 }
 
 #header .title {
   flex: 1;
   text-align: center;
+  padding: 0 2.2rem;
 }
 
 #header .title h1 {
