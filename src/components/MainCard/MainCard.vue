@@ -156,6 +156,7 @@ const props = defineProps({
   routine: { type: Object, default: () => ({}) },
   isToday: { type: Boolean, default: false },
   layout: { type: [Object, Function], required: true },
+  layoutVariant: { type: String, default: 'basic' },
   assignedDate: { type: [String, Date, Number], default: null },
   periodMode: { type: String, default: 'T' },
   deleteTargets: { type: [Array, String], default: null },
@@ -302,12 +303,7 @@ function toggleSelect(checked) {
   if (id) emit('toggleSelect', { id, checked })
 }
 
-const variant = computed(() => {
-  const name = (props.layout && ((props.layout).__name || (props.layout).name || '')).toLowerCase()
-  if (name.includes('list')) return 'list'
-  if (name.includes('block')) return 'block'
-  return 'basic'
-})
+const variant = computed(() => props.layoutVariant || 'basic')
 
 function onSelect(type) { selectedState.value = selectedState.value === type ? '' : type }
 function resetSelection() { selectedState.value = '' }
