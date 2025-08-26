@@ -108,9 +108,7 @@
           href="#none"
           :class="[ deleteMode ? 'r_del' : 'r_select', { on: deleteMode } ]"
           @click.prevent="toggleDeleteMode"
-        >
-          <span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span>
-        </a>
+        ><span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span></a>
       </span>
     </div>
   </div>
@@ -132,8 +130,14 @@ const props = defineProps({
 })
 
 function toggleDeleteMode() { emit('toggleDeleteMode', !props.deleteMode) }
-function onChangePeriod(mode){ emit('changePeriod', mode) }
-function onChangeView(view){ emit('changeView', view) }
+function onChangePeriod(mode){
+  if (props.deleteMode) emit('toggleDeleteMode', false)
+  emit('changePeriod', mode)
+}
+function onChangeView(view){
+  if (props.deleteMode) emit('toggleDeleteMode', false)
+  emit('changeView', view)
+}
 
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal = computed(() => props.totalCount ?? 15)
