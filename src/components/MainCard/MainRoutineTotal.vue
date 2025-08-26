@@ -1,10 +1,8 @@
-좋아 이건 메인루틴토탈뷰야. 어때 이것도 좀 고쳐줘 주석없이. 헤더라벨을 바꾸라면서
-
 <template>
   <div class="routine_total" v-if="periodMode==='T'">
     <p>
       <span>
-        <strong>{{ isFuture ? '이날의 다짐' : headerTitle }}</strong>
+        <strong>{{ headerTitle }}</strong>
         <em class="t_on">{{ displayTotal }}</em>
       </span>
       <span>
@@ -132,17 +130,9 @@ const props = defineProps({
   deleteMode: { type: Boolean, default: false }
 })
 
-function toggleDeleteMode() {
-  emit('toggleDeleteMode', !props.deleteMode)
-}
-
-function onChangePeriod(mode){
-  emit('changePeriod', mode)
-}
-
-function onChangeView(view){
-  emit('changeView', view)
-}
+function toggleDeleteMode() { emit('toggleDeleteMode', !props.deleteMode) }
+function onChangePeriod(mode){ emit('changePeriod', mode) }
+function onChangeView(view){ emit('changeView', view) }
 
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal = computed(() => props.totalCount ?? 15)
@@ -161,7 +151,7 @@ const isToday = computed(() => {
 const headerTitle = computed(() => {
   if (props.periodMode === 'W') return '이번 주 다짐'
   if (props.periodMode === 'M') return '이번 달 다짐'
-  return '오늘의 다짐'
+  return isToday.value ? '오늘의 다짐' : '이날의 다짐'
 })
 
 const formattedDate = computed(() => {
