@@ -210,12 +210,14 @@ button.control {
 .sp {
   position: fixed;
   inset: 0;
+  pointer-events: none;
 }
 
 .sp_overlay {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,.25);
+  pointer-events: auto;
 }
 
 .sp_panel {
@@ -225,6 +227,7 @@ button.control {
   height: 100%;
   background: #fff;
   will-change: transform;
+  pointer-events: auto;
 }
 
 .sp-slide-enter-from .sp_panel {
