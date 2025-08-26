@@ -266,13 +266,13 @@ button.control {
   transition: opacity .36s cubic-bezier(.22,.61,.36,1);
 }
 
-/*
+
 .lnb {
   padding:1rem;
   text-align:left;
   background-color:red;
 }
-
+/*
 .lnb .lnb_header a.close {
   width:1.8rem;
   height:1.8rem;
