@@ -121,7 +121,12 @@ button.add {
   font-family: 'S-CoreDream-4Regular';
 }
 
-
+#header .left button,
+#header .right button {
+  width: 1.8rem;
+  height: 1.8rem;
+  display: inline-block;
+}
 
 #header .ruffys_item {
   width: 100%;
@@ -164,17 +169,10 @@ button.add {
 }
 
 #footer .button button {
-  flex: 0 0 1.8rem;
+  width: 1.8rem;
+  height: 1.8rem;
   display: inline-block;
-}
-
-#header .left button,
-#header .right button,
-#footer .button {
-  width:1.8rem;
-  height:1.8rem;
-  border:1px solid red;
-  display:inline-block;
+  flex: 0 0 1.8rem;
 }
 
 #main_body {
