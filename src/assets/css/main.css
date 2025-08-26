@@ -94,12 +94,12 @@ button.add {
   align-items: center;
   width: 100%;
   background-color:green;
-  padding:0;
 }
 
 #header .left,
 #header .right {
   position: absolute;
+  top:0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
