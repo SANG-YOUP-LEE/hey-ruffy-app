@@ -53,7 +53,6 @@
         <a
           href="#none"
           class="prev"
-          :class="{ hidden: periodMode==='T' && isToday }"
           @click.prevent="$emit('requestPrev')"
         ><span>{{ prevLabel }}</span></a>
 
