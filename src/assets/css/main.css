@@ -28,6 +28,7 @@
 }
 
 .lnb-open #lnb {
+  transform: translateX(0);
   box-shadow: -6px 0 16px rgba(0,0,0,.12);
 }
 
