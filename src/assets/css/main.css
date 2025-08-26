@@ -85,7 +85,6 @@ button.add {
   padding: 0.5rem 1rem 0.5rem 1rem;
   box-sizing: border-box;
   border-bottom: 1px solid #e6e6e6;
-  background-color:yellow;
 }
 
 #header .h1 {
@@ -93,17 +92,15 @@ button.add {
   display: flex;
   align-items: center;
   width: 100%;
-  background-color:green;
-}
+ }
 
 #header .left,
 #header .right {
   position: absolute;
-  top:0.5rem;
+  top:0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color:red;
 }
 
 #header .left {
@@ -124,7 +121,6 @@ button.add {
   font-size: 1.8rem;
   line-height:3.4rem;
   display:inline-block;
-  background-color:purple;
 }
 
 #header .title p {
@@ -161,7 +157,6 @@ button.add {
 
 #header.short {
   padding: 0.5rem 1rem 0.5rem 1rem;
-  background-color:pink
 }
 
 #header.short .title p,
