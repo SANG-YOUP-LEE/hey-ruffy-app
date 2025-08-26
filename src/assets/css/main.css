@@ -19,6 +19,23 @@
   transition:filter .2s ease; 
 }
 
+#lnb{ z-index: 1201; }
+
+.lnb-open #header,
+.lnb-open #main_body,
+.lnb-open #footer,
+.lnb-open button.add{
+  transform: translateX(var(--lnb-w));
+  transition: transform .28s ease;
+}
+
+.lnb-open .main_fixed,
+.lnb-open .main_scroll,
+.lnb-open .add,
+.lnb-open footer{
+  filter: none;
+}
+
 .lnb_dim{ 
   position:fixed; 
   inset:0; 
