@@ -58,7 +58,6 @@ const selectFromScroll = (date, i) => {
 
 onMounted(async () => {
   await nextTick()
-  activeIndex.value = 0
   if (scroller.value) scroller.value.scrollLeft = 0
 })
 </script>
