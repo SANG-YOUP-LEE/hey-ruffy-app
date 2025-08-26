@@ -1,9 +1,7 @@
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: deleteMode, 'lnb-open': showLnb }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
-    <transition name="lnb-slide">
-      <LnbView v-if="showLnb" @close-lnb="showLnb = false" />
-    </transition>
+    <LnbView @close-lnb="showLnb = false" />
     <div class="lnb_dim" v-show="showLnb" @click="showLnb = false"></div>
   
     <div id="main_body">
