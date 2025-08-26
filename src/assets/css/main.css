@@ -88,7 +88,7 @@ button.add {
 
 #header .h1 {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   min-height: 3.4rem;
 }
@@ -97,8 +97,9 @@ button.add {
 #header .right {
   flex: 0 0 1.8rem;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  margin-top: 0.8rem;
 }
 
 #header .title {
