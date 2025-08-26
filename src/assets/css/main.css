@@ -210,14 +210,12 @@ button.control {
 .sp {
   position: fixed;
   inset: 0;
-  pointer-events: none;
 }
 
 .sp_overlay {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,.25);
-  pointer-events: auto;
 }
 
 .sp_panel {
@@ -227,27 +225,26 @@ button.control {
   height: 100%;
   background: #fff;
   will-change: transform;
-  pointer-events: auto;
 }
 
-.sp-slide-enter-from .sp_panel {
+.sp-slide-enter-from {
   transform: translateX(100%);
 }
 
-.sp-slide-enter-to .sp_panel {
+.sp-slide-enter-to {
   transform: translateX(0);
 }
 
-.sp-slide-leave-from .sp_panel {
+.sp-slide-leave-from {
   transform: translateX(0);
 }
 
-.sp-slide-leave-to .sp_panel {
+.sp-slide-leave-to {
   transform: translateX(100%);
 }
 
-.sp-slide-enter-active .sp_panel,
-.sp-slide-leave-active .sp_panel {
+.sp-slide-enter-active,
+.sp-slide-leave-active {
   transition: transform .45s cubic-bezier(.22,.61,.36,1);
 }
 
