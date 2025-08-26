@@ -270,16 +270,13 @@ button.control {
 .lnb {
   padding:1rem;
   text-align:left;
-  background-color:red;
 }
-/*
+
 .lnb .lnb_header a.close {
-  width:1.8rem;
-  height:1.8rem;
   display:inline-block;
   border:1px solid red;
   background: url('../images/ico_prev.png') no-repeat 0 0/100%;
-}*/
+}
 
 
 .lnb .lnb_header a.close span {
