@@ -106,9 +106,11 @@
         ><span>다짐목록보기</span></a>
         <a
           href="#none"
-          :class="deleteMode ? 'r_del' : 'r_select'"
+          :class="[ deleteMode ? 'r_del' : 'r_select', { on: deleteMode } ]"
           @click.prevent="toggleDeleteMode"
-        ><span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span></a>
+        >
+          <span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span>
+        </a>
       </span>
     </div>
   </div>
