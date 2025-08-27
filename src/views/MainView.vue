@@ -6,7 +6,7 @@
     </SlidePanel>
     
     <div id="main_body">
-      <div class="main_fixed">
+      <div class="main_fixed" v-if="hasAnyRoutine">
         <MainDateScroll
           v-if="selectedPeriod==='T'"
           :selectedDate="selectedDate"
@@ -148,6 +148,7 @@ const deleteMode = ref(false)
 const selectedIds = ref([])
 const showBulkDeleteConfirm = ref(false)
 
+const hasAnyRoutine = computed(() => hasFetched.value && rawRoutines.value.length > 0)
 function onToggleSelect({ id, checked }) {
   const base = String(id).split('-')[0]
   if (!base) return
