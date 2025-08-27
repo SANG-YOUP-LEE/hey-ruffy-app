@@ -58,7 +58,6 @@
 
             {{ centerText }}
 
-            {{ centerText }}
 
         <a
           href="#none"
