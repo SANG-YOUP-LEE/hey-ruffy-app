@@ -47,7 +47,7 @@
     </p>
   </div>
 
-  <div class="today_tools">
+    <div class="today_tools">
     <div class="today">
       <p>
         <a
@@ -56,7 +56,9 @@
           @click.prevent="$emit('requestPrev')"
         ><span>{{ prevLabel }}</span></a>
 
-        {{ centerText }}
+            {{ centerText }}
+
+            {{ centerText }}
 
         <a
           href="#none"
@@ -65,7 +67,7 @@
         ><span>{{ nextLabel }}</span></a>
       </p>
     </div>
-
+    
     <div class="tools">
       <span class="term_wrap">
         <a
@@ -84,29 +86,29 @@
           @click.prevent="onChangePeriod('M')"
         >월간</a>
       </span>
-
+    
       <span class="tools_wrap">
         <a
           href="#none"
           class="r_card"
-          :class="{ on: viewMode==='card' }"
+          :class="{ on: activeTool==='card' }"
           @click.prevent="onChangeView('card')"
         ><span>다짐카드보기</span></a>
         <a
           href="#none"
           class="r_block"
-          :class="{ on: viewMode==='block' }"
+          :class="{ on: activeTool==='block' }"
           @click.prevent="onChangeView('block')"
         ><span>다짐블록보기</span></a>
         <a
           href="#none"
           class="r_list"
-          :class="{ on: viewMode==='list' }"
+          :class="{ on: activeTool==='list' }"
           @click.prevent="onChangeView('list')"
         ><span>다짐목록보기</span></a>
         <a
           href="#none"
-          :class="[ deleteMode ? 'r_del' : 'r_select', { on: deleteMode } ]"
+          :class="[ deleteMode ? 'r_del' : 'r_select', { on: activeTool==='delete' } ]"
           @click.prevent="toggleDeleteMode"
         ><span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span></a>
       </span>
@@ -130,15 +132,11 @@ const props = defineProps({
 })
 
 function toggleDeleteMode() { emit('toggleDeleteMode', !props.deleteMode) }
-function onChangePeriod(mode){
-  if (props.deleteMode) emit('toggleDeleteMode', false, true)
-  emit('changePeriod', mode)
-}
-function onChangeView(view){
-  if (props.deleteMode) emit('toggleDeleteMode', false, true)
-  emit('changeView', view)
-}
-  
+function onChangePeriod(mode){ emit('changePeriod', mode) }
+function onChangeView(view){ emit('changeView', view) }
+
+const activeTool = computed(() => (props.deleteMode ? 'delete' : props.viewMode))
+
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal = computed(() => props.totalCount ?? 15)
 
@@ -225,3 +223,4 @@ const nextLabel = computed(() => {
   return '다음날'
 })
 </script>
+
