@@ -23,6 +23,8 @@ const title = ref('')
 const setFromRoutine = (routine) => {
   title.value = routine?.title || ''
 }
+
+// 부모에서 접근할 수 있도록 노출
 // 부모에서 접근할 수 있도록 노출
 defineExpose({
   title,
