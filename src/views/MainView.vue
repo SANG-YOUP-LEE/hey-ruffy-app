@@ -710,7 +710,7 @@ function handleChangePeriod(mode) {
     updateScrolledUI()
   }
 }
-
+   
 function handleToggleDeleteMode(v, force = false) {
   const next = !!v
   if (deleteMode.value && !next && !force) {
