@@ -89,6 +89,7 @@ const selectedHour = ref(hourIndex !== -1 ? hourLoopOptions[hourIndex] : '07')
 const selectedMinute = ref(minuteIndex !== -1 ? minuteLoopOptions[minuteIndex] : '00')
 
 // 확인 → 안전하게 emit
+// 확인 → 안전하게 emit
 const confirmSelection = () => {
   emit('update:modelValue', {
     ampm: localValue.value.ampm || 'AM',
