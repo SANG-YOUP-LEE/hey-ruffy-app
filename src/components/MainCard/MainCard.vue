@@ -3,7 +3,8 @@
     <div v-if="selected === 'weekly'" class="weekly">주간 다짐</div>
     <div v-else :class="wrapperClass">
       <ViewCardSet
-        :variant="variant"
+        :key="cardKey"
+        :variant="layoutVariant"
         :cls="['routine_card', cardSkinClass, courseClass, { rt_off: isPaused, walk_mode: hasWalkResolved }]"
         :ui="{
           titleText,
@@ -24,22 +25,19 @@
           canShowStatusButton: periodMode === 'T' && canShowStatusButton,
           hasTwoButtons
         }"
-        :actions="{
-          togglePopup,
-          closePopup,
-          onEdit,
-          openPauseRestartConfirm,
-          openShareConfirm,
-          openDeleteConfirm,
-          openStatusPopup,
-          handleStatusButtonClick,
-          openWalkPopup,
-          toggleSelect
-        }"
-        :show-popup="showPopup"
         :period-mode="periodMode"
         :is-select-mode="deleteMode"
         :is-selected="isSelected"
+        :card-id="cardId"
+        :opened-card-id="openedCardId"
+        @toggle-open="handleToggleOpen"
+        @delete="handleChildDelete"
+        @edit="handleChildEdit"
+        @pause-restart="handleChildPauseRestart"
+        @share="handleChildShare"
+        @status="handleChildStatus"
+        @walk="handleChildWalk"
+        @select="handleChildSelect"
       />
     </div>
 
@@ -164,7 +162,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['delete','changeStatus','edit','togglePause','toggleSelect'])
 
-const showPopup = ref(false)
+const openedCardId = ref(null)
+
 const showDeleteConfirmPopup = ref(false)
 const showPauseRestartPopup = ref(false)
 const showShareConfirmPopup = ref(false)
@@ -296,33 +295,35 @@ const dateText = computed(() => {
   return `${y}.${m}.${day}`
 })
 
+const cardId = computed(() => String(props.routine?.id || ''))
+const cardKey = computed(() => `${cardId.value}:${props.routine?.updatedAt?.seconds ?? props.routine?.updatedAt ?? ''}`)
 const baseId = computed(() => String(props.routine?.id || '').split('-')[0])
 const isSelected = computed(() => Array.isArray(props.deleteTargets) && props.deleteTargets.includes(baseId.value))
-function toggleSelect(checked) {
+
+function handleChildSelect(checked) {
   const id = baseId.value
   if (id) emit('toggleSelect', { id, checked })
 }
 
-const variant = computed(() => props.layoutVariant || 'basic')
-
 function onSelect(type) { selectedState.value = selectedState.value === type ? '' : type }
 function resetSelection() { selectedState.value = '' }
 
-function togglePopup() { showPopup.value = !showPopup.value }
-function closePopup() { showPopup.value = false }
-function handleGlobalCloseEvents() { if (showPopup.value) closePopup() }
+function handleToggleOpen(id) {
+  window.dispatchEvent(new Event('close-other-popups'))   // ← 먼저 모두 닫기
+  openedCardId.value = openedCardId.value === id ? null : id
+}
 
-function onEdit() {
-  closePopup()
+function handleChildEdit() {
   let rt = {}
   try { rt = JSON.parse(JSON.stringify(props.routine || {})) }
   catch { rt = { ...(props.routine || {}) } }
+  openedCardId.value = null
   emit('edit', rt)
 }
 
-function openDeleteConfirm() {
+function handleChildDelete() {
   window.dispatchEvent(new Event('close-other-popups'))
-  closePopup()
+  openedCardId.value = null
   showDeleteConfirmPopup.value = true
   document.body.classList.add('no-scroll')
 }
@@ -336,9 +337,9 @@ function confirmDelete() {
   if (ids.length) emit('delete', ids)
 }
 
-function openPauseRestartConfirm() {
+function handleChildPauseRestart() {
   window.dispatchEvent(new Event('close-other-popups'))
-  closePopup()
+  openedCardId.value = null
   showPauseRestartPopup.value = true
   document.body.classList.add('no-scroll')
 }
@@ -354,9 +355,9 @@ function confirmPauseRestart() {
   isPaused.value = next
 }
 
-function openShareConfirm() {
+function handleChildShare() {
   window.dispatchEvent(new Event('close-other-popups'))
-  closePopup()
+  openedCardId.value = null
   showShareConfirmPopup.value = true
   document.body.classList.add('no-scroll')
 }
@@ -369,22 +370,15 @@ function confirmShare() {
   alert('공유되었습니다')
 }
 
-function openStatusPopup() {
+function handleChildStatus() {
   window.dispatchEvent(new Event('close-other-popups'))
-  if (showPopup.value) closePopup()
+  openedCardId.value = null
   showStatusPopup.value = true
   document.body.classList.add('no-scroll')
 }
-function handleStatusButtonClick() { openStatusPopup() }
-function closeStatusPopup() {
-  showStatusPopup.value = false
-  document.body.classList.remove('no-scroll')
-  resetSelection()
-}
-
-function openWalkPopup() {
+function handleChildWalk() {
   window.dispatchEvent(new Event('close-other-popups'))
-  if (showPopup.value) closePopup()
+  openedCardId.value = null
   if (pendingStatus.value === 'done' && hasWalkResolved.value) {
     const base = Number(props.routine?.walkDoneCount || 0)
     walkDoneOverride.value = base + 1
@@ -395,6 +389,13 @@ function openWalkPopup() {
   document.body.classList.add('no-scroll')
   nextTick(() => { walkPlaySeq.value++ })
 }
+
+function closeStatusPopup() {
+  showStatusPopup.value = false
+  document.body.classList.remove('no-scroll')
+  resetSelection()
+}
+
 function closeWalkPopup() {
   showWalkPopup.value = false
   document.body.classList.remove('no-scroll')
@@ -417,11 +418,39 @@ function confirmStatusCheck() {
   if (shouldOpenWalk) {
     pendingStatus.value = next
     closeStatusPopup()
-    openWalkPopup()
+    handleChildWalk()
     return
   }
   closeStatusPopup()
   if (id && next) emit('changeStatus', { id, status: next })
+}
+
+function closeAllLocalPopups() {
+  openedCardId.value = null
+  showDeleteConfirmPopup.value = false
+  showPauseRestartPopup.value = false
+  showShareConfirmPopup.value = false
+  showStatusPopup.value = false
+  showWalkPopup.value = false
+  selectedState.value = ''
+  pendingStatus.value = null
+  walkDoneOverride.value = null
+  document.body.classList.remove('no-scroll')
+}
+
+// [B] watchers 섹션에 추가 (파일 하단 onMounted 앞/주변에)
+watch(
+  [() => props.layoutVariant, () => props.periodMode, () => props.selected],
+  () => {
+    // 보기모드(카드/리스트 등) 또는 기간(일/주/월) 바뀌면 전부 닫기
+    closeAllLocalPopups()
+    window.dispatchEvent(new Event('close-other-popups'))
+  }
+)
+
+
+function handleGlobalCloseEvents() {
+  if (openedCardId.value !== null) openedCardId.value = null
 }
 
 onMounted(() => {
