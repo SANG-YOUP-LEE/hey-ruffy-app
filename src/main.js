@@ -1,5 +1,4 @@
 import { createApp } from "vue";
-import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 
@@ -19,7 +18,6 @@ import VueScrollPicker from "vue-scroll-picker";
 import "vue-scroll-picker/style.css";
 
 const app = createApp(App);
-const pinia = createPinia();
 
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
@@ -36,7 +34,6 @@ document.addEventListener('wheel', e => {
   if (e.ctrlKey) e.preventDefault();
 }, { passive: false });
 
-app.use(pinia);
 app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
