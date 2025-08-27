@@ -285,8 +285,9 @@ function pad(v) {
 }
 
 const dateText = computed(() => {
+  if (props.periodMode !== 'T') return ''   // ← 주간/월간이면 날짜 감춤
   const v = props.assignedDate
-  if (!v && v !== 0) return ''
+  if (v === null || v === undefined) return ''
   const d = v instanceof Date ? v : new Date(v)
   if (isNaN(d.getTime())) return ''
   const y = d.getFullYear()
