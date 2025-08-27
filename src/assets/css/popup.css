@@ -31,7 +31,7 @@ body.no-scroll {
 }
 
 .com_popup_wrap .popup_inner {
-  width: min(92vw, 25rem);
+  width: min(92vw, 22rem);
 	position:relative;
   background: #fff;
   padding: 2rem!important;
