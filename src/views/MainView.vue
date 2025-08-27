@@ -697,6 +697,7 @@ function handleChangeView(v) {
 function handleChangePeriod(mode) {
   if (selectedPeriod.value !== mode) {
     selectedPeriod.value = mode
+    selectedView.value = 'card'
     if (mode === 'T') {
       const today = new Date()
       today.setHours(0,0,0,0)
