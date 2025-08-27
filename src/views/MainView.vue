@@ -690,24 +690,13 @@ function handleNext() {
 }
 
 function handleChangeView(v) {
-  if (deleteMode.value) {
-    deleteMode.value = false
-    selectedIds.value = []
-    toggleListStateButtonClass(false)
-  }
   selectedView.value = v
   nextTick(recomputeScrollability)
 }
 
 function handleChangePeriod(mode) {
   if (selectedPeriod.value !== mode) {
-    if (deleteMode.value) {
-      deleteMode.value = false
-      selectedIds.value = []
-      toggleListStateButtonClass(false)
-    }
     selectedPeriod.value = mode
-    selectedView.value = 'card'
     if (mode === 'T') {
       const today = new Date()
       today.setHours(0,0,0,0)
@@ -749,3 +738,4 @@ function getAssignedDate(r) {
   return d ? d : new Date(periodStartRaw.value)
 }
 </script>
+
