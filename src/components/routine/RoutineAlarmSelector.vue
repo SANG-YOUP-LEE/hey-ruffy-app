@@ -35,7 +35,15 @@ const showAlarmPopup = ref(false)
 const showDataFixed = ref(false)
 const suppressAutoOpen = ref(false)
 
-const toggleAlarm = () => { isAlarmOn.value = !isAlarmOn.value }
+const toggleAlarm = () => {
+  const next = !isAlarmOn.value
+  isAlarmOn.value = next
+  if (next) {
+    suppressAutoOpen.value = true
+    showAlarmPopup.value = true
+    nextTick(() => { suppressAutoOpen.value = false })
+  }
+}
 
 watch(isAlarmOn, (val) => {
   if (suppressAutoOpen.value) return
@@ -54,7 +62,7 @@ watch(model, (v) => {
   isAlarmOn.value = hasTime
   showDataFixed.value = hasTime
   nextTick(() => { suppressAutoOpen.value = false })
-}, { deep: true, immediate: false })
+}, { deep: true, immediate: true })
 
 const resetAlarm = () => { isAlarmOn.value = false }
 
