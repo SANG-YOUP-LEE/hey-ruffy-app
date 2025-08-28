@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
 
@@ -33,40 +33,73 @@ const model = defineModel({ type: Object, default: () => ({ ampm:'', hour:'', mi
 const isAlarmOn = ref(false)
 const showAlarmPopup = ref(false)
 const showDataFixed = ref(false)
+const suppressAutoOpen = ref(false)
 
 const toggleAlarm = () => {
-  if (!isAlarmOn.value) {
-    isAlarmOn.value = true
+  const next = !isAlarmOn.value
+  isAlarmOn.value = next
+  if (next) {
+    suppressAutoOpen.value = true
     showAlarmPopup.value = true
-  } else {
-    resetAlarm()
+    nextTick(() => { suppressAutoOpen.value = false })
   }
 }
 
-watch(isAlarmOn, v => {
-  if (v) showAlarmPopup.value = true
-  else resetAlarm()
+watch(isAlarmOn, (val) => {
+  if (suppressAutoOpen.value) return
+  if (val) {
+    showAlarmPopup.value = true
+  } else {
+    model.value = { ampm: '', hour: '', minute: '' }
+    showDataFixed.value = false
+    showAlarmPopup.value = false
+  }
 })
 
-const resetAlarm = () => {
-  isAlarmOn.value = false
-  model.value = { ampm:'', hour:'', minute:'' }
-  showDataFixed.value = false
-  showAlarmPopup.value = false
-}
+watch(model, (v) => {
+  const hasTime = !!(v && v.hour && v.minute && v.ampm)
+  suppressAutoOpen.value = true
+  isAlarmOn.value = hasTime
+  showDataFixed.value = hasTime
+  nextTick(() => { suppressAutoOpen.value = false })
+}, { deep: true, immediate: true })
+
+const resetAlarm = () => { isAlarmOn.value = false }
 
 const handlePopupClose = () => {
   showAlarmPopup.value = false
-  const hasTime = !!(model.value.ampm && model.value.hour && model.value.minute)
-  if (!hasTime) resetAlarm()
-  else {
+  if (model.value && model.value.hour) {
     isAlarmOn.value = true
     showDataFixed.value = true
+  } else {
+    isAlarmOn.value = false
+    showDataFixed.value = false
   }
 }
 
 const formattedAlarm = computed(() => {
-  if (!model.value.hour) return ''
+  if (!model.value || !model.value.hour) return ''
   return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
 })
+
+const setFromRoutine = (routine) => {
+  suppressAutoOpen.value = true
+  if (routine?.alarmTime?.ampm && routine.alarmTime.hour && routine.alarmTime.minute) {
+    model.value = {
+      ampm: routine.alarmTime.ampm,
+      hour: routine.alarmTime.hour,
+      minute: routine.alarmTime.minute
+    }
+    isAlarmOn.value = true
+    showDataFixed.value = true
+  } else {
+    model.value = { ampm: '', hour: '', minute: '' }
+    isAlarmOn.value = false
+    showDataFixed.value = false
+  }
+  showAlarmPopup.value = false
+  nextTick(() => { suppressAutoOpen.value = false })
+}
+
+defineExpose({ setFromRoutine })
 </script>
