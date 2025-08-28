@@ -539,6 +539,7 @@ const bindRoutines = (uid) => {
 const isScrolled = ref(false)
 const headerShort = ref(false)
 let scrollEl = null
+let reflow = null
 const SCROLL_EPS = 1
 
 function updateScrollState() {
@@ -567,6 +568,7 @@ function onScrollHandler() {
 onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
+  window.addEventListener('resize', updateScrollState)
 
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
@@ -598,13 +600,26 @@ onMounted(async () => {
   })
 
   nextTick(updateScrollState)
+
+  reflow = () => { setVh(); updateScrollState() }
+  window.addEventListener('pageshow', reflow)
+  window.addEventListener('visibilitychange', reflow)
+  window.addEventListener('orientationchange', reflow)
+
+  requestAnimationFrame(updateScrollState)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
+  window.removeEventListener('resize', updateScrollState)
   if (scrollEl) {
     scrollEl.removeEventListener('scroll', onScrollHandler)
     scrollEl = null
+  }
+  if (reflow) {
+    window.removeEventListener('pageshow', reflow)
+    window.removeEventListener('visibilitychange', reflow)
+    window.removeEventListener('orientationchange', reflow)
   }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
@@ -613,4 +628,105 @@ onBeforeUnmount(() => {
 watch([displayedRoutines, selectedPeriod, selectedView], () => {
   nextTick(updateScrollState)
 })
+
+function handlePrev() {
+  if (selectedPeriod.value === 'W') {
+    const d = addDays(selectedDate.value, -7)
+    selectedDate.value = d
+    isFutureDate.value = d > new Date() && !isTodayDateFn(d)
+    selectedFilter.value = 'notdone'
+    nextTick(updateScrollState)
+    return
+  }
+  if (selectedPeriod.value === 'M') {
+    const cur = new Date(selectedDate.value)
+    const prev = addMonths(cur, -1)
+    selectedDate.value = prev
+    isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
+    selectedFilter.value = 'notdone'
+    nextTick(updateScrollState)
+    return
+  }
+  const d = addDays(selectedDate.value, -1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
+function handleNext() {
+  if (selectedPeriod.value === 'W') {
+    const d = addDays(selectedDate.value, 7)
+    selectedDate.value = d
+    isFutureDate.value = d > new Date() && !isTodayDateFn(d)
+    selectedFilter.value = 'notdone'
+    nextTick(updateScrollState)
+    return
+  }
+  if (selectedPeriod.value === 'M') {
+    const cur = new Date(selectedDate.value)
+    const next = addMonths(cur, 1)
+    selectedDate.value = next
+    isFutureDate.value = next > new Date() && !isTodayDateFn(next)
+    selectedFilter.value = 'notdone'
+    nextTick(updateScrollState)
+    return
+  }
+  const d = addDays(selectedDate.value, 1)
+  const future = d > new Date() && !isTodayDateFn(d)
+  handleSelectDate(d, future)
+}
+
+function handleChangeView(v) {
+  selectedView.value = v
+  if (scrollEl) scrollEl.scrollTop = 0
+  isScrolled.value = false
+  headerShort.value = false
+  nextTick(() => updateScrollState())
+}
+
+function handleChangePeriod(mode) {
+  if (scrollEl) scrollEl.scrollTop = 0
+  isScrolled.value = false
+  headerShort.value = false
+
+  if (selectedPeriod.value !== mode) {
+    selectedPeriod.value = mode
+    selectedView.value = 'card'
+    if (mode === 'T') {
+      const today = new Date()
+      today.setHours(0,0,0,0)
+      selectedDate.value = today
+      isFutureDate.value = false
+    }
+    selectedFilter.value = 'notdone'
+    nextTick(() => updateScrollState())
+  }
+}
+   
+function handleToggleDeleteMode(v, force = false) {
+  const next = !!v
+  if (deleteMode.value && !next && !force) {
+    if (selectedIds.value.length > 0) {
+      showBulkDeleteConfirm.value = true
+      document.body.classList.add('no-scroll')
+      return
+    }
+  }
+  deleteMode.value = next
+  if (!deleteMode.value) selectedIds.value = []
+  toggleListStateButtonClass(deleteMode.value)
+}
+
+function isRoutineForToday(r) {
+  const today = new Date()
+  const ad = r?.assignedDate ? new Date(r.assignedDate) : today
+  const a = startOfDay(ad).getTime()
+  const b = startOfDay(today).getTime()
+  return a === b
+}
+
+function getAssignedDate(r) {
+  if (r?.assignedDate) return new Date(r.assignedDate)
+  if (selectedPeriod.value === 'T') return new Date(selectedDate.value)
+  const d = lastActiveDateInRange(r, periodStartRaw.value, periodEnd.value)
+  return d ? d : new Date(periodStartRaw.value)
+}
 </script>
