@@ -149,6 +149,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
+  min-height: calc(100% + 2px);
 }
 
 button.lnb {
