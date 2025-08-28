@@ -333,7 +333,9 @@ function closeDeleteConfirm() {
   document.body.classList.remove('no-scroll')
 }
 function confirmDelete() {
-  const ids = Array.isArray(props.deleteTargets) ? props.deleteTargets : [props.routine?.id]
+  const ids = Array.isArray(props.deleteTargets)
+    ? props.deleteTargets.map(id => String(id).split('-')[0])
+    : [baseId.value]
   closeDeleteConfirm()
   if (ids.length) emit('delete', ids)
 }
