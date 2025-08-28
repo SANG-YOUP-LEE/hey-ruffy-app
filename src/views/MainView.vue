@@ -680,6 +680,10 @@ function handleChangeView(v) {
 }
 
 function handleChangePeriod(mode) {
+  if (scrollEl) scrollEl.scrollTop = 0
+  isScrolled.value = false
+  headerShort.value = false
+
   if (selectedPeriod.value !== mode) {
     selectedPeriod.value = mode
     selectedView.value = 'card'
@@ -688,12 +692,9 @@ function handleChangePeriod(mode) {
       today.setHours(0,0,0,0)
       selectedDate.value = today
       isFutureDate.value = false
-      if (scrollEl) scrollEl.scrollTop = 0
-      isScrolled.value = false
-      headerShort.value = false
     }
     selectedFilter.value = 'notdone'
-    nextTick(updateScrollState)
+    nextTick(() => updateScrollState())
   }
 }
    
