@@ -386,7 +386,7 @@ function handleSelectDate(date, isFuture) {
   selectedFilter.value = 'notdone'
   selectedPeriod.value = 'T'
   selectedView.value = 'card'
-  nextTick(recomputeScrollability)
+  nextTick(() => updateScrollState())
 }
 const handleFilterChange = () => {}
 
@@ -401,7 +401,7 @@ function onSaved(rt) {
   isAddRoutineOpen.value = false
   editingRoutine.value = null
   selectedFilter.value = 'notdone'
-  nextTick(recomputeScrollability)
+  nextTick(() => updateScrollState())
 }
 
 async function onChangeStatus({ id, status }) {
@@ -435,7 +435,7 @@ async function onChangeStatus({ id, status }) {
     rawRoutines.value.splice(j, 1, next)
   }
   selectedFilter.value = status
-  nextTick(recomputeScrollability)
+  nextTick(() => updateScrollState())
 }
 
 async function onTogglePause({ id, isPaused }) {
@@ -452,7 +452,7 @@ async function onTogglePause({ id, isPaused }) {
     const next = { ...rawRoutines.value[j], isPaused: !!isPaused }
     rawRoutines.value.splice(j, 1, next)
   }
-  nextTick(recomputeScrollability)
+  nextTick(() => updateScrollState())
 }
 
 async function onDelete(payload) {
@@ -478,7 +478,7 @@ async function onDelete(payload) {
     deleteMode.value = false
     toggleListStateButtonClass(false)
   }
-  nextTick(recomputeScrollability)
+  nextTick(() => updateScrollState())
 }
 
 function openAddRoutine() {
@@ -522,13 +522,13 @@ const bindRoutines = (uid) => {
       rawRoutines.value = list
       isLoading.value = false
       hasFetched.value = true
-      nextTick(recomputeScrollability)
+      nextTick(() => updateScrollState())
     },
     () => {
       rawRoutines.value = []
       isLoading.value = false
       hasFetched.value = true
-      nextTick(recomputeScrollability)
+      nextTick(() => updateScrollState())
     }
   )
 }
@@ -540,7 +540,7 @@ let scrollEl = null
 let reflow = null
 const SCROLL_EPS = 1
 
-function recomputeScrollability() {
+function updateScrollState() {
   const el = scrollEl
   if (!el) return
   const scrollable = (el.scrollHeight - el.clientHeight) > SCROLL_EPS
@@ -548,56 +548,31 @@ function recomputeScrollability() {
   const v = scrollable && (el.scrollTop || 0) > 0
   isScrolled.value = v
   headerShort.value = v
-  if (!scrollable) {
-    const rt = document.querySelector('.routine_total')
-    rt && rt.classList.remove('top')
-    const ds = document.querySelector('.date_scroll')
-    if (ds) ds.style.display = ''
-  }
-}
-
-function onScrollHandler() {
-  const el = scrollEl
-  if (!el) return
-  const scrollable = (el.scrollHeight - el.clientHeight) > SCROLL_EPS
-  canScroll.value = scrollable
-  const v = scrollable && (el.scrollTop || 0) > 0
-  isScrolled.value = v
-  headerShort.value = v
-}
-
-function updateScrolledUI() {
   const routineTotalEl = document.querySelector('.routine_total')
   const dateScrollEl = document.querySelector('.date_scroll')
-  const v = isScrolled.value
   if (routineTotalEl) {
     if (selectedPeriod.value === 'T' && v) routineTotalEl.classList.add('top')
     else routineTotalEl.classList.remove('top')
   }
   if (dateScrollEl) {
-    if (selectedPeriod.value === 'T') {
-      dateScrollEl.style.display = v ? 'none' : ''
-    } else {
-      dateScrollEl.style.display = ''
-    }
+    if (selectedPeriod.value === 'T') dateScrollEl.style.display = v ? 'none' : ''
+    else dateScrollEl.style.display = ''
   }
 }
 
-function safeUpdateScrolledUI() {
-  updateScrolledUI()
+function onScrollHandler() {
+  updateScrollState()
 }
 
 onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
-  window.addEventListener('resize', recomputeScrollability)
+  window.addEventListener('resize', updateScrollState)
 
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
-    const v = (scrollEl.scrollHeight - scrollEl.clientHeight) > SCROLL_EPS && (scrollEl.scrollTop || 0) > 0
-    isScrolled.value = v
-    headerShort.value = v
+    updateScrollState()
   }
 
   await authReadyPromise
@@ -617,25 +592,24 @@ onMounted(async () => {
         if (stopRoutines) { stopRoutines(); stopRoutines = null }
         isLoading.value = false
         hasFetched.value = true
-        nextTick(recomputeScrollability)
+        nextTick(() => updateScrollState())
       }
     }
   })
 
-  nextTick(recomputeScrollability)
-  updateScrolledUI()
+  nextTick(() => updateScrollState())
 
-  reflow = () => { setVh(); recomputeScrollability(); updateScrolledUI() }
+  reflow = () => { setVh(); updateScrollState() }
   window.addEventListener('pageshow', reflow)
   window.addEventListener('visibilitychange', reflow)
   window.addEventListener('orientationchange', reflow)
 
-  requestAnimationFrame(recomputeScrollability)
+  requestAnimationFrame(() => updateScrollState())
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
-  window.removeEventListener('resize', recomputeScrollability)
+  window.removeEventListener('resize', updateScrollState)
   if (scrollEl) {
     scrollEl.removeEventListener('scroll', onScrollHandler)
     scrollEl = null
@@ -650,11 +624,11 @@ onBeforeUnmount(() => {
 })
 
 watch(isScrolled, () => {
-  safeUpdateScrolledUI()
+  updateScrollState()
 })
 
 watch([displayedRoutines, selectedPeriod, selectedView], () => {
-  nextTick(() => requestAnimationFrame(recomputeScrollability))
+  nextTick(() => requestAnimationFrame(() => updateScrollState()))
 })
 
 function handlePrev() {
@@ -663,7 +637,7 @@ function handlePrev() {
     selectedDate.value = d
     isFutureDate.value = d > new Date() && !isTodayDateFn(d)
     selectedFilter.value = 'notdone'
-    nextTick(recomputeScrollability)
+    nextTick(() => updateScrollState())
     return
   }
   if (selectedPeriod.value === 'M') {
@@ -672,7 +646,7 @@ function handlePrev() {
     selectedDate.value = prev
     isFutureDate.value = prev > new Date() && !isTodayDateFn(prev)
     selectedFilter.value = 'notdone'
-    nextTick(recomputeScrollability)
+    nextTick(() => updateScrollState())
     return
   }
   const d = addDays(selectedDate.value, -1)
@@ -685,7 +659,7 @@ function handleNext() {
     selectedDate.value = d
     isFutureDate.value = d > new Date() && !isTodayDateFn(d)
     selectedFilter.value = 'notdone'
-    nextTick(recomputeScrollability)
+    nextTick(() => updateScrollState())
     return
   }
   if (selectedPeriod.value === 'M') {
@@ -694,7 +668,7 @@ function handleNext() {
     selectedDate.value = next
     isFutureDate.value = next > new Date() && !isTodayDateFn(next)
     selectedFilter.value = 'notdone'
-    nextTick(recomputeScrollability)
+    nextTick(() => updateScrollState())
     return
   }
   const d = addDays(selectedDate.value, 1)
@@ -704,7 +678,7 @@ function handleNext() {
 
 function handleChangeView(v) {
   selectedView.value = v
-  nextTick(recomputeScrollability)
+  nextTick(() => updateScrollState())
 }
 
 function handleChangePeriod(mode) {
@@ -718,8 +692,7 @@ function handleChangePeriod(mode) {
       isFutureDate.value = false
     }
     selectedFilter.value = 'notdone'
-    nextTick(recomputeScrollability)
-    updateScrolledUI()
+    nextTick(() => updateScrollState())
   }
 }
    
@@ -752,4 +725,3 @@ function getAssignedDate(r) {
   return d ? d : new Date(periodStartRaw.value)
 }
 </script>
-
