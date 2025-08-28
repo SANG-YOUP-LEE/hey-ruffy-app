@@ -87,7 +87,6 @@
 
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
-import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 import { useRoutineFormStore } from '@/stores/routineForm'
@@ -136,6 +135,7 @@ const fieldErrors = ref({
 })
 const errorTimers = {}
 const ERROR_MS = 3000
+const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 function showFieldError(key, msg) {
   fieldErrors.value[key] = msg
   if (errorTimers[key]) clearTimeout(errorTimers[key])
@@ -216,23 +216,29 @@ function buildPayload() {
     comment: commentRef.value?.comment ?? '',
     hasWalk: hasWalk.value,
   }
+
   const hasStart = !!safeISOFromDateObj(base.startDate)
   const hasEnd   = !!safeISOFromDateObj(base.endDate)
   const interval = parseInterval(base.repeatWeeks)
+  const anchorISO = hasStart ? safeISOFromDateObj(base.startDate) : todayISO()
+
   const rule = {
     freq: repeatType,
     interval,
-    anchor: hasStart ? safeISOFromDateObj(base.startDate) : null,
+    anchor: anchorISO,
     ...(repeatType === 'weekly'  ? { byWeekday: weeklyDaysToICS(base.repeatWeekDays) } : {}),
     ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays||[]).map(Number) } : {})
   }
+
   const cleaned = {}
   Object.entries({ ...base, tz:'Asia/Seoul', rule })
     .forEach(([k,v]) => { if (notU(v)) cleaned[k] = v })
-  if (hasStart) cleaned.start = safeISOFromDateObj(base.startDate)
-  if (hasEnd)   cleaned.end   = safeISOFromDateObj(base.endDate)
+
+  cleaned.start = anchorISO
+  if (hasEnd) cleaned.end = safeISOFromDateObj(base.endDate)
   if (!hasStart) cleaned.startDate = null
   if (!hasEnd)   cleaned.endDate   = null
+
   return cleaned
 }
 
