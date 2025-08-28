@@ -595,7 +595,7 @@ onMounted(async () => {
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
-    const v = (scrollEl.scrollHeight - el.clientHeight) > SCROLL_EPS && (scrollEl.scrollTop || 0) > 0
+    const v = (scrollEl.scrollHeight - scrollEl.clientHeight) > SCROLL_EPS && (scrollEl.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
   }
