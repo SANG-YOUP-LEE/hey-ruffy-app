@@ -149,8 +149,8 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
-  min-height: calc(var(--vh, 1vh) * 100);
-  background-color:yellow;
+  background-color:black;
+  min-height: 100vh;
 }
 
 button.lnb {
