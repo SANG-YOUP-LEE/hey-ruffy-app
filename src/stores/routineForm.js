@@ -9,18 +9,15 @@ const p = n => String(n).padStart(2,'0')
 const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
 const weeklyDaysToICS = arr => (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean)
 const parseInterval = s => { const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
-const safeISOFromDateObj = obj => {
-  const s = toISO(obj)
-  return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
-}
+const safeISOFromDateObj = obj => { const s = toISO(obj); return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null }
 const getBaseId = (id) => String(id || '').split('-')[0]
-const normalizeSkin = (v) => {
-  const m = String(v || '').match(/(\d+)/)
-  if (!m) return 'option01'
-  const n = m[1].padStart(2, '0')
-  return `option${n}`
-}
+const normalizeSkin = (v) => { const m = String(v || '').match(/(\d+)/); if (!m) return 'option01'; const n = m[1].padStart(2,'0'); return `option${n}` }
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
+const deepClean = (v) => {
+  if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean)
+  if (v && typeof v === 'object') { const r = {}; Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) }); return r }
+  return v
+}
 
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
@@ -70,8 +67,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         repeatWeeks: state.repeatType === 'weekly' ? state.repeatWeeks || '' : '',
         repeatWeekDays: state.repeatType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
         repeatMonthDays: state.repeatType === 'monthly' ? [...(state.repeatMonthDays||[])] : [],
-        startDate: state.startDate,
-        endDate: state.endDate,
+        startDate: hasStart ? state.startDate : null,
+        endDate: hasEnd ? state.endDate : null,
         alarmTime: state.alarmTime,
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
@@ -82,24 +79,16 @@ export const useRoutineFormStore = defineStore('routineForm', {
         hasWalk: this.hasWalk,
         tz: state.tz,
         rule: this.icsRule,
-        start: anchorISO
+        start: anchorISO,
+        ...(hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})
       }
-      if (hasEnd) cleaned.end = safeISOFromDateObj(state.endDate)
-      if (!hasStart) cleaned.startDate = null
-      if (!hasEnd) cleaned.endDate = null
-      return cleaned
+      return deepClean(cleaned)
     }
   },
   actions: {
-    setField(key, value) {
-      this[key] = value
-    },
-    setError(key, msg) {
-      this.fieldErrors = { ...this.fieldErrors, [key]: msg }
-    },
-    clearErrors() {
-      this.fieldErrors = {}
-    },
+    setField(key, value) { this[key] = value },
+    setError(key, msg) { this.fieldErrors = { ...this.fieldErrors, [key]: msg } },
+    clearErrors() { this.fieldErrors = {} },
     reset() {
       this.mode = 'create'
       this.routineId = null
