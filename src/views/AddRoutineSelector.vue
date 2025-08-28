@@ -158,6 +158,7 @@ function syncFromChildren() {
   }
   form.setField('startDate', dateRef.value?.startDate ?? null)
   form.setField('endDate', dateRef.value?.endDate ?? null)
+   form.setField('alarmTime', form.alarmTime ?? null) 
   if (!form.isWalkModeOff) {
     form.setField('ruffy', ruffyRef.value?.ruffy ?? null)
     form.setField('course', courseRef.value?.course ?? null)
