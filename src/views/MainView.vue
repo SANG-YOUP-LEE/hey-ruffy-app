@@ -103,7 +103,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { db, auth } from '@/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+import { getAuth,onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
 import { authReadyPromise } from '@/lib/authReady'
 
@@ -118,7 +118,35 @@ import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 import SlidePanel from '@/components/common/SlidePanel.vue'
-  
+
+let stopIOSWatch = null
+let unsubAuth = null
+
+onMounted(() => {
+  const auth = getAuth()
+
+  const start = (user) => {
+    if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
+    if (user && user.uid) {
+      stopIOSWatch = initIOSRoutineScheduler(user.uid)
+    }
+  }
+
+  start(auth.currentUser)
+
+  unsubAuth = onAuthStateChanged(auth, (user) => {
+    start(user)
+  })
+})
+
+onBeforeUnmount(() => {
+  if (unsubAuth) { unsubAuth(); unsubAuth = null }
+  if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
+})
+
+
+
+
 const isLoading = ref(true)
 const hasFetched = ref(false)
 const isAddRoutineOpen = ref(false)
