@@ -198,48 +198,60 @@ function syncRepeatFromChild() {
 function buildPayload() {
   syncRepeatFromChild()
   const repeatType = form.repeatType ?? 'daily'
+
   const base = {
     title: form.title ?? '',
     repeatType,
-    repeatDays:  repeatType === 'daily'  ? [...(form.repeatDaily ?? [])] : [],
-    repeatWeeks: repeatType === 'weekly' ? (form.repeatWeeks ?? '') : '',
-    repeatWeekDays: repeatType === 'weekly' ? [...(form.repeatWeekDays ?? [])] : [],
-    repeatMonthDays: repeatType === 'monthly' ? [...(form.repeatMonthDays ?? [])] : [],
+    repeatDays:  repeatType === 'daily'  ? [...(form.repeatDaily || [])] : [],
+    repeatWeeks: repeatType === 'weekly' ? (form.repeatWeeks || '') : '',
+    repeatWeekDays: repeatType === 'weekly' ? [...(form.repeatWeekDays || [])] : [],
+    repeatMonthDays: repeatType === 'monthly' ? [...(form.repeatMonthDays || [])] : [],
     startDate: dateRef.value?.startDate ?? null,
     endDate:   dateRef.value?.endDate   ?? null,
     alarmTime: alarmRef.value?.selectedAlarm ?? null,
-    ruffy:    isWalkModeOff.value ? null : (ruffyRef.value?.ruffy ?? null),
-    course:   isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
-    goalCount:isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
+    ruffy:     isWalkModeOff.value ? null : (ruffyRef.value?.ruffy ?? null),
+    course:    isWalkModeOff.value ? null : (courseRef.value?.course ?? null),
+    goalCount: isWalkModeOff.value ? null : (goalRef.value?.goalCount ?? null),
     colorIndex: Number(priorityRef.value?.selectedColor ?? 0),
     cardSkin: normalizeSkin(cardSkin.value),
     comment: commentRef.value?.comment ?? '',
     hasWalk: hasWalk.value,
+    tz: 'Asia/Seoul'
   }
 
   const hasStart = !!safeISOFromDateObj(base.startDate)
   const hasEnd   = !!safeISOFromDateObj(base.endDate)
   const interval = parseInterval(base.repeatWeeks)
-  const anchorISO = hasStart ? safeISOFromDateObj(base.startDate) : todayISO()
+  const anchorISO = hasStart ? safeISOFromDateObj(base.startDate) : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 
   const rule = {
     freq: repeatType,
     interval,
     anchor: anchorISO,
     ...(repeatType === 'weekly'  ? { byWeekday: weeklyDaysToICS(base.repeatWeekDays) } : {}),
-    ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays||[]).map(Number) } : {})
+    ...(repeatType === 'monthly' ? { byMonthDay: (base.repeatMonthDays || []).map(n => Number(n)) } : {})
   }
 
-  const cleaned = {}
-  Object.entries({ ...base, tz:'Asia/Seoul', rule })
-    .forEach(([k,v]) => { if (notU(v)) cleaned[k] = v })
+  const cleaned = {
+    ...base,
+    rule,
+    start: anchorISO,
+    ...(hasEnd ? { end: safeISOFromDateObj(base.endDate) } : {}),
+    startDate: hasStart ? base.startDate : null,
+    endDate: hasEnd ? base.endDate : null
+  }
 
-  cleaned.start = anchorISO
-  if (hasEnd) cleaned.end = safeISOFromDateObj(base.endDate)
-  if (!hasStart) cleaned.startDate = null
-  if (!hasEnd)   cleaned.endDate   = null
+  const deepClean = (v) => {
+    if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean)
+    if (v && typeof v === 'object') {
+      const r = {}
+      Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) })
+      return r
+    }
+    return v
+  }
 
-  return cleaned
+  return deepClean(cleaned)
 }
 
 const validateRoutine = () => {
