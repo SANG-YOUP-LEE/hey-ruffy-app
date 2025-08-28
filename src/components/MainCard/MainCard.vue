@@ -333,11 +333,13 @@ function closeDeleteConfirm() {
   document.body.classList.remove('no-scroll')
 }
 function confirmDelete() {
-  const ids = Array.isArray(props.deleteTargets)
-    ? props.deleteTargets.map(id => String(id).split('-')[0])
-    : [baseId.value]
-  closeDeleteConfirm()
-  if (ids.length) emit('delete', ids)
+  const ids =
+    Array.isArray(props.deleteTargets) && props.deleteTargets.length > 0
+      ? props.deleteTargets
+      : [String(props.routine?.id)];
+
+  closeDeleteConfirm();
+  if (ids[0]) emit('delete', ids);
 }
 
 function handleChildPauseRestart() {
