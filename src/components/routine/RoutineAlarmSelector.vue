@@ -24,53 +24,42 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
 
 const model = defineModel({ type: Object, default: () => ({ ampm:'', hour:'', minute:'' }) })
 
+const isAlarmOn = ref(false)
 const showAlarmPopup = ref(false)
+const showDataFixed = ref(false)
 
-const hasTime = computed(() => {
-  const v = model.value || {}
-  return !!(v.ampm && v.hour && v.minute)
-})
-
-const isOn = computed({
-  get: () => hasTime.value,
-  set: (val) => {
-    if (val) {
-      showAlarmPopup.value = true
-    } else {
-      model.value = { ampm:'', hour:'', minute:'' }
-    }
-  }
-})
-
-const showDataFixed = computed(() => hasTime.value)
-
-const formattedAlarm = computed(() => {
-  if (!hasTime.value) return ''
-  return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
-})
-
-const openPopup = () => { showAlarmPopup.value = true }
-const closePopup = () => { showAlarmPopup.value = false }
-const clearAlarm = () => { model.value = { ampm:'', hour:'', minute:'' } }
-
-const setFromRoutine = (routine) => {
-  if (routine?.alarmTime?.ampm && routine.alarmTime.hour && routine.alarmTime.minute) {
-    model.value = {
-      ampm: routine.alarmTime.ampm,
-      hour: routine.alarmTime.hour,
-      minute: routine.alarmTime.minute
-    }
+const toggleAlarm = () => {
+  if (!isAlarmOn.value) {
+    isAlarmOn.value = true      // 팝업 뜨자마자 ON
+    showAlarmPopup.value = true
   } else {
-    model.value = { ampm:'', hour:'', minute:'' }
+    resetAlarm()
   }
+}
+
+const resetAlarm = () => {
+  isAlarmOn.value = false
+  model.value = { ampm: '', hour: '', minute: '' }
+  showDataFixed.value = false
   showAlarmPopup.value = false
 }
 
-defineExpose({ setFromRoutine })
+const handlePopupClose = () => {
+  showAlarmPopup.value = false
+  const hasTime = !!(model.value.ampm && model.value.hour && model.value.minute)
+  isAlarmOn.value = hasTime
+  showDataFixed.value = hasTime
+}
+
+const formattedAlarm = computed(() => {
+  if (!model.value.hour) return ''
+  return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
+})
 </script>
+
