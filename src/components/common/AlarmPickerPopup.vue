@@ -39,11 +39,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
-const preventScroll = (e) => {
-  e.preventDefault()
-}
+const preventScroll = (e) => { e.preventDefault() }
 const lockBodyScroll = () => {
   document.body.style.overflow = 'hidden'
   document.body.addEventListener('touchmove', preventScroll, { passive: false })
@@ -53,12 +51,8 @@ const unlockBodyScroll = () => {
   document.body.removeEventListener('touchmove', preventScroll)
 }
 
-onMounted(() => {
-  lockBodyScroll()
-})
-onBeforeUnmount(() => {
-  unlockBodyScroll()
-})
+onMounted(() => { lockBodyScroll() })
+onBeforeUnmount(() => { unlockBodyScroll() })
 
 const props = defineProps({
   modelValue: {
@@ -66,35 +60,52 @@ const props = defineProps({
     default: () => ({ ampm: 'AM', hour: '07', minute: '00' })
   }
 })
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue','close'])
 
-const localValue = ref({ ...props.modelValue })
+const pad2 = (v) => String(v ?? '').padStart(2, '0')
 
-// AM/PM 고정
-const ampmOptions = ['AM', 'PM']
+const localValue = ref({
+  ampm: props.modelValue.ampm || 'AM'
+})
 
-// 무한 스크롤용 반복 생성
-const rawHours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
-const rawMinutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
-
+const rawHours = Array.from({ length: 12 }, (_, i) => pad2(i + 1))
+const rawMinutes = Array.from({ length: 60 }, (_, i) => pad2(i))
 const loopCount = 100
 const hourLoopOptions = Array.from({ length: rawHours.length * loopCount }, (_, i) => rawHours[i % 12])
 const minuteLoopOptions = Array.from({ length: rawMinutes.length * loopCount }, (_, i) => rawMinutes[i % 60])
+const ampmOptions = ['AM', 'PM']
 
-// 중앙값에서 시작
-const hourIndex = hourLoopOptions.findIndex((val, i) => i > hourLoopOptions.length / 2 && val === props.modelValue.hour.padStart(2, '0'))
-const minuteIndex = minuteLoopOptions.findIndex((val, i) => i > minuteLoopOptions.length / 2 && val === props.modelValue.minute.padStart(2, '0'))
+const findCenteredIndex = (arr, val) => {
+  const target = pad2(val)
+  const half = Math.floor(arr.length / 2)
+  for (let i = half; i < arr.length; i++) if (arr[i] === target) return i
+  for (let i = half - 1; i >= 0; i--) if (arr[i] === target) return i
+  return -1
+}
+
+const initHour = pad2(props.modelValue.hour || '07')
+const initMinute = pad2(props.modelValue.minute || '00')
+const hourIndex = findCenteredIndex(hourLoopOptions, initHour)
+const minuteIndex = findCenteredIndex(minuteLoopOptions, initMinute)
 
 const selectedHour = ref(hourIndex !== -1 ? hourLoopOptions[hourIndex] : '07')
 const selectedMinute = ref(minuteIndex !== -1 ? minuteLoopOptions[minuteIndex] : '00')
 
-// 확인 → 안전하게 emit
-// 확인 → 안전하게 emit
+watch(() => props.modelValue, (v) => {
+  localValue.value.ampm = v?.ampm || 'AM'
+  const h = pad2(v?.hour || '07')
+  const m = pad2(v?.minute || '00')
+  const hi = findCenteredIndex(hourLoopOptions, h)
+  const mi = findCenteredIndex(minuteLoopOptions, m)
+  selectedHour.value = hi !== -1 ? hourLoopOptions[hi] : h
+  selectedMinute.value = mi !== -1 ? minuteLoopOptions[mi] : m
+}, { immediate: true, deep: true })
+
 const confirmSelection = () => {
   emit('update:modelValue', {
     ampm: localValue.value.ampm || 'AM',
-    hour: selectedHour.value || '07',
-    minute: selectedMinute.value || '00'
+    hour: pad2(selectedHour.value || '07'),
+    minute: pad2(selectedMinute.value || '00')
   })
   emit('close')
 }
