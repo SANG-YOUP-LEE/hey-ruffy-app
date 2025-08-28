@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const preventScroll = (e) => { e.preventDefault() }
 const lockBodyScroll = () => {
@@ -55,18 +55,19 @@ onMounted(() => { lockBodyScroll() })
 onBeforeUnmount(() => { unlockBodyScroll() })
 
 const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: () => ({ ampm: 'AM', hour: '07', minute: '00' })
-  }
+  modelValue: { type: Object, default: () => ({ ampm: 'AM', hour: '07', minute: '00' }) }
 })
 const emit = defineEmits(['update:modelValue','close'])
 
 const pad2 = (v) => String(v ?? '').padStart(2, '0')
-
-const localValue = ref({
-  ampm: props.modelValue.ampm || 'AM'
+const normalize = (v) => ({
+  ampm: (v && v.ampm) ? v.ampm : 'AM',
+  hour: pad2((v && v.hour) ? v.hour : '07'),
+  minute: pad2((v && v.minute) ? v.minute : '00')
 })
+
+const base = normalize(props.modelValue)
+const localValue = ref({ ampm: base.ampm })
 
 const rawHours = Array.from({ length: 12 }, (_, i) => pad2(i + 1))
 const rawMinutes = Array.from({ length: 60 }, (_, i) => pad2(i))
@@ -83,8 +84,8 @@ const findCenteredIndex = (arr, val) => {
   return -1
 }
 
-const initHour = pad2(props.modelValue.hour || '07')
-const initMinute = pad2(props.modelValue.minute || '00')
+const initHour = base.hour
+const initMinute = base.minute
 const hourIndex = findCenteredIndex(hourLoopOptions, initHour)
 const minuteIndex = findCenteredIndex(minuteLoopOptions, initMinute)
 
@@ -92,13 +93,12 @@ const selectedHour = ref(hourIndex !== -1 ? hourLoopOptions[hourIndex] : '07')
 const selectedMinute = ref(minuteIndex !== -1 ? minuteLoopOptions[minuteIndex] : '00')
 
 watch(() => props.modelValue, (v) => {
-  localValue.value.ampm = v?.ampm || 'AM'
-  const h = pad2(v?.hour || '07')
-  const m = pad2(v?.minute || '00')
-  const hi = findCenteredIndex(hourLoopOptions, h)
-  const mi = findCenteredIndex(minuteLoopOptions, m)
-  selectedHour.value = hi !== -1 ? hourLoopOptions[hi] : h
-  selectedMinute.value = mi !== -1 ? minuteLoopOptions[mi] : m
+  const n = normalize(v)
+  localValue.value.ampm = n.ampm
+  const hi = findCenteredIndex(hourLoopOptions, n.hour)
+  const mi = findCenteredIndex(minuteLoopOptions, n.minute)
+  selectedHour.value = hi !== -1 ? hourLoopOptions[hi] : n.hour
+  selectedMinute.value = mi !== -1 ? minuteLoopOptions[mi] : n.minute
 }, { immediate: true, deep: true })
 
 const confirmSelection = () => {
