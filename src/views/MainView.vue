@@ -381,6 +381,9 @@ const displayedRoutines = computed(() => {
 })
 
 function handleSelectDate(date, isFuture) {
+  if (scrollEl) scrollEl.scrollTop = 0
+  isScrolled.value = false
+  headerShort.value = false
   selectedDate.value = date
   isFutureDate.value = isFuture
   selectedFilter.value = 'notdone'
@@ -572,6 +575,7 @@ onMounted(async () => {
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
+    scrollEl.scrollTop = 0
     updateScrollState()
   }
 
@@ -621,10 +625,6 @@ onBeforeUnmount(() => {
   }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
-})
-
-watch(isScrolled, () => {
-  updateScrollState()
 })
 
 watch([displayedRoutines, selectedPeriod, selectedView], () => {
@@ -690,6 +690,9 @@ function handleChangePeriod(mode) {
       today.setHours(0,0,0,0)
       selectedDate.value = today
       isFutureDate.value = false
+      if (scrollEl) scrollEl.scrollTop = 0
+      isScrolled.value = false
+      headerShort.value = false
     }
     selectedFilter.value = 'notdone'
     nextTick(() => updateScrollState())
