@@ -31,7 +31,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     repeatMonthDays: [],
     startDate: null,
     endDate: null,
-    alarmTime: null,
+    alarmTime: { ampm:'', hour:'', minute:'' },
     isWalkModeOff: false,
     ruffy: null,
     course: null,
@@ -100,7 +100,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatMonthDays = []
       this.startDate = null
       this.endDate = null
-      this.alarmTime = null
+      this.alarmTime = { ampm:'', hour:'', minute:'' }
       this.isWalkModeOff = false
       this.ruffy = null
       this.course = null
@@ -122,7 +122,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatMonthDays = routine.repeatMonthDays || []
       this.startDate = routine.startDate || null
       this.endDate = routine.endDate || null
-      this.alarmTime = routine.alarmTime || null
+      this.alarmTime = routine.alarmTime || { ampm:'', hour:'', minute:'' }
       this.isWalkModeOff = !routine.ruffy
       this.ruffy = routine.ruffy || null
       this.course = routine.course || null
