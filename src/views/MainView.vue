@@ -381,6 +381,8 @@ const displayedRoutines = computed(() => {
 })
 
 function handleSelectDate(date, isFuture) {
+  if (deleteMode.value) handleToggleDeleteMode(false, true)
+
   if (scrollEl) scrollEl.scrollTop = 0
   isScrolled.value = false
   headerShort.value = false
@@ -476,8 +478,8 @@ async function onDelete(payload) {
   }
 
   rawRoutines.value = rawRoutines.value.filter(r => !ridList.includes(r.id))
+  selectedIds.value = []
   if (deleteMode.value) {
-    selectedIds.value = []
     deleteMode.value = false
     toggleListStateButtonClass(false)
   }
@@ -663,14 +665,16 @@ function handleNext() {
 }
 
 function handleChangeView(v) {
+  if (deleteMode.value) handleToggleDeleteMode(false, true)
   selectedView.value = v
   if (scrollEl) scrollEl.scrollTop = 0
   isScrolled.value = false
   headerShort.value = false
   nextTick(() => updateScrollState())
 }
-
 function handleChangePeriod(mode) {
+  if (deleteMode.value) handleToggleDeleteMode(false, true)
+
   if (scrollEl) scrollEl.scrollTop = 0
   isScrolled.value = false
   headerShort.value = false
