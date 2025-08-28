@@ -10,9 +10,7 @@
       </div>
 
       <div v-if="showDataFixed" class="data_fixed">
-        <div class="alarm-time">
-          {{ formattedAlarm }}
-        </div>
+        <div class="alarm-time">{{ formattedAlarm }}</div>
         <a href="#none" class="txt" @click.prevent="resetAlarm">알람 삭제 하기</a>
       </div>
     </div>
@@ -37,9 +35,7 @@ const showAlarmPopup = ref(false)
 const showDataFixed = ref(false)
 const suppressAutoOpen = ref(false)
 
-const toggleAlarm = () => {
-  isAlarmOn.value = !isAlarmOn.value
-}
+const toggleAlarm = () => { isAlarmOn.value = !isAlarmOn.value }
 
 watch(isAlarmOn, (val) => {
   if (suppressAutoOpen.value) return
@@ -52,21 +48,29 @@ watch(isAlarmOn, (val) => {
   }
 })
 
-const resetAlarm = () => {
-  isAlarmOn.value = false
-}
+watch(model, (v) => {
+  const hasTime = !!(v && v.hour && v.minute && v.ampm)
+  suppressAutoOpen.value = true
+  isAlarmOn.value = hasTime
+  showDataFixed.value = hasTime
+  nextTick(() => { suppressAutoOpen.value = false })
+}, { deep: true, immediate: true })
+
+const resetAlarm = () => { isAlarmOn.value = false }
 
 const handlePopupClose = () => {
   showAlarmPopup.value = false
-  if (model.value.hour) {
+  if (model.value && model.value.hour) {
+    isAlarmOn.value = true
     showDataFixed.value = true
   } else {
     isAlarmOn.value = false
+    showDataFixed.value = false
   }
 }
 
 const formattedAlarm = computed(() => {
-  if (!model.value.hour) return ''
+  if (!model.value || !model.value.hour) return ''
   return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
 })
 
