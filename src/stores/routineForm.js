@@ -1,3 +1,4 @@
+// src/stores/routineForm.js
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
@@ -19,6 +20,7 @@ const normalizeSkin = (v) => {
   const n = m[1].padStart(2, '0')
   return `option${n}`
 }
+const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
@@ -51,11 +53,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const interval = parseInterval(state.repeatWeeks)
-      const base = {
-        freq: state.repeatType,
-        interval,
-        anchor: hasStart ? safeISOFromDateObj(state.startDate) : null
-      }
+      const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+      const base = { freq: state.repeatType, interval, anchor: anchorISO }
       if (state.repeatType === 'weekly') return { ...base, byWeekday: weeklyDaysToICS(state.repeatWeekDays) }
       if (state.repeatType === 'monthly') return { ...base, byMonthDay: (state.repeatMonthDays||[]).map(Number) }
       return base
@@ -63,6 +62,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     payload(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const hasEnd = !!safeISOFromDateObj(state.endDate)
+      const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
       const cleaned = {
         title: state.title,
         repeatType: state.repeatType,
@@ -81,9 +81,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
         comment: state.comment,
         hasWalk: this.hasWalk,
         tz: state.tz,
-        rule: this.icsRule
+        rule: this.icsRule,
+        start: anchorISO
       }
-      if (hasStart) cleaned.start = safeISOFromDateObj(state.startDate)
       if (hasEnd) cleaned.end = safeISOFromDateObj(state.endDate)
       if (!hasStart) cleaned.startDate = null
       if (!hasEnd) cleaned.endDate = null
@@ -161,22 +161,26 @@ export const useRoutineFormStore = defineStore('routineForm', {
     },
     async save() {
       if (!this.validate()) return { ok:false }
-      const auth = getAuth()
-      const user = auth.currentUser
-      if (!user) return { ok:false, error:'로그인이 필요합니다.' }
-      const payload = this.payload
-      if (this.mode === 'edit' && this.routineId) {
-        const rid = getBaseId(this.routineId)
-        await setDoc(
-          doc(db, 'users', user.uid, 'routines', rid),
-          { ...payload, updatedAt: serverTimestamp() },
-          { merge: true }
-        )
-        return { ok:true, id: rid, data: payload }
-      } else {
-        const colRef = collection(db, 'users', user.uid, 'routines')
-        const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-        return { ok:true, id: docRef.id, data: payload }
+      try {
+        const auth = getAuth()
+        const user = auth.currentUser
+        if (!user) return { ok:false, error:'로그인이 필요합니다.' }
+        const payload = this.payload
+        if (this.mode === 'edit' && this.routineId) {
+          const rid = getBaseId(this.routineId)
+          await setDoc(
+            doc(db, 'users', user.uid, 'routines', rid),
+            { ...payload, updatedAt: serverTimestamp() },
+            { merge: true }
+          )
+          return { ok:true, id: rid, data: payload }
+        } else {
+          const colRef = collection(db, 'users', user.uid, 'routines')
+          const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+          return { ok:true, id: docRef.id, data: payload }
+        }
+      } catch (e) {
+        return { ok:false, error: String(e && e.message ? e.message : e) }
       }
     }
   }
