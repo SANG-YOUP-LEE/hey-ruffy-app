@@ -101,6 +101,8 @@ import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const form = useRoutineFormStore()
+const repeatRef = ref()
+const dateRef = ref()
 
 const p = n => String(n).padStart(2,'0')
 const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
