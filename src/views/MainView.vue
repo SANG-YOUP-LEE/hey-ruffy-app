@@ -1,5 +1,3 @@
-주석없이 통으로 고쳐
-
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
@@ -541,7 +539,6 @@ const bindRoutines = (uid) => {
 const isScrolled = ref(false)
 const headerShort = ref(false)
 let scrollEl = null
-let reflow = null
 const SCROLL_EPS = 1
 
 function updateScrollState() {
@@ -570,8 +567,7 @@ function onScrollHandler() {
 onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
-  window.addEventListener('resize', updateScrollState)
-
+  
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
@@ -603,26 +599,16 @@ onMounted(async () => {
 
   nextTick(updateScrollState)
 
-  reflow = () => { setVh(); updateScrollState() }
-  window.addEventListener('pageshow', reflow)
-  window.addEventListener('visibilitychange', reflow)
-  window.addEventListener('orientationchange', reflow)
-
   requestAnimationFrame(updateScrollState)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', setVh)
-  window.removeEventListener('resize', updateScrollState)
   if (scrollEl) {
     scrollEl.removeEventListener('scroll', onScrollHandler)
     scrollEl = null
   }
-  if (reflow) {
-    window.removeEventListener('pageshow', reflow)
-    window.removeEventListener('visibilitychange', reflow)
-    window.removeEventListener('orientationchange', reflow)
-  }
+  
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
 })
