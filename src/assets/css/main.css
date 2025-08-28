@@ -127,7 +127,9 @@
   display: inline-block;
   flex: 0 0 1.8rem;
 }
-
+@supports (-webkit-touch-callout: none) {
+  .main_scroll { overflow-y: scroll; }
+}
 #main_body {
   flex-grow: 1;
   overflow-y: auto;
