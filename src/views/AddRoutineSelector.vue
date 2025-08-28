@@ -114,7 +114,6 @@ const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 
-const repeatRef = ref(); const dateRef = ref(); const alarmRef = ref()
 const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const cardRef = ref(); const commentRef = ref()
 const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
 const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
@@ -201,7 +200,6 @@ onMounted(async () => {
       useStart:  hasStart,
       useEnd:    hasEnd
     })
-    alarmRef.value?.setFromRoutine?.(props.routineToEdit)
     ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
     goalRef.value?.setFromRoutine?.(props.routineToEdit)
