@@ -17,7 +17,7 @@
     <div class="popup_inner" ref="popupInner">
       <div ref="titleWrap">
         <div v-if="fieldErrors.title" class="warn-message t_red01">{{ fieldErrors.title }}</div>
-        <RoutineTitleInput ref="titleRef" />
+        <RoutineTitleInput v-model="form.title" />
       </div>
 
       <div ref="repeatWrap">
@@ -90,6 +90,7 @@ import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
+import { useRoutineFormStore } from '@/stores/routineForm'
 
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
@@ -102,7 +103,8 @@ import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelecto
 import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
-// ---------- helpers ----------
+const form = useRoutineFormStore()
+
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const p = n => String(n).padStart(2,'0')
 const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
@@ -112,7 +114,7 @@ const safeISOFromDateObj = obj => {
   const s = toISO(obj)
   return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
 }
-const getBaseId = (id) => String(id || '').split('-')[0] // ← 핵심: 접미사 제거
+const getBaseId = (id) => String(id || '').split('-')[0]
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
@@ -128,7 +130,6 @@ const normalizeSkin = (v) => {
 }
 const cardSkin = ref('option01')
 
-// ---------- field errors ----------
 const fieldErrors = ref({
   title: '', repeat: '', date: '', alarm: '',
   ruffy: '', course: '', goal: '', priority: '', card: '', comment: ''
@@ -146,13 +147,11 @@ function clearAllFieldErrors() {
   Object.keys(fieldErrors.value).forEach(k => { fieldErrors.value[k] = ''; if (errorTimers[k]) clearTimeout(errorTimers[k]); delete errorTimers[k] })
 }
 
-// ---------- refs for children ----------
-const titleRef = ref(); const repeatRef = ref(); const dateRef = ref(); const alarmRef = ref()
+const repeatRef = ref(); const dateRef = ref(); const alarmRef = ref()
 const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const cardRef = ref(); const commentRef = ref()
 const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
 const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
 
-// ---------- scroll lock ----------
 let scrollY = 0
 const preventTouchMove = (e) => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
 const lockScroll = () => {
@@ -180,18 +179,16 @@ const unlockScroll = () => {
 }
 const closePopup = () => { unlockScroll(); emit('close') }
 
-// ---------- computed ----------
 const notU = v => v !== undefined
 const hasWalk = computed(() => {
   if (isWalkModeOff.value) return false
   return !!(ruffyRef.value?.ruffy && courseRef.value?.course && goalRef.value?.goalCount)
 })
 
-// ---------- payload ----------
 function buildPayload() {
   const repeatType = repeatRef.value?.selectedTab ?? 'daily'
   const base = {
-    title: titleRef.value?.title ?? '',
+    title: form.title ?? '',
     repeatType,
     repeatDays:  repeatType === 'daily'  ? [...(repeatRef.value?.selectedDaily ?? [])] : [],
     repeatWeeks: repeatType === 'weekly' ? (repeatRef.value?.selectedWeeklyMain ?? '') : '',
@@ -235,10 +232,9 @@ function buildPayload() {
   return cleaned
 }
 
-// ---------- validation ----------
 const validateRoutine = () => {
   clearAllFieldErrors()
-  if (!titleRef.value?.title || titleRef.value.title.trim() === '') { showFieldError('title','다짐 제목을 입력해주세요.'); return false }
+  if (!form.title || String(form.title).trim() === '') { showFieldError('title','다짐 제목을 입력해주세요.'); return false }
   if (!repeatRef.value?.selectedTab) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
   const t = repeatRef.value.selectedTab
   if (t === 'daily'   && (!repeatRef.value.selectedDaily || repeatRef.value.selectedDaily.length === 0)) { showFieldError('repeat','반복 주기를 선택해주세요.'); return false }
@@ -257,7 +253,6 @@ const validateRoutine = () => {
   return true
 }
 
-// ---------- save ----------
 const saveRoutine = async () => {
   if (!validateRoutine()) return
   try {
@@ -268,7 +263,6 @@ const saveRoutine = async () => {
     const payload = buildPayload()
 
     if (isEditMode.value && props.routineToEdit?.id) {
-      // 수정모드: 항상 base id 로 업데이트 (접미사 제거)
       const rid = getBaseId(props.routineToEdit.id)
       await setDoc(
         doc(db, 'users', user.uid, 'routines', rid),
@@ -277,7 +271,6 @@ const saveRoutine = async () => {
       )
       emit('save', { id: rid, ...payload })
     } else {
-      // 신규 추가
       const colRef = collection(db, 'users', user.uid, 'routines')
       const docRef = await addDoc(colRef, {
         ...payload,
@@ -294,12 +287,10 @@ const saveRoutine = async () => {
   }
 }
 
-// ---------- lifecycle ----------
 onMounted(async () => {
   lockScroll()
   if (props.routineToEdit) {
-    // 자식 컴포넌트로 값 주입 (디자인 영향 없음)
-    titleRef.value?.setFromRoutine?.(props.routineToEdit)
+    form.initFrom(props.routineToEdit)
     repeatRef.value?.setFromRoutine?.(props.routineToEdit)
 
     const sd = props.routineToEdit?.startDate || null
@@ -325,6 +316,8 @@ onMounted(async () => {
 
     isWalkModeOff.value = !props.routineToEdit.ruffy
     cardSkin.value = props.routineToEdit.cardSkin || cardSkin.value
+  } else {
+    form.reset()
   }
 })
 
