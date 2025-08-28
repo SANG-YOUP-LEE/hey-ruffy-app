@@ -676,7 +676,10 @@ function handleNext() {
 
 function handleChangeView(v) {
   selectedView.value = v
-  nextTick(updateScrollState)
+  if (scrollEl) scrollEl.scrollTop = 0
+  isScrolled.value = false
+  headerShort.value = false
+  nextTick(() => updateScrollState())
 }
 
 function handleChangePeriod(mode) {
