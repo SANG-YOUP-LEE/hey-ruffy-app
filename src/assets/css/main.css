@@ -150,7 +150,7 @@
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
   background-color:black;
-  min-height: 100vh;
+  
 }
 
 button.lnb {
