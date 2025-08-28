@@ -19,7 +19,7 @@
 }
 
 #header {
-  border:1px solid red;
+  border:1px solid green;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -150,6 +150,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
+  min-height:50rem;
 }
 
 button.lnb {
