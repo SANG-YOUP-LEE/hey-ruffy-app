@@ -19,7 +19,6 @@
 }
 
 #header {
-  border:1px solid yellow;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -150,6 +149,8 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
+  min-height:100%;
+  background-color:green;
 }
 
 button.lnb {
