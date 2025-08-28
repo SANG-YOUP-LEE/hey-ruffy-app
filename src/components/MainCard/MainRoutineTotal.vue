@@ -92,7 +92,17 @@ function toggleDeleteMode() {
   emit('toggleDeleteMode', next)
 }
 
-function onChangePeriod(mode){ emit('changePeriod', mode) }
+function onChangePeriod(mode){
+  if (localDelete.value) {
+    localDelete.value = false
+    emit('toggleDeleteMode', false)
+    if (localView.value !== 'card') {
+      localView.value = 'card'
+      emit('changeView', 'card')
+    }
+  }
+  emit('changePeriod', mode)
+}
 
 function onChangeView(view){
   if (localView.value !== view) {
