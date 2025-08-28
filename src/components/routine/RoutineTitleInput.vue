@@ -8,27 +8,30 @@
         type="text"
         placeholder="ex)외로워도 슬퍼도 탄수화물 끊기"
         class="uline"
-        v-model="title"
+        :value="inner"
+        @input="onInput"
       />
     </p>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const title = ref('')
+const props = defineProps({ modelValue: { type: String, default: '' } })
+const emit = defineEmits(['update:modelValue'])
 
-// 수정모드일 때 기존 제목 세팅용
-const setFromRoutine = (routine) => {
-  title.value = routine?.title || ''
+const inner = ref(props.modelValue)
+watch(() => props.modelValue, v => { if (v !== inner.value) inner.value = v })
+
+function onInput(e) {
+  inner.value = e.target.value
+  emit('update:modelValue', inner.value)
 }
 
-// 부모에서 접근할 수 있도록 노출
-// 부모에서 접근할 수 있도록 노출
-defineExpose({
-  title,
-  setFromRoutine
-})
+function setFromRoutine(rt) {
+  emit('update:modelValue', rt?.title || '')
+}
 
+defineExpose({ setFromRoutine })
 </script>
