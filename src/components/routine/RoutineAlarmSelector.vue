@@ -3,22 +3,22 @@
     <div class="detail_box">
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
-          <span class="toggle-text" @click="openPopup">알람 설정</span>
+          <ToggleSwitch class="toggle" v-model="isAlarmOn" :label="''" />
+          <span class="toggle-text" @click="toggleAlarm">알람 설정</span>
         </div>
         <a href="#none" class="txt">알람 먼저 허용하기</a>
       </div>
 
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">{{ formattedAlarm }}</div>
-        <a href="#none" class="txt" @click.prevent="clearAlarm">알람 삭제 하기</a>
+        <a href="#none" class="txt" @click.prevent="resetAlarm">알람 삭제 하기</a>
       </div>
     </div>
 
     <AlarmPickerPopup
       v-if="showAlarmPopup"
       v-model="model"
-      @close="closePopup"
+      @close="handlePopupClose"
     />
   </div>
 </template>
@@ -36,16 +36,21 @@ const showDataFixed = ref(false)
 
 const toggleAlarm = () => {
   if (!isAlarmOn.value) {
-    isAlarmOn.value = true      // 팝업 뜨자마자 ON
+    isAlarmOn.value = true
     showAlarmPopup.value = true
   } else {
     resetAlarm()
   }
 }
 
+watch(isAlarmOn, v => {
+  if (v) showAlarmPopup.value = true
+  else resetAlarm()
+})
+
 const resetAlarm = () => {
   isAlarmOn.value = false
-  model.value = { ampm: '', hour: '', minute: '' }
+  model.value = { ampm:'', hour:'', minute:'' }
   showDataFixed.value = false
   showAlarmPopup.value = false
 }
@@ -53,8 +58,11 @@ const resetAlarm = () => {
 const handlePopupClose = () => {
   showAlarmPopup.value = false
   const hasTime = !!(model.value.ampm && model.value.hour && model.value.minute)
-  isAlarmOn.value = hasTime
-  showDataFixed.value = hasTime
+  if (!hasTime) resetAlarm()
+  else {
+    isAlarmOn.value = true
+    showDataFixed.value = true
+  }
 }
 
 const formattedAlarm = computed(() => {
@@ -62,4 +70,3 @@ const formattedAlarm = computed(() => {
   return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
 })
 </script>
-
