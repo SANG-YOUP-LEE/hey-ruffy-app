@@ -137,7 +137,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .main_fixed {
@@ -150,7 +149,7 @@
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
   min-height:100%;
-  background-color:green;
+  background-color:red;
 }
 
 button.lnb {
