@@ -537,7 +537,8 @@ const isScrolled = ref(false)
 const headerShort = ref(false)
 const canScroll = ref(false)
 let scrollEl = null
-const SCROLL_EPS = 8
+let reflow = null
+const SCROLL_EPS = 1
 
 function recomputeScrollability() {
   const el = scrollEl
@@ -583,7 +584,6 @@ function updateScrolledUI() {
 }
 
 function safeUpdateScrolledUI() {
-  if (!canScroll.value) return
   updateScrolledUI()
 }
 
@@ -595,7 +595,7 @@ onMounted(async () => {
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
-    const v = (scrollEl.scrollHeight - scrollEl.clientHeight) > SCROLL_EPS && (scrollEl.scrollTop || 0) > 0
+    const v = (scrollEl.scrollHeight - el.clientHeight) > SCROLL_EPS && (scrollEl.scrollTop || 0) > 0
     isScrolled.value = v
     headerShort.value = v
   }
@@ -624,6 +624,13 @@ onMounted(async () => {
 
   nextTick(recomputeScrollability)
   updateScrolledUI()
+
+  reflow = () => { setVh(); recomputeScrollability(); updateScrolledUI() }
+  window.addEventListener('pageshow', reflow)
+  window.addEventListener('visibilitychange', reflow)
+  window.addEventListener('orientationchange', reflow)
+
+  requestAnimationFrame(recomputeScrollability)
 })
 
 onBeforeUnmount(() => {
@@ -632,6 +639,11 @@ onBeforeUnmount(() => {
   if (scrollEl) {
     scrollEl.removeEventListener('scroll', onScrollHandler)
     scrollEl = null
+  }
+  if (reflow) {
+    window.removeEventListener('pageshow', reflow)
+    window.removeEventListener('visibilitychange', reflow)
+    window.removeEventListener('orientationchange', reflow)
   }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
@@ -642,7 +654,7 @@ watch(isScrolled, () => {
 })
 
 watch([displayedRoutines, selectedPeriod, selectedView], () => {
-  nextTick(recomputeScrollability)
+  nextTick(() => requestAnimationFrame(recomputeScrollability))
 })
 
 function handlePrev() {
