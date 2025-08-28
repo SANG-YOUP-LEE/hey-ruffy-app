@@ -9,7 +9,6 @@
         <a href="#none" class="txt">알람 먼저 허용하기</a>
       </div>
 
-      <!-- 알람 시간과 삭제 버튼 -->
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">
           {{ formattedAlarm }}
@@ -18,10 +17,9 @@
       </div>
     </div>
 
-    <!-- 알람 피커 팝업 -->
     <AlarmPickerPopup
       v-if="showAlarmPopup"
-      v-model="selectedAlarm"
+      v-model="model"
       @close="handlePopupClose"
     />
   </div>
@@ -32,38 +30,35 @@ import { ref, watch, computed, nextTick } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
 
+const model = defineModel({ type: Object, default: () => ({ ampm:'', hour:'', minute:'' }) })
+
 const isAlarmOn = ref(false)
 const showAlarmPopup = ref(false)
-const selectedAlarm = ref({ ampm: '', hour: '', minute: '' })
 const showDataFixed = ref(false)
-
-// ✅ 자동 오픈 방지용 가드
 const suppressAutoOpen = ref(false)
 
 const toggleAlarm = () => {
   isAlarmOn.value = !isAlarmOn.value
 }
 
-// 🔁 이 watch가 알람 상태 전체를 제어하는 유일한 통로가 되도록 유지
 watch(isAlarmOn, (val) => {
-  if (suppressAutoOpen.value) return // ✅ 값 주입 중에는 팝업 열지 않음
+  if (suppressAutoOpen.value) return
   if (val) {
     showAlarmPopup.value = true
   } else {
-    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
+    model.value = { ampm: '', hour: '', minute: '' }
     showDataFixed.value = false
     showAlarmPopup.value = false
   }
 })
 
-// ✅ 수정: 알람 초기화는 오직 watch 트리거로
 const resetAlarm = () => {
   isAlarmOn.value = false
 }
 
 const handlePopupClose = () => {
   showAlarmPopup.value = false
-  if (selectedAlarm.value.hour) {
+  if (model.value.hour) {
     showDataFixed.value = true
   } else {
     isAlarmOn.value = false
@@ -71,20 +66,14 @@ const handlePopupClose = () => {
 }
 
 const formattedAlarm = computed(() => {
-  if (!selectedAlarm.value.hour) return ''
-  return `${selectedAlarm.value.ampm} ${selectedAlarm.value.hour}시 ${selectedAlarm.value.minute}분`
+  if (!model.value.hour) return ''
+  return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
 })
 
 const setFromRoutine = (routine) => {
-  // ✅ 수정 모드 값 주입 중 자동 오픈 차단
   suppressAutoOpen.value = true
-  if (
-    routine?.alarmTime &&
-    routine.alarmTime.ampm &&
-    routine.alarmTime.hour &&
-    routine.alarmTime.minute
-  ) {
-    selectedAlarm.value = {
+  if (routine?.alarmTime?.ampm && routine.alarmTime.hour && routine.alarmTime.minute) {
+    model.value = {
       ampm: routine.alarmTime.ampm,
       hour: routine.alarmTime.hour,
       minute: routine.alarmTime.minute
@@ -92,7 +81,7 @@ const setFromRoutine = (routine) => {
     isAlarmOn.value = true
     showDataFixed.value = true
   } else {
-    selectedAlarm.value = { ampm: '', hour: '', minute: '' }
+    model.value = { ampm: '', hour: '', minute: '' }
     isAlarmOn.value = false
     showDataFixed.value = false
   }
@@ -100,8 +89,5 @@ const setFromRoutine = (routine) => {
   nextTick(() => { suppressAutoOpen.value = false })
 }
 
-defineExpose({
-  selectedAlarm,
-  setFromRoutine
-})
+defineExpose({ setFromRoutine })
 </script>
