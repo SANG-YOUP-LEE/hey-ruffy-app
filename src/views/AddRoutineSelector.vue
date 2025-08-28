@@ -32,7 +32,7 @@
 
       <div ref="alarmWrap">
         <div v-if="form.fieldErrors.alarm" class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div>
-        <RoutineAlarmSelector ref="alarmRef" />
+        <RoutineAlarmSelector v-model="form.alarmTime" />
       </div>
 
       <div ref="priorityWrap">
@@ -157,7 +157,6 @@ function syncFromChildren() {
   }
   form.setField('startDate', dateRef.value?.startDate ?? null)
   form.setField('endDate', dateRef.value?.endDate ?? null)
-  form.setField('alarmTime', alarmRef.value?.selectedAlarm ?? null)
   if (!form.isWalkModeOff) {
     form.setField('ruffy', ruffyRef.value?.ruffy ?? null)
     form.setField('course', courseRef.value?.course ?? null)
