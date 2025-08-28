@@ -10,36 +10,16 @@
           미래에도 다짐 부자시네요!
         </template>
         <template v-else>
-          <a
-            href="#none"
-            class="not_done"
-            :class="{ uline: selectedRadio === 'notdone' }"
-            @click.prevent="selectedRadio = 'notdone'"
-          >
+          <a href="#none" class="not_done" :class="{ uline: selectedRadio === 'notdone' }" @click.prevent="selectedRadio = 'notdone'">
             <strong>미달성</strong> <em class="t_on">{{ displayCounts.notdone }}</em>
           </a>
-          <a
-            href="#none"
-            class="done"
-            :class="{ uline: selectedRadio === 'done' }"
-            @click.prevent="selectedRadio = 'done'"
-          >
+          <a href="#none" class="done" :class="{ uline: selectedRadio === 'done' }" @click.prevent="selectedRadio = 'done'">
             <strong>달성완료</strong> <em class="t_on">{{ displayCounts.done }}</em>
           </a>
-          <a
-            href="#none"
-            class="fail_done"
-            :class="{ uline: selectedRadio === 'faildone' }"
-            @click.prevent="selectedRadio = 'faildone'"
-          >
+          <a href="#none" class="fail_done" :class="{ uline: selectedRadio === 'faildone' }" @click.prevent="selectedRadio = 'faildone'">
             <strong>달성실패</strong> <em class="t_on">{{ displayCounts.faildone }}</em>
           </a>
-          <a
-            href="#none"
-            class="ignored"
-            :class="{ uline: selectedRadio === 'ignored' }"
-            @click.prevent="selectedRadio = 'ignored'"
-          >
+          <a href="#none" class="ignored" :class="{ uline: selectedRadio === 'ignored' }" @click.prevent="selectedRadio = 'ignored'">
             <strong>흐린눈</strong> <em class="t_on">{{ displayCounts.ignored }}</em>
           </a>
         </template>
@@ -47,78 +27,44 @@
     </p>
   </div>
 
-    <div class="today_tools">
+  <div class="today_tools">
     <div class="today">
       <p>
-        <a
-          href="#none"
-          class="prev"
-          @click.prevent="$emit('requestPrev')"
-        ><span>{{ prevLabel }}</span></a>
-
-            {{ centerText }}
-
-
-        <a
-          href="#none"
-          class="next"
-          @click.prevent="$emit('requestNext')"
-        ><span>{{ nextLabel }}</span></a>
+        <a href="#none" class="prev" @click.prevent="$emit('requestPrev')"><span>{{ prevLabel }}</span></a>
+        {{ centerText }}
+        <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>{{ nextLabel }}</span></a>
       </p>
     </div>
-    
+
     <div class="tools">
       <span class="term_wrap">
-        <a
-          href="#none"
-          :class="periodMode==='T' ? 'basic' : 'on_w'"
-          @click.prevent="onChangePeriod('T')"
-        >일간</a>
-        <a
-          href="#none"
-          :class="periodMode==='W' ? 'basic' : 'on_w'"
-          @click.prevent="onChangePeriod('W')"
-        >주간</a>
-        <a
-          href="#none"
-          :class="periodMode==='M' ? 'basic' : 'on_w'"
-          @click.prevent="onChangePeriod('M')"
-        >월간</a>
+        <a href="#none" :class="periodMode==='T' ? 'basic' : 'on_w'" @click.prevent="onChangePeriod('T')">일간</a>
+        <a href="#none" :class="periodMode==='W' ? 'basic' : 'on_w'" @click.prevent="onChangePeriod('W')">주간</a>
+        <a href="#none" :class="periodMode==='M' ? 'basic' : 'on_w'" @click.prevent="onChangePeriod('M')">월간</a>
       </span>
-    
+
       <span class="tools_wrap">
+        <a href="#none" class="r_card"  :class="{ on: activeTool==='card' }"  @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
+        <a href="#none" class="r_block" :class="{ on: activeTool==='block' }" @click.prevent="onChangeView('block')"><span>다짐블록보기</span></a>
+        <a href="#none" class="r_list"  :class="{ on: activeTool==='list' }"  @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
         <a
           href="#none"
-          class="r_card"
-          :class="{ on: activeTool==='card' }"
-          @click.prevent="onChangeView('card')"
-        ><span>다짐카드보기</span></a>
-        <a
-          href="#none"
-          class="r_block"
-          :class="{ on: activeTool==='block' }"
-          @click.prevent="onChangeView('block')"
-        ><span>다짐블록보기</span></a>
-        <a
-          href="#none"
-          class="r_list"
-          :class="{ on: activeTool==='list' }"
-          @click.prevent="onChangeView('list')"
-        ><span>다짐목록보기</span></a>
-        <a
-          href="#none"
-          :class="[ deleteMode ? 'r_del' : 'r_select', { on: activeTool==='delete' } ]"
+          :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool==='delete' } ]"
           @click.prevent="toggleDeleteMode"
-        ><span>{{ deleteMode ? '삭제하기' : '다짐선택' }}</span></a>
+        ><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
       </span>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
-const emit = defineEmits(['update:modelValue','changeFilter','requestPrev','requestNext','changeView','changePeriod','toggleDeleteMode'])
+const emit = defineEmits([
+  'update:modelValue','changeFilter','requestPrev','requestNext',
+  'changeView','changePeriod','toggleDeleteMode'
+])
+
 const props = defineProps({
   isFuture: { type: Boolean, default: false },
   modelValue: { type: [String, null], default: 'notdone' },
@@ -130,14 +76,39 @@ const props = defineProps({
   deleteMode: { type: Boolean, default: false }
 })
 
-function toggleDeleteMode() { emit('toggleDeleteMode', !props.deleteMode) }
-function onChangePeriod(mode){ emit('changePeriod', mode) }
-function onChangeView(view){ emit('changeView', view) }
+const localView   = ref(props.viewMode || 'card')
+const localDelete = ref(!!props.deleteMode)
 
-const activeTool = computed(() => (props.deleteMode ? 'delete' : props.viewMode))
+watch(() => props.viewMode, (v) => {
+  if (!localDelete.value && v) localView.value = v
+})
+watch(() => props.deleteMode, (v) => {
+  localDelete.value = !!v
+})
+
+function toggleDeleteMode() {
+  const next = !localDelete.value
+  localDelete.value = next
+  emit('toggleDeleteMode', next)
+}
+
+function onChangePeriod(mode){ emit('changePeriod', mode) }
+
+function onChangeView(view){
+  if (localView.value !== view) {
+    localView.value = view
+    emit('changeView', view)
+  }
+  if (localDelete.value) {
+    localDelete.value = false
+    emit('toggleDeleteMode', false)
+  }
+}
+
+const activeTool = computed(() => (localDelete.value ? 'delete' : localView.value))
 
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
-const displayTotal = computed(() => props.totalCount ?? 15)
+const displayTotal  = computed(() => props.totalCount ?? 15)
 
 const selectedRadio = computed({
   get: () => props.modelValue,
@@ -146,7 +117,7 @@ const selectedRadio = computed({
 
 const isToday = computed(() => {
   const a = new Date(props.selectedDate); a.setHours(0,0,0,0)
-  const b = new Date(); b.setHours(0,0,0,0)
+  const b = new Date();                    b.setHours(0,0,0,0)
   return a.getTime() === b.getTime()
 })
 
@@ -222,4 +193,3 @@ const nextLabel = computed(() => {
   return '다음날'
 })
 </script>
-
