@@ -156,20 +156,22 @@ function syncFromChildren() {
     form.setField('repeatWeekDays', Array.isArray(r.selectedWeeklyDays) ? [...r.selectedWeeklyDays] : [])
     form.setField('repeatMonthDays', Array.isArray(r.selectedDates) ? [...r.selectedDates] : [])
   }
+
   form.setField('startDate', dateRef.value?.startDate ?? null)
-  form.setField('endDate', dateRef.value?.endDate ?? null)
-   form.setField('alarmTime', form.alarmTime ?? null) 
+  form.setField('endDate',   dateRef.value?.endDate ?? null)
+
   if (!form.isWalkModeOff) {
-    form.setField('ruffy', ruffyRef.value?.ruffy ?? null)
-    form.setField('course', courseRef.value?.course ?? null)
+    form.setField('ruffy',     ruffyRef.value?.ruffy ?? null)
+    form.setField('course',    courseRef.value?.course ?? null)
     form.setField('goalCount', goalRef.value?.goalCount ?? null)
   } else {
     form.setField('ruffy', null)
     form.setField('course', null)
     form.setField('goalCount', null)
   }
+
   form.setField('colorIndex', Number(priorityRef.value?.selectedColor ?? form.colorIndex ?? 0))
-  form.setField('comment', commentRef.value?.comment ?? '')
+  form.setField('comment',    commentRef.value?.comment ?? '')
 }
 
 async function saveRoutine() {
