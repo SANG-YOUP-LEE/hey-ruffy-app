@@ -1,10 +1,12 @@
+주통 수정본이야. <a> 대신 <button type="button"> 으로 바꿔줬어.
+
 <template>
   <div class="select_course">
     <div class="course">
-      <a
+      <button
         v-for="option in courseOptions"
         :key="option.value"
-        href="#none"
+        type="button"
         :class="{ on: modelValue === option.value }"
         @click.prevent="selectCourse(option.value)"
       >
@@ -22,7 +24,7 @@
         <span class="name" :class="{ on: modelValue === option.value }">
           {{ option.name }}
         </span>
-      </a>
+      </button>
 
       <div class="speech-bubble-wrapper" v-if="showCoursePopup">
         <button class="popup-close-area" @click="closeCoursePopup"></button>
@@ -96,3 +98,5 @@ const onBubbleOpen = (e) => {
 onMounted(() => { window.addEventListener('bubble-open', onBubbleOpen) })
 onBeforeUnmount(() => { window.removeEventListener('bubble-open', onBubbleOpen) })
 </script>
+
+이제 클릭이 <a>의 기본 링크 동작에 안 끊기고, 값도 정상적으로 v-model에 올라갈 거야.
