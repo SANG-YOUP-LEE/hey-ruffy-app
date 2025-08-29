@@ -11,7 +11,12 @@ const weeklyDaysToICS = arr => (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['
 const parseInterval = s => { const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
 const safeISOFromDateObj = obj => { const s = toISO(obj); return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null }
 const getBaseId = (id) => String(id || '').split('-')[0]
-const normalizeSkin = (v) => { const m = String(v || '').match(/(\d+)/); if (!m) return 'option01'; const n = m[1].padStart(2,'0'); return `option${n}` }
+const normalizeCardSkinStrict = (v) => {
+  const m = String(v || '').match(/(\d{1,2})/)
+  if (!m) return ''
+  const n = m[1].padStart(2,'0')
+  return `option${n}`
+}
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const deepClean = (v) => {
   if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean)
@@ -36,8 +41,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
     ruffy: null,
     course: null,
     goalCount: null,
-    colorIndex: 0,
-    cardSkin: 'option01',
+
+    // 필수(모양) — 강제 선택 유도
+    colorIndex: null,   // number|null
+    cardSkin: '',       // 'option01' 등 or ''
+
     comment: '',
     fieldErrors: {},
     tz: 'Asia/Seoul'
@@ -46,6 +54,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
     hasWalk(state) {
       if (state.isWalkModeOff) return false
       return !!(state.ruffy && state.course && state.goalCount)
+    },
+    isAppearanceReady(state) {
+      const validColor = Number.isInteger(state.colorIndex)
+      const validSkin  = !!normalizeCardSkinStrict(state.cardSkin)
+      return validColor && validSkin
     },
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
@@ -73,8 +86,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
         goalCount: state.isWalkModeOff ? null : state.goalCount,
-        colorIndex: Number(state.colorIndex || 0),
-        cardSkin: normalizeSkin(state.cardSkin),
+
+        colorIndex: state.colorIndex,                          // 필수
+        cardSkin: normalizeCardSkinStrict(state.cardSkin),     // 필수
+
         comment: state.comment,
         hasWalk: this.hasWalk,
         tz: state.tz,
@@ -105,8 +120,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.ruffy = null
       this.course = null
       this.goalCount = null
-      this.colorIndex = 0
-      this.cardSkin = 'option01'
+
+      this.colorIndex = null
+      this.cardSkin = ''
+
       this.comment = ''
       this.clearErrors()
     },
@@ -127,25 +144,36 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.ruffy = routine.ruffy || null
       this.course = routine.course || null
       this.goalCount = routine.goalCount || null
-      this.colorIndex = Number(routine.colorIndex ?? 0)
-      this.cardSkin = routine.cardSkin || 'option01'
+
+      this.colorIndex = Number.isFinite(+routine.colorIndex) ? +routine.colorIndex : null
+      this.cardSkin = normalizeCardSkinStrict(routine.cardSkin) || ''
+
       this.comment = routine.comment || ''
       this.clearErrors()
     },
     validate() {
       this.clearErrors()
+
+      // 1) 필수(모양) 먼저 체크
+      if (!Number.isInteger(this.colorIndex)) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
+      if (!normalizeCardSkinStrict(this.cardSkin)) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
+
+      // 2) 제목
       if (!this.title || String(this.title).trim() === '') { this.setError('title','다짐 제목을 입력해주세요.'); return false }
+
+      // 3) 반복 주기
       if (!this.repeatType) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'daily' && (!this.repeatDaily || this.repeatDaily.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'weekly' && (!this.repeatWeeks || !this.repeatWeekDays || this.repeatWeekDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'monthly' && (!this.repeatMonthDays || this.repeatMonthDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
+
+      // 4) 산책(선택)
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course) { this.setError('course','코스를 선택해주세요.'); return false }
         if (!this.goalCount) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
-      if (this.colorIndex === null || this.colorIndex === undefined) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
-      if (!this.cardSkin) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
+
       return true
     },
     async save() {
