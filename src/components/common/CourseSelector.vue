@@ -11,10 +11,12 @@
         <span class="img"><img :src="option.img" :alt="option.name" /></span>
         <label class="custom-radio">
           <input 
-            type="radio" 
-            :name="uniqueName || 'choice-course'" 
-            :value="option.value" 
-            :checked="modelValue === option.value" 
+            type="radio"
+            :id="`${groupName}-${option.value}`"
+            :name="groupName"
+            :value="option.value"
+            :checked="modelValue === option.value"
+            @change="onRadioChange"
           />
           <span class="circle"></span>
         </label>
@@ -76,10 +78,20 @@ const courseOptions = COURSE_OPTIONS
 
 const showCoursePopup = ref(false)
 const selectedOption = computed(() => props.modelValue || '')
+const groupName = computed(() => props.uniqueName || 'choice-course')
 const myName = computed(() => props.uniqueName || 'course-selector')
 
 const selectCourse = (value) => {
   emit('update:modelValue', value)
+  showCoursePopup.value = true
+  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
+}
+
+const onRadioChange = (e) => {
+  const v = e?.target?.value || ''
+  if (v && v !== props.modelValue) {
+    emit('update:modelValue', v)
+  }
   showCoursePopup.value = true
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
