@@ -8,9 +8,7 @@
         :class="{ on: modelValue === option.value }"
         @click="selectCourse(option.value)"
       >
-        <span class="img">
-          <img :src="option.img" :alt="option.name" />
-        </span>
+        <span class="img"><img :src="option.img" :alt="option.name" /></span>
         <label class="custom-radio">
           <input
             type="radio"
@@ -62,7 +60,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   modelValue: { type: String, default: null },
-  uniqueName: { type: String, default: '' },
+  uniqueName: { type: String, default: '' }
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -70,11 +68,12 @@ const COURSE_OPTIONS = [
   { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
   { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
   { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
-  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href },
+  { value: 'option4', name: '은빛호수길', img: new URL('@/assets/images/course_temp04.png', import.meta.url).href }
 ]
 
-const courseOptions = COURSE_OPTIONS
 const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
+const courseOptions = COURSE_OPTIONS
+
 const showCoursePopup = ref(false)
 const selectedOption = computed(() => props.modelValue || '')
 const groupName = computed(() => props.uniqueName || 'choice-course')
@@ -85,12 +84,14 @@ const selectCourse = (value) => {
   showCoursePopup.value = true
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
+
 const closeCoursePopup = () => { showCoursePopup.value = false }
 
 const onBubbleOpen = (e) => {
   const who = e?.detail?.who
   if (who && who !== myName.value) showCoursePopup.value = false
 }
-onMounted(() => window.addEventListener('bubble-open', onBubbleOpen))
-onBeforeUnmount(() => window.removeEventListener('bubble-open', onBubbleOpen))
+
+onMounted(() => { window.addEventListener('bubble-open', onBubbleOpen) })
+onBeforeUnmount(() => { window.removeEventListener('bubble-open', onBubbleOpen) })
 </script>
