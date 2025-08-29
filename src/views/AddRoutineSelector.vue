@@ -170,7 +170,11 @@ function syncFromChildren() {
   form.setField('comment',    commentRef.value?.comment ?? '')
 }
 
-const errTimers = {}
+
+errTimers[k] = setTimeout(() => {
+  const fe = { ...form.fieldErrors }; delete fe[k]; form.fieldErrors = fe
+}, 1600) 
+  
 function autoHideErrors() {
   const keys = Object.keys(form.fieldErrors || {})
   keys.forEach(k => {
@@ -242,10 +246,28 @@ onBeforeUnmount(() => {
 .warn-slot{overflow:hidden}
 .warn-message{padding:6px 0}
 
+
 .slot-slide-enter-active,
-.slot-slide-leave-active{transition:max-height .25s ease, opacity .25s ease, margin .25s ease, padding .25s ease}
+.slot-slide-leave-active{
+  transition:
+    max-height .18s cubic-bezier(.2,.8,.2,1),
+    opacity .18s cubic-bezier(.2,.8,.2,1),
+    margin .18s cubic-bezier(.2,.8,.2,1),
+    padding .18s cubic-bezier(.2,.8,.2,1),
+    transform .18s cubic-bezier(.2,.8,.2,1);
+}
 .slot-slide-enter-from,
-.slot-slide-leave-to{max-height:0; opacity:0; margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0}
+.slot-slide-leave-to{
+  max-height:0;
+  opacity:0;
+  margin-top:0; margin-bottom:0;
+  padding-top:0; padding-bottom:0;
+  transform: translateY(-2px);
+}
 .slot-slide-enter-to,
-.slot-slide-leave-from{max-height:64px; opacity:1}
+.slot-slide-leave-from{
+  max-height:48px; /* 64px → 48px */
+  opacity:1;
+  transform: translateY(0);
+}
 </style>
