@@ -37,12 +37,12 @@
 
       <div ref="priorityWrap">
         <div v-if="form.fieldErrors.priority" class="warn-message t_red01">{{ form.fieldErrors.priority }}</div>
-        <RoutinePrioritySelector ref="priorityRef" />
+        <RoutinePrioritySelector v-model="form.colorIndex" />
       </div>
 
       <div ref="cardWrap">
         <div v-if="form.fieldErrors.card" class="warn-message t_red01">{{ form.fieldErrors.card }}</div>
-        <RoutineCardSelector ref="cardRef" v-model="form.cardSkin" uniqueName="card-skin" />
+        <RoutineCardSelector v-model="form.cardSkin" uniqueName="card-skin" />
       </div>
 
       <div class="off_walk">
@@ -76,7 +76,7 @@
     </div>
 
     <div class="popup_btm">
-      <button class="b_basic" @click="saveRoutine">다짐 저장하기</button>
+      <button class="b_basic" :disabled="!form.isAppearanceReady" @click="saveRoutine">다짐 저장하기</button>
     </div>
 
     <div class="close_btn_wrap">
@@ -116,7 +116,7 @@ const emit = defineEmits(['close','save'])
 
 const isEditMode = computed(() => props.routineToEdit !== null)
 
-const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const priorityRef = ref(); const cardRef = ref(); const commentRef = ref()
+const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const commentRef = ref()
 const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
 const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
 
@@ -170,7 +170,6 @@ function syncFromChildren() {
     form.setField('goalCount', null)
   }
 
-  form.setField('colorIndex', Number(priorityRef.value?.selectedColor ?? form.colorIndex ?? 0))
   form.setField('comment',    commentRef.value?.comment ?? '')
 }
 
@@ -208,8 +207,6 @@ onMounted(async () => {
     ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
     courseRef.value?.setFromRoutine?.(props.routineToEdit)
     goalRef.value?.setFromRoutine?.(props.routineToEdit)
-    priorityRef.value?.setFromRoutine?.(props.routineToEdit)
-    cardRef.value?.setFromRoutine?.(props.routineToEdit)
     commentRef.value?.setFromRoutine?.(props.routineToEdit)
   } else {
     form.reset()
