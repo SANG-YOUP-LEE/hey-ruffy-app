@@ -6,57 +6,53 @@
     </div>
     <div class="goal_select">
       <div class="custom-radio-group row">
-        <!-- 5회 -->
         <label class="custom-radio">
           <input
             type="radio"
             id="goal1"
-            name="goal"
-            value="goal1"
-            :checked="goalCount === 5"
-            @change="handleChange"
+            :name="groupName"
+            value="5"
+            :checked="modelValue === 5"
+            @change="onChange"
           />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal1">5회</label>
 
-        <!-- 10회 -->
         <label class="custom-radio">
           <input
             type="radio"
             id="goal2"
-            name="goal"
-            value="goal2"
-            :checked="goalCount === 10"
-            @change="handleChange"
+            :name="groupName"
+            value="10"
+            :checked="modelValue === 10"
+            @change="onChange"
           />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal2">10회</label>
 
-        <!-- 15회 -->
         <label class="custom-radio">
           <input
             type="radio"
             id="goal3"
-            name="goal"
-            value="goal3"
-            :checked="goalCount === 15"
-            @change="handleChange"
+            :name="groupName"
+            value="15"
+            :checked="modelValue === 15"
+            @change="onChange"
           />
           <span class="circle"></span>
         </label>
         <label class="radio-desc" for="goal3">15회</label>
 
-        <!-- 20회 -->
         <label class="custom-radio">
           <input
             type="radio"
             id="goal4"
-            name="goal"
-            value="goal4"
-            :checked="goalCount === 20"
-            @change="handleChange"
+            :name="groupName"
+            value="20"
+            :checked="modelValue === 20"
+            @change="onChange"
           />
           <span class="circle"></span>
         </label>
@@ -67,26 +63,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+const props = defineProps({
+  modelValue: { type: Number, default: null },
+  uniqueName: { type: String, default: 'goal' }
+})
+const emit = defineEmits(['update:modelValue'])
 
-const goalCount = ref(0)
+const groupName = props.uniqueName || 'goal'
 
-const handleChange = (event) => {
-  const map = {
-    goal1: 5,
-    goal2: 10,
-    goal3: 15,
-    goal4: 20
-  }
-  goalCount.value = map[event.target.value] || 0
+const onChange = (e) => {
+  const n = parseInt(e.target.value, 10)
+  emit('update:modelValue', Number.isFinite(n) ? n : null)
 }
 
 const setFromRoutine = (routine) => {
-  goalCount.value = routine?.goalCount || 0
+  const n = Number(routine?.goalCount)
+  emit('update:modelValue', Number.isFinite(n) && n > 0 ? n : null)
 }
 
 defineExpose({
-  goalCount,
+  goalCount: { get: () => props.modelValue },
   setFromRoutine
 })
 </script>
