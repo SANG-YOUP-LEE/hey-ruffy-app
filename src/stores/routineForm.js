@@ -50,7 +50,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
   getters: {
     hasWalk(state) {
       if (state.isWalkModeOff) return false
-      return !!(state.ruffy && state.course && state.goalCount)
+      const hasR = !!state.ruffy
+      const hasC = !!state.course
+      const hasG = Number.isInteger(state.goalCount) && state.goalCount > 0
+      return hasR && hasC && hasG
     },
     isAppearanceReady(state) {
       const validColor = Number.isInteger(state.colorIndex)
@@ -133,14 +136,36 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.startDate = routine.startDate || null
       this.endDate = routine.endDate || null
       this.alarmTime = routine.alarmTime || { ampm:'', hour:'', minute:'' }
-      this.isWalkModeOff = !routine.ruffy
+      this.isWalkModeOff = !(routine.ruffy && routine.course && Number.isInteger(routine.goalCount) && routine.goalCount > 0)
       this.ruffy = routine.ruffy || null
       this.course = routine.course || null
-      this.goalCount = routine.goalCount || null
+      this.goalCount = Number.isInteger(+routine.goalCount) ? +routine.goalCount : null
       this.colorIndex = Number.isFinite(+routine.colorIndex) ? +routine.colorIndex : null
       this.cardSkin = normalizeCardSkinStrict(routine.cardSkin) || ''
       this.comment = routine.comment || ''
       this.clearErrors()
+    },
+    toggleWalk(off) {
+      this.isWalkModeOff = !!off
+      if (this.isWalkModeOff) {
+        this.ruffy = null
+        this.course = null
+        this.goalCount = null
+        const fe = { ...this.fieldErrors }; delete fe.ruffy; delete fe.course; delete fe.goal; this.fieldErrors = fe
+      }
+    },
+    setRuffy(val) {
+      this.ruffy = val || null
+      const fe = { ...this.fieldErrors }; delete fe.ruffy; this.fieldErrors = fe
+    },
+    setCourse(val) {
+      this.course = val || null
+      const fe = { ...this.fieldErrors }; delete fe.course; this.fieldErrors = fe
+    },
+    setGoalCount(val) {
+      const n = Number.isFinite(+val) ? Math.max(0, parseInt(val,10)) : null
+      this.goalCount = Number.isInteger(n) && n > 0 ? n : null
+      const fe = { ...this.fieldErrors }; delete fe.goal; this.fieldErrors = fe
     },
     validate() {
       this.clearErrors()
@@ -154,7 +179,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course) { this.setError('course','코스를 선택해주세요.'); return false }
-        if (!this.goalCount) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
       return true
     },
