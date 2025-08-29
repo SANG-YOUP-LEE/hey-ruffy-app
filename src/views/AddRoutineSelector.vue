@@ -72,7 +72,7 @@
       <div class="off_walk">
         <p>{{ form.isWalkModeOff ? '산책 없는 다짐은 볶음밥 없는 닭갈비ㅠ' : '이제부터 러피와의 산책을 준비할까요?' }}</p>
         <label class="checkbox-label">
-          <input type="checkbox" v-model="form.isWalkModeOff" />
+          <input type="checkbox" v-model="form.isWalkModeOff" @change="form.toggleWalk($event.target.checked)" />
           <span class="checkmark"></span>
           <span>{{ form.isWalkModeOff ? '다시 산책하고 싶다면 해제해주세요. ' : '산책 없이 다짐하고 싶어요.' }}</span>
         </label>
@@ -85,7 +85,7 @@
               <div class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div>
             </div>
           </transition>
-          <RoutineRuffySelector ref="ruffyRef" />
+          <RoutineRuffySelector v-model="form.ruffy" />
         </div>
         <div ref="courseWrap">
           <transition name="slot-slide">
@@ -93,7 +93,7 @@
               <div class="warn-message t_red01">{{ form.fieldErrors.course }}</div>
             </div>
           </transition>
-          <RoutineCourseSelector ref="courseRef" />
+          <RoutineCourseSelector v-model="form.course" />
         </div>
         <div ref="goalWrap">
           <transition name="slot-slide">
@@ -101,12 +101,12 @@
               <div class="warn-message t_red01">{{ form.fieldErrors.goal }}</div>
             </div>
           </transition>
-          <RoutineGoalCountSelector ref="goalRef" />
+          <RoutineGoalCountSelector v-model="form.goalCount" />
         </div>
       </div>
 
       <div ref="commentWrap">
-        <RoutineCommentInput ref="commentRef" />
+        <RoutineCommentInput v-model="form.comment" />
         <transition name="slot-slide">
           <div class="warn-slot" v-if="!!form.fieldErrors.comment">
             <div class="warn-message t_red01">{{ form.fieldErrors.comment }}</div>
@@ -154,7 +154,6 @@ const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
 const isEditMode = computed(() => props.routineToEdit !== null)
 
-const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const commentRef = ref()
 const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
 const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
 
@@ -196,16 +195,6 @@ function syncFromChildren() {
   }
   form.setField('startDate', dateRef.value?.startDate ?? null)
   form.setField('endDate',   dateRef.value?.endDate ?? null)
-  if (!form.isWalkModeOff) {
-    form.setField('ruffy',     ruffyRef.value?.ruffy ?? null)
-    form.setField('course',    courseRef.value?.course ?? null)
-    form.setField('goalCount', goalRef.value?.goalCount ?? null)
-  } else {
-    form.setField('ruffy', null)
-    form.setField('course', null)
-    form.setField('goalCount', null)
-  }
-  form.setField('comment',    commentRef.value?.comment ?? '')
 }
 
 const errTimers = {}
@@ -264,10 +253,6 @@ onMounted(async () => {
       useStart:  hasStart,
       useEnd:    hasEnd
     })
-    ruffyRef.value?.setFromRoutine?.(props.routineToEdit)
-    courseRef.value?.setFromRoutine?.(props.routineToEdit)
-    goalRef.value?.setFromRoutine?.(props.routineToEdit)
-    commentRef.value?.setFromRoutine?.(props.routineToEdit)
   } else {
     form.reset()
   }
