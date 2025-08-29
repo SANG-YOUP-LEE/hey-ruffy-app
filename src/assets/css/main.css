@@ -135,44 +135,26 @@
 
 #main_body {
   flex-grow: 1;
-  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 0.5rem 1.5rem 0.5rem 1.5rem;
   background-color: #fafafa;
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow:hidden;
+  /*overflow:hidden;*/
+  touch-action: pan-y !important;
 }
 
 .main_fixed {
   flex-shrink: 0;
 }
-/*
+
 .main_scroll {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: var(--footer-h, 8rem);
   overscroll-behavior: contain;
-  touch-action: pan-y !important;
-}*/
-
-.main_scroll {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--footer-h, 8rem);
-
-  /* iOS 상단 0지점 락 방지 */
-  padding-top: 1px;
-  margin-top: -1px;
-
-  /* 스크롤 체이닝/바운스 제어 */
-  overscroll-behavior-y: contain;
-  overscroll-behavior-x: none;
-
-  /* 전역 touch-action: none 을 이 영역만 예외 처리 */
   touch-action: pan-y !important;
 }
 
