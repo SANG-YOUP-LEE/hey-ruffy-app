@@ -65,7 +65,7 @@ html, body, #app {
   -webkit-tap-highlight-color: transparent;
   text-align: center;
   overscroll-behavior: none;
-  /*touch-action: none;*/
+  touch-action: none;
 }
 /* iPhone SE 등 아주 작은 폭 보호 */
 @media (max-width: 375px) {
