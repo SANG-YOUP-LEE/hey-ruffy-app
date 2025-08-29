@@ -1,6 +1,6 @@
 <template>
   <div class="select_course">
-    <div class="course" ref="courseRef">
+    <div class="course">
       <a
         v-for="option in courseOptions"
         :key="option.value"
@@ -63,45 +63,34 @@ export const COURSE_OPTIONS = [
 </script>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
-  modelValue: String,
+  modelValue: { type: String, default: '' },
   uniqueName: { type: String, default: '' }
 })
 const emit = defineEmits(['update:modelValue'])
 
-const myName = computed(() => props.uniqueName || 'course-selector')
-
 const closeIcon = new URL('@/assets/images/ico_close.png', import.meta.url).href
-
 const courseOptions = COURSE_OPTIONS
 
 const showCoursePopup = ref(false)
-const selectedOption = ref('')
+const selectedOption = computed(() => props.modelValue || '')
+const myName = computed(() => props.uniqueName || 'course-selector')
 
 const selectCourse = (value) => {
   emit('update:modelValue', value)
-  selectedOption.value = value
   showCoursePopup.value = true
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
 
-const closeCoursePopup = () => {
-  showCoursePopup.value = false
-}
+const closeCoursePopup = () => { showCoursePopup.value = false }
 
 const onBubbleOpen = (e) => {
   const who = e?.detail?.who
-  if (who && who !== myName.value) {
-    showCoursePopup.value = false
-  }
+  if (who && who !== myName.value) showCoursePopup.value = false
 }
 
-onMounted(() => {
-  window.addEventListener('bubble-open', onBubbleOpen)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('bubble-open', onBubbleOpen)
-})
+onMounted(() => { window.addEventListener('bubble-open', onBubbleOpen) })
+onBeforeUnmount(() => { window.removeEventListener('bubble-open', onBubbleOpen) })
 </script>
