@@ -1,23 +1,30 @@
 <template>
   <div class="form_box_g">
     <h3>함께 산책할 러피를 선택해주세요.</h3>
-    <RuffySelector v-model="selectedRuffy" unique-name="routine-ruffy" />
+    <RuffySelector
+      :model-value="modelValue"
+      @update:modelValue="val => emit('update:modelValue', val)"
+      :unique-name="uniqueName"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import RuffySelector from '@/components/common/RuffySelector.vue'
 
-const selectedRuffy = ref('')
+const props = defineProps({
+  modelValue: { type: [String, Number, null], default: '' },
+  uniqueName: { type: String, default: 'routine-ruffy' }
+})
+const emit = defineEmits(['update:modelValue'])
 
 const setFromRoutine = (routine) => {
-  selectedRuffy.value = routine?.ruffy || ''
+  emit('update:modelValue', routine?.ruffy ?? '')
 }
 
 defineExpose({
-  ruffy: selectedRuffy,
+  ruffy: computed(() => props.modelValue),
   setFromRoutine
 })
-
 </script>
