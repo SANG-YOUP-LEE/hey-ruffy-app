@@ -130,7 +130,7 @@
 }
 
 @supports (-webkit-touch-callout: none) {
-  .main_scroll { overflow-y: scroll; }
+  .main_scroll { overflow-y: scroll;!important }
 }
 
 #main_body {
