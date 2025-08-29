@@ -118,33 +118,6 @@ import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 import SlidePanel from '@/components/common/SlidePanel.vue'
-import { initIOSRoutineScheduler } from '@/utils/iosRoutineScheduler'
-
-let stopIOSWatch = null
-let unsubAuth = null
-
-onMounted(() => {
-  const auth = getAuth()
-
-  const start = (user) => {
-    if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
-    if (user && user.uid) {
-      stopIOSWatch = initIOSRoutineScheduler(user.uid)
-    }
-  }
-
-  start(auth.currentUser)
-
-  unsubAuth = onAuthStateChanged(auth, (user) => {
-    start(user)
-  })
-})
-
-onBeforeUnmount(() => {
-  if (unsubAuth) { unsubAuth(); unsubAuth = null }
-  if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
-})
-
 
 
 
