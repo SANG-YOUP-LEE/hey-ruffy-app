@@ -92,7 +92,14 @@ const onBubbleOpen = (e) => {
   const who = e?.detail?.who
   if (who && who !== myName.value) showCoursePopup.value = false
 }
+const onGoalSelected = () => { showCoursePopup.value = false }
 
-onMounted(() => { window.addEventListener('bubble-open', onBubbleOpen) })
-onBeforeUnmount(() => { window.removeEventListener('bubble-open', onBubbleOpen) })
+onMounted(() => {
+  window.addEventListener('bubble-open', onBubbleOpen)
+  window.addEventListener('goal-selected', onGoalSelected)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('bubble-open', onBubbleOpen)
+  window.removeEventListener('goal-selected', onGoalSelected)
+})
 </script>
