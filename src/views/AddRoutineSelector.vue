@@ -281,31 +281,22 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.warn-slot{overflow:hidden; will-change: opacity, transform, max-height, margin, padding}
+.warn-slot{overflow:hidden}
 .warn-message{padding:6px 0}
 
 .slot-slide-enter-active,
 .slot-slide-leave-active{
-  transition:
-    max-height .22s cubic-bezier(.2,.8,.2,1),
-    opacity .22s cubic-bezier(.2,.8,.2,1),
-    margin .22s cubic-bezier(.2,.8,.2,1),
-    padding .22s cubic-bezier(.2,.8,.2,1),
-    transform .22s cubic-bezier(.2,.8,.2,1);
+  transition: opacity .25s ease, transform .25s ease;
 }
 
 .slot-slide-enter-from,
 .slot-slide-leave-to{
-  max-height:0;
   opacity:0;
-  margin-top:0; margin-bottom:0;
-  padding-top:0; padding-bottom:0;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
 }
 
 .slot-slide-enter-to,
 .slot-slide-leave-from{
-  max-height:48px;
   opacity:1;
   transform: translateY(0);
 }
