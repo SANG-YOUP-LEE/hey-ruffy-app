@@ -4,7 +4,6 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  border:1px solid black
 }
 
 [v-cloak] {
