@@ -16,32 +16,56 @@
 
     <div class="popup_inner" ref="popupInner">
       <div ref="titleWrap">
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.title }"><div class="warn-message t_red01">{{ form.fieldErrors.title }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.title">
+            <div class="warn-message t_red01">{{ form.fieldErrors.title }}</div>
+          </div>
+        </transition>
         <RoutineTitleInput v-model="form.title" />
       </div>
 
       <div ref="repeatWrap">
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.repeat }"><div class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.repeat">
+            <div class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div>
+          </div>
+        </transition>
         <RoutineRepeatSelector ref="repeatRef" />
       </div>
 
       <div ref="dateWrap">
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.date }"><div class="warn-message t_red01">{{ form.fieldErrors.date }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.date">
+            <div class="warn-message t_red01">{{ form.fieldErrors.date }}</div>
+          </div>
+        </transition>
         <RoutineDateSelector ref="dateRef" />
       </div>
 
       <div ref="alarmWrap">
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.alarm }"><div class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.alarm">
+            <div class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div>
+          </div>
+        </transition>
         <RoutineAlarmSelector v-model="form.alarmTime" />
       </div>
 
       <div ref="priorityWrap">
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.priority }"><div class="warn-message t_red01">{{ form.fieldErrors.priority }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.priority">
+            <div class="warn-message t_red01">{{ form.fieldErrors.priority }}</div>
+          </div>
+        </transition>
         <RoutinePrioritySelector v-model="form.colorIndex" />
       </div>
 
       <div ref="cardWrap">
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.card }"><div class="warn-message t_red01">{{ form.fieldErrors.card }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.card">
+            <div class="warn-message t_red01">{{ form.fieldErrors.card }}</div>
+          </div>
+        </transition>
         <RoutineCardSelector v-model="form.cardSkin" uniqueName="card-skin" />
       </div>
 
@@ -56,22 +80,38 @@
 
       <div class="walk_group" v-show="!form.isWalkModeOff">
         <div ref="ruffyWrap">
-          <div class="warn-slot" :class="{ on: !!form.fieldErrors.ruffy }"><div class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div></div>
+          <transition name="slot-slide">
+            <div class="warn-slot" v-if="!!form.fieldErrors.ruffy">
+              <div class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div>
+            </div>
+          </transition>
           <RoutineRuffySelector ref="ruffyRef" />
         </div>
         <div ref="courseWrap">
-          <div class="warn-slot" :class="{ on: !!form.fieldErrors.course }"><div class="warn-message t_red01">{{ form.fieldErrors.course }}</div></div>
+          <transition name="slot-slide">
+            <div class="warn-slot" v-if="!!form.fieldErrors.course">
+              <div class="warn-message t_red01">{{ form.fieldErrors.course }}</div>
+            </div>
+          </transition>
           <RoutineCourseSelector ref="courseRef" />
         </div>
         <div ref="goalWrap">
-          <div class="warn-slot" :class="{ on: !!form.fieldErrors.goal }"><div class="warn-message t_red01">{{ form.fieldErrors.goal }}</div></div>
+          <transition name="slot-slide">
+            <div class="warn-slot" v-if="!!form.fieldErrors.goal">
+              <div class="warn-message t_red01">{{ form.fieldErrors.goal }}</div>
+            </div>
+          </transition>
           <RoutineGoalCountSelector ref="goalRef" />
         </div>
       </div>
 
       <div ref="commentWrap">
         <RoutineCommentInput ref="commentRef" />
-        <div class="warn-slot" :class="{ on: !!form.fieldErrors.comment }"><div class="warn-message t_red01">{{ form.fieldErrors.comment }}</div></div>
+        <transition name="slot-slide">
+          <div class="warn-slot" v-if="!!form.fieldErrors.comment">
+            <div class="warn-message t_red01">{{ form.fieldErrors.comment }}</div>
+          </div>
+        </transition>
       </div>
     </div>
 
@@ -88,7 +128,6 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
-
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
 import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
@@ -113,7 +152,6 @@ const safeISOFromDateObj = obj => {
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
-
 const isEditMode = computed(() => props.routineToEdit !== null)
 
 const ruffyRef = ref(); const courseRef = ref(); const goalRef = ref(); const commentRef = ref()
@@ -121,7 +159,7 @@ const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const
 const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
 
 let scrollY = 0
-const preventTouchMove = (e) => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
+const preventTouchMove = e => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
 const lockScroll = () => {
   scrollY = window.scrollY
   document.documentElement.classList.add('no-scroll')
@@ -171,13 +209,19 @@ function syncFromChildren() {
 }
 
 const errTimers = {}
+const wrapRefMap = {
+  title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap,
+  ruffy: ruffyWrap, course: courseWrap, goal: goalWrap,
+  priority: priorityWrap, card: cardWrap, comment: commentWrap
+}
+
 function autoHideErrors() {
   const keys = Object.keys(form.fieldErrors || {})
   keys.forEach(k => {
     if (errTimers[k]) { clearTimeout(errTimers[k]); errTimers[k] = null }
     errTimers[k] = setTimeout(() => {
       const fe = { ...form.fieldErrors }; delete fe[k]; form.fieldErrors = fe
-    }, 1600)
+    }, 2500)
   })
 }
 
@@ -185,7 +229,6 @@ async function saveRoutine() {
   syncFromChildren()
   const pre = form.validate()
   if (!pre) {
-    const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, card: cardWrap, comment: commentWrap }
     const firstKey = Object.keys(form.fieldErrors || {})[0]
     const el = firstKey ? wrapRefMap[firstKey]?.value : null
     autoHideErrors()
@@ -195,7 +238,6 @@ async function saveRoutine() {
   const r = await form.save()
   if (!r.ok) {
     autoHideErrors()
-    const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, card: cardWrap, comment: commentWrap }
     const firstKey = Object.keys(form.fieldErrors || {})[0]
     const el = firstKey ? wrapRefMap[firstKey]?.value : null
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -239,16 +281,32 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.warn-slot{height:24px;overflow:hidden}
-.warn-message{
-  padding:6px 0;
-  opacity:0;
-  transform:translateY(-4px);
-  transition:opacity .14s ease, transform .14s ease;
-  will-change:opacity,transform
+.warn-slot{overflow:hidden; will-change: opacity, transform, max-height, margin, padding}
+.warn-message{padding:6px 0}
+
+.slot-slide-enter-active,
+.slot-slide-leave-active{
+  transition:
+    max-height .22s cubic-bezier(.2,.8,.2,1),
+    opacity .22s cubic-bezier(.2,.8,.2,1),
+    margin .22s cubic-bezier(.2,.8,.2,1),
+    padding .22s cubic-bezier(.2,.8,.2,1),
+    transform .22s cubic-bezier(.2,.8,.2,1);
 }
-.warn-slot.on .warn-message{
+
+.slot-slide-enter-from,
+.slot-slide-leave-to{
+  max-height:0;
+  opacity:0;
+  margin-top:0; margin-bottom:0;
+  padding-top:0; padding-bottom:0;
+  transform: translateY(-2px);
+}
+
+.slot-slide-enter-to,
+.slot-slide-leave-from{
+  max-height:48px;
   opacity:1;
-  transform:translateY(0)
+  transform: translateY(0);
 }
 </style>
