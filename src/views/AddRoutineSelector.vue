@@ -16,32 +16,32 @@
 
     <div class="popup_inner" ref="popupInner">
       <div ref="titleWrap">
-        <div v-if="form.fieldErrors.title" class="warn-message t_red01">{{ form.fieldErrors.title }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.title" class="warn-message t_red01">{{ form.fieldErrors.title }}</div></transition>
         <RoutineTitleInput v-model="form.title" />
       </div>
 
       <div ref="repeatWrap">
-        <div v-if="form.fieldErrors.repeat" class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.repeat" class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div></transition>
         <RoutineRepeatSelector ref="repeatRef" />
       </div>
 
       <div ref="dateWrap">
-        <div v-if="form.fieldErrors.date" class="warn-message t_red01">{{ form.fieldErrors.date }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.date" class="warn-message t_red01">{{ form.fieldErrors.date }}</div></transition>
         <RoutineDateSelector ref="dateRef" />
       </div>
 
       <div ref="alarmWrap">
-        <div v-if="form.fieldErrors.alarm" class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.alarm" class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div></transition>
         <RoutineAlarmSelector v-model="form.alarmTime" />
       </div>
 
       <div ref="priorityWrap">
-        <div v-if="form.fieldErrors.priority" class="warn-message t_red01">{{ form.fieldErrors.priority }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.priority" class="warn-message t_red01">{{ form.fieldErrors.priority }}</div></transition>
         <RoutinePrioritySelector v-model="form.colorIndex" />
       </div>
 
       <div ref="cardWrap">
-        <div v-if="form.fieldErrors.card" class="warn-message t_red01">{{ form.fieldErrors.card }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.card" class="warn-message t_red01">{{ form.fieldErrors.card }}</div></transition>
         <RoutineCardSelector v-model="form.cardSkin" uniqueName="card-skin" />
       </div>
 
@@ -56,27 +56,27 @@
 
       <div class="walk_group" v-show="!form.isWalkModeOff">
         <div ref="ruffyWrap">
-          <div v-if="form.fieldErrors.ruffy" class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div>
+          <transition name="fade-msg"><div v-if="form.fieldErrors.ruffy" class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div></transition>
           <RoutineRuffySelector ref="ruffyRef" />
         </div>
         <div ref="courseWrap">
-          <div v-if="form.fieldErrors.course" class="warn-message t_red01">{{ form.fieldErrors.course }}</div>
+          <transition name="fade-msg"><div v-if="form.fieldErrors.course" class="warn-message t_red01">{{ form.fieldErrors.course }}</div></transition>
           <RoutineCourseSelector ref="courseRef" />
         </div>
         <div ref="goalWrap">
-          <div v-if="form.fieldErrors.goal" class="warn-message t_red01">{{ form.fieldErrors.goal }}</div>
+          <transition name="fade-msg"><div v-if="form.fieldErrors.goal" class="warn-message t_red01">{{ form.fieldErrors.goal }}</div></transition>
           <RoutineGoalCountSelector ref="goalRef" />
         </div>
       </div>
 
       <div ref="commentWrap">
         <RoutineCommentInput ref="commentRef" />
-        <div v-if="form.fieldErrors.comment" class="warn-message t_red01">{{ form.fieldErrors.comment }}</div>
+        <transition name="fade-msg"><div v-if="form.fieldErrors.comment" class="warn-message t_red01">{{ form.fieldErrors.comment }}</div></transition>
       </div>
     </div>
 
     <div class="popup_btm">
-      <button class="b_basic" :disabled="!form.isAppearanceReady" @click="saveRoutine">다짐 저장하기</button>
+      <button class="b_basic" @click="saveRoutine">다짐 저장하기</button>
     </div>
 
     <div class="close_btn_wrap">
@@ -156,10 +156,8 @@ function syncFromChildren() {
     form.setField('repeatWeekDays', Array.isArray(r.selectedWeeklyDays) ? [...r.selectedWeeklyDays] : [])
     form.setField('repeatMonthDays', Array.isArray(r.selectedDates) ? [...r.selectedDates] : [])
   }
-
   form.setField('startDate', dateRef.value?.startDate ?? null)
   form.setField('endDate',   dateRef.value?.endDate ?? null)
-
   if (!form.isWalkModeOff) {
     form.setField('ruffy',     ruffyRef.value?.ruffy ?? null)
     form.setField('course',    courseRef.value?.course ?? null)
@@ -169,14 +167,34 @@ function syncFromChildren() {
     form.setField('course', null)
     form.setField('goalCount', null)
   }
-
   form.setField('comment',    commentRef.value?.comment ?? '')
+}
+
+const errTimers = {}
+function autoHideErrors() {
+  const keys = Object.keys(form.fieldErrors || {})
+  keys.forEach(k => {
+    if (errTimers[k]) { clearTimeout(errTimers[k]); errTimers[k] = null }
+    errTimers[k] = setTimeout(() => {
+      const fe = { ...form.fieldErrors }; delete fe[k]; form.fieldErrors = fe
+    }, 2500)
+  })
 }
 
 async function saveRoutine() {
   syncFromChildren()
+  const pre = form.validate()
+  if (!pre) {
+    const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, card: cardWrap, comment: commentWrap }
+    const firstKey = Object.keys(form.fieldErrors || {})[0]
+    const el = firstKey ? wrapRefMap[firstKey]?.value : null
+    autoHideErrors()
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return
+  }
   const r = await form.save()
   if (!r.ok) {
+    autoHideErrors()
     const wrapRefMap = { title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap, ruffy: ruffyWrap, course: courseWrap, goal: goalWrap, priority: priorityWrap, card: cardWrap, comment: commentWrap }
     const firstKey = Object.keys(form.fieldErrors || {})[0]
     const el = firstKey ? wrapRefMap[firstKey]?.value : null
@@ -214,7 +232,15 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  Object.values(errTimers).forEach(t => t && clearTimeout(t))
   unlockScroll()
   form.clearErrors()
 })
 </script>
+
+<style scoped>
+.fade-msg-enter-active,
+.fade-msg-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.fade-msg-enter-from,
+.fade-msg-leave-to { opacity: 0; transform: translateY(-4px); }
+</style>
