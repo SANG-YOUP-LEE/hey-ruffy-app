@@ -159,7 +159,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const fe = { ...this.fieldErrors }; delete fe.ruffy; this.fieldErrors = fe
     },
     setCourse(val) {
-      this.course = val || null
+      const s = val == null ? null : String(val).trim()
+      this.course = s && s.length ? s : null
       const fe = { ...this.fieldErrors }; delete fe.course; this.fieldErrors = fe
     },
     setGoalCount(val) {
@@ -178,8 +179,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
       if (!normalizeCardSkinStrict(this.cardSkin)) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-        if (!this.course) { this.setError('course','코스를 선택해주세요.'); return false }
         if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
       }
       return true
     },
