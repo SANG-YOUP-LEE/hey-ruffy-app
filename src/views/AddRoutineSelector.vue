@@ -284,20 +284,16 @@ onBeforeUnmount(() => {
 .warn-slot{overflow:hidden}
 .warn-message{padding:6px 0}
 
-.slot-slide-enter-active,
+.slot-slide-enter-active{
+  transition: opacity .22s ease-out, transform .22s ease-out;
+}
 .slot-slide-leave-active{
-  transition: opacity .25s ease, transform .25s ease;
+  transition: opacity .14s ease-in, transform .14s ease-in;
 }
 
-.slot-slide-enter-from,
-.slot-slide-leave-to{
-  opacity:0;
-  transform: translateY(-4px);
-}
+.slot-slide-enter-from{opacity:0; transform: translateY(-4px)}
+.slot-slide-enter-to{opacity:1; transform: translateY(0)}
 
-.slot-slide-enter-to,
-.slot-slide-leave-from{
-  opacity:1;
-  transform: translateY(0);
-}
+.slot-slide-leave-from{opacity:1; transform: translateY(0)}
+.slot-slide-leave-to{opacity:0; transform: translateY(-4px)}
 </style>
