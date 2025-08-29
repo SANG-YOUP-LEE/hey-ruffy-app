@@ -170,18 +170,14 @@ function syncFromChildren() {
   form.setField('comment',    commentRef.value?.comment ?? '')
 }
 
-
-errTimers[k] = setTimeout(() => {
-  const fe = { ...form.fieldErrors }; delete fe[k]; form.fieldErrors = fe
-}, 1600) 
-  
+const errTimers = {}
 function autoHideErrors() {
   const keys = Object.keys(form.fieldErrors || {})
   keys.forEach(k => {
     if (errTimers[k]) { clearTimeout(errTimers[k]); errTimers[k] = null }
     errTimers[k] = setTimeout(() => {
       const fe = { ...form.fieldErrors }; delete fe[k]; form.fieldErrors = fe
-    }, 2500)
+    }, 1600)
   })
 }
 
@@ -245,8 +241,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .warn-slot{overflow:hidden}
 .warn-message{padding:6px 0}
-
-
 .slot-slide-enter-active,
 .slot-slide-leave-active{
   transition:
@@ -266,7 +260,7 @@ onBeforeUnmount(() => {
 }
 .slot-slide-enter-to,
 .slot-slide-leave-from{
-  max-height:48px; /* 64px → 48px */
+  max-height:48px;
   opacity:1;
   transform: translateY(0);
 }
