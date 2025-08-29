@@ -16,7 +16,6 @@
             :name="groupName"
             :value="option.value"
             :checked="modelValue === option.value"
-            @change="onRadioChange"
           />
           <span class="circle"></span>
         </label>
@@ -68,7 +67,7 @@ export const COURSE_OPTIONS = [
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
-  modelValue: { type: String, default: '' },
+  modelValue: { type: String, default: null },
   uniqueName: { type: String, default: '' }
 })
 const emit = defineEmits(['update:modelValue'])
@@ -83,15 +82,6 @@ const myName = computed(() => props.uniqueName || 'course-selector')
 
 const selectCourse = (value) => {
   emit('update:modelValue', value)
-  showCoursePopup.value = true
-  window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
-}
-
-const onRadioChange = (e) => {
-  const v = e?.target?.value || ''
-  if (v && v !== props.modelValue) {
-    emit('update:modelValue', v)
-  }
   showCoursePopup.value = true
   window.dispatchEvent(new CustomEvent('bubble-open', { detail: { who: myName.value } }))
 }
