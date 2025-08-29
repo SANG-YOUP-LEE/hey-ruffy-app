@@ -179,9 +179,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
       if (!normalizeCardSkinStrict(this.cardSkin)) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
         if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-      }
+        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }}
       return true
     },
     async save() {
