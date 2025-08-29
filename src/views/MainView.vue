@@ -103,10 +103,9 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { db, auth } from '@/firebase'
-import { getAuth,onAuthStateChanged } from 'firebase/auth'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, increment } from 'firebase/firestore'
 import { authReadyPromise } from '@/lib/authReady'
-
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
@@ -115,7 +114,6 @@ import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
-
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 import SlidePanel from '@/components/common/SlidePanel.vue'
 import { initIOSRoutineScheduler } from '@/utils/iosRoutineScheduler'
@@ -123,30 +121,7 @@ import { initIOSRoutineScheduler } from '@/utils/iosRoutineScheduler'
 let stopIOSWatch = null
 let unsubAuth = null
 
-onMounted(() => {
-  const auth = getAuth()
-
-  const start = (user) => {
-    if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
-    if (user && user.uid) {
-      stopIOSWatch = initIOSRoutineScheduler(user.uid)
-    }
-  }
-
-  start(auth.currentUser)
-
-  unsubAuth = onAuthStateChanged(auth, (user) => {
-    start(user)
-  })
-})
-
-onBeforeUnmount(() => {
-  if (unsubAuth) { unsubAuth(); unsubAuth = null }
-  if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
-})
-
-
-
+const isIosWebView = () => !!(window.webkit?.messageHandlers?.notify)
 
 const isLoading = ref(true)
 const hasFetched = ref(false)
@@ -411,7 +386,6 @@ const displayedRoutines = computed(() => {
 
 function handleSelectDate(date, isFuture) {
   if (deleteMode.value) handleToggleDeleteMode(false, true)
-
   if (scrollEl) scrollEl.scrollTop = 0
   isScrolled.value = false
   headerShort.value = false
@@ -598,7 +572,7 @@ function onScrollHandler() {
 onMounted(async () => {
   setVh()
   window.addEventListener('resize', setVh)
-  
+
   scrollEl = document.querySelector('.main_scroll')
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScrollHandler)
@@ -628,8 +602,19 @@ onMounted(async () => {
     }
   })
 
-  nextTick(updateScrollState)
+  if (isIosWebView()) {
+    const a = getAuth()
+    const start = (user) => {
+      if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
+      if (user && user.uid) {
+        stopIOSWatch = initIOSRoutineScheduler(user.uid)
+      }
+    }
+    start(a.currentUser)
+    unsubAuth = onAuthStateChanged(a, (user) => { start(user) })
+  }
 
+  nextTick(updateScrollState)
   requestAnimationFrame(updateScrollState)
 })
 
@@ -639,7 +624,8 @@ onBeforeUnmount(() => {
     scrollEl.removeEventListener('scroll', onScrollHandler)
     scrollEl = null
   }
-  
+  if (unsubAuth) { unsubAuth(); unsubAuth = null }
+  if (stopIOSWatch) { stopIOSWatch(); stopIOSWatch = null }
   if (stopAuth) stopAuth()
   if (stopRoutines) stopRoutines()
 })
