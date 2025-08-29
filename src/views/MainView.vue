@@ -118,6 +118,7 @@ import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 
 import { normalize, isActive as isActiveRule, isDue } from '@/utils/recurrence'
 import SlidePanel from '@/components/common/SlidePanel.vue'
+import { initIOSRoutineScheduler } from '@/utils/iosRoutineScheduler'
 
 let stopIOSWatch = null
 let unsubAuth = null
