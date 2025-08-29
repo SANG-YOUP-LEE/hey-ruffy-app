@@ -41,11 +41,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
     ruffy: null,
     course: null,
     goalCount: null,
-
-    // 필수(모양) — 강제 선택 유도
-    colorIndex: null,   // number|null
-    cardSkin: '',       // 'option01' 등 or ''
-
+    colorIndex: null,
+    cardSkin: '',
     comment: '',
     fieldErrors: {},
     tz: 'Asia/Seoul'
@@ -86,10 +83,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
         goalCount: state.isWalkModeOff ? null : state.goalCount,
-
-        colorIndex: state.colorIndex,                          // 필수
-        cardSkin: normalizeCardSkinStrict(state.cardSkin),     // 필수
-
+        colorIndex: state.colorIndex,
+        cardSkin: normalizeCardSkinStrict(state.cardSkin),
         comment: state.comment,
         hasWalk: this.hasWalk,
         tz: state.tz,
@@ -120,10 +115,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.ruffy = null
       this.course = null
       this.goalCount = null
-
       this.colorIndex = null
       this.cardSkin = ''
-
       this.comment = ''
       this.clearErrors()
     },
@@ -144,36 +137,25 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.ruffy = routine.ruffy || null
       this.course = routine.course || null
       this.goalCount = routine.goalCount || null
-
       this.colorIndex = Number.isFinite(+routine.colorIndex) ? +routine.colorIndex : null
       this.cardSkin = normalizeCardSkinStrict(routine.cardSkin) || ''
-
       this.comment = routine.comment || ''
       this.clearErrors()
     },
     validate() {
       this.clearErrors()
-
-      // 1) 필수(모양) 먼저 체크
-      if (!Number.isInteger(this.colorIndex)) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
-      if (!normalizeCardSkinStrict(this.cardSkin)) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
-
-      // 2) 제목
       if (!this.title || String(this.title).trim() === '') { this.setError('title','다짐 제목을 입력해주세요.'); return false }
-
-      // 3) 반복 주기
       if (!this.repeatType) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'daily' && (!this.repeatDaily || this.repeatDaily.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'weekly' && (!this.repeatWeeks || !this.repeatWeekDays || this.repeatWeekDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'monthly' && (!this.repeatMonthDays || this.repeatMonthDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
-
-      // 4) 산책(선택)
+      if (!Number.isInteger(this.colorIndex)) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
+      if (!normalizeCardSkinStrict(this.cardSkin)) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course) { this.setError('course','코스를 선택해주세요.'); return false }
         if (!this.goalCount) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
-
       return true
     },
     async save() {
