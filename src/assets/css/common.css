@@ -64,7 +64,7 @@ html, body, #app {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   text-align: center;
-  overscroll-behavior: none;
+  overscroll-behavior: auto!important;
   touch-action: none
 }
 /* iPhone SE 등 아주 작은 폭 보호 */
