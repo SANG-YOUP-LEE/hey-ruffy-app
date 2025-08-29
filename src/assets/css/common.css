@@ -374,3 +374,22 @@ html, body, #app { height: 100%; margin: 0; padding: 0; }
 
 /* 터치 하이라이트/겹침 방지(옵션) */
 * { -webkit-tap-highlight-color: transparent; }
+
+
+.warn-slot{overflow:hidden}
+.warn-message{padding:1rem}
+
+.slot-slide-enter-active{
+  transition: opacity .22s ease-out, transform .22s ease-out;
+}
+.slot-slide-leave-active{
+  transition: opacity .14s ease-in, transform .14s ease-in;
+}
+
+.slot-slide-enter-from{opacity:0; transform: translateY(-4px)}
+.slot-slide-enter-to{opacity:1; transform: translateY(0)}
+
+.slot-slide-leave-from{opacity:1; transform: translateY(0)}
+.slot-slide-leave-to{opacity:0; transform: translateY(-4px)}
+
+
