@@ -1,12 +1,12 @@
 <template>
   <div class="select_course">
     <div class="course">
-      <button
+      <a
         v-for="option in courseOptions"
         :key="option.value"
-        type="button"
+        href="#none"
         :class="{ on: modelValue === option.value }"
-        @click="selectCourse(option.value)"
+        @click.prevent="selectCourse(option.value)"
       >
         <span class="img"><img :src="option.img" :alt="option.name" /></span>
         <label class="custom-radio">
@@ -22,7 +22,7 @@
         <span class="name" :class="{ on: modelValue === option.value }">
           {{ option.name }}
         </span>
-      </button>
+      </a>
 
       <div class="speech-bubble-wrapper" v-if="showCoursePopup">
         <button class="popup-close-area" @click="closeCoursePopup"></button>
