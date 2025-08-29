@@ -64,7 +64,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const COURSE_OPTIONS = [
+export const COURSE_OPTIONS = [
   { value: 'option1', name: '초록숲길', img: new URL('@/assets/images/course_temp01.png', import.meta.url).href },
   { value: 'option2', name: '물빛공원', img: new URL('@/assets/images/course_temp02.png', import.meta.url).href },
   { value: 'option3', name: '별빛강길', img: new URL('@/assets/images/course_temp03.png', import.meta.url).href },
