@@ -1,5 +1,3 @@
-주통 수정본이야. <a> 대신 <button type="button"> 으로 바꿔줬어.
-
 <template>
   <div class="select_course">
     <div class="course">
