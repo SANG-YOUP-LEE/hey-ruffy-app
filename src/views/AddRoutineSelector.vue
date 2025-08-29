@@ -93,7 +93,7 @@
               <div class="warn-message t_red01">{{ form.fieldErrors.course }}</div>
             </div>
           </transition>
-          <RoutineCourseSelector v-model="form.course" />
+          <RoutineCourseSelector v-model="form.course" uniqueName="routine-course" />
         </div>
         <div ref="goalWrap">
           <transition name="slot-slide">
