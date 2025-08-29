@@ -1,11 +1,8 @@
 <template>
-  <span 
-    v-for="(color, index) in colors" 
+  <span
+    v-for="(color, index) in colors"
     :key="index"
-    :class="[color, { 
-      on: selectedColor === index,
-      dimmed: selectedColor !== null && selectedColor !== index 
-    }]" 
+    :class="[color, { on: selectedColor === index, dimmed: selectedColor !== null && selectedColor !== index }]"
     @click="toggleColor(index)"
   >
     컬러{{ index + 1 }}
@@ -13,8 +10,6 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-
 const colors = [
   'color_picker01',
   'color_picker02',
@@ -28,28 +23,17 @@ const colors = [
   'color_picker10'
 ]
 
-const selectedColor = ref(null)
+const props = defineProps({
+  modelValue: { type: Number, default: null }
+})
+const emit = defineEmits(['update:modelValue'])
 
-const toggleColor = (index) => {
-  selectedColor.value = selectedColor.value === index ? null : index
-}
-
-// priority 계산: 0~3 = low, 4~6 = medium, 7~9 = high
-const priority = computed(() => {
-  if (selectedColor.value === null) return null
-  if (selectedColor.value <= 3) return 'low'
-  if (selectedColor.value <= 6) return 'medium'
-  return 'high'
+const selectedColor = computed({
+  get: () => props.modelValue,
+  set: v => emit('update:modelValue', v)
 })
 
-const setSelectedColor = (index) => {
-  selectedColor.value = index
+function toggleColor(index) {
+  if (selectedColor.value !== index) selectedColor.value = index
 }
-
-defineExpose({
-  selectedColor,
-  setSelectedColor,
-  priority
-})
-
 </script>
