@@ -162,7 +162,7 @@
 .main_scroll::after { 
   content:""; 
   display:block; 
-  height: 120px; 
+  height: 9rem; 
 }
 
 button.lnb {
