@@ -30,21 +30,21 @@
    font-family: 'S-CoreDream-4Regular';
    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff');
    font-weight: 400;
-   font-style: 400;
+   font-style: normal;
 }
 
 @font-face {
    font-family: 'S-CoreDream-5Regular';
    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Regular.woff') format('woff');
    font-weight: 500;
-   font-style: 500;
+   font-style: normal;
 }
 
 @font-face {
    font-family: 'S-CoreDream-6Bold';
    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff');
    font-weight: 600;
-   font-style: 600;
+   font-style: normal;
 }
 
 * {
@@ -55,7 +55,7 @@
 
 html, body, #app {
   height: 100%;
-  font-family: 'S-CoreDream-4Regular',/*'SUIT-Regular',*/ 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'S-CoreDream-4Regular','Apple SD Gothic Neo', sans-serif;
   font-size: 0.9rem;
   line-height: 1.6em;
   color: #333;
@@ -64,13 +64,14 @@ html, body, #app {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   text-align: center;
-  overscroll-behavior: auto!important;
-  touch-action: none
+  overscroll-behavior: auto !important;
+  touch-action: none;
 }
-/* iPhone SE 등 아주 작은 폭 보호 */
+
 @media (max-width: 375px) {
   :root, html { font-size: 0.79em; }
 }
+
 .no-touch {
   width: 100vw;
   height: calc(var(--vh, 1vh) * 100); 
@@ -83,7 +84,6 @@ html, body, #app {
   touch-action: none;
 }
 
-/* 화면 중앙 정렬시 */
 .container {
 	width:100%;
 	position: absolute;
@@ -158,7 +158,7 @@ input::placeholder {
 
 input:-webkit-autofill {
   -webkit-text-fill-color: #000 !important;
-  transition: background-color 9999s ease-out 0s; /* 잔재 배경 색상 제거용 */
+  transition: background-color 9999s ease-out 0s;
 }
 
 ul, ol {
@@ -198,9 +198,9 @@ button {
 
 [class^="p_"] {
   width:100%;
-  line-height:2.2rem!important;
+  line-height:2.2rem !important;
   border-radius:1.5rem;
-  font-size: 1rem!important;
+  font-size: 1rem !important;
   font-weight: bold;
   display:inline-block;
   text-decoration:none;
@@ -289,7 +289,6 @@ textarea {
   padding: 2rem;
   z-index: 1000;
   animation: fadeInOut 3s ease forwards;
-
 }
 
 .warn-message,
@@ -349,10 +348,8 @@ textarea {
 
 html, body, #app { height: 100%; margin: 0; padding: 0; }
 
-/* iOS 동적 뷰포트 */
 :root { --app-dvh: 100dvh; }
 
-/* 화면 높이 확보 */
 .app-root{
   min-height: var(--app-dvh);
   box-sizing: border-box;              
@@ -363,7 +360,6 @@ html, body, #app { height: 100%; margin: 0; padding: 0; }
   padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* 노치/홈바 안전영역 */
 .safe-area {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
@@ -371,9 +367,7 @@ html, body, #app { height: 100%; margin: 0; padding: 0; }
   padding-right: env(safe-area-inset-right);
 }
 
-/* 터치 하이라이트/겹침 방지(옵션) */
 * { -webkit-tap-highlight-color: transparent; }
-
 
 .warn-slot{overflow:hidden}
 .warn-message{padding:1rem}
@@ -390,5 +384,3 @@ html, body, #app { height: 100%; margin: 0; padding: 0; }
 
 .slot-slide-leave-from{opacity:1; transform: translateY(0)}
 .slot-slide-leave-to{opacity:0; transform: translateY(-4px)}
-
-
