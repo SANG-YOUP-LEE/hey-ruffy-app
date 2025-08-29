@@ -16,32 +16,32 @@
 
     <div class="popup_inner" ref="popupInner">
       <div ref="titleWrap">
-        <transition name="fade-msg"><div v-if="form.fieldErrors.title" class="warn-message t_red01">{{ form.fieldErrors.title }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.title"><div class="warn-message t_red01">{{ form.fieldErrors.title }}</div></div></transition>
         <RoutineTitleInput v-model="form.title" />
       </div>
 
       <div ref="repeatWrap">
-        <transition name="fade-msg"><div v-if="form.fieldErrors.repeat" class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.repeat"><div class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div></div></transition>
         <RoutineRepeatSelector ref="repeatRef" />
       </div>
 
       <div ref="dateWrap">
-        <transition name="fade-msg"><div v-if="form.fieldErrors.date" class="warn-message t_red01">{{ form.fieldErrors.date }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.date"><div class="warn-message t_red01">{{ form.fieldErrors.date }}</div></div></transition>
         <RoutineDateSelector ref="dateRef" />
       </div>
 
       <div ref="alarmWrap">
-        <transition name="fade-msg"><div v-if="form.fieldErrors.alarm" class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.alarm"><div class="warn-message t_red01">{{ form.fieldErrors.alarm }}</div></div></transition>
         <RoutineAlarmSelector v-model="form.alarmTime" />
       </div>
 
       <div ref="priorityWrap">
-        <transition name="fade-msg"><div v-if="form.fieldErrors.priority" class="warn-message t_red01">{{ form.fieldErrors.priority }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.priority"><div class="warn-message t_red01">{{ form.fieldErrors.priority }}</div></div></transition>
         <RoutinePrioritySelector v-model="form.colorIndex" />
       </div>
 
       <div ref="cardWrap">
-        <transition name="fade-msg"><div v-if="form.fieldErrors.card" class="warn-message t_red01">{{ form.fieldErrors.card }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.card"><div class="warn-message t_red01">{{ form.fieldErrors.card }}</div></div></transition>
         <RoutineCardSelector v-model="form.cardSkin" uniqueName="card-skin" />
       </div>
 
@@ -56,22 +56,22 @@
 
       <div class="walk_group" v-show="!form.isWalkModeOff">
         <div ref="ruffyWrap">
-          <transition name="fade-msg"><div v-if="form.fieldErrors.ruffy" class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div></transition>
+          <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.ruffy"><div class="warn-message t_red01">{{ form.fieldErrors.ruffy }}</div></div></transition>
           <RoutineRuffySelector ref="ruffyRef" />
         </div>
         <div ref="courseWrap">
-          <transition name="fade-msg"><div v-if="form.fieldErrors.course" class="warn-message t_red01">{{ form.fieldErrors.course }}</div></transition>
+          <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.course"><div class="warn-message t_red01">{{ form.fieldErrors.course }}</div></div></transition>
           <RoutineCourseSelector ref="courseRef" />
         </div>
         <div ref="goalWrap">
-          <transition name="fade-msg"><div v-if="form.fieldErrors.goal" class="warn-message t_red01">{{ form.fieldErrors.goal }}</div></transition>
+          <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.goal"><div class="warn-message t_red01">{{ form.fieldErrors.goal }}</div></div></transition>
           <RoutineGoalCountSelector ref="goalRef" />
         </div>
       </div>
 
       <div ref="commentWrap">
         <RoutineCommentInput ref="commentRef" />
-        <transition name="fade-msg"><div v-if="form.fieldErrors.comment" class="warn-message t_red01">{{ form.fieldErrors.comment }}</div></transition>
+        <transition name="slot-slide"><div class="warn-slot" v-show="!!form.fieldErrors.comment"><div class="warn-message t_red01">{{ form.fieldErrors.comment }}</div></div></transition>
       </div>
     </div>
 
@@ -239,8 +239,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.fade-msg-enter-active,
-.fade-msg-leave-active { transition: opacity .25s ease, transform .25s ease; }
-.fade-msg-enter-from,
-.fade-msg-leave-to { opacity: 0; transform: translateY(-4px); }
+.warn-slot{overflow:hidden}
+.warn-message{padding:6px 0}
+
+.slot-slide-enter-active,
+.slot-slide-leave-active{transition:max-height .25s ease, opacity .25s ease, margin .25s ease, padding .25s ease}
+.slot-slide-enter-from,
+.slot-slide-leave-to{max-height:0; opacity:0; margin-top:0; margin-bottom:0; padding-top:0; padding-bottom:0}
+.slot-slide-enter-to,
+.slot-slide-leave-from{max-height:64px; opacity:1}
 </style>
