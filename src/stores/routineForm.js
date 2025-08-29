@@ -42,7 +42,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     course: null,
     goalCount: null,
     colorIndex: null,
-    cardSkin: '',
+    cardSkin: 'option01',
     comment: '',
     fieldErrors: {},
     tz: 'Asia/Seoul'
@@ -119,7 +119,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.course = null
       this.goalCount = null
       this.colorIndex = null
-      this.cardSkin = ''
+      this.cardSkin = 'option01'
       this.comment = ''
       this.clearErrors()
     },
@@ -141,7 +141,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.course = routine.course || null
       this.goalCount = Number.isInteger(+routine.goalCount) ? +routine.goalCount : null
       this.colorIndex = Number.isFinite(+routine.colorIndex) ? +routine.colorIndex : null
-      this.cardSkin = normalizeCardSkinStrict(routine.cardSkin) || ''
+      this.cardSkin = normalizeCardSkinStrict(routine.cardSkin) || 'option01'
       this.comment = routine.comment || ''
       this.clearErrors()
     },
@@ -176,11 +176,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
       if (this.repeatType === 'weekly' && (!this.repeatWeeks || !this.repeatWeekDays || this.repeatWeekDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (this.repeatType === 'monthly' && (!this.repeatMonthDays || this.repeatMonthDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
       if (!Number.isInteger(this.colorIndex)) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
-      if (!normalizeCardSkinStrict(this.cardSkin)) { this.setError('card','카드 디자인을 선택해주세요.'); return false }
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }}
+        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+      }
       return true
     },
     async save() {
