@@ -10,6 +10,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const colors = [
   'color_picker01',
   'color_picker02',
@@ -36,4 +38,13 @@ const selectedColor = computed({
 function toggleColor(index) {
   if (selectedColor.value !== index) selectedColor.value = index
 }
+
+const priority = computed(() => {
+  if (selectedColor.value === null) return null
+  if (selectedColor.value <= 3) return 'low'
+  if (selectedColor.value <= 6) return 'medium'
+  return 'high'
+})
+
+defineExpose({ priority })
 </script>
