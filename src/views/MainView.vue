@@ -703,23 +703,17 @@ function handleChangeView(v) {
 }
 function handleChangePeriod(mode) {
   if (deleteMode.value) handleToggleDeleteMode(false, true)
-
   if (scrollEl) scrollEl.scrollTop = 0
   isScrolled.value = false
   headerShort.value = false
-
-  if (selectedPeriod.value !== mode) {
-    selectedPeriod.value = mode
-    selectedView.value = 'card'
-    if (mode === 'T') {
-      const today = new Date()
-      today.setHours(0,0,0,0)
-      selectedDate.value = today
-      isFutureDate.value = false
-    }
-    selectedFilter.value = 'notdone'
-    nextTick(() => updateScrollState())
-  }
+  const today = new Date()
+  today.setHours(0,0,0,0)
+  selectedDate.value = today
+  isFutureDate.value = false
+  selectedFilter.value = 'notdone'
+  selectedView.value = 'card'
+  selectedPeriod.value = mode
+  nextTick(updateScrollState)
 }
    
 function handleToggleDeleteMode(v, force = false) {
