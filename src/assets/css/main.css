@@ -135,7 +135,7 @@
 
 #main_body {
   flex-grow: 1;
-  /*-webkit-overflow-scrolling: touch;*/
+  -webkit-overflow-scrolling: touch;
   padding: 0.5rem 1.5rem 0.5rem 1.5rem;
   background-color: #fafafa;
   flex: 1;
