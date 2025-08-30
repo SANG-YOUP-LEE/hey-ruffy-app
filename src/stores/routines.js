@@ -1,12 +1,10 @@
+// src/stores/routines.js
 import { defineStore } from 'pinia'
+import { bindRoutines, setStatus as repoSetStatus, togglePause as repoTogglePause, deleteMany as repoDeleteMany } from '@/stores/routinesRepo'
 
-function nowTs() {
-  return Date.now()
-}
-
-function ensureId() {
-  return 'rt-' + Math.random().toString(36).slice(2, 10)
-}
+function nowTs() { return Date.now() }
+function ensureId() { return 'rt-' + Math.random().toString(36).slice(2, 10) }
+function baseId(id) { return String(id).split('-')[0] }
 
 function normalizeRoutine(r) {
   const id = r.id || ensureId()
@@ -41,7 +39,11 @@ export const useRoutinesStore = defineStore('routines', {
     deleteMode: false,
     deleteTargets: [],
     selectedPeriod: 'T',
-    selectedFilter: 'notdone'
+    selectedFilter: 'notdone',
+    isLoading: true,
+    hasFetched: false,
+    _unsubscribe: null,
+    _boundUid: null
   }),
 
   actions: {
@@ -60,36 +62,52 @@ export const useRoutinesStore = defineStore('routines', {
       this.items.splice(i, 1, next)
     },
 
-    deleteRoutines(ids) {
-      const set = new Set([].concat(ids || []))
-      this.items = this.items.filter(v => !set.has(v.id) && !set.has(String(v.id).split('-')[0]))
+    async deleteRoutines(ids) {
+      const uid = this._boundUid
+      const ridList = [].concat(ids || []).map(baseId)
+      if (uid && ridList.length) {
+        try { await repoDeleteMany(uid, ridList) } catch(e) {}
+      }
+      const set = new Set(ridList)
+      this.items = this.items.filter(v => !set.has(v.id) && !set.has(baseId(v.id)))
       this.deleteTargets = []
       this.deleteMode = false
     },
 
-    togglePause({ id, isPaused }) {
-      const i = this.items.findIndex(v => v.id === id)
+    async togglePause({ id, isPaused }) {
+      const uid = this._boundUid
+      const rid = baseId(id)
+      const i = this.items.findIndex(v => v.id === rid)
       if (i < 0) return
       const it = { ...this.items[i], isPaused: !!isPaused, updatedAt: nowTs() }
       this.items.splice(i, 1, it)
+      if (uid && rid) {
+        try { await repoTogglePause(uid, rid, !!isPaused) } catch(e) {}
+      }
     },
 
-    changeStatus({ id, status, date }) {
-      const i = this.items.findIndex(v => v.id === id)
+    async changeStatus({ id, status, date }) {
+      const uid = this._boundUid
+      const rid = baseId(id)
+      const i = this.items.findIndex(v => v.id === rid)
       if (i < 0 || !date) return
       const it = { ...this.items[i] }
       const prev = it.statuses?.[date]
       const nextStatuses = { ...(it.statuses || {}), [date]: status }
       let nextWalk = Number(it.walkDoneCount || 0)
       const hasWalk = !!(it.ruffy && it.course && it.goalCount)
+      let delta = 0
       if (hasWalk) {
-        if (prev !== 'done' && status === 'done') nextWalk += 1
-        else if (prev === 'done' && status !== 'done') nextWalk = Math.max(0, nextWalk - 1)
+        if (prev !== 'done' && status === 'done') { nextWalk += 1; delta = 1 }
+        else if (prev === 'done' && status !== 'done') { nextWalk = Math.max(0, nextWalk - 1); delta = -1 }
       }
       it.statuses = nextStatuses
       it.walkDoneCount = nextWalk
       it.updatedAt = nowTs()
       this.items.splice(i, 1, it)
+      if (uid && rid) {
+        try { await repoSetStatus(uid, rid, date, status, delta) } catch(e) {}
+      }
     },
 
     setDeleteMode(on) {
@@ -98,10 +116,10 @@ export const useRoutinesStore = defineStore('routines', {
     },
 
     toggleSelect({ id, checked }) {
-      const baseId = String(id).split('-')[0]
-      const has = this.deleteTargets.includes(baseId)
-      if (checked && !has) this.deleteTargets = [...this.deleteTargets, baseId]
-      if (!checked && has) this.deleteTargets = this.deleteTargets.filter(v => v !== baseId)
+      const rid = baseId(id)
+      const has = this.deleteTargets.includes(rid)
+      if (checked && !has) this.deleteTargets = [...this.deleteTargets, rid]
+      if (!checked && has) this.deleteTargets = this.deleteTargets.filter(v => v !== rid)
     },
 
     setPeriod(mode) {
@@ -111,6 +129,29 @@ export const useRoutinesStore = defineStore('routines', {
 
     setFilter(filter) {
       this.selectedFilter = filter
+    },
+
+    resetFilter() {
+      this.selectedFilter = 'notdone'
+    },
+
+    bind(uid) {
+      if (!uid) return
+      if (this._boundUid === uid && this._unsubscribe) return
+      if (this._unsubscribe) { this._unsubscribe(); this._unsubscribe = null }
+      this.isLoading = true
+      this.hasFetched = false
+      this._boundUid = uid
+      this._unsubscribe = bindRoutines(
+        uid,
+        (list) => { this.items = list; this.isLoading = false; this.hasFetched = true },
+        () => { this.items = []; this.isLoading = false; this.hasFetched = true }
+      )
+    },
+
+    release() {
+      if (this._unsubscribe) { this._unsubscribe(); this._unsubscribe = null }
+      this._boundUid = null
     }
   }
 })
