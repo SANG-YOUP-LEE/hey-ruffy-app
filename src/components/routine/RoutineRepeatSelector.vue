@@ -1,27 +1,13 @@
 <template>
   <div class="form_box_g">
     <h3>얼마나 자주 지켜야 하나요?</h3>
+
     <div class="tab">
-      <button
-        id="v_detail01"
-        @click="handleTabClick('daily')"
-        :class="{ on: selectedTab === 'daily' }"
-      >일간</button>
-
-      <button
-        id="v_detail02"
-        @click="handleTabClick('weekly')"
-        :class="{ on: selectedTab === 'weekly' }"
-      >주간</button>
-
-      <button
-        id="v_detail03"
-        @click="handleTabClick('monthly')"
-        :class="{ on: selectedTab === 'monthly' }"
-      >월간</button>
+      <button id="v_detail01" @click="handleTabClick('daily')" :class="{ on: selectedTab === 'daily' }">일간</button>
+      <button id="v_detail02" @click="handleTabClick('weekly')" :class="{ on: selectedTab === 'weekly' }">주간</button>
+      <button id="v_detail03" @click="handleTabClick('monthly')" :class="{ on: selectedTab === 'monthly' }">월간</button>
     </div>
 
-    <!-- 일간 상세 -->
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
       <div class="s_group">
         <span
@@ -43,7 +29,6 @@
       </div>
     </div>
 
-    <!-- 주간 상세 -->
     <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
       <div class="s_group">
         <span
@@ -85,7 +70,6 @@
       </div>
     </div>
 
-    <!-- 월간 상세 -->
     <div class="detail_box monthly" v-show="selectedTab === 'monthly'">
       <div class="monthly-grid">
         <span
@@ -103,54 +87,74 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-
-const selectedTab = ref('daily')
-const selectedDates = ref([])
+import { computed } from 'vue'
 
 const dailyButtonsGroup1 = ['매일','월','화','수']
 const dailyButtonsGroup2 = ['목','금','토','일']
-
 const weeklyButtons1 = ['매주','2주마다','3주마다']
 const weeklyButtons2 = ['4주마다','5주마다','6주마다']
 const weeklyButtons3 = ['매일','월','화','수']
 const weeklyButtons4 = ['목','금','토','일']
 
-const selectedDaily = ref([])
-const selectedWeeklyMain = ref('')
-const selectedWeeklyDays = ref([])
+const props = defineProps({
+  repeatType: { type: String, default: 'daily' },
+  daily: { type: Array, default: () => [] },
+  weeks: { type: String, default: '' },
+  weekDays: { type: Array, default: () => [] },
+  monthDays: { type: Array, default: () => [] }
+})
+const emit = defineEmits([
+  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays'
+])
 
-onMounted(() => {
-  resetSelections('daily')
+const selectedTab = computed({
+  get: () => props.repeatType || 'daily',
+  set: v => emit('update:repeatType', v)
+})
+const selectedDaily = computed({
+  get: () => props.daily,
+  set: v => emit('update:daily', Array.isArray(v) ? [...v] : [])
+})
+const selectedWeeklyMain = computed({
+  get: () => props.weeks,
+  set: v => emit('update:weeks', v ?? '')
+})
+const selectedWeeklyDays = computed({
+  get: () => props.weekDays,
+  set: v => emit('update:weekDays', Array.isArray(v) ? [...v] : [])
+})
+const selectedDates = computed({
+  get: () => props.monthDays,
+  set: v => emit('update:monthDays', Array.isArray(v) ? [...v] : [])
 })
 
 const handleTabClick = (tab) => {
   selectedTab.value = tab
-  resetSelections(tab)
+  if (tab === 'daily') {
+    selectedDaily.value = []
+  } else if (tab === 'weekly') {
+    selectedWeeklyMain.value = ''
+    selectedWeeklyDays.value = []
+  } else if (tab === 'monthly') {
+    selectedDates.value = []
+  }
 }
 
 const selectDailyBtn = (btn) => {
+  const cur = [...selectedDaily.value]
   if (btn === '매일') {
-    if (selectedDaily.value.includes('매일')) {
-      selectedDaily.value = []
-    } else {
-      selectedDaily.value = ['매일','월','화','수','목','금','토','일']
-    }
+    selectedDaily.value = cur.includes('매일') ? [] : ['매일','월','화','수','목','금','토','일']
+    return
+  }
+  if (cur.includes(btn)) {
+    const next = cur.filter(d => d !== btn)
+    selectedDaily.value = next.includes('매일') && next.length < 8 ? next.filter(d => d !== '매일') : next
   } else {
-    if (selectedDaily.value.includes(btn)) {
-      selectedDaily.value = selectedDaily.value.filter(d => d !== btn)
-      if (selectedDaily.value.includes('매일') && selectedDaily.value.length < 8) {
-        selectedDaily.value = selectedDaily.value.filter(d => d !== '매일')
-      }
-    } else {
-      selectedDaily.value.push(btn)
-      const allDays = ['월','화','수','목','금','토','일']
-      if (allDays.every(day => selectedDaily.value.includes(day))) {
-        if (!selectedDaily.value.includes('매일')) {
-          selectedDaily.value.unshift('매일')
-        }
-      }
-    }
+    cur.push(btn)
+    const allDays = ['월','화','수','목','금','토','일']
+    const hasAll = allDays.every(d => cur.includes(d))
+    if (hasAll && !cur.includes('매일')) cur.unshift('매일')
+    selectedDaily.value = cur
   }
 }
 
@@ -159,75 +163,25 @@ const selectWeeklyMain = (btn) => {
 }
 
 const toggleWeeklyDay = (btn) => {
+  const cur = [...selectedWeeklyDays.value]
   if (btn === '매일') {
-    if (selectedWeeklyDays.value.includes('매일')) {
-      selectedWeeklyDays.value = []
-    } else {
-      selectedWeeklyDays.value = ['매일','월','화','수','목','금','토','일']
-    }
+    selectedWeeklyDays.value = cur.includes('매일') ? [] : ['매일','월','화','수','목','금','토','일']
+    return
+  }
+  if (cur.includes(btn)) {
+    const next = cur.filter(d => d !== btn)
+    selectedWeeklyDays.value = next.includes('매일') && next.length < 8 ? next.filter(d => d !== '매일') : next
   } else {
-    if (selectedWeeklyDays.value.includes(btn)) {
-      selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== btn)
-      if (selectedWeeklyDays.value.includes('매일') && selectedWeeklyDays.value.length < 8) {
-        selectedWeeklyDays.value = selectedWeeklyDays.value.filter(d => d !== '매일')
-      }
-    } else {
-      selectedWeeklyDays.value.push(btn)
-      const allDays = ['월','화','수','목','금','토','일']
-      if (allDays.every(day => selectedWeeklyDays.value.includes(day))) {
-        if (!selectedWeeklyDays.value.includes('매일')) {
-          selectedWeeklyDays.value.unshift('매일')
-        }
-      }
-    }
+    cur.push(btn)
+    const allDays = ['월','화','수','목','금','토','일']
+    const hasAll = allDays.every(d => cur.includes(d))
+    if (hasAll && !cur.includes('매일')) cur.unshift('매일')
+    selectedWeeklyDays.value = cur
   }
 }
 
 const toggleDateSelection = (day) => {
-  if (selectedDates.value.includes(day)) {
-    selectedDates.value = selectedDates.value.filter(d => d !== day)
-  } else {
-    selectedDates.value.push(day)
-  }
+  const cur = [...selectedDates.value]
+  selectedDates.value = cur.includes(day) ? cur.filter(d => d !== day) : [...cur, day]
 }
-
-const resetSelections = (tab) => {
-  if (tab === 'daily') {
-    selectedDaily.value = []
-  } else if (tab === 'weekly') {
-    selectedWeeklyMain.value = ''      
-    selectedWeeklyDays.value = []
-  } else if (tab === 'monthly') {
-    selectedDates.value = []
-  }
-}
-
-const setFromRoutine = (routine) => {
-  if (!routine || !routine.repeatType) return
-
-  selectedTab.value = routine.repeatType
-
-  if (routine.repeatType === 'daily') {
-    selectedDaily.value = [...routine.repeatDays]
-  }
-
-  if (routine.repeatType === 'weekly') {
-    selectedWeeklyMain.value = routine.repeatWeeks || ''
-    selectedWeeklyDays.value = [...routine.repeatWeekDays]
-  }
-
-  if (routine.repeatType === 'monthly') {
-    selectedDates.value = [...routine.repeatMonthDays]
-  }
-}
-
-defineExpose({
-  selectedTab,
-  selectedDaily,
-  selectedWeeklyMain,
-  selectedWeeklyDays,
-  selectedDates,
-  setFromRoutine
-})
-
 </script>

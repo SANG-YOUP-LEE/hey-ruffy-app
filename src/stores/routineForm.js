@@ -13,7 +13,7 @@ const safeISOFromDateObj = obj => { const s = toISO(obj); return (typeof s === '
 const getBaseId = (id) => String(id || '').split('-')[0]
 const normalizeCardSkinStrict = (v) => {
   const m = String(v || '').match(/(\d{1,2})/)
-  const n = m[1].padStart(2,'0')
+  const n = m && m[1] ? m[1].padStart(2,'0') : '01'
   return `option${n}`
 }
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
@@ -106,8 +106,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
     }
   },
   actions: {
-    setField(key, value) { this[key] = key === 'comment' ? String(value ?? '') : value },
-    setComment(v) { this.comment = String(v ?? ''); const fe = { ...this.fieldErrors }; delete fe.comment; this.fieldErrors = fe },
+    setComment(v) {
+      this.comment = String(v ?? '')
+      const fe = { ...this.fieldErrors }; delete fe.comment; this.fieldErrors = fe
+    },
     setError(key, msg) { this.fieldErrors = { ...this.fieldErrors, [key]: msg } },
     clearErrors() { this.fieldErrors = {} },
     reset() {

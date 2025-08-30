@@ -30,7 +30,13 @@
             <div class="warn-message t_red01">{{ form.fieldErrors.repeat }}</div>
           </div>
         </transition>
-        <RoutineRepeatSelector ref="repeatRef" />
+        <RoutineRepeatSelector
+          v-model:repeatType="form.repeatType"
+          v-model:daily="form.repeatDaily"
+          v-model:weeks="form.repeatWeeks"
+          v-model:weekDays="form.repeatWeekDays"
+          v-model:monthDays="form.repeatMonthDays"
+        />
       </div>
 
       <div ref="dateWrap">
@@ -39,7 +45,10 @@
             <div class="warn-message t_red01">{{ form.fieldErrors.date }}</div>
           </div>
         </transition>
-        <RoutineDateSelector ref="dateRef" />
+        <RoutineDateSelector
+          v-model:startDate="form.startDate"
+          v-model:endDate="form.endDate"
+        />
       </div>
 
       <div ref="alarmWrap">
@@ -126,8 +135,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
+import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
 import RoutineDateSelector from '@/components/routine/RoutineDateSelector.vue'
@@ -140,15 +150,6 @@ import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const form = useRoutineFormStore()
-const repeatRef = ref()
-const dateRef = ref()
-
-const p = n => String(n).padStart(2,'0')
-const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
-const safeISOFromDateObj = obj => {
-  const s = toISO(obj)
-  return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
-}
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
@@ -157,45 +158,7 @@ const isEditMode = computed(() => props.routineToEdit !== null)
 const titleWrap = ref(); const repeatWrap = ref(); const dateWrap = ref(); const alarmWrap = ref()
 const ruffyWrap = ref(); const courseWrap = ref(); const goalWrap = ref(); const priorityWrap = ref(); const cardWrap = ref(); const commentWrap = ref()
 
-let scrollY = 0
-const preventTouchMove = e => { if (!e.target.closest('.popup_wrap')) e.preventDefault() }
-const lockScroll = () => {
-  scrollY = window.scrollY
-  document.documentElement.classList.add('no-scroll')
-  document.body.classList.add('no-scroll')
-  document.body.style.top = `-${scrollY}px`
-  document.body.style.left = '0'
-  document.body.style.right = '0'
-  document.body.style.width = '100%'
-  document.body.style.position = 'fixed'
-  window.addEventListener('touchmove', preventTouchMove, { passive: false })
-}
-const unlockScroll = () => {
-  document.documentElement.classList.remove('no-scroll')
-  document.body.classList.remove('no-scroll')
-  document.body.style.position = ''
-  document.body.style.top=''
-  document.body.style.left=''
-  document.body.style.right=''
-  document.body.style.width=''
-  document.body.style.overflow=''
-  window.removeEventListener('touchmove', preventTouchMove)
-  window.scrollTo(0, scrollY)
-}
-const closePopup = () => { unlockScroll(); emit('close') }
-
-function syncFromChildren() {
-  const r = repeatRef.value
-  if (r) {
-    form.setField('repeatType', r.selectedTab ?? 'daily')
-    form.setField('repeatDaily', Array.isArray(r.selectedDaily) ? [...r.selectedDaily] : [])
-    form.setField('repeatWeeks', r.selectedWeeklyMain ?? '')
-    form.setField('repeatWeekDays', Array.isArray(r.selectedWeeklyDays) ? [...r.selectedWeeklyDays] : [])
-    form.setField('repeatMonthDays', Array.isArray(r.selectedDates) ? [...r.selectedDates] : [])
-  }
-  form.setField('startDate', dateRef.value?.startDate ?? null)
-  form.setField('endDate',   dateRef.value?.endDate ?? null)
-}
+const { lockScroll, unlockScroll, closePopup } = usePopupUX(emit)
 
 const errTimers = {}
 const wrapRefMap = {
@@ -215,7 +178,6 @@ function autoHideErrors() {
 }
 
 async function saveRoutine() {
-  syncFromChildren()
   const pre = form.validate()
   if (!pre) {
     const firstKey = Object.keys(form.fieldErrors || {})[0]
@@ -237,22 +199,10 @@ async function saveRoutine() {
   emit('close')
 }
 
-onMounted(async () => {
+onMounted(() => {
   lockScroll()
   if (props.routineToEdit) {
     form.initFrom(props.routineToEdit)
-    repeatRef.value?.setFromRoutine?.(props.routineToEdit)
-    const sd = props.routineToEdit?.startDate || null
-    const ed = props.routineToEdit?.endDate || null
-    const hasStart = !!safeISOFromDateObj(sd)
-    const hasEnd   = !!safeISOFromDateObj(ed)
-    await nextTick()
-    dateRef.value?.setFromRoutine?.({
-      startDate: hasStart ? sd : null,
-      endDate:   hasEnd   ? ed : null,
-      useStart:  hasStart,
-      useEnd:    hasEnd
-    })
   } else {
     form.reset()
   }
