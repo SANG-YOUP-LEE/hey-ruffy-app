@@ -17,60 +17,129 @@
 
     <AlarmPickerPopup
       v-if="showAlarmPopup"
-      v-model="model"
+      v-model="inner"
       @close="closePopup"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
+import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
-const model = defineModel({ type: Object, default: () => ({ ampm:'', hour:'', minute:'' }) })
+const props = defineProps({
+  routineId: { type: [String, Number], default: null },
+  routineTitle: { type: String, default: '알람' },
+  bodyText: { type: String, default: '헤이러피 알람' },
+  modelValue: { type: Object, default: null }
+})
+const emit = defineEmits(['update:modelValue'])
+
+const inner = ref(sanitize(props.modelValue))
+
+watch(() => props.modelValue, v => {
+  const nv = sanitize(v)
+  if (!isEqual(nv, inner.value)) inner.value = nv
+}, { deep: true })
+
+watch(inner, v => {
+  const nv = sanitize(v)
+  if (!isEqual(nv, props.modelValue)) emit('update:modelValue', nv)
+}, { deep: true })
 
 const showAlarmPopup = ref(false)
 
 const hasTime = computed(() => {
-  const v = model.value || {}
-  return !!(v.ampm && v.hour && v.minute)
+  const v = inner.value || {}
+  return (v.ampm === '오전' || v.ampm === '오후')
+    && /^\d{2}$/.test(v.hour || '')
+    && /^\d{2}$/.test(v.minute || '')
 })
 
 const isOn = computed({
   get: () => hasTime.value,
   set: (val) => {
-    if (val) {
-      showAlarmPopup.value = true
-    } else {
-      model.value = { ampm:'', hour:'', minute:'' }
-    }
+    if (val) showAlarmPopup.value = true
+    else clearAlarm()
   }
 })
 
 const showDataFixed = computed(() => hasTime.value)
 
+const displayAmpm = computed(() => {
+  const a = (inner.value?.ampm || '').toString()
+  if (a === 'AM') return '오전'
+  if (a === 'PM') return '오후'
+  return a
+})
+
 const formattedAlarm = computed(() => {
   if (!hasTime.value) return ''
-  return `${model.value.ampm} ${model.value.hour}시 ${model.value.minute}분`
+  return `${displayAmpm.value} ${inner.value.hour}시 ${inner.value.minute}분`
 })
 
 const openPopup = () => { showAlarmPopup.value = true }
-const closePopup = () => { showAlarmPopup.value = false }
-const clearAlarm = () => { model.value = { ampm:'', hour:'', minute:'' } }
 
-const setFromRoutine = (routine) => {
-  if (routine?.alarmTime?.ampm && routine.alarmTime.hour && routine.alarmTime.minute) {
-    model.value = {
-      ampm: routine.alarmTime.ampm,
-      hour: routine.alarmTime.hour,
-      minute: routine.alarmTime.minute
-    }
-  } else {
-    model.value = { ampm:'', hour:'', minute:'' }
-  }
+const closePopup = () => {
   showAlarmPopup.value = false
+  if (hasTime.value) scheduleDailyNow()
 }
 
-defineExpose({ setFromRoutine })
+const clearAlarm = () => {
+  const empty = { ampm:'', hour:'', minute:'' }
+  if (!isEqual(inner.value, empty)) {
+    inner.value = empty
+    emit('update:modelValue', empty)
+  }
+  const id = alarmId()
+  if (id) cancelOnIOS(String(id))
+}
+
+function scheduleDailyNow() {
+  if (!hasTime.value) return
+  const { hour24, minute } = to24h(inner.value)
+  const id = alarmId()
+  scheduleOnIOS({
+    id: String(id || 'inline'),
+    name: props.routineTitle,
+    repeatMode: 'daily',
+    alarm: { hour: hour24, minute }
+  })
+}
+
+function alarmId() {
+  return props.routineId ?? null
+}
+
+function sanitize(v) {
+  if (!v) return { ampm:'', hour:'', minute:'' }
+  const a = toKoAmpm(v.ampm)
+  const h = pad2(v.hour)
+  const m = pad2(v.minute)
+  return { ampm: a, hour: h, minute: m }
+}
+function isEqual(a, b) {
+  if (!a || !b) return a === b
+  return a.ampm === b.ampm && String(a.hour) === String(b.hour) && String(a.minute) === String(b.minute)
+}
+function toKoAmpm(a) {
+  if (a === 'PM' || a === '오후') return '오후'
+  if (a === 'AM' || a === '오전') return '오전'
+  return ''
+}
+function pad2(n) {
+  const s = String(n ?? '').trim()
+  if (!/^\d{1,2}$/.test(s)) return ''
+  return s.padStart(2, '0')
+}
+function to24h({ ampm, hour, minute }) {
+  const tag = (ampm === 'PM' || ampm === '오후') ? 'PM' : 'AM'
+  let h = Number(hour)
+  const m = Number(minute)
+  if (tag === 'PM' && h < 12) h += 12
+  if (tag === 'AM' && h === 12) h = 0
+  return { hour24: h, minute: m }
+}
 </script>

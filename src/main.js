@@ -21,6 +21,11 @@ import "vue-scroll-picker/style.css";
 const app = createApp(App);
 const pinia = createPinia();
 
+app.use(pinia);
+app.use(router);
+app.use(VueScrollPicker);
+app.mount("#app");
+
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
 document.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
@@ -35,8 +40,3 @@ document.addEventListener('touchend', e => {
 document.addEventListener('wheel', e => {
   if (e.ctrlKey) e.preventDefault();
 }, { passive: false });
-
-app.use(pinia);
-app.use(router);
-app.use(VueScrollPicker);
-app.mount("#app");

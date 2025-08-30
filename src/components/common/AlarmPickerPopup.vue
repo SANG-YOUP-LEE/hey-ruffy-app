@@ -5,7 +5,7 @@
         <h2>알람 시간 설정</h2>
       </div>
       <div class="title date light">
-        <span>AM/PM</span><span>시</span><span>분</span>
+        <span>오전/오후</span><span>시</span><span>분</span>
       </div>
       <div class="popup_body picker_group">
         <VueScrollPicker
@@ -55,15 +55,16 @@ onMounted(() => { lockBodyScroll() })
 onBeforeUnmount(() => { unlockBodyScroll() })
 
 const props = defineProps({
-  modelValue: { type: Object, default: () => ({ ampm: 'AM', hour: '07', minute: '00' }) }
+  modelValue: { type: Object, default: () => ({ ampm: '오전', hour: '07', minute: '00' }) }
 })
 const emit = defineEmits(['update:modelValue','close'])
 
 const pad2 = (v) => String(v ?? '').padStart(2, '0')
+const toKoAMPM = (v) => (v === 'AM' ? '오전' : v === 'PM' ? '오후' : (v || '오전'))
 const normalize = (v) => ({
-  ampm: (v && v.ampm) ? v.ampm : 'AM',
-  hour: pad2((v && v.hour) ? v.hour : '07'),
-  minute: pad2((v && v.minute) ? v.minute : '00')
+  ampm: toKoAMPM(v?.ampm),
+  hour: pad2(v?.hour ?? '07'),
+  minute: pad2(v?.minute ?? '00')
 })
 
 const base = normalize(props.modelValue)
@@ -74,7 +75,7 @@ const rawMinutes = Array.from({ length: 60 }, (_, i) => pad2(i))
 const loopCount = 100
 const hourLoopOptions = Array.from({ length: rawHours.length * loopCount }, (_, i) => rawHours[i % 12])
 const minuteLoopOptions = Array.from({ length: rawMinutes.length * loopCount }, (_, i) => rawMinutes[i % 60])
-const ampmOptions = ['AM', 'PM']
+const ampmOptions = ['오전', '오후']
 
 const findCenteredIndex = (arr, val) => {
   const target = pad2(val)
@@ -103,7 +104,7 @@ watch(() => props.modelValue, (v) => {
 
 const confirmSelection = () => {
   emit('update:modelValue', {
-    ampm: localValue.value.ampm || 'AM',
+    ampm: localValue.value.ampm || '오전',
     hour: pad2(selectedHour.value || '07'),
     minute: pad2(selectedMinute.value || '00')
   })
