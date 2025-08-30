@@ -74,7 +74,7 @@ const groupName = props.uniqueName || 'goal'
 const onChange = (e) => {
   const n = parseInt(e.target.value, 10)
   emit('update:modelValue', Number.isFinite(n) ? n : null)
-  window.dispatchEvent(new Event('goal-selected')) // ✅ 선택할 때마다 이벤트 발사
+  window.dispatchEvent(new Event('goal-selected')) 
 }
 
 const setFromRoutine = (routine) => {

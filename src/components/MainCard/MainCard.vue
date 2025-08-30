@@ -285,7 +285,7 @@ function pad(v) {
 }
 
 const dateText = computed(() => {
-  if (props.periodMode !== 'T') return ''   // ← 주간/월간이면 날짜 감춤
+  if (props.periodMode !== 'T') return ''
   const v = props.assignedDate
   if (v === null || v === undefined) return ''
   const d = v instanceof Date ? v : new Date(v)
@@ -310,7 +310,7 @@ function onSelect(type) { selectedState.value = selectedState.value === type ? '
 function resetSelection() { selectedState.value = '' }
 
 function handleToggleOpen(id) {
-  window.dispatchEvent(new Event('close-other-popups'))   // ← 먼저 모두 닫기
+  window.dispatchEvent(new Event('close-other-popups'))
   openedCardId.value = openedCardId.value === id ? null : id
 }
 
@@ -337,7 +337,6 @@ function confirmDelete() {
     Array.isArray(props.deleteTargets) && props.deleteTargets.length > 0
       ? props.deleteTargets
       : [String(props.routine?.id)];
-
   closeDeleteConfirm();
   if (ids[0]) emit('delete', ids);
 }
@@ -443,16 +442,13 @@ function closeAllLocalPopups() {
   document.body.classList.remove('no-scroll')
 }
 
-// [B] watchers 섹션에 추가 (파일 하단 onMounted 앞/주변에)
 watch(
   [() => props.layoutVariant, () => props.periodMode, () => props.selected],
   () => {
-    // 보기모드(카드/리스트 등) 또는 기간(일/주/월) 바뀌면 전부 닫기
     closeAllLocalPopups()
     window.dispatchEvent(new Event('close-other-popups'))
   }
 )
-
 
 function handleGlobalCloseEvents() {
   if (openedCardId.value !== null) openedCardId.value = null
