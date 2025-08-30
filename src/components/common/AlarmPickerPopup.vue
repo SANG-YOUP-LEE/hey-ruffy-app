@@ -18,16 +18,16 @@
         <VueScrollPicker
           v-model="selectedHour"
           :options="hourLoopOptions"
-          :drag-sensitivity="3"
-          :touch-sensitivity="2"
-          :scroll-sensitivity="3"
+          :drag-sensitivity="7"
+          :touch-sensitivity="7"
+          :scroll-sensitivity="0.1"
         />
         <VueScrollPicker
           v-model="selectedMinute"
           :options="minuteLoopOptions"
-          :drag-sensitivity="3"
-          :touch-sensitivity="2"
-          :scroll-sensitivity="4"
+          :drag-sensitivity="7"
+          :touch-sensitivity="7"
+          :scroll-sensitivity="0,1"
         />
       </div>
       <div class="popup_btm">
