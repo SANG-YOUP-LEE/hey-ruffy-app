@@ -216,7 +216,10 @@ async function saveRoutine() {
     // 알림 탭 시 이동
     const link = `heyruffy://main?r=${encodeURIComponent(routineId)}`
 
-    // iOS에 전송 (body는 보내지 않음 → 한 줄 깔끔)
+    // 🔥 수정 시 남아있을 수 있는 기존 예약들 제거(특히 주간 요일 변경 케이스)
+    postIOS({ action: 'cancel', id })   // id 프리픽스 전체 지움 (daily, weekly 모두 커버)
+
+    // iOS에 전송 (본문은 네이티브에서 title을 body로 사용하므로 body 미전송)
     if (form.repeatType === 'daily') {
       postIOS({ action: 'scheduleDaily', id, title, subtitle, hour, minute, link })
     } else if (form.repeatType === 'weekly') {
@@ -284,3 +287,4 @@ function buildSubtitle(repeatType, weekDays, startDate, alarmTime) {
   return `${y}-${m}-${day} ${timeStr}`
 }
 </script>
+
