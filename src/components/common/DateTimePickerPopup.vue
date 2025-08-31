@@ -9,21 +9,21 @@
         <VueScrollPicker
           v-model="localValue.year"
           :options="years"
-          :drag-sensitivity="3"
+          :drag-sensitivity="0.3"
           :touch-sensitivity="3"
           :scroll-sensitivity="2"
         />
         <VueScrollPicker
           v-model="localValue.month"
           :options="months"
-          :drag-sensitivity="3"
+          :drag-sensitivity="0.3"
           :touch-sensitivity="3"
           :scroll-sensitivity="2"
         />
         <VueScrollPicker
           v-model="localValue.day"
           :options="days"
-          :drag-sensitivity="2"
+          :drag-sensitivity="0.3"
           :touch-sensitivity="1"
           :scroll-sensitivity="1"
         />
