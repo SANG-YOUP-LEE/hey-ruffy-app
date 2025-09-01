@@ -11,8 +11,7 @@
 
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">{{ formattedAlarm }}</div>
-        <!-- ⬇︎ 여기: '삭제' 대신 '수정'으로 변경, clearAlarm 호출 안 함 -->
-        <button type="button" class="txt link" @click="openPopup">알람 수정하기</button>
+        <a class="txt" @click="openPopup">알람 수정하기</a>
       </div>
     </div>
 
