@@ -14,7 +14,7 @@
           v-for="btn in dailyIntervalButtons1"
           :key="'di1-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyInterval === btn.v && selectedDailyInterval !== null, light: selectedDailyInterval === btn.v && selectedDailyInterval !== null }"
+          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
           @click="selectDailyInterval(btn.v)"
         >{{ btn.k }}</span>
       </div>
@@ -23,7 +23,7 @@
           v-for="btn in dailyIntervalButtons2"
           :key="'di2-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyInterval === btn.v && selectedDailyInterval !== null, light: selectedDailyInterval === btn.v && selectedDailyInterval !== null }"
+          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
           @click="selectDailyInterval(btn.v)"
         >{{ btn.k }}</span>
       </div>

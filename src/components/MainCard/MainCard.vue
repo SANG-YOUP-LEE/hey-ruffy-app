@@ -200,6 +200,19 @@ const toCourseClass = (v) => {
   return `course${n}`
 }
 
+const ymd = (d) => {
+  if (!d) return null
+  if (typeof d === 'string') {
+    const m = d.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    return m ? { year:+m[1], month:+m[2], day:+m[3] } : null
+  }
+  if (typeof d === 'object' && d.year && d.month && d.day) {
+    return { year:+d.year, month:+d.month, day:+d.day }
+  }
+  return null
+}
+const eqYMD = (a,b) => !!a && !!b && a.year===b.year && a.month===b.month && a.day===b.day
+
 const cardSkinClass = computed(() => {
   const v = normalizeSkin(props.routine?.cardSkin)
   return v ? `card_${v}` : ''
@@ -215,12 +228,17 @@ const repeatLabel = computed(() => {
   if (t === 'monthly') return 'Monthly'
   return 'Daily'
 })
+
 const repeatDetail = computed(() => {
   const r = props.routine || {}
   if (r.repeatType === 'daily') {
-    if (Array.isArray(r.repeatDays) && r.repeatDays.length) {
-      return r.repeatDays.includes('매일') ? '매일' : r.repeatDays.join(',')
-    }
+    const n = Number(r.repeatEveryDays)
+    const hasEvery = Number.isInteger(n) && n > 0
+    const s = ymd(r.startDate) || ymd(r.start)
+    const e = ymd(r.endDate) || ymd(r.end)
+    const todayOnly = (Number(r.repeatEveryDays) === 0) || (s && e && eqYMD(s,e))
+    if (todayOnly) return '오늘만'
+    if (hasEvery) return `${n}일마다`
     return ''
   }
   if (r.repeatType === 'weekly') {
@@ -236,14 +254,14 @@ const repeatDetail = computed(() => {
 })
 
 const periodText = computed(() => {
-  const s = props.routine?.startDate || {}
-  const e = props.routine?.endDate || {}
-  const hasS = s.year && s.month && s.day
-  const hasE = e.year && e.month && e.day
-  if (!hasS && !hasE) return ''
-  const sTxt = hasS ? `${s.year}.${pad(s.month)}.${pad(s.day)}` : ''
-  const eTxt = hasE ? `${e.year}.${pad(e.month)}.${pad(e.day)}` : ''
-  return hasE ? `${sTxt} ~ ${eTxt}` : sTxt
+  const sObj = props.routine?.startDate || props.routine?.start || {}
+  const eObj = props.routine?.endDate || props.routine?.end || {}
+  const s = ymd(sObj)
+  const e = ymd(eObj)
+  if (!s && !e) return ''
+  const sTxt = s ? `${s.year}.${pad(s.month)}.${pad(s.day)}` : ''
+  const eTxt = e ? `${e.year}.${pad(e.month)}.${pad(e.day)}` : ''
+  return e ? `${sTxt} ~ ${eTxt}` : sTxt
 })
 
 const alarmText = computed(() => {

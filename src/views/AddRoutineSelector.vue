@@ -137,6 +137,7 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
+import { useAlarmStore } from '@/stores/alarm'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
@@ -150,6 +151,7 @@ import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const form = useRoutineFormStore()
+const alarm = useAlarmStore()
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
@@ -196,62 +198,13 @@ async function saveRoutine() {
     return
   }
 
-  try {
-    const data = r.data || {}
-    const routineId = data.id || data.routineId || data.docId || Date.now().toString()
-    const id = `rt_${routineId}`
+  const data = r.data || {}
+  const routineId = data.id || data.routineId || data.docId || Date.now().toString()
+  let title = (form.title || '').trim()
+  const MAX_LEN = 20
+  if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
-    let title = (form.title || '').trim()
-    if (!title) throw new Error('title empty')
-    const MAX_LEN = 20
-    if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
-
-    const hm = parseAlarmTime(form.alarmTime)
-    if (!hm) { gotoFinish(r.data); return }
-
-    const iosWeekdays = toIOSWeekdayNums(form.repeatWeekDays)
-
-    // ✅ “매일” 없음: 0(오늘만) 또는 2~6일
-    const dailyInterval = (form.repeatType === 'daily')
-      ? (Number.isInteger(form.repeatDaily) ? form.repeatDaily : 0)  // 기본 0
-      : 0
-
-    const subtitle = buildSubtitle(
-      form.repeatType,
-      iosWeekdays,
-      form.startDate,
-      `${String(hm.hour).padStart(2,'0')}:${String(hm.minute).padStart(2,'0')}`,
-      dailyInterval
-    )
-    const link = `heyruffy://main?r=${encodeURIComponent(routineId)}`
-
-    postIOS({ action: 'cancel', id })
-
-    // ✅ 오늘만(0) → scheduleOnce, 2~6일마다 → scheduleDaily(interval)
-    if (form.repeatType === 'daily' && dailyInterval === 0) {
-      const base = form.startDate ? new Date(form.startDate) : new Date()
-      base.setHours(hm.hour); base.setMinutes(hm.minute); base.setSeconds(0); base.setMilliseconds(0)
-      postIOS({ action: 'scheduleOnce', id, title, subtitle, timestamp: base.getTime(), link })
-    } else if (form.repeatType === 'daily') {
-      postIOS({
-        action: 'scheduleDaily',
-        id, title, subtitle,
-        hour: hm.hour, minute: hm.minute,
-        interval: dailyInterval,          // 2~6
-        startDate: form.startDate || null,
-        link
-      })
-    } else if (form.repeatType === 'weekly') {
-      if (!iosWeekdays?.length) { gotoFinish(r.data); return }
-      postIOS({ action: 'scheduleWeekly', id, title, subtitle, hour: hm.hour, minute: hm.minute, weekdays: iosWeekdays, link })
-    } else {
-      const base = form.startDate ? new Date(form.startDate) : new Date()
-      base.setHours(hm.hour); base.setMinutes(hm.minute); base.setSeconds(0); base.setMilliseconds(0)
-      postIOS({ action: 'scheduleOnce', id, title, subtitle, timestamp: base.getTime(), link })
-    }
-  } catch (e) {
-    console.warn('notify post skipped:', e)
-  }
+  alarm.scheduleFromForm(form, { routineId, title })
 
   gotoFinish(r.data)
 }
@@ -273,58 +226,4 @@ onBeforeUnmount(() => {
   unlockScroll()
   form.clearErrors()
 })
-
-function postIOS(payload) {
-  try { window.webkit?.messageHandlers?.notify?.postMessage(payload) } catch (_) {}
-}
-
-function parseAlarmTime(v) {
-  if (!v) return null
-  if (typeof v === 'string') {
-    const m = v.match(/^(\d{1,2}):(\d{2})$/)
-    if (!m) return null
-    const h = Number(m[1]), mi = Number(m[2])
-    if (Number.isNaN(h) || Number.isNaN(mi)) return null
-    if (h < 0 || h > 23 || mi < 0 || mi > 59) return null
-    return { hour: h, minute: mi }
-  }
-  const a = String(v.ampm || '').toLowerCase()
-  const hh = v.hour != null ? String(v.hour).padStart(2, '0') : ''
-  const mm = v.minute != null ? String(v.minute).padStart(2, '0') : ''
-  if (!/^\d{2}$/.test(hh) || !/^\d{2}$/.test(mm)) return null
-  let h12 = Number(hh), m = Number(mm)
-  if (h12 < 1 || h12 > 12 || m < 0 || m > 59) return null
-  const isPM = a.includes('pm') || a.includes('오후')
-  const isAM = a.includes('am') || a.includes('오전')
-  if (!isAM && !isPM) return null
-  let h24 = h12 % 12
-  if (isPM) h24 += 12
-  return { hour: h24, minute: m }
-}
-
-function toIOSWeekdayNums(arr) {
-  if (!Array.isArray(arr)) return []
-  return arr.map(n => (n >= 1 && n <= 7) ? n : ((n % 7) + 1))
-}
-
-const WD_LABEL = ['일','월','화','수','목','금','토']
-function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval = 0) {
-  if (repeatType === 'daily') {
-    if (dailyInterval === 0) return `오늘만 ${timeStr}`
-    return `${dailyInterval}일마다 ${timeStr}`   // 2~6만 존재
-  }
-  if (repeatType === 'weekly') {
-    const label = (weekDays || []).map(n => WD_LABEL[(n >= 1 && n <= 7) ? n-1 : n%7]).join('')
-    return `${label || '주간'} ${timeStr}`
-  }
-  const d = startDate ? new Date(startDate) : new Date()
-  const [hh, mm] = timeStr.split(':').map(Number)
-  d.setHours(hh); d.setMinutes(mm); d.setSeconds(0); d.setMilliseconds(0)
-  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0')
-  return `${y}-${m}-${day} ${timeStr}`
-}
-
-// 오늘만 함수추가
-
-
 </script>

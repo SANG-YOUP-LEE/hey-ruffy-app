@@ -30,6 +30,10 @@ const sanitizeComment = (v) => {
   if (s.length > 200) s = s.slice(0,200)
   return s
 }
+const eqDateObj = (a,b) => {
+  if (!a || !b) return false
+  return +a.year===+b.year && +a.month===+b.month && +a.day===+b.day
+}
 
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
@@ -37,7 +41,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     routineId: null,
     title: '',
     repeatType: 'daily',
-    repeatDaily: 0,
+    repeatDaily: null,
     repeatWeeks: '',
     repeatWeekDays: [],
     repeatMonthDays: [],
@@ -70,17 +74,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
-
       if (state.repeatType === 'daily') {
-        const n = Number.isInteger(state.repeatDaily) ? state.repeatDaily : 0
-        if (n === 0) {
-          // ✅ 오늘만
-          return { freq: 'once', anchor: anchorISO }
-        }
+        if (!Number.isInteger(state.repeatDaily)) return null
+        const n = state.repeatDaily
+        if (n === 0) return { freq: 'once', anchor: anchorISO }
         const interval = Math.min(6, Math.max(1, n))
         return { freq: 'daily', interval, anchor: anchorISO }
       }
-
       if (state.repeatType === 'weekly') {
         const interval = parseInterval(state.repeatWeeks)
         return { freq: 'weekly', interval, anchor: anchorISO, byWeekday: weeklyDaysToICS(state.repeatWeekDays) }
@@ -94,14 +94,14 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const hasEnd = !!safeISOFromDateObj(state.endDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
-      const dailyInterval = state.repeatType === 'daily' ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : 0) : null
+      const dailyInterval = state.repeatType === 'daily' && Number.isInteger(state.repeatDaily) ? state.repeatDaily : null
       const endForTodayOnly = state.repeatType === 'daily' && dailyInterval === 0 ? anchorISO : null
       const cleaned = {
         title: state.title,
         repeatType: state.repeatType,
         repeatDays: [],
         repeatEveryDays: state.repeatType === 'daily'
-          ? (dailyInterval > 0 ? dailyInterval : null)   // ✅ 오늘만이면 null
+          ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
           : null,
         repeatWeeks: state.repeatType === 'weekly' ? state.repeatWeeks || '' : '',
         repeatWeekDays: state.repeatType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
@@ -136,7 +136,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.routineId = null
       this.title = ''
       this.repeatType = 'daily'
-      this.repeatDaily = 0
+      this.repeatDaily = null
       this.repeatWeeks = ''
       this.repeatWeekDays = []
       this.repeatMonthDays = []
@@ -158,7 +158,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.routineId = routine.id || null
       this.title = routine.title || ''
       this.repeatType = routine.repeatType || 'daily'
-      this.repeatDaily = Number.isFinite(+routine.repeatEveryDays) && +routine.repeatEveryDays >= 0 ? +routine.repeatEveryDays : 0
+      const hasEvery = routine.repeatEveryDays != null && routine.repeatEveryDays !== ''
+      const isTodayOnly = this.repeatType === 'daily' && routine.startDate && routine.endDate && eqDateObj(routine.startDate, routine.endDate)
+      this.repeatDaily = this.repeatType === 'daily'
+        ? (hasEvery ? Math.max(0, Math.min(6, parseInt(routine.repeatEveryDays,10) || 0)) : (isTodayOnly ? 0 : null))
+        : null
       this.repeatWeeks = routine.repeatWeeks || ''
       this.repeatWeekDays = routine.repeatWeekDays || []
       this.repeatMonthDays = routine.repeatMonthDays || []
