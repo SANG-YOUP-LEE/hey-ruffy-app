@@ -1,4 +1,3 @@
-// src/stores/alarm.js
 import { defineStore } from 'pinia'
 
 function postIOS(payload){ try{ window.webkit?.messageHandlers?.notify?.postMessage(payload) }catch(_){} }
@@ -53,6 +52,10 @@ function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval=0
   if(repeatType==='weekly'){
     const label=(weekDays||[]).map(n=>WD_LABEL[(n-1+7)%7]).join('')
     return `${label||'주간'} ${timeStr}`
+  }
+  if(repeatType==='monthly'){
+    const d=startDate?asLocalDate(startDate):new Date()
+    return `${d.getDate()}일 ${timeStr}`
   }
   const d=startDate?asLocalDate(startDate):new Date()
   const [hh,mm]=timeStr.split(':').map(Number)
@@ -109,6 +112,11 @@ export const useAlarmStore = defineStore('alarm', {
       postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, link, repeatType:'weekly' })
       this.lastScheduledIds.add(id)
     },
+    // ✅ 월간 추가
+    scheduleMonthly({ id, title, subtitle, day, hour, minute, link }){
+      postIOS({ action:'scheduleMonthly', id, title, subtitle, day, hour, minute, link, repeatType:'monthly' })
+      this.lastScheduledIds.add(id)
+    },
 
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
@@ -158,6 +166,17 @@ export const useAlarmStore = defineStore('alarm', {
           link
         })
         return { ok:true, scheduled:true, type:'weekly', weekdays: iosWeekdays }
+      }
+
+      if(form.repeatType==='monthly'){
+        const d=asLocalDate(form.startDate||new Date())
+        this.scheduleMonthly({
+          id, title, subtitle,
+          day: d.getDate(),
+          hour: hm.hour, minute: hm.minute,
+          link
+        })
+        return { ok:true, scheduled:true, type:'monthly', day: d.getDate() }
       }
 
       const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(form.startDate||new Date()))
