@@ -6,13 +6,13 @@
           <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
           <span class="toggle-text" @click="openPopup">알람 설정</span>
         </div>
-        <span class="txt disabled" title="준비중">알람 먼저 허용하기</span>
+        <span class="txt disabled">알람 먼저 허용하기</span>
       </div>
 
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">{{ formattedAlarm }}</div>
         <!-- ⬇︎ 여기: '삭제' 대신 '수정'으로 변경, clearAlarm 호출 안 함 -->
-        <a href="javascript:void(0)" class="txt">알람 수정하기</a>>
+        <button type="button" class="txt link" @click="openPopup">알람 수정하기</button>
       </div>
     </div>
 
