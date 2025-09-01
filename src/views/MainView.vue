@@ -100,4 +100,8 @@ const { initVH, disposeVH } = useVH()
 onMounted(async () => { initVH(); await initBinding(); update() })
 onBeforeUnmount(() => { disposeVH(); disposeBinding() })
 
+watchEffect(() => {
+  mv.setLoading(rStore.isLoading)
+  mv.setFetched(rStore.hasFetched)
+})
 </script>
