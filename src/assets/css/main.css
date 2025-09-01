@@ -152,7 +152,6 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch!important;
   padding-bottom: var(--footer-h, 8rem);
-  overscroll-behavior: contain;
   touch-action: pan-y !important;
   padding-top: 1px;
   margin-top: -1px;

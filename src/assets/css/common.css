@@ -68,7 +68,6 @@ body,
   -webkit-tap-highlight-color: transparent;
   text-align: center;
   overscroll-behavior: none;
-  touch-action: none;
 }
 
 @media (max-width: 375px) {

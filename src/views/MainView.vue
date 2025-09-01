@@ -100,5 +100,4 @@ const { initVH, disposeVH } = useVH()
 onMounted(async () => { initVH(); await initBinding(); update() })
 onBeforeUnmount(() => { disposeVH(); disposeBinding() })
 
-watchEffect(() => { mv.setScrolled(scrolledRef.value); mv.setHeaderShort(headerShortRef.value); mv.setLoading(rStore.isLoading); mv.setFetched(rStore.hasFetched); update() })
 </script>

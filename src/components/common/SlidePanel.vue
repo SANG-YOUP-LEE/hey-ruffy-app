@@ -1,11 +1,11 @@
 <template>
   <teleport to="body">
-    <div class="sp" :style="{ zIndex: String(zIndex) }">
+    <div v-if="show" class="sp" :style="{ zIndex: String(zIndex) }">
       <transition name="sp-fade">
-        <div v-if="show && dim" class="sp_overlay" @click="emit('close')"></div>
+        <div v-if="dim" class="sp_overlay" @click="emit('close')"></div>
       </transition>
       <transition name="sp-slide">
-        <div v-if="show" class="sp_panel" :style="{ width, height: 'calc(var(--vh, 1vh) * 100)' }">
+        <div class="sp_panel" :style="{ width, height: 'calc(var(--vh, 1vh) * 100)' }">
           <slot />
         </div>
       </transition>
@@ -21,5 +21,5 @@ const props = defineProps({
   zIndex: { type: [Number, String], default: 1200 }
 })
 
-const emit = defineEmits(['close']) // ← 선언
+const emit = defineEmits(['close'])
 </script>
