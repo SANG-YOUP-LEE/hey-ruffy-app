@@ -202,39 +202,43 @@ async function saveRoutine() {
     const routineId = data.id || data.routineId || data.docId || Date.now().toString()
     const id = `rt_${routineId}`
 
-    // 제목(필수) — 너무 길면 자름
     let title = (form.title || '').trim()
     if (!title) throw new Error('title empty')
     const MAX_LEN = 20
     if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
-    // 부제목(반복/시간)
-    const { hour, minute } = parseHourMinute(form.alarmTime)
-    const iosWeekdays = toIOSWeekdayNums(form.repeatWeekDays)
-    const subtitle = buildSubtitle(form.repeatType, iosWeekdays, form.startDate, form.alarmTime)
+    // 알람 파싱
+    const hm = parseAlarmTime(form.alarmTime)
+    if (!hm) {
+      gotoFinish(r.data)
+      return
+    }
 
-    // 알림 탭 시 이동
+    const iosWeekdays = toIOSWeekdayNums(form.repeatWeekDays)
+    const subtitle = buildSubtitle(form.repeatType, iosWeekdays, form.startDate, `${String(hm.hour).padStart(2,'0')}:${String(hm.minute).padStart(2,'0')}`)
     const link = `heyruffy://main?r=${encodeURIComponent(routineId)}`
 
-    // 🔥 수정 시 남아있을 수 있는 기존 예약들 제거(특히 주간 요일 변경 케이스)
-    postIOS({ action: 'cancel', id })   // id 프리픽스 전체 지움 (daily, weekly 모두 커버)
+    postIOS({ action: 'cancel', id })
 
-    // iOS에 전송 (본문은 네이티브에서 title을 body로 사용하므로 body 미전송)
     if (form.repeatType === 'daily') {
-      postIOS({ action: 'scheduleDaily', id, title, subtitle, hour, minute, link })
+      postIOS({ action: 'scheduleDaily', id, title, subtitle, hour: hm.hour, minute: hm.minute, link })
     } else if (form.repeatType === 'weekly') {
-      postIOS({ action: 'scheduleWeekly', id, title, subtitle, hour, minute, weekdays: iosWeekdays, link })
+      if (!iosWeekdays?.length) { gotoFinish(r.data); return }
+      postIOS({ action: 'scheduleWeekly', id, title, subtitle, hour: hm.hour, minute: hm.minute, weekdays: iosWeekdays, link })
     } else {
       const base = form.startDate ? new Date(form.startDate) : new Date()
-      base.setHours(hour); base.setMinutes(minute); base.setSeconds(0); base.setMilliseconds(0)
+      base.setHours(hm.hour); base.setMinutes(hm.minute); base.setSeconds(0); base.setMilliseconds(0)
       postIOS({ action: 'scheduleOnce', id, title, subtitle, timestamp: base.getTime(), link })
     }
   } catch (e) {
     console.warn('notify post skipped:', e)
   }
 
-  // 원래 흐름 유지
-  emit('save', r.data)
+  gotoFinish(r.data)
+}
+
+function gotoFinish(data) {
+  emit('save', data)
   unlockScroll()
   emit('close')
 }
@@ -258,31 +262,47 @@ onBeforeUnmount(() => {
 function postIOS(payload) {
   try { window.webkit?.messageHandlers?.notify?.postMessage(payload) } catch (_) {}
 }
-function parseHourMinute(v) {
-  if (!v) return { hour: 9, minute: 0 }
+
+// ✅ 새로 정의: 기본값(9:00) 강제 제거
+function parseAlarmTime(v) {
+  if (!v) return null
   if (typeof v === 'string') {
-    const m = v.match(/^(\d{1,2}):(\d{2})/)
-    if (m) return { hour: Number(m[1]), minute: Number(m[2]) }
+    const m = v.match(/^(\d{1,2}):(\d{2})$/)
+    if (!m) return null
+    const h = Number(m[1]), mi = Number(m[2])
+    if (Number.isNaN(h) || Number.isNaN(mi)) return null
+    if (h < 0 || h > 23 || mi < 0 || mi > 59) return null
+    return { hour: h, minute: mi }
   }
-  const d = new Date(v)
-  return isNaN(d.getTime()) ? { hour: 9, minute: 0 } : { hour: d.getHours(), minute: d.getMinutes() }
+  const a = String(v.ampm || '').toLowerCase()
+  const hh = v.hour != null ? String(v.hour).padStart(2, '0') : ''
+  const mm = v.minute != null ? String(v.minute).padStart(2, '0') : ''
+  if (!/^\d{2}$/.test(hh) || !/^\d{2}$/.test(mm)) return null
+  let h12 = Number(hh), m = Number(mm)
+  if (h12 < 1 || h12 > 12 || m < 0 || m > 59) return null
+  const isPM = a.includes('pm') || a.includes('오후')
+  const isAM = a.includes('am') || a.includes('오전')
+  if (!isAM && !isPM) return null
+  let h24 = h12 % 12
+  if (isPM) h24 += 12
+  return { hour: h24, minute: m }
 }
+
 function toIOSWeekdayNums(arr) {
   if (!Array.isArray(arr)) return []
-  // 1=일 ~ 7=토 규격으로 맞춤 (0~6 형태면 +1)
   return arr.map(n => (n >= 1 && n <= 7) ? n : ((n % 7) + 1))
 }
+
 const WD_LABEL = ['일','월','화','수','목','금','토']
-function buildSubtitle(repeatType, weekDays, startDate, alarmTime) {
-  const { hour, minute } = parseHourMinute(alarmTime)
-  const timeStr = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`
+function buildSubtitle(repeatType, weekDays, startDate, timeStr) {
   if (repeatType === 'daily') return `매일 ${timeStr}`
   if (repeatType === 'weekly') {
     const label = (weekDays || []).map(n => WD_LABEL[(n >= 1 && n <= 7) ? n-1 : n%7]).join('')
     return `${label || '주간'} ${timeStr}`
   }
   const d = startDate ? new Date(startDate) : new Date()
-  d.setHours(hour); d.setMinutes(minute); d.setSeconds(0); d.setMilliseconds(0)
+  const [hh, mm] = timeStr.split(':').map(Number)
+  d.setHours(hh); d.setMinutes(mm); d.setSeconds(0); d.setMilliseconds(0)
   const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0')
   return `${y}-${m}-${day} ${timeStr}`
 }
