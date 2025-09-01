@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount, watchEffect } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
