@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, watchEffect } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
@@ -323,4 +323,8 @@ function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval =
   const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0')
   return `${y}-${m}-${day} ${timeStr}`
 }
+
+// 오늘만 함수추가
+
+
 </script>
