@@ -89,7 +89,7 @@
 <script setup>
 import { computed } from 'vue'
 
-const dailyIntervalButtons1 = [{k:'매일',v:1},{k:'2일마다',v:2},{k:'3일마다',v:3}]
+const dailyIntervalButtons1 = [{k:'오늘만',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
 const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
 const weeklyButtons1 = ['매주','2주마다','3주마다']
 const weeklyButtons2 = ['4주마다','5주마다','6주마다']
@@ -98,8 +98,7 @@ const weeklyButtons4 = ['목','금','토','일']
 
 const props = defineProps({
   repeatType: { type: String, default: 'daily' },
-  // ✅ 숫자로 고정
-  daily: { type: Number, default: 1 },
+  daily: { type: Number, default: 0 },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
   monthDays: { type: Array, default: () => [] }
@@ -132,7 +131,7 @@ const selectedDates = computed({
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   if (tab === 'daily') {
-    emit('update:daily', 1) // ✅ 기본값을 숫자 1로 세팅
+    emit('update:daily', 0)
   } else if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
