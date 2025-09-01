@@ -6,12 +6,13 @@
           <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
           <span class="toggle-text" @click="openPopup">알람 설정</span>
         </div>
-        <a href="#none" class="txt">알람 먼저 허용하기</a>
+        <span class="txt disabled" title="준비중">알람 먼저 허용하기</span>
       </div>
 
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">{{ formattedAlarm }}</div>
-        <a href="#none" class="txt" @click.prevent="clearAlarm">알람 삭제 하기</a>
+        <!-- ⬇︎ 여기: '삭제' 대신 '수정'으로 변경, clearAlarm 호출 안 함 -->
+        <a href="#none" class="txt" @click.prevent="openPopup">알람 수정하기</a>
       </div>
     </div>
 
@@ -58,6 +59,7 @@ const hasTime = computed(() => {
     && /^\d{2}$/.test(v.minute || '')
 })
 
+/** 토글 ON: 팝업 열기 / OFF: 완전 삭제 */
 const isOn = computed({
   get: () => hasTime.value,
   set: (val) => {
@@ -84,9 +86,10 @@ const openPopup = () => { showAlarmPopup.value = true }
 
 const closePopup = () => {
   showAlarmPopup.value = false
-  if (hasTime.value) scheduleDailyNow()
+  if (hasTime.value) scheduleDailyNow()  // 수정 완료되면 재스케줄
 }
 
+/** 토글 OFF 시 완전 삭제 */
 const clearAlarm = () => {
   const empty = { ampm:'', hour:'', minute:'' }
   if (!isEqual(inner.value, empty)) {
@@ -103,7 +106,7 @@ function scheduleDailyNow() {
   if (!hm) return
   const id = String(alarmId() || 'inline')
 
-  // 중복/이전 등록 제거 후 재등록
+  // 중복 방지: 동일 ID 제거 후 등록
   cancelOnIOS(id)
   scheduleOnIOS({
     id,
