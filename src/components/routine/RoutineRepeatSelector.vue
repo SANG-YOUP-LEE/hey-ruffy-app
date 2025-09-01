@@ -11,21 +11,21 @@
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
       <div class="s_group">
         <span
-          v-for="btn in dailyButtonsGroup1"
-          :key="'d1-'+btn"
+          v-for="btn in dailyIntervalButtons1"
+          :key="'di1-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
-          @click="selectDailyBtn(btn)"
-        >{{ btn }}</span>
+          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
+          @click="selectDailyInterval(btn.v)"
+        >{{ btn.k }}</span>
       </div>
       <div class="s_group">
         <span
-          v-for="btn in dailyButtonsGroup2"
-          :key="'d2-'+btn"
+          v-for="btn in dailyIntervalButtons2"
+          :key="'di2-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDaily.includes(btn), light: selectedDaily.includes(btn) }"
-          @click="selectDailyBtn(btn)"
-        >{{ btn }}</span>
+          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
+          @click="selectDailyInterval(btn.v)"
+        >{{ btn.k }}</span>
       </div>
     </div>
 
@@ -89,8 +89,8 @@
 <script setup>
 import { computed } from 'vue'
 
-const dailyButtonsGroup1 = ['매일','월','화','수']
-const dailyButtonsGroup2 = ['목','금','토','일']
+const dailyIntervalButtons1 = [{k:'매일',v:1},{k:'2일마다',v:2},{k:'3일마다',v:3}]
+const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
 const weeklyButtons1 = ['매주','2주마다','3주마다']
 const weeklyButtons2 = ['4주마다','5주마다','6주마다']
 const weeklyButtons3 = ['매일','월','화','수']
@@ -98,7 +98,8 @@ const weeklyButtons4 = ['목','금','토','일']
 
 const props = defineProps({
   repeatType: { type: String, default: 'daily' },
-  daily: { type: Array, default: () => [] },
+  // ✅ 숫자로 고정
+  daily: { type: Number, default: 1 },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
   monthDays: { type: Array, default: () => [] }
@@ -111,9 +112,9 @@ const selectedTab = computed({
   get: () => props.repeatType || 'daily',
   set: v => emit('update:repeatType', v)
 })
-const selectedDaily = computed({
+const selectedDailyInterval = computed({
   get: () => props.daily,
-  set: v => emit('update:daily', Array.isArray(v) ? [...v] : [])
+  set: v => emit('update:daily', v)
 })
 const selectedWeeklyMain = computed({
   get: () => props.weeks,
@@ -131,7 +132,7 @@ const selectedDates = computed({
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   if (tab === 'daily') {
-    selectedDaily.value = []
+    emit('update:daily', 1) // ✅ 기본값을 숫자 1로 세팅
   } else if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
@@ -140,22 +141,8 @@ const handleTabClick = (tab) => {
   }
 }
 
-const selectDailyBtn = (btn) => {
-  const cur = [...selectedDaily.value]
-  if (btn === '매일') {
-    selectedDaily.value = cur.includes('매일') ? [] : ['매일','월','화','수','목','금','토','일']
-    return
-  }
-  if (cur.includes(btn)) {
-    const next = cur.filter(d => d !== btn)
-    selectedDaily.value = next.includes('매일') && next.length < 8 ? next.filter(d => d !== '매일') : next
-  } else {
-    cur.push(btn)
-    const allDays = ['월','화','수','목','금','토','일']
-    const hasAll = allDays.every(d => cur.includes(d))
-    if (hasAll && !cur.includes('매일')) cur.unshift('매일')
-    selectedDaily.value = cur
-  }
+const selectDailyInterval = (n) => {
+  selectedDailyInterval.value = n
 }
 
 const selectWeeklyMain = (btn) => {

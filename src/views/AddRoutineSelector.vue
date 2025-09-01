@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, watchEffect } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
@@ -177,6 +177,14 @@ function autoHideErrors() {
   })
 }
 
+/* ✅ 추가: daily가 숫자(1~6)가 아니면 강제 보정 */
+watchEffect(() => {
+  const v = form.repeatDaily
+  if (!Number.isInteger(v) || v < 1 || v > 6) {
+    form.repeatDaily = 1
+  }
+})
+
 async function saveRoutine() {
   const pre = form.validate()
   if (!pre) {
@@ -196,7 +204,6 @@ async function saveRoutine() {
     return
   }
 
-  // === ✅ iOS 로컬알림 예약 (저장 성공 직후) ===
   try {
     const data = r.data || {}
     const routineId = data.id || data.routineId || data.docId || Date.now().toString()
@@ -207,7 +214,6 @@ async function saveRoutine() {
     const MAX_LEN = 20
     if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
-    // 알람 파싱
     const hm = parseAlarmTime(form.alarmTime)
     if (!hm) {
       gotoFinish(r.data)
@@ -215,13 +221,30 @@ async function saveRoutine() {
     }
 
     const iosWeekdays = toIOSWeekdayNums(form.repeatWeekDays)
-    const subtitle = buildSubtitle(form.repeatType, iosWeekdays, form.startDate, `${String(hm.hour).padStart(2,'0')}:${String(hm.minute).padStart(2,'0')}`)
+    const dailyInterval = (form.repeatType === 'daily')
+      ? (Number.isInteger(form.repeatDaily) ? form.repeatDaily : 1)
+      : 1
+
+    const subtitle = buildSubtitle(
+      form.repeatType,
+      iosWeekdays,
+      form.startDate,
+      `${String(hm.hour).padStart(2,'0')}:${String(hm.minute).padStart(2,'0')}`,
+      dailyInterval
+    )
     const link = `heyruffy://main?r=${encodeURIComponent(routineId)}`
 
     postIOS({ action: 'cancel', id })
 
     if (form.repeatType === 'daily') {
-      postIOS({ action: 'scheduleDaily', id, title, subtitle, hour: hm.hour, minute: hm.minute, link })
+      postIOS({
+        action: 'scheduleDaily',
+        id, title, subtitle,
+        hour: hm.hour, minute: hm.minute,
+        interval: dailyInterval,
+        startDate: form.startDate || null,
+        link
+      })
     } else if (form.repeatType === 'weekly') {
       if (!iosWeekdays?.length) { gotoFinish(r.data); return }
       postIOS({ action: 'scheduleWeekly', id, title, subtitle, hour: hm.hour, minute: hm.minute, weekdays: iosWeekdays, link })
@@ -258,12 +281,10 @@ onBeforeUnmount(() => {
   form.clearErrors()
 })
 
-/* ===== iOS 브릿지 유틸 ===== */
 function postIOS(payload) {
   try { window.webkit?.messageHandlers?.notify?.postMessage(payload) } catch (_) {}
 }
 
-// ✅ 새로 정의: 기본값(9:00) 강제 제거
 function parseAlarmTime(v) {
   if (!v) return null
   if (typeof v === 'string') {
@@ -294,8 +315,10 @@ function toIOSWeekdayNums(arr) {
 }
 
 const WD_LABEL = ['일','월','화','수','목','금','토']
-function buildSubtitle(repeatType, weekDays, startDate, timeStr) {
-  if (repeatType === 'daily') return `매일 ${timeStr}`
+function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval = 1) {
+  if (repeatType === 'daily') {
+    return (dailyInterval === 1) ? `매일 ${timeStr}` : `${dailyInterval}일마다 ${timeStr}`
+  }
   if (repeatType === 'weekly') {
     const label = (weekDays || []).map(n => WD_LABEL[(n >= 1 && n <= 7) ? n-1 : n%7]).join('')
     return `${label || '주간'} ${timeStr}`
@@ -307,4 +330,3 @@ function buildSubtitle(repeatType, weekDays, startDate, timeStr) {
   return `${y}-${m}-${day} ${timeStr}`
 }
 </script>
-
