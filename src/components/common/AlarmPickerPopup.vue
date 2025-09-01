@@ -22,7 +22,7 @@
           :key="pickerKey + '-h'"
           v-model="selectedHour"
           :options="hourLoopOptions"
-          :drag-sensitivity="0.2"
+          :drag-sensitivity="0.1"
           :touch-sensitivity="3"
           :scroll-sensitivity="3"
         />
@@ -30,7 +30,7 @@
           :key="pickerKey + '-m'"
           v-model="selectedMinute"
           :options="minuteLoopOptions"
-          :drag-sensitivity="0.2"
+          :drag-sensitivity="0.1"
           :touch-sensitivity="3"
           :scroll-sensitivity="3"
         />
