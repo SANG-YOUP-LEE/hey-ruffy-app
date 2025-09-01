@@ -152,8 +152,6 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch!important;
   touch-action: pan-y !important;
-  padding-top: 0.5rem;   
-  margin-top: -0,5rem;   
 }
 
 @supports (-webkit-touch-callout: none) {
