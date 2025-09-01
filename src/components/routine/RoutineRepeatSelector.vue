@@ -14,7 +14,7 @@
           v-for="btn in dailyIntervalButtons1"
           :key="'di1-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
+          :class="{ on_w: selectedDailyInterval === btn.v && selectedDailyInterval !== null, light: selectedDailyInterval === btn.v && selectedDailyInterval !== null }"
           @click="selectDailyInterval(btn.v)"
         >{{ btn.k }}</span>
       </div>
@@ -23,7 +23,7 @@
           v-for="btn in dailyIntervalButtons2"
           :key="'di2-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
+          :class="{ on_w: selectedDailyInterval === btn.v && selectedDailyInterval !== null, light: selectedDailyInterval === btn.v && selectedDailyInterval !== null }"
           @click="selectDailyInterval(btn.v)"
         >{{ btn.k }}</span>
       </div>
@@ -98,7 +98,7 @@ const weeklyButtons4 = ['목','금','토','일']
 
 const props = defineProps({
   repeatType: { type: String, default: 'daily' },
-  daily: { type: Number, default: 0 },
+  daily: { type: Number, default: null },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
   monthDays: { type: Array, default: () => [] }
@@ -131,7 +131,7 @@ const selectedDates = computed({
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   if (tab === 'daily') {
-    emit('update:daily', 0)
+    emit('update:daily', null)
   } else if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
