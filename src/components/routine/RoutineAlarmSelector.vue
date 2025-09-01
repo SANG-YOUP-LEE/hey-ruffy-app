@@ -99,13 +99,17 @@ const clearAlarm = () => {
 
 function scheduleDailyNow() {
   if (!hasTime.value) return
-  const { hour24, minute } = to24h(inner.value)
-  const id = alarmId()
+  const hm = to24h(inner.value)
+  if (!hm) return
+  const id = String(alarmId() || 'inline')
+
+  // 중복/이전 등록 제거 후 재등록
+  cancelOnIOS(id)
   scheduleOnIOS({
-    id: String(id || 'inline'),
-    name: props.routineTitle,
+    id,
+    name: props.routineTitle || 'HeyRuffy',
     repeatMode: 'daily',
-    alarm: { hour: hour24, minute }
+    alarm: { hour: hm.hour24, minute: hm.minute }
   })
 }
 
@@ -135,11 +139,14 @@ function pad2(n) {
   return s.padStart(2, '0')
 }
 function to24h({ ampm, hour, minute }) {
-  const tag = (ampm === 'PM' || ampm === '오후') ? 'PM' : 'AM'
+  if (!(ampm === '오전' || ampm === '오후')) return null
+  if (!/^\d{2}$/.test(hour || '') || !/^\d{2}$/.test(minute || '')) return null
   let h = Number(hour)
   const m = Number(minute)
-  if (tag === 'PM' && h < 12) h += 12
-  if (tag === 'AM' && h === 12) h = 0
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  if (h < 1 || h > 12 || m < 0 || m > 59) return null
+  if (ampm === '오후' && h < 12) h += 12
+  if (ampm === '오전' && h === 12) h = 0
   return { hour24: h, minute: m }
 }
 </script>
