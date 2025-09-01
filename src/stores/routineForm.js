@@ -70,11 +70,17 @@ export const useRoutineFormStore = defineStore('routineForm', {
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+
       if (state.repeatType === 'daily') {
         const n = Number.isInteger(state.repeatDaily) ? state.repeatDaily : 0
-        const interval = n === 0 ? 1 : Math.min(6, Math.max(1, n))
+        if (n === 0) {
+          // ✅ 오늘만
+          return { freq: 'once', anchor: anchorISO }
+        }
+        const interval = Math.min(6, Math.max(1, n))
         return { freq: 'daily', interval, anchor: anchorISO }
       }
+
       if (state.repeatType === 'weekly') {
         const interval = parseInterval(state.repeatWeeks)
         return { freq: 'weekly', interval, anchor: anchorISO, byWeekday: weeklyDaysToICS(state.repeatWeekDays) }
@@ -94,7 +100,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
         title: state.title,
         repeatType: state.repeatType,
         repeatDays: [],
-        repeatEveryDays: dailyInterval,
+        repeatEveryDays: state.repeatType === 'daily'
+          ? (dailyInterval > 0 ? dailyInterval : null)   // ✅ 오늘만이면 null
+          : null,
         repeatWeeks: state.repeatType === 'weekly' ? state.repeatWeeks || '' : '',
         repeatWeekDays: state.repeatType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
         repeatMonthDays: state.repeatType === 'monthly' ? [...(state.repeatMonthDays||[])] : [],

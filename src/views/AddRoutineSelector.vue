@@ -207,15 +207,14 @@ async function saveRoutine() {
     if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
     const hm = parseAlarmTime(form.alarmTime)
-    if (!hm) {
-      gotoFinish(r.data)
-      return
-    }
+    if (!hm) { gotoFinish(r.data); return }
 
     const iosWeekdays = toIOSWeekdayNums(form.repeatWeekDays)
+
+    // ✅ “매일” 없음: 0(오늘만) 또는 2~6일
     const dailyInterval = (form.repeatType === 'daily')
-      ? (Number.isInteger(form.repeatDaily) ? form.repeatDaily : 1)
-      : 1
+      ? (Number.isInteger(form.repeatDaily) ? form.repeatDaily : 0)  // 기본 0
+      : 0
 
     const subtitle = buildSubtitle(
       form.repeatType,
@@ -228,12 +227,17 @@ async function saveRoutine() {
 
     postIOS({ action: 'cancel', id })
 
-    if (form.repeatType === 'daily') {
+    // ✅ 오늘만(0) → scheduleOnce, 2~6일마다 → scheduleDaily(interval)
+    if (form.repeatType === 'daily' && dailyInterval === 0) {
+      const base = form.startDate ? new Date(form.startDate) : new Date()
+      base.setHours(hm.hour); base.setMinutes(hm.minute); base.setSeconds(0); base.setMilliseconds(0)
+      postIOS({ action: 'scheduleOnce', id, title, subtitle, timestamp: base.getTime(), link })
+    } else if (form.repeatType === 'daily') {
       postIOS({
         action: 'scheduleDaily',
         id, title, subtitle,
         hour: hm.hour, minute: hm.minute,
-        interval: dailyInterval,
+        interval: dailyInterval,          // 2~6
         startDate: form.startDate || null,
         link
       })
@@ -260,11 +264,8 @@ function gotoFinish(data) {
 
 onMounted(() => {
   lockScroll()
-  if (props.routineToEdit) {
-    form.initFrom(props.routineToEdit)
-  } else {
-    form.reset()
-  }
+  if (props.routineToEdit) form.initFrom(props.routineToEdit)
+  else form.reset()
 })
 
 onBeforeUnmount(() => {
@@ -307,10 +308,10 @@ function toIOSWeekdayNums(arr) {
 }
 
 const WD_LABEL = ['일','월','화','수','목','금','토']
-function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval = 1) {
+function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval = 0) {
   if (repeatType === 'daily') {
     if (dailyInterval === 0) return `오늘만 ${timeStr}`
-    return (dailyInterval === 1) ? `매일 ${timeStr}` : `${dailyInterval}일마다 ${timeStr}`
+    return `${dailyInterval}일마다 ${timeStr}`   // 2~6만 존재
   }
   if (repeatType === 'weekly') {
     const label = (weekDays || []).map(n => WD_LABEL[(n >= 1 && n <= 7) ? n-1 : n%7]).join('')
