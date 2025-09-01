@@ -95,18 +95,21 @@ export const useAlarmStore = defineStore('alarm', {
   actions: {
     setPermission(p){ this.permission=p },
     cancel(id){ postIOS({ action:'cancel', id }) },
+
+    // ✅ repeatType 추가
     scheduleOnce({ id, title, subtitle, timestamp, link }){
-      postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link })
+      postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link, repeatType:'daily' })
       this.lastScheduledIds.add(id)
     },
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){
-      postIOS({ action:'scheduleDaily', id, title, subtitle, hour, minute, interval, startDate:startDate||null, link })
+      postIOS({ action:'scheduleDaily', id, title, subtitle, hour, minute, interval, startDate:startDate||null, link, repeatType:'daily' })
       this.lastScheduledIds.add(id)
     },
     scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, link }){
-      postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, link })
+      postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, link, repeatType:'weekly' })
       this.lastScheduledIds.add(id)
     },
+
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
       if(!hm) return null
@@ -116,6 +119,7 @@ export const useAlarmStore = defineStore('alarm', {
       const subtitle=buildSubtitle(form.repeatType, iosWeekdays, form.startDate, timeStr, dailyInterval)
       return { hm, iosWeekdays, dailyInterval, subtitle, timeStr }
     },
+
     scheduleFromForm(form, meta){
       if(this.permission==='denied') return { ok:false, reason:'permission_denied' }
       const built=this.buildFromForm(form)
