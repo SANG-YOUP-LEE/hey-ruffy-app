@@ -37,8 +37,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     routineId: null,
     title: '',
     repeatType: 'daily',
-    // ✅ 일간: 숫자 interval(1~6)로 전환
-    repeatDaily: 1,
+    repeatDaily: 0,
     repeatWeeks: '',
     repeatWeekDays: [],
     repeatMonthDays: [],
@@ -71,34 +70,36 @@ export const useRoutineFormStore = defineStore('routineForm', {
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
-      // ✅ 일간 interval은 repeatDaily(숫자) 사용, 주간은 기존 weeks 파싱
-      const interval =
-        state.repeatType === 'daily'
-          ? (Number.isInteger(state.repeatDaily) && state.repeatDaily > 0 ? state.repeatDaily : 1)
-          : parseInterval(state.repeatWeeks)
-
-      const base = { freq: state.repeatType, interval, anchor: anchorISO }
-      if (state.repeatType === 'weekly') return { ...base, byWeekday: weeklyDaysToICS(state.repeatWeekDays) }
-      if (state.repeatType === 'monthly') return { ...base, byMonthDay: (state.repeatMonthDays||[]).map(Number) }
-      return base
+      if (state.repeatType === 'daily') {
+        const n = Number.isInteger(state.repeatDaily) ? state.repeatDaily : 0
+        const interval = n === 0 ? 1 : Math.min(6, Math.max(1, n))
+        return { freq: 'daily', interval, anchor: anchorISO }
+      }
+      if (state.repeatType === 'weekly') {
+        const interval = parseInterval(state.repeatWeeks)
+        return { freq: 'weekly', interval, anchor: anchorISO, byWeekday: weeklyDaysToICS(state.repeatWeekDays) }
+      }
+      if (state.repeatType === 'monthly') {
+        return { freq: 'monthly', interval: 1, anchor: anchorISO, byMonthDay: (state.repeatMonthDays||[]).map(Number) }
+      }
+      return { freq: state.repeatType, interval: 1, anchor: anchorISO }
     },
     payload(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const hasEnd = !!safeISOFromDateObj(state.endDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+      const dailyInterval = state.repeatType === 'daily' ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : 0) : null
+      const endForTodayOnly = state.repeatType === 'daily' && dailyInterval === 0 ? anchorISO : null
       const cleaned = {
         title: state.title,
         repeatType: state.repeatType,
-        // ✅ 일간: 더 이상 요일 배열을 저장하지 않음. interval을 별도 필드로 저장.
-        repeatDays: [], // (이전 필드 호환: 빈 배열로 유지)
-        repeatEveryDays: state.repeatType === 'daily'
-          ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : 1)
-          : null,
+        repeatDays: [],
+        repeatEveryDays: dailyInterval,
         repeatWeeks: state.repeatType === 'weekly' ? state.repeatWeeks || '' : '',
         repeatWeekDays: state.repeatType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
         repeatMonthDays: state.repeatType === 'monthly' ? [...(state.repeatMonthDays||[])] : [],
         startDate: hasStart ? state.startDate : null,
-        endDate: hasEnd ? state.endDate : null,
+        endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
         alarmTime: state.alarmTime,
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
@@ -108,9 +109,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
         comment: sanitizeComment(state.comment),
         hasWalk: this.hasWalk,
         tz: state.tz,
-        rule: this.icsRule,        // ✅ 위에서 interval 반영된 규칙
+        rule: this.icsRule,
         start: anchorISO,
-        ...(hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})
+        ...(endForTodayOnly ? { end: anchorISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
       }
       return deepClean(cleaned)
     }
@@ -127,8 +128,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.routineId = null
       this.title = ''
       this.repeatType = 'daily'
-      // ✅ 일간 interval 기본값
-      this.repeatDaily = 1
+      this.repeatDaily = 0
       this.repeatWeeks = ''
       this.repeatWeekDays = []
       this.repeatMonthDays = []
@@ -150,10 +150,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.routineId = routine.id || null
       this.title = routine.title || ''
       this.repeatType = routine.repeatType || 'daily'
-      // ✅ 기존 데이터 호환: repeatEveryDays가 있으면 사용, 없으면 1
-      this.repeatDaily = Number.isFinite(+routine.repeatEveryDays) && +routine.repeatEveryDays > 0
-        ? +routine.repeatEveryDays
-        : 1
+      this.repeatDaily = Number.isFinite(+routine.repeatEveryDays) && +routine.repeatEveryDays >= 0 ? +routine.repeatEveryDays : 0
       this.repeatWeeks = routine.repeatWeeks || ''
       this.repeatWeekDays = routine.repeatWeekDays || []
       this.repeatMonthDays = routine.repeatMonthDays || []
@@ -196,9 +193,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.clearErrors()
       if (!this.title || String(this.title).trim() === '') { this.setError('title','다짐 제목을 입력해주세요.'); return false }
       if (!this.repeatType) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
-      // ✅ 일간 검증: 숫자 interval(1~6)
       if (this.repeatType === 'daily') {
-        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 1 || this.repeatDaily > 6) {
+        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
           this.setError('repeat','반복 주기를 선택해주세요.')
           return false
         }
