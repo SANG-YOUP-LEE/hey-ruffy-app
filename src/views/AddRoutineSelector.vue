@@ -135,7 +135,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount, watchEffect } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
@@ -176,14 +176,6 @@ function autoHideErrors() {
     }, 2500)
   })
 }
-
-/* ✅ 추가: daily가 숫자(1~6)가 아니면 강제 보정 */
-watchEffect(() => {
-  const v = form.repeatDaily
-  if (!Number.isInteger(v) || v < 1 || v > 6) {
-    form.repeatDaily = 1
-  }
-})
 
 async function saveRoutine() {
   const pre = form.validate()
@@ -317,6 +309,7 @@ function toIOSWeekdayNums(arr) {
 const WD_LABEL = ['일','월','화','수','목','금','토']
 function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval = 1) {
   if (repeatType === 'daily') {
+    if (dailyInterval === 0) return `오늘만 ${timeStr}`
     return (dailyInterval === 1) ? `매일 ${timeStr}` : `${dailyInterval}일마다 ${timeStr}`
   }
   if (repeatType === 'weekly') {
