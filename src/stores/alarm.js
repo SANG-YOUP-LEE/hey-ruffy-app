@@ -27,19 +27,13 @@ function parseAlarmTime(v){
   return {hour:hh, minute:mm}
 }
 
+// ✅ (교체) 요일 매핑: 월=1…일=7 → iOS(일=1…토=7)로 확정 변환
 function toIOSWeekdayNums(arr){
   if(!Array.isArray(arr)) return []
-  const raw=arr.map(n=>+n).filter(Number.isInteger)
-  const hasZero=raw.some(n=>n===0)
-  const maxVal=raw.reduce((a,b)=>Math.max(a,b),-Infinity)
-  return raw.map(n=>{
-    if(hasZero) return ((n+1-1)%7)+1
-    if(maxVal<=7){
-      if(raw.includes(7)&&!raw.includes(1)) return (n%7)+1
-      return (n>=1&&n<=7)?n:((n%7)+1)
-    }
-    return ((n%7)+1)
-  })
+  const mapMonFirstToApple = {1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:1}
+  return arr
+    .map(n => mapMonFirstToApple[Number(n)] ?? null)
+    .filter(n => Number.isInteger(n) && n>=1 && n<=7)
 }
 
 const WD_LABEL=['일','월','화','수','목','금','토']
@@ -100,8 +94,9 @@ export const useAlarmStore = defineStore('alarm', {
     cancel(id){ postIOS({ action:'cancel', id }) },
 
     // ✅ repeatType 추가
+    // ✅ (교체) once 타입 올바르게 표시
     scheduleOnce({ id, title, subtitle, timestamp, link }){
-      postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link, repeatType:'daily' })
+      postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link, repeatType:'once' })
       this.lastScheduledIds.add(id)
     },
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){

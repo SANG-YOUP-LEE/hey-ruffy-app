@@ -54,7 +54,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             IOSAlarmScheduler.cancel(byPrefix: id)
 
         case "scheduleOnce":
-            // JS timestamp(ms) → Date
             let ts = (dict["timestamp"] as? Double) ?? 0
             let fire = Date(timeIntervalSince1970: ts/1000.0)
             IOSAlarmScheduler.scheduleOnce(
@@ -68,9 +67,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         case "scheduleDaily":
             let hour = dict["hour"] as? Int ?? 9
             let minute = dict["minute"] as? Int ?? 0
-            let interval = max(1, dict["interval"] as? Int ?? 1) // 1=매일, 2+=N일마다(선예약)
+            let interval = max(1, dict["interval"] as? Int ?? 1) // 1=매일, 2+=N일마다
+            let startDateStr = dict["startDate"] as? String // "YYYY-MM-DD" 기대
             IOSAlarmScheduler.scheduleDaily(
-                hour: hour, minute: minute, intervalDays: interval, baseId: id,
+                hour: hour, minute: minute, intervalDays: interval, startDate: startDateStr, baseId: id,
                 title: "[Daily] \(rawTitle)",
                 subtitle: subtitle, soundName: soundName
             )
@@ -79,16 +79,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             let hour = dict["hour"] as? Int ?? 9
             let minute = dict["minute"] as? Int ?? 0
             let weekdays = (dict["weekdays"] as? [Int] ?? [2]).map { min(max($0,1),7) } // 1=일…7=토
-            // 요일 7개면 사실상 매일 → Daily로 전환
-            if Set(weekdays).count == 7 {
+            let intervalWeeks = max(1, dict["intervalWeeks"] as? Int ?? 1)
+            if Set(weekdays).count == 7 && intervalWeeks == 1 {
                 IOSAlarmScheduler.scheduleDaily(
-                    hour: hour, minute: minute, intervalDays: 1, baseId: id,
+                    hour: hour, minute: minute, intervalDays: 1, startDate: nil, baseId: id,
                     title: "[Daily] \(rawTitle)",
                     subtitle: subtitle, soundName: soundName
                 )
             } else {
                 IOSAlarmScheduler.scheduleWeekly(
-                    hour: hour, minute: minute, intervalWeeks: 1, weekdays: weekdays, baseId: id,
+                    hour: hour, minute: minute, intervalWeeks: intervalWeeks, weekdays: weekdays, baseId: id,
                     title: "[Weekly] \(rawTitle)",
                     subtitle: subtitle, soundName: soundName
                 )
@@ -142,7 +142,6 @@ struct IOSAlarmScheduler {
             for r in reqs {
                 guard let trig = r.trigger as? UNCalendarNotificationTrigger else { continue }
                 guard let next = trig.nextTriggerDate() else { continue }
-                // 같은 루틴(thread)인지
                 if r.content.threadIdentifier == key {
                     if abs(next.timeIntervalSince(fireDate)) <= dedupSlack {
                         completion(true); return
@@ -158,10 +157,7 @@ struct IOSAlarmScheduler {
         let key = threadKey(for: id)
         existsPending(at: date, baseId: id) { exists in
             if exists { print("dedup: once skipped"); return }
-
-            // 같은 시각의 기존 once를 덮어쓰기(항상 한 건만 유지)
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [onceIdentifier(for: id)])
-
             let content = buildContent(title: title, subtitle: subtitle, soundName: soundName, threadKey: key)
             var comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
             comps.second = comps.second ?? 0
@@ -171,58 +167,85 @@ struct IOSAlarmScheduler {
         }
     }
 
-    // === 매일 / N일마다 ===
-    static func scheduleDaily(hour: Int, minute: Int, intervalDays: Int, baseId: String, title: String, subtitle: String, soundName: String) {
+    // === 매일 / N일마다 (startDate 앵커 반영) ===
+    static func scheduleDaily(hour: Int, minute: Int, intervalDays: Int, startDate: String?, baseId: String, title: String, subtitle: String, soundName: String) {
         let cal = Calendar.current
         let now = Date()
-        var first = cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
-        if first <= now { first = cal.date(byAdding: .day, value: 1, to: first)! }
+        let anchor: Date = {
+            if let ymd = startDate, let d = dateFrom(ymd: ymd, hour: hour, minute: minute) {
+                return d
+            }
+            return cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
+        }()
 
-        // 같은 분에 이미 예약되어 있으면 Daily 자체를 스킵 (오늘만/다른 예약과 중복 방지)
-        existsPending(at: first, baseId: baseId) { exists in
-            if exists { print("dedup: daily skipped (conflict @ \(first))"); return }
-
-            if intervalDays == 1 {
+        var first = anchor
+        if intervalDays == 1 {
+            if first <= now {
+                first = cal.date(byAdding: .day, value: 1, to: first)!
+            }
+            existsPending(at: first, baseId: baseId) { exists in
+                if exists { print("dedup: daily(d1) skipped (conflict @ \(first))"); return }
                 var comp = DateComponents(); comp.hour = hour; comp.minute = minute
                 let content = buildContent(title: title, subtitle: subtitle, soundName: soundName, threadKey: threadKey(for: baseId))
                 let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
                 let req = UNNotificationRequest(identifier: "\(baseId)-d1", content: content, trigger: trig)
                 UNUserNotificationCenter.current().add(req) { e in print("daily(d1) add:", e as Any) }
-                return
             }
+            return
+        }
 
-            // N일마다: 선예약(120일 창)
+        // N일마다: startDate 기준으로 now 이후 첫 트리거로 정렬 + 선예약(최대 120일)
+        while first <= now { first = cal.date(byAdding: .day, value: intervalDays, to: first)! }
+        existsPending(at: first, baseId: baseId) { exists in
+            if exists { print("dedup: daily(d\(intervalDays)) skipped (first @ \(first))"); return }
             let center = UNUserNotificationCenter.current()
             let content = buildContent(title: title, subtitle: subtitle, soundName: soundName, threadKey: threadKey(for: baseId))
-            for i in stride(from: 0, through: 120, by: intervalDays) {
-                if let day = cal.date(byAdding: .day, value: i, to: first) {
-                    var dc = cal.dateComponents([.year,.month,.day], from: day)
-                    dc.hour = hour; dc.minute = minute
+            var day = first
+            for _ in stride(from: 0, through: 120, by: intervalDays) {
+                var dc = cal.dateComponents([.year,.month,.day], from: day)
+                dc.hour = hour; dc.minute = minute
+                if let fire = cal.date(from: dc) {
                     let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
-                    let req = UNNotificationRequest(identifier: "\(baseId)-d\(intervalDays)-\(Int(day.timeIntervalSince1970))", content: content, trigger: trig)
-                    center.add(req) { e in print("daily(d\(intervalDays)) add:", i, e as Any) }
+                    let req = UNNotificationRequest(identifier: "\(baseId)-d\(intervalDays)-\(Int(fire.timeIntervalSince1970))", content: content, trigger: trig)
+                    center.add(req) { e in print("daily(d\(intervalDays)) add:", fire, e as Any) }
                 }
+                day = cal.date(byAdding: .day, value: intervalDays, to: day)!
             }
         }
     }
 
-    // === 매주(선택 요일) ===
+    // === 매주(선택 요일) / N주마다 ===
     static func scheduleWeekly(hour: Int, minute: Int, intervalWeeks: Int, weekdays: [Int], baseId: String, title: String, subtitle: String, soundName: String) {
         let key = threadKey(for: baseId)
-        let cal = Calendar.current
         let center = UNUserNotificationCenter.current()
 
         for w in weekdays {
-            // 다음 발생 시각 계산(오늘 포함)
-            var next = nextWeekday(w, hour: hour, minute: minute)
-            existsPending(at: next, baseId: baseId) { exists in
-                if exists { print("dedup: weekly skipped (w\(w) @ \(next))"); return }
-
-                var comp = DateComponents(); comp.weekday = w; comp.hour = hour; comp.minute = minute
-                let content = buildContent(title: title, subtitle: subtitle, soundName: soundName, threadKey: key)
-                let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
-                let req = UNNotificationRequest(identifier: "\(baseId)-w1-\(w)", content: content, trigger: trig)
-                center.add(req) { e in print("weekly(w1) add:", w, e as Any) }
+            if intervalWeeks == 1 {
+                let next = nextWeekday(w, hour: hour, minute: minute)
+                existsPending(at: next, baseId: baseId) { exists in
+                    if exists { print("dedup: weekly(w1) skipped (w\(w) @ \(next))"); return }
+                    var comp = DateComponents(); comp.weekday = w; comp.hour = hour; comp.minute = minute
+                    let content = buildContent(title: title, subtitle: subtitle, soundName: soundName, threadKey: key)
+                    let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
+                    let req = UNNotificationRequest(identifier: "\(baseId)-w1-\(w)", content: content, trigger: trig)
+                    center.add(req) { e in print("weekly(w1) add:", w, e as Any) }
+                }
+            } else {
+                // N주마다: 비반복 트리거를 선예약(약 52주 창)
+                var first = nextWeekday(w, hour: hour, minute: minute)
+                existsPending(at: first, baseId: baseId) { exists in
+                    if exists { print("dedup: weekly(w\(intervalWeeks)) skipped (first w\(w) @ \(first))"); return }
+                    let content = buildContent(title: title, subtitle: subtitle, soundName: soundName, threadKey: key)
+                    var fire = first
+                    for _ in 0..<26 { // 약 1년 커버
+                        var comp = Calendar.current.dateComponents([.year,.month,.day], from: fire)
+                        comp.hour = hour; comp.minute = minute
+                        let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: false)
+                        let req = UNNotificationRequest(identifier: "\(baseId)-w\(intervalWeeks)-\(w)-\(Int(fire.timeIntervalSince1970))", content: content, trigger: trig)
+                        center.add(req) { e in print("weekly(w\(intervalWeeks)) add:", w, fire, e as Any) }
+                        fire = Calendar.current.date(byAdding: .weekOfYear, value: intervalWeeks, to: fire)!
+                    }
+                }
             }
         }
     }
@@ -234,7 +257,6 @@ struct IOSAlarmScheduler {
         let center = UNUserNotificationCenter.current()
         let now = Date()
 
-        // 다음 달까지 포함 12개월 선예약
         for i in 0..<12 {
             if let target = cal.date(byAdding: .month, value: i, to: now) {
                 var dc = cal.dateComponents([.year,.month], from: target)
@@ -259,10 +281,20 @@ struct IOSAlarmScheduler {
         c.title = title
         c.subtitle = subtitle
         c.body = subtitle
-        c.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
+        if let snd = safeSound(named: soundName) { c.sound = snd } else { c.sound = .default }
         c.threadIdentifier = threadKey
         if #available(iOS 15.0, *) { c.interruptionLevel = .timeSensitive }
         return c
+    }
+
+    private static func safeSound(named name: String) -> UNNotificationSound? {
+        let ns = name as NSString
+        let base = ns.deletingPathExtension
+        let ext = ns.pathExtension.isEmpty ? "wav" : ns.pathExtension
+        if Bundle.main.url(forResource: base, withExtension: ext) != nil {
+            return UNNotificationSound(named: UNNotificationSoundName("\(base).\(ext)"))
+        }
+        return nil
     }
 
     private static func nextWeekday(_ weekday: Int, hour: Int, minute: Int) -> Date {
@@ -270,7 +302,6 @@ struct IOSAlarmScheduler {
         var comps = DateComponents()
         comps.weekday = weekday; comps.hour = hour; comps.minute = minute; comps.second = 0
         let now = Date()
-        // 오늘 해당 요일·시각이 지났으면 +7일
         var next = cal.nextDate(after: now, matching: comps, matchingPolicy: .nextTimePreservingSmallerComponents)!
         if next.timeIntervalSince(now) < 0 { next = cal.date(byAdding: .day, value: 7, to: next)! }
         return next
@@ -288,6 +319,15 @@ struct IOSAlarmScheduler {
         var c = DateComponents(); c.year = year; c.month = month + 1; c.day = 0
         let d = Calendar.current.date(from: c)!
         return Calendar.current.component(.day, from: d)
+    }
+
+    private static func dateFrom(ymd: String, hour: Int, minute: Int) -> Date? {
+        let parts = ymd.split(separator: "-")
+        guard parts.count == 3,
+              let y = Int(parts[0]), let m = Int(parts[1]), let d = Int(parts[2]) else { return nil }
+        var comp = DateComponents()
+        comp.year = y; comp.month = m; comp.day = d; comp.hour = hour; comp.minute = minute; comp.second = 0
+        return Calendar.current.date(from: comp)
     }
 }
 
