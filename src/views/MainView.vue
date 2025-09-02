@@ -97,7 +97,12 @@ async function onDelete(payload){ rStore.deleteRoutines((Array.isArray(payload)?
 function openRoutine(rt=null){ window.dispatchEvent(new Event('close-other-popups')); editingRoutine.value = rt; isAddRoutineOpen.value = true }
 
 const { initVH, disposeVH } = useVH()
-onMounted(async () => { initVH(); await initBinding(); update() })
+onMounted(async () => {
+  showLnb.value = false
+  initVH()
+  await initBinding()
+  update()
+})
 onBeforeUnmount(() => { disposeVH(); disposeBinding() })
 
 watchEffect(() => {
