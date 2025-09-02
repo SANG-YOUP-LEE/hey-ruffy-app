@@ -32,7 +32,7 @@
           :options="minuteLoopOptions"
           :drag-sensitivity="7"
           :touch-sensitivity="0.3"
-          :scroll-sensitivity="0.7"
+          :scroll-sensitivity="2"
         />
       </div>
 
