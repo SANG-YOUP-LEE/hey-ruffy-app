@@ -5,8 +5,9 @@ const config: CapacitorConfig = {
   appName: 'HeyRuffy',
   webDir: 'dist',
   server: {
-    url: 'http://192.168.45.251:5173',
-    cleartext: true
+    // 개발 중 iPhone에서 즉시 반영 보고 싶으면 아래 두 줄 켜기
+    // url: 'http://<맥IP>:5173',
+    // cleartext: true
   }
 };
 
