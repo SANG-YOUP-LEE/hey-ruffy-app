@@ -1,3 +1,4 @@
+// src/stores/alarm.js
 import { defineStore } from 'pinia'
 
 function postIOS(payload){ try{ window.webkit?.messageHandlers?.notify?.postMessage(payload) }catch(_){} }
@@ -27,36 +28,6 @@ function parseAlarmTime(v){
   return {hour:hh, minute:mm}
 }
 
-// ✅ (교체) 요일 매핑: 월=1…일=7 → iOS(일=1…토=7)로 확정 변환
-function toIOSWeekdayNums(arr){
-  if(!Array.isArray(arr)) return []
-  const mapMonFirstToApple = {1:2, 2:3, 3:4, 4:5, 5:6, 6:7, 7:1}
-  return arr
-    .map(n => mapMonFirstToApple[Number(n)] ?? null)
-    .filter(n => Number.isInteger(n) && n>=1 && n<=7)
-}
-
-const WD_LABEL=['일','월','화','수','목','금','토']
-
-function buildSubtitle(repeatType, weekDays, startDate, timeStr, dailyInterval=0){
-  if(repeatType==='daily'){
-    if((dailyInterval|0)===0) return `오늘만 ${timeStr}`
-    return `${dailyInterval}일마다 ${timeStr}`
-  }
-  if(repeatType==='weekly'){
-    const label=(weekDays||[]).map(n=>WD_LABEL[(n-1+7)%7]).join('')
-    return `${label||'주간'} ${timeStr}`
-  }
-  if(repeatType==='monthly'){
-    const d=startDate?asLocalDate(startDate):new Date()
-    return `${d.getDate()}일 ${timeStr}`
-  }
-  const d=startDate?asLocalDate(startDate):new Date()
-  const [hh,mm]=timeStr.split(':').map(Number)
-  d.setHours(hh,mm,0,0)
-  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${timeStr}`
-}
-
 function asLocalDate(dateLike){
   if(!dateLike) return new Date()
   if(typeof dateLike==='string'){
@@ -73,6 +44,20 @@ function asLocalDate(dateLike){
   return new Date(dateLike)
 }
 
+const WD_LABEL=['일','월','화','수','목','금','토']
+// 입력: 월=1…일=7 → iOS(일=1…토=7)
+function toIOSWeekdayNums(arr){
+  if(!Array.isArray(arr)) return []
+  const mapMonFirstToApple = {1:2,2:3,3:4,4:5,5:6,6:7,7:1}
+  return arr.map(n=>mapMonFirstToApple[Number(n)]??null).filter(n=>n>=1&&n<=7)
+}
+
+function sameYMD(a,b){
+  if(!a||!b) return false
+  const A=asLocalDate(a), B=asLocalDate(b)
+  return A.getFullYear()===B.getFullYear() && A.getMonth()===B.getMonth() && A.getDate()===B.getDate()
+}
+
 function nextTimestampForOnce(hour, minute, baseDate){
   const now=new Date()
   const base=baseDate instanceof Date?new Date(baseDate):new Date()
@@ -84,98 +69,153 @@ function nextTimestampForOnce(hour, minute, baseDate){
   return base.getTime()
 }
 
+function subtitleDaily(timeStr, n){
+  if((n|0)===0) return `오늘만 ${timeStr}`
+  if(n===1) return `매일 ${timeStr}`
+  return `${n}일마다 ${timeStr}`
+}
+function subtitleWeekly(timeStr, iosWeekdays){
+  const label=(iosWeekdays||[]).map(n=>WD_LABEL[(n-1+7)%7]).join('')
+  return `${label||'주간'} ${timeStr}`
+}
+function subtitleMonthly(timeStr, days){
+  const uniq=[...new Set((days||[]).map(d=>+d).filter(d=>d>=1&&d<=31))].sort((a,b)=>a-b)
+  const label=uniq.length? uniq.join('·')+'일' : '매월'
+  return `${label} ${timeStr}`
+}
+
 export const useAlarmStore = defineStore('alarm', {
   state: () => ({
     permission: 'unknown',
-    lastScheduledIds: new Set(),
   }),
   actions: {
     setPermission(p){ this.permission=p },
-    cancel(id){ postIOS({ action:'cancel', id }) },
 
-    // ✅ repeatType 추가
-    // ✅ (교체) once 타입 올바르게 표시
+    cancel(id){ postIOS({ action:'cancel', id }) },
+    cancelSeries(baseId){
+      this.cancel(baseId)
+      for(let d=1; d<=31; d++) this.cancel(`${baseId}-m${pad2(d)}`)
+      for(let w=1; w<=7; w++) this.cancel(`${baseId}-w${w}`)
+    },
+
     scheduleOnce({ id, title, subtitle, timestamp, link }){
       postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link, repeatType:'once' })
-      this.lastScheduledIds.add(id)
     },
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){
       postIOS({ action:'scheduleDaily', id, title, subtitle, hour, minute, interval, startDate:startDate||null, link, repeatType:'daily' })
-      this.lastScheduledIds.add(id)
     },
     scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, link }){
       postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, link, repeatType:'weekly' })
-      this.lastScheduledIds.add(id)
     },
-    // ✅ 월간 추가
     scheduleMonthly({ id, title, subtitle, day, hour, minute, link }){
       postIOS({ action:'scheduleMonthly', id, title, subtitle, day, hour, minute, link, repeatType:'monthly' })
-      this.lastScheduledIds.add(id)
     },
 
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
       if(!hm) return null
-      const iosWeekdays=toIOSWeekdayNums(form.repeatWeekDays)
-      const dailyInterval=(form.repeatType==='daily')?(Number.isInteger(+form.repeatDaily)?Math.max(0,+form.repeatDaily):0):0
-      const timeStr=`${pad2(hm.hour)}:${pad2(hm.minute)}`
-      const subtitle=buildSubtitle(form.repeatType, iosWeekdays, form.startDate, timeStr, dailyInterval)
-      return { hm, iosWeekdays, dailyInterval, subtitle, timeStr }
+
+      // 정규화된 payload 지원: repeatEveryDays(=1), today-only(end==start)
+      const isDaily = form.repeatType==='daily'
+      const dailyEvery = isDaily
+        ? (Number.isInteger(+form.repeatEveryDays) ? +form.repeatEveryDays
+          : (Number.isInteger(+form.repeatDaily) ? +form.repeatDaily : null))
+        : null
+
+      const isTodayOnly = isDaily && (
+        (dailyEvery===0) ||
+        (!!form.startDate && !!form.endDate && sameYMD(form.startDate, form.endDate)) ||
+        (form.rule && form.rule.freq==='once')
+      )
+
+      const iosWeekdays = toIOSWeekdayNums(form.repeatWeekDays||[])
+      const monthDays = Array.isArray(form.repeatMonthDays)&&form.repeatMonthDays.length
+        ? form.repeatMonthDays.map(Number)
+        : [asLocalDate(form.startDate||new Date()).getDate()]
+
+      const timeStr = `${pad2(hm.hour)}:${pad2(hm.minute)}`
+      let subtitle=''
+      if(isDaily){
+        const n = isTodayOnly ? 0 : (dailyEvery ?? 1)
+        subtitle = subtitleDaily(timeStr, n)
+      }else if(form.repeatType==='weekly'){
+        subtitle = subtitleWeekly(timeStr, iosWeekdays)
+      }else if(form.repeatType==='monthly'){
+        subtitle = subtitleMonthly(timeStr, monthDays)
+      }else{
+        const d=asLocalDate(form.startDate||new Date())
+        subtitle = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${timeStr}`
+      }
+
+      return {
+        hm,
+        timeStr,
+        isDaily,
+        isTodayOnly,
+        dailyEvery: isTodayOnly ? 0 : (isDaily ? (dailyEvery ?? 1) : null),
+        iosWeekdays,
+        monthDays
+      }
     },
 
     scheduleFromForm(form, meta){
       if(this.permission==='denied') return { ok:false, reason:'permission_denied' }
+
       const built=this.buildFromForm(form)
       if(!built) return { ok:true, scheduled:false }
-      const { hm, iosWeekdays, dailyInterval, subtitle }=built
+
+      const { hm, isDaily, isTodayOnly, dailyEvery, iosWeekdays, monthDays }=built
       const routineId=meta.routineId
-      const id=`rt_${routineId}`
+      const baseId=`rt_${routineId}`
       const title=(meta.title||'').slice(0,20)||'알람'
       const link=`heyruffy://main?r=${encodeURIComponent(routineId)}`
-      this.cancel(id)
 
-      if(form.repeatType==='daily' && dailyInterval===0){
-        const baseDate=asLocalDate(form.startDate||new Date())
-        const ts=nextTimestampForOnce(hm.hour, hm.minute, baseDate)
-        this.scheduleOnce({ id, title, subtitle, timestamp: ts, link })
-        return { ok:true, scheduled:true, type:'once', ts }
-      }
+      // 기존 시리즈 전량 취소
+      this.cancelSeries(baseId)
 
-      if(form.repeatType==='daily'){
+      if(isDaily){
+        if(isTodayOnly){
+          const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(form.startDate||new Date()))
+          this.scheduleOnce({ id: baseId, title, subtitle: subtitleDaily(`${pad2(hm.hour)}:${pad2(hm.minute)}`, 0), timestamp: ts, link })
+          return { ok:true, scheduled:true, type:'once', ts }
+        }
+        const interval = Math.max(1, Number(dailyEvery||1))
         this.scheduleDaily({
-          id, title, subtitle,
+          id: baseId, title,
+          subtitle: subtitleDaily(`${pad2(hm.hour)}:${pad2(hm.minute)}`, interval),
           hour: hm.hour, minute: hm.minute,
-          interval: Math.max(1, dailyInterval||1),
-          startDate: form.startDate || null,
-          link
+          interval, startDate: form.startDate || null, link
         })
-        return { ok:true, scheduled:true, type:'daily', interval: Math.max(1, dailyInterval||1) }
+        return { ok:true, scheduled:true, type:'daily', interval }
       }
 
       if(form.repeatType==='weekly'){
-        if(!iosWeekdays?.length) return { ok:true, scheduled:false }
+        if(!iosWeekdays.length) return { ok:true, scheduled:false }
         this.scheduleWeekly({
-          id, title, subtitle,
+          id: baseId, title,
+          subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
           hour: hm.hour, minute: hm.minute,
-          weekdays: iosWeekdays,
-          link
+          weekdays: iosWeekdays, link
         })
         return { ok:true, scheduled:true, type:'weekly', weekdays: iosWeekdays }
       }
 
       if(form.repeatType==='monthly'){
-        const d=asLocalDate(form.startDate||new Date())
-        this.scheduleMonthly({
-          id, title, subtitle,
-          day: d.getDate(),
-          hour: hm.hour, minute: hm.minute,
-          link
-        })
-        return { ok:true, scheduled:true, type:'monthly', day: d.getDate() }
+        const sub = subtitleMonthly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, monthDays)
+        // 날짜별 개별 예약(id 분기)
+        for(const d of monthDays){
+          const day = Math.max(1, Math.min(31, Number(d)||1))
+          const id = `${baseId}-m${pad2(day)}`
+          this.scheduleMonthly({
+            id, title, subtitle: sub,
+            day, hour: hm.hour, minute: hm.minute, link
+          })
+        }
+        return { ok:true, scheduled:true, type:'monthly', days: monthDays }
       }
 
       const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(form.startDate||new Date()))
-      this.scheduleOnce({ id, title, subtitle, timestamp: ts, link })
+      this.scheduleOnce({ id: baseId, title, subtitle: `${pad2(hm.hour)}:${pad2(hm.minute)}`, timestamp: ts, link })
       return { ok:true, scheduled:true, type:'once', ts }
     }
   }

@@ -11,29 +11,12 @@ const weeklyDaysToICS = arr => (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['
 const parseInterval = s => { const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
 const safeISOFromDateObj = obj => { const s = toISO(obj); return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null }
 const getBaseId = (id) => String(id || '').split('-')[0]
-const normalizeCardSkinStrict = (v) => {
-  const m = String(v || '').match(/(\d{1,2})/)
-  const n = m && m[1] ? m[1].padStart(2,'0') : '01'
-  return `option${n}`
-}
+const normalizeCardSkinStrict = (v) => { const m = String(v || '').match(/(\d{1,2})/); const n = m && m[1] ? m[1].padStart(2,'0') : '01'; return `option${n}` }
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
-const deepClean = (v) => {
-  if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean)
-  if (v && typeof v === 'object') { const r = {}; Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) }); return r }
-  return v
-}
-const sanitizeComment = (v) => {
-  if (v == null) return null
-  let s = String(v).replace(/[\u200B-\u200D\uFEFF]/g,'')
-  s = s.replace(/\r\n?/g,'\n').trim()
-  if (s.length === 0) return null
-  if (s.length > 200) s = s.slice(0,200)
-  return s
-}
-const eqDateObj = (a,b) => {
-  if (!a || !b) return false
-  return +a.year===+b.year && +a.month===+b.month && +a.day===+b.day
-}
+const deepClean = (v) => { if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean); if (v && typeof v === 'object') { const r = {}; Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) }); return r } return v }
+const sanitizeComment = (v) => { if (v == null) return null; let s = String(v).replace(/[\u200B-\u200D\uFEFF]/g,''); s = s.replace(/\r\n?/g,'\n').trim(); if (s.length === 0) return null; if (s.length > 200) s = s.slice(0,200); return s }
+const eqDateObj = (a,b) => { if (!a || !b) return false; return +a.year===+b.year && +a.month===+b.month && +a.day===+b.day }
+const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목','금','토','일']; if (!Array.isArray(arr) || arr.length !== 7) return false; const set = new Set(arr.map(String)); return need.every(d => set.has(d)) }
 
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
@@ -56,7 +39,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
     cardSkin: 'option01',
     comment: '',
     fieldErrors: {},
-    tz: 'Asia/Seoul'
+    tz: 'Asia/Seoul',
+    isSaving: false
   }),
   getters: {
     hasWalk(state) {
@@ -74,6 +58,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+      if (state.repeatType === 'weekly') {
+        const intervalW = parseInterval(state.repeatWeeks)
+        if (intervalW === 1 && isAllKoreanWeekdays(state.repeatWeekDays)) {
+          return { freq: 'daily', interval: 1, anchor: anchorISO }
+        }
+      }
       if (state.repeatType === 'daily') {
         if (!Number.isInteger(state.repeatDaily)) return null
         const n = state.repeatDaily
@@ -94,18 +84,18 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const hasEnd = !!safeISOFromDateObj(state.endDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
-      const dailyInterval = state.repeatType === 'daily' && Number.isInteger(state.repeatDaily) ? state.repeatDaily : null
-      const endForTodayOnly = state.repeatType === 'daily' && dailyInterval === 0 ? anchorISO : null
+      const weeklyIsDaily = state.repeatType === 'weekly' && parseInterval(state.repeatWeeks) === 1 && isAllKoreanWeekdays(state.repeatWeekDays)
+      const normalizedType = weeklyIsDaily ? 'daily' : state.repeatType
+      const dailyInterval = normalizedType === 'daily' ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)) : null
+      const endForTodayOnly = normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
       const cleaned = {
         title: state.title,
-        repeatType: state.repeatType,
+        repeatType: normalizedType,
         repeatDays: [],
-        repeatEveryDays: state.repeatType === 'daily'
-          ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
-          : null,
-        repeatWeeks: state.repeatType === 'weekly' ? state.repeatWeeks || '' : '',
-        repeatWeekDays: state.repeatType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
-        repeatMonthDays: state.repeatType === 'monthly' ? [...(state.repeatMonthDays||[])] : [],
+        repeatEveryDays: normalizedType === 'daily' ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null) : null,
+        repeatWeeks: normalizedType === 'weekly' ? state.repeatWeeks || '' : '',
+        repeatWeekDays: normalizedType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
+        repeatMonthDays: normalizedType === 'monthly' ? [...(state.repeatMonthDays||[])] : [],
         startDate: hasStart ? state.startDate : null,
         endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
         alarmTime: state.alarmTime,
@@ -224,29 +214,45 @@ export const useRoutineFormStore = defineStore('routineForm', {
       if (sc === null) this.comment = ''
       return true
     },
-    async save() {
-      if (!this.validate()) return { ok:false }
-      try {
-        const auth = getAuth()
-        const user = auth.currentUser
-        if (!user) return { ok:false, error:'로그인이 필요합니다.' }
-        const payload = this.payload
-        if (this.mode === 'edit' && this.routineId) {
-          const rid = getBaseId(this.routineId)
-          await setDoc(
-            doc(db, 'users', user.uid, 'routines', rid),
-            { ...payload, updatedAt: serverTimestamp() },
-            { merge: true }
-          )
-          return { ok:true, id: rid, data: payload }
-        } else {
-          const colRef = collection(db, 'users', user.uid, 'routines')
-          const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-          return { ok:true, id: docRef.id, data: payload }
-        }
-      } catch (e) {
-        return { ok:false, error: String(e && e.message ? e.message : e) }
-      }
+    // 교체: actions.save()
+async save() {
+  if (this.isSaving) return { ok:false }
+  this.isSaving = true
+  try {
+    if (!this.validate()) return { ok:false }
+
+    const auth = getAuth()
+    const user = auth.currentUser
+    if (!user) return { ok:false, error:'로그인이 필요합니다.' }
+
+    const payload = this.payload
+    let res
+
+    if (this.mode === 'edit' && this.routineId) {
+      const rid = getBaseId(this.routineId)
+      await setDoc(
+        doc(db, 'users', user.uid, 'routines', rid),
+        { ...payload, updatedAt: serverTimestamp() },
+        { merge: true }
+      )
+      res = { ok:true, id: rid, data: payload }
+    } else {
+      const colRef = collection(db, 'users', user.uid, 'routines')
+      const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+      res = { ok:true, id: docRef.id, data: payload }
     }
-  }
-})
+
+    if (res.ok) {
+      const { useAlarmStore } = await import('@/stores/alarm')
+      const alarm = useAlarmStore()
+      await alarm.scheduleFromForm(this.payload, { routineId: res.id, title: this.title })
+    }
+    return res
+  } catch (e) {
+    return { ok:false, error: String(e && e.message ? e.message : e) }
+  } finally {
+    this.isSaving = false
+            }
+          }
+        }
+      })
