@@ -45,7 +45,6 @@ function asLocalDate(dateLike){
 }
 
 const WD_LABEL=['일','월','화','수','목','금','토']
-// 입력: 월=1…일=7 → iOS(일=1…토=7)
 function toIOSWeekdayNums(arr){
   if(!Array.isArray(arr)) return []
   const mapMonFirstToApple = {1:2,2:3,3:4,4:5,5:6,6:7,7:1}
@@ -115,7 +114,6 @@ export const useAlarmStore = defineStore('alarm', {
       const hm=parseAlarmTime(form.alarmTime)
       if(!hm) return null
 
-      // 정규화된 payload 지원: repeatEveryDays(=1), today-only(end==start)
       const isDaily = form.repeatType==='daily'
       const dailyEvery = isDaily
         ? (Number.isInteger(+form.repeatEveryDays) ? +form.repeatEveryDays
@@ -170,7 +168,6 @@ export const useAlarmStore = defineStore('alarm', {
       const title=(meta.title||'').slice(0,20)||'알람'
       const link=`heyruffy://main?r=${encodeURIComponent(routineId)}`
 
-      // 기존 시리즈 전량 취소
       this.cancelSeries(baseId)
 
       if(isDaily){
@@ -191,23 +188,20 @@ export const useAlarmStore = defineStore('alarm', {
 
       if(form.repeatType==='weekly'){
         if(!iosWeekdays.length) return { ok:true, scheduled:false }
-        // alarm.js - scheduleFromForm() 의 weekly 분기 안에 추가
-          const intervalWeeks = Math.max(1, parseInt(String(form.repeatWeeks).match(/(\d+)/)?.[1] || '1', 10))
-
-            this.scheduleWeekly({
-              id, title,
-              subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
-              hour: hm.hour, minute: hm.minute,
-              weekdays: iosWeekdays,
-              intervalWeeks,
-              link
-            })
+        const intervalWeeks = Math.max(1, parseInt(String(form.repeatWeeks).match(/(\d+)/)?.[1] || '1', 10))
+        this.scheduleWeekly({
+          id: baseId, title,
+          subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
+          hour: hm.hour, minute: hm.minute,
+          weekdays: iosWeekdays,
+          intervalWeeks,
+          link
+        })
         return { ok:true, scheduled:true, type:'weekly', weekdays: iosWeekdays }
       }
 
       if(form.repeatType==='monthly'){
         const sub = subtitleMonthly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, monthDays)
-        // 날짜별 개별 예약(id 분기)
         for(const d of monthDays){
           const day = Math.max(1, Math.min(31, Number(d)||1))
           const id = `${baseId}-m${pad2(day)}`
