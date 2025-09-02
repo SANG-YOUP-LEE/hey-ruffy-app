@@ -191,12 +191,17 @@ export const useAlarmStore = defineStore('alarm', {
 
       if(form.repeatType==='weekly'){
         if(!iosWeekdays.length) return { ok:true, scheduled:false }
-        this.scheduleWeekly({
-          id: baseId, title,
-          subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
-          hour: hm.hour, minute: hm.minute,
-          weekdays: iosWeekdays, link
-        })
+        // alarm.js - scheduleFromForm() 의 weekly 분기 안에 추가
+          const intervalWeeks = Math.max(1, parseInt(String(form.repeatWeeks).match(/(\d+)/)?.[1] || '1', 10))
+
+            this.scheduleWeekly({
+              id, title,
+              subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
+              hour: hm.hour, minute: hm.minute,
+              weekdays: iosWeekdays,
+              intervalWeeks,
+              link
+            })
         return { ok:true, scheduled:true, type:'weekly', weekdays: iosWeekdays }
       }
 
