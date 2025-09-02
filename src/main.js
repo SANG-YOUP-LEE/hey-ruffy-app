@@ -1,3 +1,4 @@
+
 // src/main.js
 import { createApp } from "vue";
 import { createPinia } from "pinia";
@@ -40,3 +41,4 @@ document.addEventListener('touchend', e => {
 document.addEventListener('wheel', e => {
   if (e.ctrlKey) e.preventDefault();
 }, { passive: false });
+
