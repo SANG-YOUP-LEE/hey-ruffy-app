@@ -149,9 +149,6 @@ import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 
-const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
-const mapWeekdaysForUI = (arr=[]) => (arr||[]).map(v => (NUM_TO_KOR[Number(v)] || String(v))).filter(Boolean)
-
 const props = defineProps({
   selected: String,
   routine: { type: Object, default: () => ({}) },
@@ -246,8 +243,7 @@ const repeatDetail = computed(() => {
   }
   if (r.repeatType === 'weekly') {
     const main = r.repeatWeeks || '매주'
-    const raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []
-    const days = mapWeekdaysForUI(raw).join(',')
+    const days = Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length ? r.repeatWeekDays.join(',') : ''
     return days ? `${main} ${days}` : main
   }
   if (r.repeatType === 'monthly') {
@@ -270,11 +266,8 @@ const periodText = computed(() => {
 
 const alarmText = computed(() => {
   const a = props.routine?.alarmTime || {}
-  const hh = a.hour
-  const mm = a.minute
-  if (hh == null || mm == null) return ''
-  const ampm = a.ampm ? `${a.ampm} ` : ''
-  return `${ampm}${pad(hh)}:${pad(mm)}`
+  if (!a.hour) return ''
+  return `${a.ampm} ${pad(a.hour)}:${pad(a.minute)}`
 })
 
 const canShowStatusButton = computed(() => {
@@ -322,10 +315,7 @@ const dateText = computed(() => {
 })
 
 const cardId = computed(() => String(props.routine?.id || ''))
-const cardKey = computed(() => {
-  const u = props.routine?.updatedAtMs ?? props.routine?.createdAtMs ?? props.routine?.updatedAt?.seconds ?? props.routine?.updatedAt ?? ''
-  return `${cardId.value}:${u}`
-})
+const cardKey = computed(() => `${cardId.value}:${props.routine?.updatedAt?.seconds ?? props.routine?.updatedAt ?? ''}`)
 const baseId = computed(() => String(props.routine?.id || '').split('-')[0])
 const isSelected = computed(() => Array.isArray(props.deleteTargets) && props.deleteTargets.includes(baseId.value))
 
