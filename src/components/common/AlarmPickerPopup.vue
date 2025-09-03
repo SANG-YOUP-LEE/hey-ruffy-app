@@ -22,17 +22,17 @@
           :key="pickerKey + '-h'"
           v-model="selectedHour"
           :options="hourLoopOptions"
-          :drag-sensitivity="1"
-          :touch-sensitivity="1"
-          :scroll-sensitivity="3"
+          :drag-sensitivity="1.4"
+          :touch-sensitivity="1.4"
+          :scroll-sensitivity="0.9"
         />
         <VueScrollPicker
           :key="pickerKey + '-m'"
           v-model="selectedMinute"
           :options="minuteLoopOptions"
-          :drag-sensitivity="7"
-          :touch-sensitivity="1"
-          :scroll-sensitivity="2"
+          :drag-sensitivity="1.4"
+          :touch-sensitivity="1.4"
+          :scroll-sensitivity="0.9"
         />
       </div>
 
