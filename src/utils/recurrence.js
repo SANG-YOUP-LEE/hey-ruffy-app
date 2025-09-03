@@ -95,11 +95,15 @@ function diffDays(aISO,bISO){ const A=dateFromISO(aISO), B=dateFromISO(bISO); re
 function diffMonths(aISO,bISO){ const [ay,am]=aISO.split("-").map(Number); const [by,bm]=bISO.split("-").map(Number); return (by-ay)*12+(bm-am) }
 function weekdayISO(iso){ const d=dateFromISO(iso).getDay(); return ICS_LIST[d] }
 
+// ✅ 수정 버전
 export function isActive(dateISO, startISO, endISO) {
-  if (startISO && diffDays(startISO, dateISO) > 0) return false  // 시작 전이면 false
-  if (endISO && diffDays(endISO, dateISO) < 0) return false      // 종료 후이면 false
+  // dateISO가 startISO 이전이면 비활성
+  if (startISO && diffDays(startISO, dateISO) < 0) return false
+  // dateISO가 endISO 이후면 비활성
+  if (endISO && diffDays(endISO, dateISO) > 0) return false
   return true
 }
+
 
 export function isDue(dateISO,rule,anchorISO){
   if(!rule||!anchorISO) return false
