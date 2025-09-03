@@ -108,24 +108,36 @@ struct IOSAlarmScheduler {
                                line1: String, line2: String, line3: String, soundName: String) {
         let center = UNUserNotificationCenter.current()
         let key = threadKey(for: baseId)
+        let days = weekdays.isEmpty ? [1,2,3,4,5,6,7] : weekdays
 
-        for w in weekdays {
+        for w in days {
             if intervalWeeks == 1 {
-                let next = nextWeekday(w, hour: hour, minute: minute)
-                existsPending(at: next, baseId: baseId) { exists in
-                    if exists { print("dedup: weekly(w1) skipped (w\(w))"); return }
-                    var comp = DateComponents(); comp.weekday = w; comp.hour = hour; comp.minute = minute
-                    let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
-                    let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
-                    let req = UNNotificationRequest(identifier: "\(baseId)-w1-\(w)", content: content, trigger: trig)
-                    center.add(req) { e in print("weekly(w1) add:", w, e as Any) }
+                // ✅ 반복 트리거: 캘린더/타임존 명시 + nextTrigger 로그
+                let repId = "\(baseId)-w1-\(w)"
+                center.removePendingNotificationRequests(withIdentifiers: [repId])
+
+                var comp = DateComponents()
+                comp.calendar = Calendar.current
+                comp.timeZone = TimeZone.current
+                comp.weekday = w; comp.hour = hour; comp.minute = minute; comp.second = 0
+
+                let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
+                let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
+                let req = UNNotificationRequest(identifier: repId, content: content, trigger: trig)
+                center.add(req) { e in
+                    if let t = (req.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() {
+                        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                        print("weekly(w1) add: wd=\(w), next=\(f.string(from: t)), err=\(String(describing: e))")
+                    } else {
+                        print("weekly(w1) add: wd=\(w), next=nil, err=\(String(describing: e))")
+                    }
                 }
             } else {
                 var fire = nextWeekday(w, hour: hour, minute: minute)
                 existsPending(at: fire, baseId: baseId) { exists in
                     if exists { print("dedup: weekly(w\(intervalWeeks)) skipped (w\(w))"); return }
                     let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
-                    for _ in 0..<26 {
+                    for _ in 0..<26 { // 약 12개월
                         var dc = Calendar.current.dateComponents([.year,.month,.day], from: fire)
                         dc.hour = hour; dc.minute = minute
                         let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
@@ -253,6 +265,6 @@ struct IOSAlarmScheduler {
             print("debug ping add:", e as Any, "|", fire)
             dumpPendingWithNextDates(tag: "after-ping")
         }
-        }
+    }
 }
 

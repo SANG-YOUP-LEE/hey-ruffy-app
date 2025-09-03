@@ -24,6 +24,15 @@ function cleanISO(s){ if(!isISODate(s)) return null; if(s==="0000-00-00"||s==="0
 function fromTimestampOrNull(ts){ try{ if(ts&&typeof ts.toDate==="function"){ const d=ts.toDate(); const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}` } }catch{} return null }
 function numToICS(n){ const v=Number(n); if(Number.isNaN(v)) return null; if(v>=0&&v<=6) return ICS_LIST[v]; if(v>=1&&v<=7){ const monFirst=["MO","TU","WE","TH","FR","SA","SU"]; return monFirst[v-1] } return null }
 
+function toWeekStartISO(iso){
+  const [y,m,d] = iso.split("-").map(Number)
+  const dt = new Date(y, m-1, d)
+  const offset = (dt.getDay() + 7 - 0) % 7 // 0=Sun
+  dt.setDate(dt.getDate() - offset)
+  const p = n => String(n).padStart(2,"0")
+  return `${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}`
+}
+
 export function normalize(doc){
   const startCand=[ cleanISO(doc.start), toISODate(doc.startDate), fromTimestampOrNull(doc.createdAt) ].filter(Boolean)
   const endCand=[ cleanISO(doc.end), toISODate(doc.endDate) ].filter(Boolean)
@@ -57,6 +66,9 @@ export function normalize(doc){
         return KOR_TO_ICS[t] || numToICS(t)
       }).filter(Boolean)
     }
+    if (!Array.isArray(byWeekday) || byWeekday.length === 0) {
+      byWeekday = ICS_LIST.slice()
+    }
   } else if (doc.repeatType === "monthly") {
     freq = "monthly"
     interval = 1
@@ -67,7 +79,8 @@ export function normalize(doc){
 
   const fallbackToday=(()=>{ const d=new Date(); const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}` })()
   const createdISO=fromTimestampOrNull(doc.createdAt)
-  const anchor=cleanISO(doc?.rule?.anchor)||start||createdISO||fallbackToday
+  const anchorRaw=cleanISO(doc?.rule?.anchor)||start||createdISO||fallbackToday
+  const anchor = (freq === "weekly") ? toWeekStartISO(anchorRaw) : anchorRaw
 
   const rule={ freq, interval, anchor }
   if (Array.isArray(byWeekday) && byWeekday.length) rule.byWeekday=byWeekday
@@ -87,7 +100,6 @@ export function isActive(dateISO, startISO, endISO) {
   if (endISO && diffDays(endISO, dateISO) < 0) return false      // 종료 후이면 false
   return true
 }
-
 
 export function isDue(dateISO,rule,anchorISO){
   if(!rule||!anchorISO) return false

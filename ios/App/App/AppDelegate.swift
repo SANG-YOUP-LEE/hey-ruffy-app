@@ -119,8 +119,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             let baseId = (dict["id"] as? String) ?? "alarm"
             let hour = dict["hour"] as? Int ?? 9
             let minute = dict["minute"] as? Int ?? 0
-            let weekdays = (dict["weekdays"] as? [Int] ?? [2]).map { min(max($0,1),7) } // 1=일..7=토
             let intervalWeeks = max(1, dict["intervalWeeks"] as? Int ?? 1)
+
+            // ✅ 요일 정규화: [Int 0~6] / [Int 1~7] / [String(ICS)] / [String(한글)] 모두 지원
+            let weekdays: [Int] = normalizeWeekdays(dict["weekdays"])
+
             let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "HeyRuffy"
             let line2 = (dict["title"] as? String) ?? "다짐"
             let line3 = (dict["subtitle"] as? String) ?? ""
@@ -144,7 +147,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                 baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
             )
 
-        // 디버그 도구(선택): 필요 없으면 안 보내면 됨
+        // 디버그 도구(선택)
         case "debugPing":
             IOSAlarmScheduler.debugPing(after: 20, baseId: "rt_ping")
             IOSAlarmScheduler.dumpPendingWithNextDates(tag: "after-debugPing")
@@ -185,6 +188,51 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             c.removePendingNotificationRequests(withIdentifiers: reqs.map { $0.identifier })
             print("Super cleanup: removed pending =", reqs.count)
         }
+    }
+
+    // MARK: - Weekday normalizer
+    private func normalizeWeekdays(_ raw: Any?) -> [Int] {
+        // iOS: 1=Sun,2=Mon,3=Tue,4=Wed,5=Thu,6=Fri,7=Sat
+        let mapICS: [String:Int] = ["SU":1,"MO":2,"TU":3,"WE":4,"TH":5,"FR":6,"SA":7]
+        let mapKR:  [String:Int] = ["일":1,"월":2,"화":3,"수":4,"목":5,"금":6,"토":7]
+
+        // 1) [Int]
+        if let ints = raw as? [Int] {
+            if ints.allSatisfy({ (0...6).contains($0) }) {
+                // 0~6 기반이면 +1 쉬프트
+                let shifted = ints.map { $0 + 1 }
+                return Array(Set(shifted)).sorted()
+            } else {
+                // 이미 1~7 기반이면 클램프만
+                let clamped = ints.compactMap { (1...7).contains($0) ? $0 : nil }
+                return Array(Set(clamped)).sorted()
+            }
+        }
+
+        // 2) [String]
+        if let strs = raw as? [String] {
+            let mapped = strs.compactMap { s -> Int? in
+                let u = s.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+                if let v = mapICS[u] { return v }
+                let k = String(s.prefix(1)) // "월","화" 등
+                if let v = mapKR[k] { return v }
+                return Int(u)
+            }
+            if !mapped.isEmpty {
+                return Array(Set(mapped.compactMap { (1...7).contains($0) ? $0 : nil })).sorted()
+            }
+        }
+
+        // 3) 단일 String
+        if let one = raw as? String {
+            let u = one.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+            if let v = mapICS[u] { return [v] }
+            if let v = mapKR[String(one.prefix(1))] { return [v] }
+            if let v = Int(u), (1...7).contains(v) { return [v] }
+        }
+
+        // 기본: 전체 요일(매일)
+        return [1,2,3,4,5,6,7]
     }
 }
 
