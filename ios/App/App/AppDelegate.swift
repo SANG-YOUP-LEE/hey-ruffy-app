@@ -61,12 +61,130 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         }
     }
 
+    // MARK: - Helpers to read hour/minute & weekdays safely
+    private func readHourMinute(_ dict: [String: Any]) -> (hour: Int, minute: Int) {
+        // top-level 우선, 없으면 time{}, alarm{} 안에서 탐색
+        if let h = dict["hour"] as? Int, let m = dict["minute"] as? Int {
+            return (h, m)
+        }
+        if let t = dict["time"] as? [String: Any],
+           let h = t["hour"] as? Int, let m = t["minute"] as? Int {
+            return (h, m)
+        }
+        if let a = dict["alarm"] as? [String: Any],
+           let h = a["hour"] as? Int, let m = a["minute"] as? Int {
+            return (h, m)
+        }
+        return (9, 0)
+    }
+
+    private func readWeekdays(_ dict: [String: Any]) -> [Int] {
+        if let w = dict["weekdays"] {
+            return normalizeWeekdays(w)
+        }
+        if let a = dict["alarm"] as? [String: Any], let w = a["weekdays"] {
+            return normalizeWeekdays(w)
+        }
+        if let w = dict["weekday"] {
+            return normalizeWeekdays(w)
+        }
+        return [1,2,3,4,5,6,7]
+    }
+
+    private func readIntervalWeeks(_ dict: [String: Any]) -> Int {
+        // intervalWeeks / weeksInterval / everyWeeks 모두 지원
+        let v = (dict["intervalWeeks"] as? Int)
+            ?? (dict["weeksInterval"] as? Int)
+            ?? (dict["everyWeeks"] as? Int)
+            ?? 1
+        return max(1, v)
+    }
+
+    private func readIntervalDays(_ dict: [String: Any]) -> Int {
+        // interval / intervalDays 모두 지원
+        let v = (dict["interval"] as? Int)
+            ?? (dict["intervalDays"] as? Int)
+            ?? 1
+        return max(1, v)
+    }
+
     private func handleBridge(_ dict: [String: Any]) {
         let action = (dict["action"] as? String) ?? ""
         print("BRIDGE recv:", action, dict)
 
         switch action {
 
+        // === 새 경로: JS가 'schedule' 하나로 보내는 경우 ===
+        case "schedule": // repeatMode 로 분기
+            let repeatMode = (dict["repeatMode"] as? String) ?? "once"
+            let baseId = (dict["id"] as? String) ?? "alarm"
+            let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "HeyRuffy"
+            let line2 = (dict["title"] as? String) ?? (dict["name"] as? String) ?? "다짐"
+            let line3 = (dict["subtitle"] as? String) ?? ""
+
+            switch repeatMode {
+            case "once":
+                // timestamp(ms) 우선, 없으면 hour/minute or +60초
+                let tsVal = dict["timestamp"] as? Double ?? -1
+                var fire: Date
+                if tsVal.isFinite && !tsVal.isNaN && tsVal > 0 {
+                    fire = Date(timeIntervalSince1970: tsVal / 1000.0)
+                } else {
+                    let hm = readHourMinute(dict)
+                    var comp = Calendar.current.dateComponents([.year,.month,.day], from: Date())
+                    comp.hour = hm.hour; comp.minute = hm.minute; comp.second = 0
+                    fire = Calendar.current.date(from: comp) ?? Date().addingTimeInterval(60)
+                    if fire <= Date() { fire = Calendar.current.date(byAdding: .day, value: 1, to: fire)! }
+                    print("schedule(once): fallback @ \(fire)")
+                }
+                IOSAlarmScheduler.scheduleOnce(
+                    at: fire, id: baseId,
+                    line1: appName, line2: line2, line3: line3,
+                    soundName: soundName
+                )
+
+            case "daily":
+                let hm = readHourMinute(dict)
+                let interval = readIntervalDays(dict)                 // 1=매일, 2+=N일마다
+                let startDate = dict["startDate"] as? String          // "YYYY-MM-DD"
+                IOSAlarmScheduler.scheduleDaily(
+                    hour: hm.hour, minute: hm.minute, intervalDays: interval, startDate: startDate,
+                    baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
+                )
+
+            case "weekly":
+                let hm = readHourMinute(dict)
+                let intervalWeeks = readIntervalWeeks(dict)
+                let weekdays = readWeekdays(dict)                     // 1~7(Sun~Sat)
+                IOSAlarmScheduler.scheduleWeekly(
+                    hour: hm.hour, minute: hm.minute,
+                    intervalWeeks: intervalWeeks, weekdays: weekdays,
+                    baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
+                )
+
+            case "monthly", "monthly-date":
+                let hm = readHourMinute(dict)
+                let day = (dict["day"] as? Int) ?? IOSAlarmScheduler.dayFrom(dict: dict)
+                IOSAlarmScheduler.scheduleMonthly(
+                    day: day, hour: hm.hour, minute: hm.minute,
+                    baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
+                )
+
+            case "monthly-nth":
+                // 만약 스케줄러가 '월 n번째 요일' 지원한다면 여기에 연결
+                // (없다면 dayFrom(dict:)가 적절히 계산해 day를 줄 수도 있음)
+                let hm = readHourMinute(dict)
+                let day = (dict["day"] as? Int) ?? IOSAlarmScheduler.dayFrom(dict: dict)
+                IOSAlarmScheduler.scheduleMonthly(
+                    day: day, hour: hm.hour, minute: hm.minute,
+                    baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
+                )
+
+            default:
+                print("Unknown repeatMode in schedule:", repeatMode)
+            }
+
+        // === 기존 경로들(하위 호환) ===
         case "cancel":
             if let id = dict["id"] as? String {
                 IOSAlarmScheduler.cancel(byPrefix: id)
@@ -83,15 +201,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             var fire: Date
             if tsVal.isFinite && !tsVal.isNaN && tsVal > 0 {
                 fire = Date(timeIntervalSince1970: tsVal / 1000.0)
-            } else if let h = dict["hour"] as? Int, let m = dict["minute"] as? Int {
+            } else {
+                let hm = readHourMinute(dict)
                 var comp = Calendar.current.dateComponents([.year,.month,.day], from: Date())
-                comp.hour = h; comp.minute = m; comp.second = 0
+                comp.hour = hm.hour; comp.minute = hm.minute; comp.second = 0
                 fire = Calendar.current.date(from: comp) ?? Date().addingTimeInterval(60)
                 if fire <= Date() { fire = Calendar.current.date(byAdding: .day, value: 1, to: fire)! }
-                print("scheduleOnce: timestamp NaN → fallback hour/minute @ \(fire)")
-            } else {
-                fire = Date().addingTimeInterval(60)
-                print("scheduleOnce: timestamp NaN → fallback +60s @ \(fire)")
+                print("scheduleOnce: timestamp NaN → fallback @ \(fire)")
             }
 
             IOSAlarmScheduler.scheduleOnce(
@@ -102,48 +218,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
         case "scheduleDaily":
             let baseId = (dict["id"] as? String) ?? "alarm"
-            let hour = dict["hour"] as? Int ?? 9
-            let minute = dict["minute"] as? Int ?? 0
-            let interval = max(1, dict["interval"] as? Int ?? 1)      // 1=매일, 2+=N일마다
-            let startDate = dict["startDate"] as? String              // "YYYY-MM-DD"
+            let hm = readHourMinute(dict)
+            let interval = readIntervalDays(dict)                 // 1=매일, 2+=N일마다
+            let startDate = dict["startDate"] as? String          // "YYYY-MM-DD"
             let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "HeyRuffy"
             let line2 = (dict["title"] as? String) ?? "다짐"
             let line3 = (dict["subtitle"] as? String) ?? ""
 
             IOSAlarmScheduler.scheduleDaily(
-                hour: hour, minute: minute, intervalDays: interval, startDate: startDate,
+                hour: hm.hour, minute: hm.minute, intervalDays: interval, startDate: startDate,
                 baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
             )
 
         case "scheduleWeekly":
             let baseId = (dict["id"] as? String) ?? "alarm"
-            let hour = dict["hour"] as? Int ?? 9
-            let minute = dict["minute"] as? Int ?? 0
-            let intervalWeeks = max(1, dict["intervalWeeks"] as? Int ?? 1)
-
-            // ✅ 요일 정규화: [Int 0~6] / [Int 1~7] / [String(ICS)] / [String(한글)] 모두 지원
-            let weekdays: [Int] = normalizeWeekdays(dict["weekdays"])
-
+            let hm = readHourMinute(dict)
+            let intervalWeeks = readIntervalWeeks(dict)
+            let weekdays: [Int] = readWeekdays(dict)
             let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "HeyRuffy"
             let line2 = (dict["title"] as? String) ?? "다짐"
             let line3 = (dict["subtitle"] as? String) ?? ""
 
             IOSAlarmScheduler.scheduleWeekly(
-                hour: hour, minute: minute, intervalWeeks: intervalWeeks, weekdays: weekdays,
+                hour: hm.hour, minute: hm.minute, intervalWeeks: intervalWeeks, weekdays: weekdays,
                 baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
             )
 
         case "scheduleMonthly":
             let baseId = (dict["id"] as? String) ?? "alarm"
+            let hm = readHourMinute(dict)
             let day = (dict["day"] as? Int) ?? IOSAlarmScheduler.dayFrom(dict: dict)
-            let hour = dict["hour"] as? Int ?? 9
-            let minute = dict["minute"] as? Int ?? 0
             let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "HeyRuffy"
             let line2 = (dict["title"] as? String) ?? "다짐"
             let line3 = (dict["subtitle"] as? String) ?? ""
 
             IOSAlarmScheduler.scheduleMonthly(
-                day: day, hour: hour, minute: minute,
+                day: day, hour: hm.hour, minute: hm.minute,
                 baseId: baseId, line1: appName, line2: line2, line3: line3, soundName: soundName
             )
 
