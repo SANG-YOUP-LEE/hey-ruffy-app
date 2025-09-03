@@ -7,7 +7,16 @@ export function useRoutineBinding(rStore, mv, onUpdate) {
   let stopAuth = null
   let currentUid = null
   const update = () => { if (onUpdate) onUpdate() }
-  const bindFor = (uid) => { currentUid = uid; rStore.bind(uid) }
+
+  const bindFor = async (uid) => {
+    currentUid = uid
+    mv.setLoading(true)
+    await rStore.bind(uid)
+    mv.setLoading(false)
+    mv.setFetched(true)
+    update()
+  }
+
   const releaseAll = () => {
     rStore.release()
     rStore.items = []
@@ -17,15 +26,29 @@ export function useRoutineBinding(rStore, mv, onUpdate) {
     mv.setFetched(true)
     update()
   }
+
   const initBinding = async () => {
     await authReadyPromise
-    if (auth.currentUser) bindFor(auth.currentUser.uid)
+    if (auth.currentUser) await bindFor(auth.currentUser.uid)
     stopAuth = onAuthStateChanged(auth, (user) => {
       if (user && user.uid !== currentUid) bindFor(user.uid)
       else if (!user) { currentUid = null; releaseAll() }
     })
   }
+
   const disposeBinding = () => { if (stopAuth) stopAuth(); stopAuth = null }
-  const refreshBinding = () => { if (currentUid) rStore.bind(currentUid) }
+
+  const refreshBinding = async () => {
+    if (!currentUid) return
+    rStore.release()
+    rStore.items = []
+    mv.setLoading(true)
+    mv.setFetched(false)
+    await rStore.bind(currentUid)
+    mv.setLoading(false)
+    mv.setFetched(true)
+    update()
+  }
+
   return { initBinding, disposeBinding, refreshBinding }
 }
