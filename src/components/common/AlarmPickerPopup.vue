@@ -31,9 +31,9 @@
           v-model="selectedMinute"
           :options="minuteLoopOptions"
           :drag-sensitivity="0.7"
-          :touch-sensitivity="1.5"
+          :touch-sensitivity="0.7"
           :scroll-sensitivity="0.9"
-          :inertia-duration="500"
+          :inertia-duration="1000"
           :inertia-factor="0.9"
         />
       </div>
