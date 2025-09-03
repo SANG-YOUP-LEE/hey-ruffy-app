@@ -83,6 +83,8 @@ function subtitleMonthly(timeStr, days){
   return `${label} ${timeStr}`
 }
 
+let scheduledKeys=new Set()
+
 export const useAlarmStore = defineStore('alarm', {
   state: () => ({
     permission: 'unknown',
@@ -90,7 +92,7 @@ export const useAlarmStore = defineStore('alarm', {
   actions: {
     setPermission(p){ this.permission=p },
 
-    cancel(id){ postIOS({ action:'cancel', id }) },
+    cancel(id){ postIOS({ action:'cancel', id }); scheduledKeys.delete(id) },
     cancelSeries(baseId){
       this.cancel(baseId)
       for(let d=1; d<=31; d++) this.cancel(`${baseId}-m${pad2(d)}`)
@@ -98,16 +100,25 @@ export const useAlarmStore = defineStore('alarm', {
     },
 
     scheduleOnce({ id, title, subtitle, timestamp, link }){
+      if(scheduledKeys.has(id)) return
+      scheduledKeys.add(id)
       postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link, repeatType:'once' })
     },
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){
+      if(scheduledKeys.has(id)) return
+      scheduledKeys.add(id)
       postIOS({ action:'scheduleDaily', id, title, subtitle, hour, minute, interval, startDate:startDate||null, link, repeatType:'daily' })
     },
-    scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, link }){
-      postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, link, repeatType:'weekly' })
+    scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, link }){
+      if(scheduledKeys.has(id)) return
+      scheduledKeys.add(id)
+      postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, intervalWeeks, link, repeatType:'weekly' })
     },
     scheduleMonthly({ id, title, subtitle, day, hour, minute, link }){
-      postIOS({ action:'scheduleMonthly', id, title, subtitle, day, hour, minute, link, repeatType:'monthly' })
+      const sid=`${id}-d${pad2(day)}`
+      if(scheduledKeys.has(sid)) return
+      scheduledKeys.add(sid)
+      postIOS({ action:'scheduleMonthly', id: sid, title, subtitle, day, hour, minute, link, repeatType:'monthly' })
     },
 
     buildFromForm(form){
@@ -204,9 +215,8 @@ export const useAlarmStore = defineStore('alarm', {
         const sub = subtitleMonthly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, monthDays)
         for(const d of monthDays){
           const day = Math.max(1, Math.min(31, Number(d)||1))
-          const id = `${baseId}-m${pad2(day)}`
           this.scheduleMonthly({
-            id, title, subtitle: sub,
+            id: baseId, title, subtitle: sub,
             day, hour: hm.hour, minute: hm.minute, link
           })
         }
