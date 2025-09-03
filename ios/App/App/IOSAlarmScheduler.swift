@@ -1,154 +1,190 @@
-// File: ios/App/App/IOSAlarmScheduler.swift
 import Foundation
 import UserNotifications
+import UIKit
 
 struct IOSAlarmScheduler {
 
+    // === Debug: pending dump ===
+    static func dumpPendingWithNextDates(tag: String = "dump") {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+            print("==== PENDING[\(tag)] \(reqs.count) ====")
+            let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            for r in reqs {
+                if let trig = r.trigger as? UNCalendarNotificationTrigger,
+                   let next = trig.nextTriggerDate() {
+                    print(" -", r.identifier, "| next:", fmt.string(from: next))
+                } else {
+                    print(" -", r.identifier, "| next: (non-calendar or nil)")
+                }
+            }
+            print("==== END PENDING[\(tag)] ====")
+        }
+    }
+
+    // == identifiers / keys ==
     private static func onceIdentifier(for baseId: String) -> String { "\(baseId)-once" }
     private static func threadKey(for baseId: String) -> String { "heyruffy.\(baseId)" }
     private static let dedupSlack: TimeInterval = 30
 
-  static func cancel(byPrefix prefix: String) {
-      let c = UNUserNotificationCenter.current()
-      c.getPendingNotificationRequests { reqs in
-          let ids = reqs.map { $0.identifier }.filter { $0.hasPrefix(prefix) }
-          if !ids.isEmpty {
-              c.removePendingNotificationRequests(withIdentifiers: ids)
-              print("cancelled:", ids.count, "byPrefix:", prefix)
-          }
-      }
-  }
-
-    // ② 예약 현황 덤프 (디버그용)
-    private static func dumpPending(tag: String) {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
-            print("PENDING[\(tag)] =", reqs.count)
-            for r in reqs { print(" -", r.identifier) }
+    // MARK: - Cancel (quiet when 0)
+    static func cancel(byPrefix prefix: String) {
+        let c = UNUserNotificationCenter.current()
+        c.getPendingNotificationRequests { reqs in
+            let ids = reqs.map { $0.identifier }.filter { $0.hasPrefix(prefix) }
+            if !ids.isEmpty {
+                c.removePendingNotificationRequests(withIdentifiers: ids)
+                print("cancelled:", ids.count, "byPrefix:", prefix)
+            }
         }
     }
 
-    // === 오늘만 ===
-    static func scheduleOnce(at date: Date, id: String,
-                             line1: String, line2: String, line3: String,
-                             soundName: String) {
-
-        // ③ 업서트 강화: 같은 접두사는 전부 제거 + once 식별자 제거
-        cancel(byPrefix: id)
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [onceIdentifier(for: id)])
-
+    // MARK: - Once
+    static func scheduleOnce(at date: Date, id: String, line1: String, line2: String, line3: String, soundName: String) {
+        let center = UNUserNotificationCenter.current()
         let key = threadKey(for: id)
-        let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
-        var comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute], from: date)
-        comps.second = 0
-        let trig = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
-        let req = UNNotificationRequest(identifier: onceIdentifier(for: id), content: content, trigger: trig)
-        UNUserNotificationCenter.current().add(req) { e in
-            print("once add:", e as Any, date)
-            dumpPending(tag: "once")
+
+        existsPending(at: date, baseId: id) { exists in
+            if exists { print("dedup: once skipped"); return }
+            center.removePendingNotificationRequests(withIdentifiers: [onceIdentifier(for: id)])
+
+            let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
+            var comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
+            comps.second = comps.second ?? 0
+            let trig = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+            let req = UNNotificationRequest(identifier: onceIdentifier(for: id), content: content, trigger: trig)
+            center.add(req) { e in
+                print("once add:", e as Any)
+                dumpPendingWithNextDates(tag: "once")
+            }
         }
     }
 
-    // === 매일 / N일마다 ===
-    static func scheduleDaily(hour: Int, minute: Int, intervalDays: Int, startDate: String?,
-                              baseId: String,
-                              line1: String, line2: String, line3: String,
-                              soundName: String) {
+    // MARK: - Daily / N days
+    static func scheduleDaily(hour: Int, minute: Int, intervalDays: Int, startDate: String?, baseId: String,
+                              line1: String, line2: String, line3: String, soundName: String) {
         let cal = Calendar.current
         let now = Date()
-        var first: Date
-        if let ymd = startDate, let d = dateFrom(ymd: ymd, hour: hour, minute: minute) {
-            first = d
-        } else {
-            first = cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
-        }
+        let anchor: Date = {
+            if let ymd = startDate, let d = dateFrom(ymd: ymd, hour: hour, minute: minute) { return d }
+            return cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
+        }()
 
         if intervalDays == 1 {
-            var comp = DateComponents(); comp.hour = hour; comp.minute = minute
-            let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: threadKey(for: baseId))
-            let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
-            let req = UNNotificationRequest(identifier: "\(baseId)-d1", content: content, trigger: trig)
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["\(baseId)-d1"])
-            UNUserNotificationCenter.current().add(req) { e in
-                print("daily(d1) add:", e as Any)
-                dumpPending(tag: "daily")
+            var first = anchor
+            if first <= now { first = cal.date(byAdding: .day, value: 1, to: first)! }
+            existsPending(at: first, baseId: baseId) { exists in
+                if exists { print("dedup: daily(d1) skipped"); return }
+                var comp = DateComponents(); comp.hour = hour; comp.minute = minute
+                let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: threadKey(for: baseId))
+                let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
+                let req = UNNotificationRequest(identifier: "\(baseId)-d1", content: content, trigger: trig)
+                UNUserNotificationCenter.current().add(req) { e in print("daily(d1) add:", e as Any) }
             }
             return
         }
 
+        var first = anchor
         while first <= now { first = cal.date(byAdding: .day, value: intervalDays, to: first)! }
-        cancel(byPrefix: "\(baseId)-d\(intervalDays)-")
-        let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: threadKey(for: baseId))
-        var day = first
-        for _ in stride(from: 0, through: 120, by: intervalDays) {
-            var dc = cal.dateComponents([.year,.month,.day], from: day)
-            dc.hour = hour; dc.minute = minute
-            let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
-            let req = UNNotificationRequest(identifier: "\(baseId)-d\(intervalDays)-\(Int(day.timeIntervalSince1970))", content: content, trigger: trig)
-            UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
-            day = cal.date(byAdding: .day, value: intervalDays, to: day)!
-        }
-        dumpPending(tag: "daily-dN")
-    }
-
-    // === 주간 ===
-    static func scheduleWeekly(hour: Int, minute: Int, intervalWeeks: Int, weekdays: [Int],
-                               baseId: String,
-                               line1: String, line2: String, line3: String,
-                               soundName: String) {
-        let center = UNUserNotificationCenter.current()
-        for w in weekdays {
-            var comp = DateComponents(); comp.weekday = w; comp.hour = hour; comp.minute = minute
+        existsPending(at: first, baseId: baseId) { exists in
+            if exists { print("dedup: daily(d\(intervalDays)) skipped"); return }
+            let center = UNUserNotificationCenter.current()
             let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: threadKey(for: baseId))
-
-            if intervalWeeks == 1 {
-                let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
-                let req = UNNotificationRequest(identifier: "\(baseId)-w1-\(w)", content: content, trigger: trig)
-                center.removePendingNotificationRequests(withIdentifiers: ["\(baseId)-w1-\(w)"])
-                center.add(req) { _ in dumpPending(tag: "weekly-w1") }
-            } else {
-                var fire = Calendar.current.nextDate(after: Date(), matching: comp, matchingPolicy: .nextTimePreservingSmallerComponents)!
-                cancel(byPrefix: "\(baseId)-w\(intervalWeeks)-\(w)")
-                for _ in 0..<26 {
-                    var dc = Calendar.current.dateComponents([.year,.month,.day], from: fire)
-                    dc.hour = hour; dc.minute = minute
+            var day = first
+            for _ in stride(from: 0, through: 120, by: intervalDays) {
+                var dc = cal.dateComponents([.year,.month,.day], from: day)
+                dc.hour = hour; dc.minute = minute
+                if let fire = cal.date(from: dc) {
                     let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
-                    let req = UNNotificationRequest(identifier: "\(baseId)-w\(intervalWeeks)-\(w)-\(Int(fire.timeIntervalSince1970))", content: content, trigger: trig)
-                    center.add(req, withCompletionHandler: nil)
-                    fire = Calendar.current.date(byAdding: .weekOfYear, value: intervalWeeks, to: fire)!
+                    let req = UNNotificationRequest(identifier: "\(baseId)-d\(intervalDays)-\(Int(fire.timeIntervalSince1970))", content: content, trigger: trig)
+                    center.add(req) { e in print("daily(d\(intervalDays)) add:", fire, e as Any) }
                 }
-                dumpPending(tag: "weekly-wN")
+                day = cal.date(byAdding: .day, value: intervalDays, to: day)!
             }
         }
     }
 
-    // === 월간 ===
+    // MARK: - Weekly / N weeks
+    static func scheduleWeekly(hour: Int, minute: Int, intervalWeeks: Int, weekdays: [Int], baseId: String,
+                               line1: String, line2: String, line3: String, soundName: String) {
+        let center = UNUserNotificationCenter.current()
+        let key = threadKey(for: baseId)
+
+        for w in weekdays {
+            if intervalWeeks == 1 {
+                let next = nextWeekday(w, hour: hour, minute: minute)
+                existsPending(at: next, baseId: baseId) { exists in
+                    if exists { print("dedup: weekly(w1) skipped (w\(w))"); return }
+                    var comp = DateComponents(); comp.weekday = w; comp.hour = hour; comp.minute = minute
+                    let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
+                    let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
+                    let req = UNNotificationRequest(identifier: "\(baseId)-w1-\(w)", content: content, trigger: trig)
+                    center.add(req) { e in print("weekly(w1) add:", w, e as Any) }
+                }
+            } else {
+                var fire = nextWeekday(w, hour: hour, minute: minute)
+                existsPending(at: fire, baseId: baseId) { exists in
+                    if exists { print("dedup: weekly(w\(intervalWeeks)) skipped (w\(w))"); return }
+                    let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
+                    for _ in 0..<26 {
+                        var dc = Calendar.current.dateComponents([.year,.month,.day], from: fire)
+                        dc.hour = hour; dc.minute = minute
+                        let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
+                        let req = UNNotificationRequest(identifier: "\(baseId)-w\(intervalWeeks)-\(w)-\(Int(fire.timeIntervalSince1970))", content: content, trigger: trig)
+                        center.add(req) { e in print("weekly(w\(intervalWeeks)) add:", w, fire, e as Any) }
+                        fire = Calendar.current.date(byAdding: .weekOfYear, value: intervalWeeks, to: fire)!
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Monthly (12개월 선예약)
     static func scheduleMonthly(day: Int, hour: Int, minute: Int, baseId: String,
-                                line1: String, line2: String, line3: String,
-                                soundName: String) {
+                                line1: String, line2: String, line3: String, soundName: String) {
+        let key = threadKey(for: baseId)
         let cal = Calendar.current
         let center = UNUserNotificationCenter.current()
+        let now = Date()
+
         for i in 0..<12 {
-            if let target = cal.date(byAdding: .month, value: i, to: Date()) {
+            if let target = cal.date(byAdding: .month, value: i, to: now) {
                 var dc = cal.dateComponents([.year,.month], from: target)
                 dc.day = min(day, lastDay(of: dc.year!, month: dc.month!))
                 dc.hour = hour; dc.minute = minute
-                let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: threadKey(for: baseId))
-                let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
-                let id = "\(baseId)-m-\(Int((Calendar.current.date(from: dc)?.timeIntervalSince1970) ?? 0))"
-                let req = UNNotificationRequest(identifier: id, content: content, trigger: trig)
-                center.add(req, withCompletionHandler: nil)
+                if let fire = cal.date(from: dc) {
+                    existsPending(at: fire, baseId: baseId) { exists in
+                        if exists { print("dedup: monthly skipped (\(fire))"); return }
+                        let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: key)
+                        let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
+                        let req = UNNotificationRequest(identifier: "\(baseId)-m-\(Int(fire.timeIntervalSince1970))", content: content, trigger: trig)
+                        center.add(req) { e in print("monthly add:", i, e as Any) }
+                    }
+                }
             }
         }
-        dumpPending(tag: "monthly")
     }
 
-    // === Helpers ===
-    private static func buildContent(line1: String, line2: String, line3: String,
-                                     soundName: String, threadKey: String) -> UNMutableNotificationContent {
+    // MARK: - De-dup helper
+    private static func existsPending(at fireDate: Date, baseId: String, completion: @escaping (Bool)->Void) {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+            let key = threadKey(for: baseId)
+            for r in reqs {
+                guard let trig = r.trigger as? UNCalendarNotificationTrigger,
+                      let next = trig.nextTriggerDate() else { continue }
+                if r.content.threadIdentifier == key && abs(next.timeIntervalSince(fireDate)) <= dedupSlack {
+                    completion(true); return
+                }
+            }
+            completion(false)
+        }
+    }
+
+    // MARK: - Content builder (3줄)
+    private static func buildContent(line1: String, line2: String, line3: String, soundName: String, threadKey: String) -> UNMutableNotificationContent {
         let c = UNMutableNotificationContent()
-        c.title = line1         // 1줄: 앱 이름
-        c.subtitle = line2      // 2줄: 다짐 이름
-        c.body = line3          // 3줄: 기타 정보
+        c.title = line1
+        c.subtitle = line2
+        c.body = line3
         if let snd = safeSound(named: soundName) { c.sound = snd } else { c.sound = .default }
         c.threadIdentifier = threadKey
         if #available(iOS 15.0, *) { c.interruptionLevel = .timeSensitive }
@@ -165,16 +201,26 @@ struct IOSAlarmScheduler {
         return nil
     }
 
+    // MARK: - Helpers
+    private static func nextWeekday(_ weekday: Int, hour: Int, minute: Int) -> Date {
+        let cal = Calendar.current
+        var comps = DateComponents()
+        comps.weekday = weekday; comps.hour = hour; comps.minute = minute; comps.second = 0
+        let now = Date()
+        var next = cal.nextDate(after: now, matching: comps, matchingPolicy: .nextTimePreservingSmallerComponents)!
+        if next.timeIntervalSince(now) < 0 { next = cal.date(byAdding: .day, value: 7, to: next)! }
+        return next
+    }
+
     static func dayFrom(dict: [String: Any]) -> Int {
         if let ymd = dict["startDate"] as? String, ymd.count == 10 {
-            let comps = ymd.split(separator: "-").map { Int($0) ?? 0 }
-            if comps.count == 3 { return comps[2] }
+            let p = ymd.split(separator: "-").map { Int($0) ?? 0 }
+            if p.count == 3 { return p[2] }
         }
         return Calendar.current.component(.day, from: Date())
     }
 
-    
-  private static func lastDay(of year: Int, month: Int) -> Int {
+    private static func lastDay(of year: Int, month: Int) -> Int {
         var c = DateComponents(); c.year = year; c.month = month + 1; c.day = 0
         let d = Calendar.current.date(from: c)!
         return Calendar.current.component(.day, from: d)
@@ -188,5 +234,25 @@ struct IOSAlarmScheduler {
         comp.year = y; comp.month = m; comp.day = d; comp.hour = hour; comp.minute = minute; comp.second = 0
         return Calendar.current.date(from: comp)
     }
+
+    // MARK: - Debug ping (20s)
+    static func debugPing(after seconds: TimeInterval = 20, baseId: String = "debug") {
+        let c = UNUserNotificationCenter.current()
+        c.removePendingNotificationRequests(withIdentifiers: ["\(baseId)-ping"])
+        let content = UNMutableNotificationContent()
+        content.title = "HeyRuffy (PING)"
+        content.subtitle = "디버그 핑"
+        content.body = "지금으로부터 \(Int(seconds))초 후 트리거"
+        if #available(iOS 15.0, *) { content.interruptionLevel = .timeSensitive }
+        content.sound = .default
+        let fire = Date().addingTimeInterval(seconds)
+        let dc = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: fire)
+        let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
+        let req = UNNotificationRequest(identifier: "\(baseId)-ping", content: content, trigger: trig)
+        c.add(req) { e in
+            print("debug ping add:", e as Any, "|", fire)
+            dumpPendingWithNextDates(tag: "after-ping")
+        }
+        }
 }
 
