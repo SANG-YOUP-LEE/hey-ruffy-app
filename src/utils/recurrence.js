@@ -82,12 +82,12 @@ function diffDays(aISO,bISO){ const A=dateFromISO(aISO), B=dateFromISO(bISO); re
 function diffMonths(aISO,bISO){ const [ay,am]=aISO.split("-").map(Number); const [by,bm]=bISO.split("-").map(Number); return (by-ay)*12+(bm-am) }
 function weekdayISO(iso){ const d=dateFromISO(iso).getDay(); return ICS_LIST[d] }
 
-export function isActive(dateISO,startISO,endISO){
-  if (!startISO) return true
-  if (diffDays(startISO, dateISO) < 0) return false
-  if (endISO && diffDays(dateISO, endISO) < 0) return false
+export function isActive(dateISO, startISO, endISO) {
+  if (startISO && diffDays(startISO, dateISO) > 0) return false  // 시작 전이면 false
+  if (endISO && diffDays(endISO, dateISO) < 0) return false      // 종료 후이면 false
   return true
 }
+
 
 export function isDue(dateISO,rule,anchorISO){
   if(!rule||!anchorISO) return false
