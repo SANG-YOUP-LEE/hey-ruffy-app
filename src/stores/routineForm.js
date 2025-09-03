@@ -5,6 +5,8 @@ import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/fires
 import { getAuth } from 'firebase/auth'
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
+const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
+const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
 const p = n => String(n).padStart(2,'0')
 const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
 const weeklyDaysToICS = arr => (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean)
@@ -17,6 +19,8 @@ const deepClean = (v) => { if (Array.isArray(v)) return v.filter(x => x !== unde
 const sanitizeComment = (v) => { if (v == null) return null; let s = String(v).replace(/[\u200B-\u200D\uFEFF]/g,''); s = s.replace(/\r\n?/g,'\n').trim(); if (s.length === 0) return null; if (s.length > 200) s = s.slice(0,200); return s }
 const eqDateObj = (a,b) => { if (!a || !b) return false; return +a.year===+b.year && +a.month===+b.month && +a.day===+b.day }
 const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목','금','토','일']; if (!Array.isArray(arr) || arr.length !== 7) return false; const set = new Set(arr.map(String)); return need.every(d => set.has(d)) }
+const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
+const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
@@ -88,14 +92,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const normalizedType = weeklyIsDaily ? 'daily' : state.repeatType
       const dailyInterval = normalizedType === 'daily' ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)) : null
       const endForTodayOnly = normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+      const weeklyDaysNum = normalizedType === 'weekly' ? daysKorToNum(state.repeatWeekDays) : []
       const cleaned = {
         title: state.title,
         repeatType: normalizedType,
         repeatDays: [],
         repeatEveryDays: normalizedType === 'daily' ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null) : null,
         repeatWeeks: normalizedType === 'weekly' ? state.repeatWeeks || '' : '',
-        repeatWeekDays: normalizedType === 'weekly' ? [...(state.repeatWeekDays||[])] : [],
-        repeatMonthDays: normalizedType === 'monthly' ? [...(state.repeatMonthDays||[])] : [],
+        repeatWeekDays: weeklyDaysNum,
+        repeatMonthDays: normalizedType === 'monthly' ? [...(state.repeatMonthDays||[])].map(Number) : [],
         startDate: hasStart ? state.startDate : null,
         endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
         alarmTime: state.alarmTime,
@@ -154,7 +159,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
         ? (hasEvery ? Math.max(0, Math.min(6, parseInt(routine.repeatEveryDays,10) || 0)) : (isTodayOnly ? 0 : null))
         : null
       this.repeatWeeks = routine.repeatWeeks || ''
-      this.repeatWeekDays = routine.repeatWeekDays || []
+      const rawWeekDays = Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []
+      const weekDaysKor = typeof rawWeekDays[0] === 'number' ? daysNumToKor(rawWeekDays) : rawWeekDays
+      this.repeatWeekDays = weekDaysKor
       this.repeatMonthDays = routine.repeatMonthDays || []
       this.startDate = routine.startDate || null
       this.endDate = routine.endDate || null
@@ -214,45 +221,40 @@ export const useRoutineFormStore = defineStore('routineForm', {
       if (sc === null) this.comment = ''
       return true
     },
-    // 교체: actions.save()
-async save() {
-  if (this.isSaving) return { ok:false }
-  this.isSaving = true
-  try {
-    if (!this.validate()) return { ok:false }
+    async save() {
+      if (this.isSaving) return { ok:false }
+      this.isSaving = true
+      try {
+        if (!this.validate()) return { ok:false }
 
-    const auth = getAuth()
-    const user = auth.currentUser
-    if (!user) return { ok:false, error:'로그인이 필요합니다.' }
+        const auth = getAuth()
+        const user = auth.currentUser
+        if (!user) return { ok:false, error:'로그인이 필요합니다.' }
 
-    const payload = this.payload
-    let res
+        const payload = this.payload
+        let res
 
-    if (this.mode === 'edit' && this.routineId) {
-      const rid = getBaseId(this.routineId)
-      await setDoc(
-        doc(db, 'users', user.uid, 'routines', rid),
-        { ...payload, updatedAt: serverTimestamp() },
-        { merge: true }
-      )
-      res = { ok:true, id: rid, data: payload }
-    } else {
-      const colRef = collection(db, 'users', user.uid, 'routines')
-      const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-      res = { ok:true, id: docRef.id, data: payload }
-    }
-
-    if (res.ok) {
-      const { useAlarmStore } = await import('@/stores/alarm')
-      const alarm = useAlarmStore()
-      await alarm.scheduleFromForm(this.payload, { routineId: res.id, title: this.title })
-    }
-    return res
-  } catch (e) {
-    return { ok:false, error: String(e && e.message ? e.message : e) }
-  } finally {
-    this.isSaving = false
-            }
-          }
+        if (this.mode === 'edit' && this.routineId) {
+          const rid = getBaseId(this.routineId)
+          await setDoc(
+            doc(db, 'users', user.uid, 'routines', rid),
+            { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
+            { merge: true }
+          )
+          res = { ok:true, id: rid, data: payload }
+        } else {
+          const colRef = collection(db, 'users', user.uid, 'routines')
+          const nowMs = Date.now()
+          const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
+          res = { ok:true, id: docRef.id, data: payload }
         }
-      })
+
+        return res
+      } catch (e) {
+        return { ok:false, error: String(e && e.message ? e.message : e) }
+      } finally {
+        this.isSaving = false
+      }
+    }
+  }
+})
