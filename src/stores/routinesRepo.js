@@ -21,7 +21,7 @@ export function bindRoutines(uid, onData, onError) {
 export async function setStatus(uid, rid, key, status, delta = 0) {
   if (!uid || !rid || !key) return
   const ref = doc(db, 'users', uid, 'routines', rid)
-  const payload = { [`statuses.${key}`]: status, updatedAt: serverTimestamp() }
+  const payload = { [`statuses.${key}`]: status, updatedAt: serverTimestamp(), updatedAtMs: Date.now() }
   if (delta !== 0) payload.walkDoneCount = increment(delta)
   await updateDoc(ref, payload)
 }
@@ -29,7 +29,7 @@ export async function setStatus(uid, rid, key, status, delta = 0) {
 export async function togglePause(uid, rid, isPaused) {
   if (!uid || !rid) return
   const ref = doc(db, 'users', uid, 'routines', rid)
-  await updateDoc(ref, { isPaused: !!isPaused, updatedAt: serverTimestamp() })
+  await updateDoc(ref, { isPaused: !!isPaused, updatedAt: serverTimestamp(), updatedAtMs: Date.now() })
 }
 
 export async function deleteMany(uid, ridList) {
