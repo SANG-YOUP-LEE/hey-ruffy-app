@@ -5,18 +5,9 @@ import { bindRoutines, setStatus as repoSetStatus, togglePause as repoTogglePaus
 function nowTs() { return Date.now() }
 function ensureId() { return 'rt-' + Math.random().toString(36).slice(2, 10) }
 function baseId(id) { return String(id).split('-')[0] }
-function tsToMs(v) {
-  if (!v && v !== 0) return 0
-  if (typeof v === 'number') return v < 1e12 ? v * 1000 : v
-  if (typeof v === 'object' && typeof v.seconds === 'number') return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6)
-  return 0
-}
 
 function normalizeRoutine(r) {
   const id = r.id || ensureId()
-  const createdAtMs = Number(r.createdAtMs ?? tsToMs(r.createdAt) ?? 0) || 0
-  const updatedAtMs = Number(r.updatedAtMs ?? tsToMs(r.updatedAt) ?? createdAtMs) || 0
-  const repeatEveryDays = Number.isFinite(+r.repeatEveryDays) ? +r.repeatEveryDays : null
   return {
     id,
     title: r.title || '',
@@ -31,39 +22,15 @@ function normalizeRoutine(r) {
     repeatWeeks: r.repeatWeeks || '',
     repeatWeekDays: Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [],
     repeatMonthDays: Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [],
-    repeatEveryDays,
     startDate: r.startDate || null,
     endDate: r.endDate || null,
     alarmTime: r.alarmTime || null,
     isPaused: !!r.isPaused,
     walkDoneCount: Number(r.walkDoneCount ?? 0),
     statuses: r.statuses || r.progress || {},
-    createdAt: r.createdAt || null,
-    updatedAt: r.updatedAt || null,
-    createdAtMs,
-    updatedAtMs
+    createdAt: r.createdAt || nowTs(),
+    updatedAt: r.updatedAt || nowTs()
   }
-}
-
-function sortByRecent(a, b) {
-  const au = a.updatedAtMs || 0, bu = b.updatedAtMs || 0
-  if (bu !== au) return bu - au
-  const ac = a.createdAtMs || 0, bc = b.createdAtMs || 0
-  if (bc !== ac) return bc - ac
-  return String(b.id).localeCompare(String(a.id))
-}
-
-function dedupeByBaseId(list) {
-  const map = new Map()
-  for (const raw of list) {
-    const n = normalizeRoutine(raw)
-    const key = baseId(n.id)
-    const prev = map.get(key)
-    if (!prev) { map.set(key, n); continue }
-    const newer = sortByRecent(n, prev) < 0 ? prev : n
-    map.set(key, newer)
-  }
-  return Array.from(map.values())
 }
 
 export const useRoutinesStore = defineStore('routines', {
@@ -82,24 +49,17 @@ export const useRoutinesStore = defineStore('routines', {
   actions: {
     addRoutine(r) {
       const n = normalizeRoutine(r || {})
-      const key = baseId(n.id)
-      const i = this.items.findIndex(v => baseId(v.id) === key)
-      if (i === -1) {
-        this.items = [n, ...this.items].sort(sortByRecent)
-      } else {
-        const merged = sortByRecent(n, this.items[i]) < 0 ? this.items[i] : { ...this.items[i], ...n }
-        this.items.splice(i, 1, merged)
-        this.items.sort(sortByRecent)
-      }
+      const i = this.items.findIndex(v => v.id === n.id)
+      if (i === -1) this.items.unshift(n)
+      else this.items.splice(i, 1, { ...this.items[i], ...n, updatedAt: nowTs() })
     },
 
     updateRoutine(id, payload) {
-      const key = baseId(id)
-      const i = this.items.findIndex(v => baseId(v.id) === key)
+      const i = this.items.findIndex(v => v.id === id)
       if (i < 0) return
-      const next = normalizeRoutine({ ...this.items[i], ...payload, id: key, updatedAtMs: nowTs() })
+      const next = normalizeRoutine({ ...this.items[i], ...payload, id })
+      next.updatedAt = nowTs()
       this.items.splice(i, 1, next)
-      this.items.sort(sortByRecent)
     },
 
     async deleteRoutines(ids) {
@@ -109,7 +69,7 @@ export const useRoutinesStore = defineStore('routines', {
         try { await repoDeleteMany(uid, ridList) } catch(e) {}
       }
       const set = new Set(ridList)
-      this.items = this.items.filter(v => !set.has(baseId(v.id)))
+      this.items = this.items.filter(v => !set.has(v.id) && !set.has(baseId(v.id)))
       this.deleteTargets = []
       this.deleteMode = false
     },
@@ -117,11 +77,10 @@ export const useRoutinesStore = defineStore('routines', {
     async togglePause({ id, isPaused }) {
       const uid = this._boundUid
       const rid = baseId(id)
-      const i = this.items.findIndex(v => baseId(v.id) === rid)
+      const i = this.items.findIndex(v => v.id === rid)
       if (i < 0) return
-      const it = { ...this.items[i], isPaused: !!isPaused, updatedAtMs: nowTs() }
+      const it = { ...this.items[i], isPaused: !!isPaused, updatedAt: nowTs() }
       this.items.splice(i, 1, it)
-      this.items.sort(sortByRecent)
       if (uid && rid) {
         try { await repoTogglePause(uid, rid, !!isPaused) } catch(e) {}
       }
@@ -130,7 +89,7 @@ export const useRoutinesStore = defineStore('routines', {
     async changeStatus({ id, status, date }) {
       const uid = this._boundUid
       const rid = baseId(id)
-      const i = this.items.findIndex(v => baseId(v.id) === rid)
+      const i = this.items.findIndex(v => v.id === rid)
       if (i < 0 || !date) return
       const it = { ...this.items[i] }
       const prev = it.statuses?.[date]
@@ -144,9 +103,8 @@ export const useRoutinesStore = defineStore('routines', {
       }
       it.statuses = nextStatuses
       it.walkDoneCount = nextWalk
-      it.updatedAtMs = nowTs()
+      it.updatedAt = nowTs()
       this.items.splice(i, 1, it)
-      this.items.sort(sortByRecent)
       if (uid && rid) {
         try { await repoSetStatus(uid, rid, date, status, delta) } catch(e) {}
       }
@@ -186,17 +144,8 @@ export const useRoutinesStore = defineStore('routines', {
       this._boundUid = uid
       this._unsubscribe = bindRoutines(
         uid,
-        (list) => {
-          const deduped = dedupeByBaseId(list).sort(sortByRecent)
-          this.items = deduped
-          this.isLoading = false
-          this.hasFetched = true
-        },
-        () => {
-          this.items = []
-          this.isLoading = false
-          this.hasFetched = true
-        }
+        (list) => { this.items = list; this.isLoading = false; this.hasFetched = true },
+        () => { this.items = []; this.isLoading = false; this.hasFetched = true }
       )
     },
 
