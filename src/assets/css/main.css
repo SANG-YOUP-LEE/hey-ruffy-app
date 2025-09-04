@@ -14,10 +14,6 @@
   display: inline-block;
 }
 
-#main_wrap button span {
-  display: none;
-}
-
 #header {
   position: relative;
   display: flex;
@@ -167,7 +163,6 @@
   }
 }
 
-
 button.lnb {
   padding:0;
   background: url('../images/ico_lnb.png') no-repeat 0 0/100%;
@@ -263,6 +258,7 @@ button.control {
   transition:opacity 300ms ease;
   z-index:1;
 }
+
 .sp.open .sp_overlay{ opacity:1 }
 
 html.sp-open #main_wrap{
@@ -271,22 +267,134 @@ html.sp-open #main_wrap{
   will-change:transform;
 }
 
-
 .lnb {
-  text-align:left;
-  padding:2rem;
+  text-align: left;
+  padding: 2rem;
+  position: relative;
 }
 
 .lnb .lnb_header a.close {
-  width:1.8rem;
-  height:1.8rem;
-  display:inline-block;
+  width: 1.8rem;
+  height: 1.8rem;
+  display: inline-block;
   background: url('../images/ico_prev.png') no-repeat 0 0/100%;
 }
 
-
 .lnb .lnb_header a.close span {
-  display:none
+  display: none;
+}
+
+.lnb .lnb_footer {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  left: 2rem;
+  right: 2rem;
+  width: auto;
+  position: absolute;
+  bottom: 5rem;
+}
+
+.lnb .lnb_footer a {
+  width: 100%;
+  display: inline-block;
+  color: #666;
+}
+
+.lnb .lnb_footer .ver {
+  margin-top: 0.5rem;
+  display: inline-block;
+  color: #999;
+}
+
+.lnb .lnb_footer button {
+  text-decoration: underline;
+  color: #666;
+}
+
+.lnb_wrap {
+  width: 80%;
+  margin: 0 auto;
+  margin-top: -2rem;
+}
+
+.lnb_wrap .lnb_user {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lnb_wrap .lnb_user .avatar {
+  width: 8rem;
+  height: 8rem;
+  margin: 0 auto;
+  background: #f6f6f6;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lnb_wrap .lnb_user .avatar img {
+  width: 5rem;
+  height: auto;
+  display: block;
+}
+
+.lnb_wrap .lnb_user .avatar .edit_p {
+  width:2.5rem;
+  height:2.5rem;
+  display:inline-block;
+  border:1px solid #333;
+  border-radius: 50%;
+  position:absolute;
+  right:0;
+  bottom:0rem;
+  background: url('../images/ico_camera.png') no-repeat 50% 50%/60% #fff;
+}
+
+.lnb_wrap .lnb_user .nick {
+  margin-top: 1rem;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.lnb_wrap .lnb_user .nick a {
+  font-size: 1rem;
+  color: #333;
+  font-weight: normal;
+}
+
+.lnb_wrap .lnb_user .nick button.p_edit{
+  flex: 0 0 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid #f6f6f6;
+  background: url('../images/ico_modify.png') no-repeat 50% 50%/contain #fff;
+  box-sizing: border-box;
+  border-radius: 0;
+  vertical-align: text-top;
+  margin-left: 0.5rem;
+}
+
+.lnb_wrap .lnb_menu {
+  margin: 0 auto;
+  max-height: calc(100dvh - 5rem - 8rem - 12rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lnb_wrap .lnb_menu a {
+  width: 100%;
+  display: inline-block;
+  padding: 1rem 0 1rem 0;
+  line-height: 2rem;
+  font-size: 1.2rem;
+  text-decoration: none;
+  color: #333;
+  letter-spacing: -0.05rem;
+  background: url('../images/ico_next.png') no-repeat 100% 50%/1rem;
+  border-bottom: 1px solid #e6e6e6
 }
 
 #main_body .no_data {
