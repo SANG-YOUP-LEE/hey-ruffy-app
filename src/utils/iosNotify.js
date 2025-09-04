@@ -3,6 +3,8 @@
 // 기존 호출부는 그대로 두고, 여기서 모두 최신 포맷으로 변환 + 레거시 API 별칭까지 export.
 
 const mh = () => window.webkit?.messageHandlers?.notify;
+
+// 안전 전송 + 공통 로그
 const safePost = (payload) => {
   try {
     console.log('[iosNotify][TX]', JSON.stringify(payload));
@@ -11,13 +13,79 @@ const safePost = (payload) => {
     console.warn('[iosNotify][ERR]', e);
   }
 };
-
 const log = (...args) => console.warn('⚡️ ', ...args);
+
+// ───────────────────────────────────────────
+// Normalizers
+// ───────────────────────────────────────────
+
+const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+const toInt = (v) => {
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.floor(v);
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    if (Number.isFinite(n)) return Math.floor(n);
+  }
+  return undefined;
+};
+
+const KOR_DAY = { '일':1,'월':2,'화':3,'수':4,'목':5,'금':6,'토':7 };
+const ENG_DAY = { su:1, sun:1, mo:2, mon:2, tu:3, tue:3, we:4, wed:4, th:5, thu:5, fr:6, fri:6, sa:7, sat:7 };
+const ICS_DAY = { SU:1, MO:2, TU:3, WE:4, TH:5, FR:6, SA:7 };
+
+function mapOneDayToken(d) {
+  if (d == null) return undefined;
+  if (typeof d === 'number') {
+    if (d >= 1 && d <= 7) return d;
+    if (d >= 0 && d <= 6) return d + 1; // 0=Sun 케이스 방어
+    return undefined;
+  }
+  const s = String(d).trim();
+  if (s === '') return undefined;
+  // "일요일" → "일"
+  const head = s.slice(0, 1);
+  if (KOR_DAY[head]) return KOR_DAY[head];
+  if (ENG_DAY[s.toLowerCase()]) return ENG_DAY[s.toLowerCase()];
+  if (ICS_DAY[s.toUpperCase()]) return ICS_DAY[s.toUpperCase()];
+  const n = toInt(s);
+  if (n && n >= 1 && n <= 7) return n;
+  return undefined;
+}
+
+function normalizeWeekdays(raw) {
+  if (!raw) return undefined;
+  let arr = [];
+  if (Array.isArray(raw)) {
+    arr = raw.map(mapOneDayToken).filter(Boolean);
+  } else if (typeof raw === 'object') {
+    // 예: { mon:true, tue:false } 또는 { '월':1, '수': true }
+    arr = Object.entries(raw)
+      .filter(([, v]) => !!v)
+      .map(([k]) => mapOneDayToken(k))
+      .filter(Boolean);
+  } else {
+    const one = mapOneDayToken(raw);
+    if (one) arr = [one];
+  }
+  // 유효하지 않으면 undefined 반환 (네이티브에서 기본 1~7 처리)
+  if (!arr.length) return undefined;
+  return Array.from(new Set(arr)).sort((a, b) => a - b);
+}
 
 // legacy -> unified 'schedule' payload 로 변환
 function normalizeSchedulePayload(msg = {}) {
-  // 이미 새 포맷이면 그대로 통과
-  if (msg && msg.action === 'schedule') return msg;
+  // 이미 새 포맷이면 그대로 통과 (단, 타입 보정만)
+  if (msg && msg.action === 'schedule') {
+    const out = { ...msg };
+    if (out.hour != null) out.hour = toInt(out.hour);
+    if (out.minute != null) out.minute = toInt(out.minute);
+    if (out.interval != null) out.interval = Math.max(1, toInt(out.interval) ?? 1);
+    if (out.intervalWeeks != null) out.intervalWeeks = Math.max(1, toInt(out.intervalWeeks) ?? 1);
+    if (!out.weekdays) out.weekdays = normalizeWeekdays(out.repeatWeekDays || out.weekday);
+    if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
+    if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
+    return out;
+  }
 
   const out = { action: 'schedule' };
 
@@ -35,47 +103,56 @@ function normalizeSchedulePayload(msg = {}) {
   }
   out.repeatMode = repeatMode;
 
-  // 시간 정보
-  if (typeof msg.hour === 'number') out.hour = msg.hour;
-  if (typeof msg.minute === 'number') out.minute = msg.minute;
-  if (msg.alarm && typeof msg.alarm === 'object') {
-    if (typeof msg.alarm.hour === 'number') out.hour = msg.alarm.hour;
-    if (typeof msg.alarm.minute === 'number') out.minute = msg.alarm.minute;
-  }
+  // 시간 정보 (숫자/문자 모두 허용)
+  const h1 = toInt(msg.hour);
+  const m1 = toInt(msg.minute);
+  const h2 = toInt(msg?.alarm?.hour);
+  const m2 = toInt(msg?.alarm?.minute);
+  if (h1 != null) out.hour = h1;
+  if (m1 != null) out.minute = m1;
+  if (out.hour == null && h2 != null) out.hour = h2;
+  if (out.minute == null && m2 != null) out.minute = m2;
+
+  // 시작/종료일 (문자열 Y-M-D 만 통과; 네이티브가 필요 시 사용)
+  if (isYMD(msg.startDate)) out.startDate = msg.startDate;
+  if (isYMD(msg.endDate)) out.endDate = msg.endDate;
 
   // once 전용: timestamp(ms)
-  if (repeatMode === 'once' && Number.isFinite(msg.timestamp)) {
-    out.timestamp = msg.timestamp;
-  }
+  const ts = toInt(msg.timestamp);
+  if (repeatMode === 'once' && ts && ts > 0) out.timestamp = ts;
 
   // daily 전용
   if (repeatMode === 'daily') {
     const interval =
-      Number(msg.interval) ||
-      Number(msg.intervalDays) ||
-      Number(msg.repeatEveryDays) || 1;
+      toInt(msg.interval) ??
+      toInt(msg.intervalDays) ??
+      toInt(msg.repeatEveryDays) ?? 1;
     out.interval = Math.max(1, interval);
-    if (typeof msg.startDate === 'string') out.startDate = msg.startDate;
+    if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   }
 
   // weekly 전용
   if (repeatMode === 'weekly') {
-    if (Array.isArray(msg.weekdays)) out.weekdays = msg.weekdays;
-    if (!out.weekdays && Array.isArray(msg.repeatWeekDays)) {
-      const mapKor = { '일':1,'월':2,'화':3,'수':4,'목':5,'금':6,'토':7 };
-      out.weekdays = msg.repeatWeekDays
-        .map(d => mapKor[String(d)] ?? Number(d))
-        .filter(n => n>=1 && n<=7);
-    }
+    // 요일
+    out.weekdays =
+      normalizeWeekdays(msg.weekdays) ||
+      normalizeWeekdays(msg.repeatWeekDays) ||
+      normalizeWeekdays(msg.weekday);
+    // 간격(주)
     const iw =
-      Number(msg.intervalWeeks) ||
-      Number((String(msg.repeatWeeks||'').match(/(\d+)/) || [])[1]) || 1;
+      toInt(msg.intervalWeeks) ??
+      toInt(msg.weeksInterval) ??
+      toInt(msg.everyWeeks) ??
+      // "2주마다" 같은 문자열에서 숫자만 추출
+      (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
+      1;
     out.intervalWeeks = Math.max(1, iw);
   }
 
   // monthly 전용
   if (repeatMode.startsWith('monthly')) {
-    if (typeof msg.day === 'number') out.day = Math.max(1, Math.min(31, msg.day));
+    const d = toInt(msg.day) ?? toInt((String(msg.repeatMonthDays || '').match(/(\d+)/) || [])[1]);
+    if (d != null) out.day = Math.max(1, Math.min(31, d));
   }
 
   // 딥링크 패스
@@ -87,32 +164,33 @@ function normalizeSchedulePayload(msg = {}) {
 // ───────────────────────────────────────────
 // Public API
 // ───────────────────────────────────────────
+
 export function scheduleOnIOS(msg) {
   if (!mh()) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
   const unified = normalizeSchedulePayload(msg);
-  if (msg && msg.action && msg.action !== 'schedule') {
-    log('[iosNotify] scheduleOnIOS:POST_OLD', msg); // 디버그용
-  } else {
-    log('[iosNotify] scheduleOnIOS:REQ', unified);
-  }
+  log('[iosNotify] scheduleOnIOS:REQ', unified);
   safePost(unified);
 }
 
 export function cancelOnIOS(idOrBase) {
   if (!mh()) { log('[iosNotify] cancelOnIOS:NO_BRIDGE'); return; }
   if (!idOrBase) return;
-  safePost({ action: 'cancel', id: String(idOrBase) });
+  const id = String(idOrBase);
+  safePost({ action: 'cancel', id });
 }
 
 export function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
   if (!mh()) { log('[iosNotify] debugPingOnIOS:NO_BRIDGE'); return; }
-  safePost({ action: 'debugPing', baseId: tag, seconds: Number(sec)||20 });
+  safePost({ action: 'debugPing', baseId: tag, seconds: toInt(sec) ?? 20 });
 }
 
 export function dumpPendingOnIOS(tag = 'manual') {
   if (!mh()) { log('[iosNotify] dumpPendingOnIOS:NO_BRIDGE'); return; }
   safePost({ action: 'dumpPending', tag });
 }
+
+// (가끔 다른 파일에서 그냥 postIOS만 쓰는 경우가 있어 노출)
+export function postIOS(payload) { safePost(payload); }
 
 // ───────────────────────────────────────────
 // Legacy Shims (다른 파일 호환용 이름)
@@ -126,6 +204,7 @@ export default {
   cancelOnIOS,
   debugPingOnIOS,
   dumpPendingOnIOS,
+  postIOS,
   // legacy 별칭
   scheduleRoutineAlerts,
   cancelRoutineAlerts,

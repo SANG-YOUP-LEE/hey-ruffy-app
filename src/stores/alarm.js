@@ -1,6 +1,9 @@
 // File: src/stores/alarm.js
 import { defineStore } from 'pinia'
 
+// ▷ 임박 발사 때 기존 예약을 지우지 않으려면 false 유지(권장)
+const HARD_PURGE_FIRST = false
+
 // iOS 브릿지 전송 (이 파일 내부 버전만 사용!)
 //  ↳ 절대 `import { postIOS } from '@/utils/iosNotify'` 하지 말 것 (중복 선언 에러 방지)
 function postIOS(payload){
@@ -12,6 +15,7 @@ function postIOS(payload){
 
 const pad2 = n => String(n).padStart(2,'0')
 
+// --- 시간 파서 ---
 function parseAlarmTime(v){
   if(!v) return null
   if(typeof v==='string'){
@@ -52,11 +56,36 @@ function asLocalDate(dateLike){
   return new Date(dateLike)
 }
 
+// --- 요일 유틸 ---
 const WD_LABEL=['일','월','화','수','목','금','토']
+const MAP_KOR = { '일':1,'월':2,'화':3,'수':4,'목':5,'금':6,'토':7 }
+const MAP_ENG = { su:1,sun:1, mo:2,mon:2, tu:3,tue:3, we:4,wed:4, th:5,thu:5, fr:6,fri:6, sa:7,sat:7 }
+const MAP_ICS = { SU:1, MO:2, TU:3, WE:4, TH:5, FR:6, SA:7 }
+
+// form.repeatWeekDays → iOS(일=1..토=7)로 정규화
 function toIOSWeekdayNums(arr){
   if(!Array.isArray(arr)) return []
   const mapMonFirstToApple = {1:2,2:3,3:4,4:5,5:6,6:7,7:1}
-  return arr.map(n=>mapMonFirstToApple[Number(n)]??null).filter(n=>n>=1&&n<=7)
+  const normOne = (x) => {
+    if (typeof x === 'number') {
+      if (x>=1 && x<=7) return mapMonFirstToApple[x] || x  // (월=1) 가정치 → Apple(일=1)
+      if (x>=0 && x<=6) return x===0 ? 1 : x+1             // 0(Sun)..6(Sat) → 1..7
+      return null
+    }
+    const s = String(x).trim()
+    if (!s) return null
+    const n = Number(s)
+    if (Number.isFinite(n)) {
+      if (n>=1 && n<=7) return mapMonFirstToApple[n] || n
+      if (n>=0 && n<=6) return n===0 ? 1 : n+1
+    }
+    const head = s.slice(0,1)
+    if (MAP_KOR[head]) return MAP_KOR[head]
+    if (MAP_ENG[s.toLowerCase()]) return MAP_ENG[s.toLowerCase()]
+    if (MAP_ICS[s.toUpperCase()]) return MAP_ICS[s.toUpperCase()]
+    return null
+  }
+  return [...new Set(arr.map(normOne).filter(Boolean))].sort((a,b)=>a-b)
 }
 
 function sameYMD(a,b){
@@ -76,6 +105,7 @@ function nextTimestampForOnce(hour, minute, baseDate){
   return base.getTime()
 }
 
+// --- 서브타이틀 생성 ---
 function subtitleDaily(timeStr, n){
   if((n|0)===0) return `오늘만 ${timeStr}`
   if(n===1) return `매일 ${timeStr}`
@@ -102,7 +132,9 @@ export const useAlarmStore = defineStore('alarm', {
 
     cancel(id){ postIOS({ action:'cancel', id }); scheduledKeys.delete(id) },
     cancelSeries(baseId){
+      // 베이스만 취소해도 네이티브에서 해당 prefix 전체 purge
       this.cancel(baseId)
+      // 아래는 호환 남김(실제론 불필요)
       for(let d=1; d<=31; d++) this.cancel(`${baseId}-m${pad2(d)}`)
       for(let w=1; w<=7; w++) this.cancel(`${baseId}-w${w}`)
     },
@@ -122,7 +154,7 @@ export const useAlarmStore = defineStore('alarm', {
       })
     },
 
-    scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){
+    scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, endDate, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
       postIOS({
@@ -132,13 +164,14 @@ export const useAlarmStore = defineStore('alarm', {
         hour, minute,
         interval: Number(interval)||1,
         startDate: startDate || null,
+        endDate: endDate || null,         // 전달만(네이티브 확장 대비)
         title,
         subtitle,
         link
       })
     },
 
-    scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, link }){
+    scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, startDate, endDate, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
       postIOS({
@@ -148,13 +181,16 @@ export const useAlarmStore = defineStore('alarm', {
         hour, minute,
         weekdays: Array.isArray(weekdays)?weekdays:[],
         intervalWeeks: Number(intervalWeeks)||1,
+        startDate: startDate || null,     // 전달만(네이티브 확장 대비)
+        endDate: endDate || null,         // 전달만(네이티브 확장 대비)
         title,
         subtitle,
         link
       })
     },
 
-    scheduleMonthly({ id, title, subtitle, day, hour, minute, link }){
+    scheduleMonthly({ id, title, subtitle, day, hour, minute, startDate, endDate, link }){
+      // 여러 날짜를 같은 baseId로 보낼 때 dedup 방지를 위해 sid 부여
       const sid=`${id}-d${pad2(day)}`
       if(scheduledKeys.has(sid)) return
       scheduledKeys.add(sid)
@@ -164,12 +200,15 @@ export const useAlarmStore = defineStore('alarm', {
         repeatMode: 'monthly',
         day: Number(day),
         hour, minute,
+        startDate: startDate || null,     // 전달만(네이티브 확장 대비)
+        endDate: endDate || null,         // 전달만(네이티브 확장 대비)
         title,
         subtitle,
         link
       })
     },
 
+    // ---------- 폼 -> 스케줄 준비 ----------
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
       if(!hm) return null
@@ -216,6 +255,7 @@ export const useAlarmStore = defineStore('alarm', {
       }
     },
 
+    // ---------- 실제 스케줄 ----------
     scheduleFromForm(form, meta){
       if(this.permission==='denied') return { ok:false, reason:'permission_denied' }
 
@@ -227,13 +267,21 @@ export const useAlarmStore = defineStore('alarm', {
       const baseId=`rt_${routineId}`
       const title=(meta.title||'').slice(0,20)||'알람'
       const link=`heyruffy://main?r=${encodeURIComponent(routineId)}`
+      const startDate = form.startDate || null
+      const endDate   = form.endDate   || null
 
-      this.cancelSeries(baseId)
+      if (HARD_PURGE_FIRST) this.cancelSeries(baseId) // 기본값 false
 
       if(isDaily){
         if(isTodayOnly){
-          const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(form.startDate||new Date()))
-          this.scheduleOnce({ id: baseId, title, subtitle: subtitleDaily(`${pad2(hm.hour)}:${pad2(hm.minute)}`, 0), timestamp: ts, link })
+          const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
+          this.scheduleOnce({
+            id: baseId,
+            title,
+            subtitle: subtitleDaily(`${pad2(hm.hour)}:${pad2(hm.minute)}`, 0),
+            timestamp: ts,
+            link
+          })
           return { ok:true, scheduled:true, type:'once', ts }
         }
         const interval = Math.max(1, Number(dailyEvery||1))
@@ -241,7 +289,7 @@ export const useAlarmStore = defineStore('alarm', {
           id: baseId, title,
           subtitle: subtitleDaily(`${pad2(hm.hour)}:${pad2(hm.minute)}`, interval),
           hour: hm.hour, minute: hm.minute,
-          interval, startDate: form.startDate || null, link
+          interval, startDate, endDate, link
         })
         return { ok:true, scheduled:true, type:'daily', interval }
       }
@@ -255,6 +303,7 @@ export const useAlarmStore = defineStore('alarm', {
           hour: hm.hour, minute: hm.minute,
           weekdays: iosWeekdays,
           intervalWeeks,
+          startDate, endDate,
           link
         })
         return { ok:true, scheduled:true, type:'weekly', weekdays: iosWeekdays }
@@ -266,13 +315,14 @@ export const useAlarmStore = defineStore('alarm', {
           const day = Math.max(1, Math.min(31, Number(d)||1))
           this.scheduleMonthly({
             id: baseId, title, subtitle: sub,
-            day, hour: hm.hour, minute: hm.minute, link
+            day, hour: hm.hour, minute: hm.minute,
+            startDate, endDate, link
           })
         }
         return { ok:true, scheduled:true, type:'monthly', days: monthDays }
       }
 
-      const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(form.startDate||new Date()))
+      const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
       this.scheduleOnce({ id: baseId, title, subtitle: `${pad2(hm.hour)}:${pad2(hm.minute)}`, timestamp: ts, link })
       return { ok:true, scheduled:true, type:'once', ts }
     }

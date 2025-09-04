@@ -27,7 +27,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                                               options: .regularExpression)
       return canonicalId(stripped) // "routine-\(base)"
   }
-  
+
+  // ===== 🔒 발사 직전 퍼지 가드(±120초) 추가 =====
+  private let firingGuardWindow: TimeInterval = 120
+
+  /// baseId("routine-...") 기준으로 지금으로부터 ±120초 안에 발사될 예약이 있으면 true
+  private func shouldSkipPurge(baseId: String) -> Bool {
+      let sema = DispatchSemaphore(value: 0)
+      var skip = false
+      UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+          let now = Date()
+          for r in reqs {
+              guard r.identifier.hasPrefix(baseId) else { continue }
+              if let cal = r.trigger as? UNCalendarNotificationTrigger, let fire = cal.nextTriggerDate() {
+                  if abs(fire.timeIntervalSince(now)) <= self.firingGuardWindow { skip = true; break }
+              } else if let ti = r.trigger as? UNTimeIntervalNotificationTrigger {
+                  // 반복 타이머의 남은 시간이 guard 이하라면 막차일 가능성 → 스킵
+                  if ti.timeInterval <= self.firingGuardWindow { skip = true; break }
+              }
+          }
+          sema.signal()
+      }
+      _ = sema.wait(timeout: .now() + 0.5)
+      return skip
+  }
+  // ============================================
+
   // MARK: - App lifecycle
   func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -162,11 +187,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     switch action {
       
-      // 기존 switch(action) { case "cancel": ... } 블록 교체
+      // ⬇️ cancel 시, 발사 직전이면 purge 스킵
       case "cancel":
           if let raw = dict["id"] as? String {
-              let base = canonicalBaseId(from: raw)
-              IOSAlarmScheduler.purgeAllForBase(baseId: base)
+              let base = canonicalBaseId(from: raw) // "routine-<rt_...>"
+              if shouldSkipPurge(baseId: base) {
+                  print("cancel SKIPPED (within firing window) for \(base)")
+              } else {
+                  IOSAlarmScheduler.purgeAllForBase(baseId: base)
+              }
           }
       
     case "schedule":
@@ -176,15 +205,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       let line2 = (dict["title"] as? String) ?? (dict["name"] as? String) ?? "다짐"
       let line3 = (dict["subtitle"] as? String) ?? ""
       
-      // ⬇️ 여기 기존 코드
-          // IOSAlarmScheduler.purgeAllForBase(baseId: baseId)
-
-          // ⬇️ 이렇게 교체
-          if IOSAlarmScheduler.shouldSkipPurge(baseId: baseId) {
-              print("purge SKIPPED (within firing window) for", baseId)
-          } else {
-              IOSAlarmScheduler.purgeAllForBase(baseId: baseId)
-          }
+      // ⬇️ 발사 직전이면 purge SKIP (막차 지우는 버그 방지)
+      if shouldSkipPurge(baseId: baseId) {
+          print("purge SKIPPED (within firing window) for \(baseId)")
+      } else {
+          IOSAlarmScheduler.purgeAllForBase(baseId: baseId)
+      }
       
       switch repeatMode {
       case "once":
@@ -286,3 +312,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
   }
 }
+
