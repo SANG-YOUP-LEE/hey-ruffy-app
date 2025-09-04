@@ -19,6 +19,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   // 모든 외부 id는 여기서 "routine-<id>" 로 통일
   private func canonicalId(_ base: String) -> String { "routine-\(base)" }
   
+  // AppDelegate.swift 에 추가 (class 내부 아무 곳에)
+  private func canonicalBaseId(from raw: String) -> String {
+      // rt_abc-m01 / rt_abc-w5 / rt_abc-d2 / rt_abc-once / rt_abc-ping → rt_abc
+      let stripped = raw.replacingOccurrences(of: #"(-m\d{2}|-w[1-7]|-d\d+|-once|-ping)$"#,
+                                              with: "",
+                                              options: .regularExpression)
+      return canonicalId(stripped) // "routine-\(base)"
+  }
+  
   // MARK: - App lifecycle
   func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -153,11 +162,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     switch action {
       
-    case "cancel":
-      if let raw = dict["id"] as? String {
-        let base = canonicalId(raw)
-        IOSAlarmScheduler.purgeAllForBase(baseId: base)
-      }
+      // 기존 switch(action) { case "cancel": ... } 블록 교체
+      case "cancel":
+          if let raw = dict["id"] as? String {
+              let base = canonicalBaseId(from: raw)
+              IOSAlarmScheduler.purgeAllForBase(baseId: base)
+          }
       
     case "schedule":
       let repeatMode = (dict["repeatMode"] as? String) ?? "once"
