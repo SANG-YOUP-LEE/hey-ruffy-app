@@ -145,6 +145,26 @@ struct IOSAlarmScheduler {
         let center = UNUserNotificationCenter.current()
         let days = weekdays.isEmpty ? [1,2,3,4,5,6,7] : weekdays
 
+            // 요일 7개 전부 선택 + 매주라면 → weekly 7건 대신 daily 1건으로 최적화
+            if intervalWeeks == 1 {
+                let fullSet = Set(days)
+                if fullSet == Set([1,2,3,4,5,6,7]) {
+                    // 기존 weekly 예약들 제거
+                    let center = UNUserNotificationCenter.current()
+                    let ids = days.map { idWeekly(baseId, weekday: $0) }
+                    center.removePendingNotificationRequests(withIdentifiers: ids)
+
+                    // daily(d1) 한 건으로 대체
+                    scheduleDaily(hour: hour, minute: minute,
+                                  intervalDays: 1, startDate: nil,
+                                  baseId: baseId,
+                                  line1: line1, line2: line2, line3: line3,
+                                  soundName: soundName)
+                    print("weekly→daily optimization: days=1...7, intervalWeeks=1 → daily(d1)")
+                    return
+                }
+            }
+      
         if intervalWeeks <= 1 {
             let ids = days.map { idWeekly(baseId, weekday: $0) }
             center.removePendingNotificationRequests(withIdentifiers: ids)

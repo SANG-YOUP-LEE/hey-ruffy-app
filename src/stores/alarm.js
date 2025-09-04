@@ -325,6 +325,32 @@ export const useAlarmStore = defineStore('alarm', {
       const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
       this.scheduleOnce({ id: baseId, title, subtitle: `${pad2(hm.hour)}:${pad2(hm.minute)}`, timestamp: ts, link })
       return { ok:true, scheduled:true, type:'once', ts }
+    },
+
+    // ---------- ★ 추가 1: dedup 키 초기화 ----------
+    resetDedup(){
+      scheduledKeys = new Set()
+    },
+
+    // ---------- ★ 추가 2: 파베 루틴 재하이드레이션 ----------
+    // routines: Firestore에서 읽은 루틴 배열
+    //  - 각 원소 r 에 대해:
+    //      r.id 또는 r.routineId (문서 ID)
+    //      r.title / r.name / r.text (표시 제목)
+    //      나머지 폼 필드(alarmTime, repeatType, startDate, endDate, repeatWeekDays, repeatWeeks, repeatMonthDays, repeatEveryDays 등)
+    //  - 폼 구조가 그대로일 경우 r 자체를 form으로 사용. 일부 서비스는 r.form 안에 있을 수 있어 자동 분기.
+    rehydrateFromRoutines(routines){
+      if(!Array.isArray(routines) || routines.length===0) return { ok:true, count:0 }
+      let count = 0
+      for(const r of routines){
+        const form = r?.form && typeof r.form === 'object' ? r.form : r
+        const routineId = r?.routineId || r?.id
+        const title = r?.title || r?.name || r?.text || '알람'
+        if(!routineId) continue
+        const res = this.scheduleFromForm(form, { routineId, title })
+        if(res?.scheduled) count++
+      }
+      return { ok:true, count }
     }
   }
 })
