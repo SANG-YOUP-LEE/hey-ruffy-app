@@ -27,11 +27,9 @@
 import { ref, computed, watch } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
-import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify' // ← 임포트는 유지
 
-// ✅ 이 플래그를 false로 두면 이 컴포넌트는 iOS에 직접 쏘지 않습니다.
-// (실 예약은 popup 저장→form.save→alarm.scheduleFromForm 경로만 사용)
-const ENABLE_INLINE_TEST = false
+// ⚠️ iOS 즉석 호출은 사용하지 않음 (중복 렌더/복제 방지)
+// import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
 const props = defineProps({
   routineId: { type: [String, Number], default: null },
@@ -62,7 +60,7 @@ const hasTime = computed(() => {
     && /^\d{2}$/.test(v.minute || '')
 })
 
-/** 토글 ON: 팝업 열기 / OFF: 완전 삭제 */
+/** 토글 ON: 팝업 열기 / OFF: 값만 초기화(예약은 form.save에서) */
 const isOn = computed({
   get: () => hasTime.value,
   set: (val) => {
@@ -87,53 +85,21 @@ const formattedAlarm = computed(() => {
 
 const openPopup = () => { showAlarmPopup.value = true }
 
+/** 팝업 닫기: UI만 닫고 즉석 예약 호출은 절대 X */
 const closePopup = () => {
   showAlarmPopup.value = false
-  // ✅ 여기서 네이티브 호출 금지 (폼 저장 경로만 사용)
-  if (hasTime.value) scheduleDailyNow()
 }
 
-/** 토글 OFF 시 완전 삭제 */
+/** 토글 OFF 시 값만 비우기(네이티브 cancel도 호출 안 함) */
 const clearAlarm = () => {
   const empty = { ampm:'', hour:'', minute:'' }
   if (!isEqual(inner.value, empty)) {
     inner.value = empty
     emit('update:modelValue', empty)
   }
-  const id = alarmId()
-  if (id && ENABLE_INLINE_TEST) {
-    cancelOnIOS(String(id))
-  } else if (id) {
-    console.warn('[AlarmSelector] inline cancel suppressed (use form.save flow)', id)
-  }
 }
 
-function scheduleDailyNow() {
-  if (!hasTime.value) return
-  const hm = to24h(inner.value)
-  if (!hm) return
-  const id = String(alarmId() || 'inline')
-
-  // ✅ inline 테스트 비활성화: 실제 네이티브 스케줄은 form.save() 경로에서 처리
-  if (!ENABLE_INLINE_TEST) {
-    console.warn('[AlarmSelector] inline schedule suppressed (use form.save flow)', { id, hm })
-    return
-  }
-
-  // (테스트 모드에서만) 중복 방지: 동일 ID 제거 후 등록
-  cancelOnIOS(id)
-  scheduleOnIOS({
-    id,
-    name: props.routineTitle || 'HeyRuffy',
-    repeatMode: 'daily',
-    alarm: { hour: hm.hour24, minute: hm.minute }
-  })
-}
-
-function alarmId() {
-  return props.routineId ?? null
-}
-
+/* ---------------- helpers ---------------- */
 function sanitize(v) {
   if (!v) return { ampm:'', hour:'', minute:'' }
   const a = toKoAmpm(v.ampm)
@@ -154,16 +120,5 @@ function pad2(n) {
   const s = String(n ?? '').trim()
   if (!/^\d{1,2}$/.test(s)) return ''
   return s.padStart(2, '0')
-}
-function to24h({ ampm, hour, minute }) {
-  if (!(ampm === '오전' || ampm === '오후')) return null
-  if (!/^\d{2}$/.test(hour || '') || !/^\d{2}$/.test(minute || '')) return null
-  let h = Number(hour)
-  const m = Number(minute)
-  if (Number.isNaN(h) || Number.isNaN(m)) return null
-  if (h < 1 || h > 12 || m < 0 || m > 59) return null
-  if (ampm === '오후' && h < 12) h += 12
-  if (ampm === '오전' && h === 12) h = 0
-  return { hour24: h, minute: m }
 }
 </script>
