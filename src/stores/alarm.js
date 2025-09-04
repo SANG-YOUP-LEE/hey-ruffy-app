@@ -1,7 +1,15 @@
-// src/stores/alarm.js
+// File: src/stores/alarm.js
 import { defineStore } from 'pinia'
 
-function postIOS(payload){ try{ window.webkit?.messageHandlers?.notify?.postMessage(payload) }catch(_){} }
+// iOS 브릿지 전송 (이 파일 내부 버전만 사용!)
+//  ↳ 절대 `import { postIOS } from '@/utils/iosNotify'` 하지 말 것 (중복 선언 에러 방지)
+function postIOS(payload){
+  try {
+    console.log('[postIOS]', JSON.stringify(payload))
+    window.webkit?.messageHandlers?.notify?.postMessage(payload)
+  } catch (_) {}
+}
+
 const pad2 = n => String(n).padStart(2,'0')
 
 function parseAlarmTime(v){
@@ -92,41 +100,41 @@ export const useAlarmStore = defineStore('alarm', {
   actions: {
     setPermission(p){ this.permission=p },
 
-    cancel(id){
-      postIOS({ action:'cancel', id })
-      scheduledKeys.delete(id)
-    },
-
-    // ✅ 여기만 수정: 로컬 캐시에서 baseId로 시작하는 키들을 싹 정리하고, iOS에 한 번만 cancel 보냄
+    cancel(id){ postIOS({ action:'cancel', id }); scheduledKeys.delete(id) },
     cancelSeries(baseId){
-      // 1) 로컬 중복 방지 캐시 비우기
-      for (const k of Array.from(scheduledKeys)) {
-        if (k === baseId || String(k).startsWith(`${baseId}-`)) {
-          scheduledKeys.delete(k)
-        }
-      }
-      // 2) iOS 쪽은 baseId 하나만 넘기면 해당 베이스의 모든 예약을 purge
       this.cancel(baseId)
+      for(let d=1; d<=31; d++) this.cancel(`${baseId}-m${pad2(d)}`)
+      for(let w=1; w<=7; w++) this.cancel(`${baseId}-w${w}`)
     },
 
-    // === unified 'schedule' 프로토콜 ===
+    // === 단일 'schedule' 프로토콜 형태로 전송 ===
     scheduleOnce({ id, title, subtitle, timestamp, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
-      postIOS({ action:'schedule', id, repeatMode:'once', timestamp, title, subtitle, link })
+      postIOS({
+        action: 'schedule',
+        id,
+        repeatMode: 'once',
+        timestamp,
+        title,
+        subtitle,
+        link
+      })
     },
 
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
       postIOS({
-        action:'schedule',
+        action: 'schedule',
         id,
-        repeatMode:'daily',
+        repeatMode: 'daily',
         hour, minute,
-        interval:Number(interval)||1,
-        startDate:startDate||null,
-        title, subtitle, link
+        interval: Number(interval)||1,
+        startDate: startDate || null,
+        title,
+        subtitle,
+        link
       })
     },
 
@@ -134,31 +142,34 @@ export const useAlarmStore = defineStore('alarm', {
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
       postIOS({
-        action:'schedule',
+        action: 'schedule',
         id,
-        repeatMode:'weekly',
+        repeatMode: 'weekly',
         hour, minute,
-        weekdays:Array.isArray(weekdays)?weekdays:[],
-        intervalWeeks:Number(intervalWeeks)||1,
-        title, subtitle, link
+        weekdays: Array.isArray(weekdays)?weekdays:[],
+        intervalWeeks: Number(intervalWeeks)||1,
+        title,
+        subtitle,
+        link
       })
     },
 
     scheduleMonthly({ id, title, subtitle, day, hour, minute, link }){
-      const sid = `${id}-d${pad2(day)}`
+      const sid=`${id}-d${pad2(day)}`
       if(scheduledKeys.has(sid)) return
       scheduledKeys.add(sid)
       postIOS({
-        action:'schedule',
-        id:sid,
-        repeatMode:'monthly',
-        day:Number(day),
+        action: 'schedule',
+        id: sid,
+        repeatMode: 'monthly',
+        day: Number(day),
         hour, minute,
-        title, subtitle, link
+        title,
+        subtitle,
+        link
       })
     },
 
-    // ==== Form → 스케줄 ====
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
       if(!hm) return null

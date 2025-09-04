@@ -27,7 +27,11 @@
 import { ref, computed, watch } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
-import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
+import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify' // ← 임포트는 유지
+
+// ✅ 이 플래그를 false로 두면 이 컴포넌트는 iOS에 직접 쏘지 않습니다.
+// (실 예약은 popup 저장→form.save→alarm.scheduleFromForm 경로만 사용)
+const ENABLE_INLINE_TEST = false
 
 const props = defineProps({
   routineId: { type: [String, Number], default: null },
@@ -85,7 +89,8 @@ const openPopup = () => { showAlarmPopup.value = true }
 
 const closePopup = () => {
   showAlarmPopup.value = false
-  if (hasTime.value) scheduleDailyNow()  // 수정 완료되면 재스케줄
+  // ✅ 여기서 네이티브 호출 금지 (폼 저장 경로만 사용)
+  if (hasTime.value) scheduleDailyNow()
 }
 
 /** 토글 OFF 시 완전 삭제 */
@@ -96,7 +101,11 @@ const clearAlarm = () => {
     emit('update:modelValue', empty)
   }
   const id = alarmId()
-  if (id) cancelOnIOS(String(id))
+  if (id && ENABLE_INLINE_TEST) {
+    cancelOnIOS(String(id))
+  } else if (id) {
+    console.warn('[AlarmSelector] inline cancel suppressed (use form.save flow)', id)
+  }
 }
 
 function scheduleDailyNow() {
@@ -105,7 +114,13 @@ function scheduleDailyNow() {
   if (!hm) return
   const id = String(alarmId() || 'inline')
 
-  // 중복 방지: 동일 ID 제거 후 등록
+  // ✅ inline 테스트 비활성화: 실제 네이티브 스케줄은 form.save() 경로에서 처리
+  if (!ENABLE_INLINE_TEST) {
+    console.warn('[AlarmSelector] inline schedule suppressed (use form.save flow)', { id, hm })
+    return
+  }
+
+  // (테스트 모드에서만) 중복 방지: 동일 ID 제거 후 등록
   cancelOnIOS(id)
   scheduleOnIOS({
     id,
