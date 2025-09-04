@@ -1,14 +1,14 @@
+<!-- src/components/common/Lnb.vue -->
 <template>
   <div class="lnb">
     <div class="lnb_header">
-      <a href="#none" @click.prevent="$emit('close')" class="close"><span>닫기</span></a>
+      <a href="#none" @click.prevent="closeLnb" class="close"><span>닫기</span></a>
     </div>
 
     <div class="lnb_wrap">
       <div class="lnb_user">
         <div class="avatar">
           <img :src="currentUser ? ruffySrc : DEFAULT_RUFFY" alt="Ruffy">
-          <button class="edit_p"><span>사진 바꾸기</span></button>
         </div>
         <div class="nick">
           <span v-if="authReady && currentUser">{{ nickname }}</span>
@@ -17,20 +17,16 @@
       </div>
 
       <div class="lnb_menu">
-        <a href="#none" class="login" v-show="authReady && currentUser">계정 관리</a>
-        <a href="#none" class="login" v-show="authReady && currentUser">다짐 현황보기</a>
-        <a href="#none" class="login" v-show="authReady && currentUser">산책 현황보기</a>
-        <a href="#none" class="login" v-show="authReady && currentUser">일기장 엿보기</a>
-        <a href="#none">러피에 대해 더 알고 싶어요.</a>
-        <a href="#none">러피와 두 발 더 가까워지기</a>
+        <a @click.prevent="goSection('account')" class="login" v-show="authReady && currentUser">계정 관리</a>
+        <a @click.prevent="goSection('routine')" class="login" v-show="authReady && currentUser">다짐 현황보기</a>
+        <a @click.prevent="goSection('walk')" class="login" v-show="authReady && currentUser">산책 현황보기</a>
+        <a @click.prevent="goSection('diary')" class="login" v-show="authReady && currentUser">일기장 엿보기</a>
+        <a @click.prevent="goSection('about')">러피에 대해 더 알고 싶어요.</a>
+        <a @click.prevent="goSection('premier')">러피와 두 발 더 가까워지기</a>
       </div>
 
       <div class="lnb_footer">
-        <a
-          v-if="authReady && currentUser"
-          href="#none"
-          @click.prevent="logout"
-        >로그아웃</a>
+        <a v-if="authReady && currentUser" href="#none" @click.prevent="logout">로그아웃</a>
         <span class="ver">ver 0.0</span>
       </div>
     </div>
@@ -92,5 +88,18 @@ async function logout() {
   } finally {
     loggingOut.value = false
   }
+}
+
+function closeLnb() {
+  const prev = router.options.history.state && router.options.history.state.back
+  if (prev && prev !== router.currentRoute.value.fullPath) {
+    router.back()
+  } else {
+    router.push('/main')
+  }
+}
+
+function goSection(section) {
+  router.push(`/lnb/${section}`)
 }
 </script>
