@@ -198,12 +198,13 @@ async function saveRoutine() {
     return
   }
 
-  const data = r.data || {}
-  const routineId = data.id || data.routineId || data.docId || Date.now().toString()
+  // ✅ Firestore 문서 ID는 r.id
+  const routineId = r.id
   let title = (form.title || '').trim()
   const MAX_LEN = 20
   if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
+  // 알람 예약
   alarm.scheduleFromForm(form, { routineId, title })
 
   gotoFinish(r.data)
