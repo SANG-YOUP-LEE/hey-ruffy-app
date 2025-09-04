@@ -99,27 +99,69 @@ export const useAlarmStore = defineStore('alarm', {
       for(let w=1; w<=7; w++) this.cancel(`${baseId}-w${w}`)
     },
 
+    // ⬇️⬇️ 여기 4개가 'schedule*' → 단일 'schedule' 프로토콜로 변경된 부분
     scheduleOnce({ id, title, subtitle, timestamp, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
-      postIOS({ action:'scheduleOnce', id, title, subtitle, timestamp, link, repeatType:'once' })
+      postIOS({
+        action: 'schedule',
+        id,
+        repeatMode: 'once',
+        timestamp,
+        title,
+        subtitle,
+        link
+      })
     },
+
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
-      postIOS({ action:'scheduleDaily', id, title, subtitle, hour, minute, interval, startDate:startDate||null, link, repeatType:'daily' })
+      postIOS({
+        action: 'schedule',
+        id,
+        repeatMode: 'daily',
+        hour, minute,
+        interval: Number(interval)||1,
+        startDate: startDate || null,
+        title,
+        subtitle,
+        link
+      })
     },
+
     scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, link }){
       if(scheduledKeys.has(id)) return
       scheduledKeys.add(id)
-      postIOS({ action:'scheduleWeekly', id, title, subtitle, hour, minute, weekdays, intervalWeeks, link, repeatType:'weekly' })
+      postIOS({
+        action: 'schedule',
+        id,
+        repeatMode: 'weekly',
+        hour, minute,
+        weekdays: Array.isArray(weekdays)?weekdays:[],
+        intervalWeeks: Number(intervalWeeks)||1,
+        title,
+        subtitle,
+        link
+      })
     },
+
     scheduleMonthly({ id, title, subtitle, day, hour, minute, link }){
       const sid=`${id}-d${pad2(day)}`
       if(scheduledKeys.has(sid)) return
       scheduledKeys.add(sid)
-      postIOS({ action:'scheduleMonthly', id: sid, title, subtitle, day, hour, minute, link, repeatType:'monthly' })
+      postIOS({
+        action: 'schedule',
+        id: sid,
+        repeatMode: 'monthly',
+        day: Number(day),
+        hour, minute,
+        title,
+        subtitle,
+        link
+      })
     },
+    // ⬆️⬆️ 변경 끝
 
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
