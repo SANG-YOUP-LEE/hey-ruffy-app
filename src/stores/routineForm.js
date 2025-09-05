@@ -22,6 +22,39 @@ const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목',
 const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
+// ── ★ 추가: 오늘만(0~6일마다) 복원을 단단히 하기 위한 헬퍼들
+const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
+
+function deriveRepeatDailyFromRoutine(r) {
+  // 1) 이미 숫자로 저장된 경우
+  if (Number.isInteger(r?.repeatDaily)) return clampDaily(r.repeatDaily)
+
+  // 2) repeatEveryDays 사용중인 문서(0~6)
+  if (r?.repeatEveryDays !== undefined && r.repeatEveryDays !== '') {
+    const n = Number(r.repeatEveryDays)
+    if (Number.isFinite(n)) return clampDaily(n)
+  }
+
+  // 3) iCal 규격으로 once가 들어온 경우
+  if (r?.rule && r.rule.freq === 'once') return 0
+
+  // 4) startDate==endDate 인 경우(오늘만)
+  if (r?.startDate && r?.endDate) {
+    const same =
+      +r.startDate?.year === +r.endDate?.year &&
+      +r.startDate?.month === +r.endDate?.month &&
+      +r.startDate?.day === +r.endDate?.day
+    if (same) return 0
+  }
+
+  // 5) 문자열 anchor/end만 같던 아주 옛 포맷
+  if (typeof r?.start === 'string' && typeof r?.end === 'string' && r.start === r.end) {
+    return 0
+  }
+
+  return null
+}
+
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
     mode: 'create',
@@ -88,19 +121,35 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const hasEnd = !!safeISOFromDateObj(state.endDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
-      const weeklyIsDaily = state.repeatType === 'weekly' && parseInterval(state.repeatWeeks) === 1 && isAllKoreanWeekdays(state.repeatWeekDays)
+
+      const weeklyIsDaily =
+        state.repeatType === 'weekly' &&
+        parseInterval(state.repeatWeeks) === 1 &&
+        isAllKoreanWeekdays(state.repeatWeekDays)
+
       const normalizedType = weeklyIsDaily ? 'daily' : state.repeatType
-      const dailyInterval = normalizedType === 'daily' ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)) : null
-      const endForTodayOnly = normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+      const dailyInterval =
+        normalizedType === 'daily'
+          ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null))
+          : null
+
+      const endForTodayOnly =
+        normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+
       const weeklyDaysNum = normalizedType === 'weekly' ? daysKorToNum(state.repeatWeekDays) : []
+
       const cleaned = {
         title: state.title,
         repeatType: normalizedType,
         repeatDays: [],
-        repeatEveryDays: normalizedType === 'daily' ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null) : null,
+        repeatEveryDays:
+          normalizedType === 'daily'
+            ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
+            : null,
         repeatWeeks: normalizedType === 'weekly' ? state.repeatWeeks || '' : '',
         repeatWeekDays: weeklyDaysNum,
-        repeatMonthDays: normalizedType === 'monthly' ? [...(state.repeatMonthDays||[])].map(Number) : [],
+        repeatMonthDays:
+          normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
         startDate: hasStart ? state.startDate : null,
         endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
         alarmTime: state.alarmTime,
@@ -153,11 +202,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.routineId = routine.id || null
       this.title = routine.title || ''
       this.repeatType = routine.repeatType || 'daily'
-      const hasEvery = routine.repeatEveryDays != null && routine.repeatEveryDays !== ''
-      const isTodayOnly = this.repeatType === 'daily' && routine.startDate && routine.endDate && eqDateObj(routine.startDate, routine.endDate)
+
+      // ── ★ 변경: 다양한 옛/새 포맷에서 "오늘만"을 정확히 복원
       this.repeatDaily = this.repeatType === 'daily'
-        ? (hasEvery ? Math.max(0, Math.min(6, parseInt(routine.repeatEveryDays,10) || 0)) : (isTodayOnly ? 0 : null))
+        ? deriveRepeatDailyFromRoutine(routine)
         : null
+
       this.repeatWeeks = routine.repeatWeeks || ''
       const rawWeekDays = Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []
       const weekDaysKor = typeof rawWeekDays[0] === 'number' ? daysNumToKor(rawWeekDays) : rawWeekDays

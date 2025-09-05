@@ -30,10 +30,10 @@
           :key="pickerKey + '-m'"
           v-model="selectedMinute"
           :options="minuteLoopOptions"
-          :drag-sensitivity="0.7"
-          :touch-sensitivity="0.7"
+          :drag-sensitivity="1.7"
+          :touch-sensitivity="1.7"
           :scroll-sensitivity="0.9"
-          :inertia-duration="1000"
+          :inertia-duration="3000"
           :inertia-factor="0.9"
         />
       </div>

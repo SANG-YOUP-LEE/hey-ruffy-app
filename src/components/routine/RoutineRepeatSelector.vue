@@ -98,7 +98,7 @@ const weeklyButtons4 = ['목','금','토','일']
 
 const props = defineProps({
   repeatType: { type: String, default: 'daily' },
-  daily: { type: Number, default: null },
+  daily: { type: [Number, String, null], default: null },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
   monthDays: { type: Array, default: () => [] }
@@ -111,16 +111,19 @@ const selectedTab = computed({
   get: () => props.repeatType || 'daily',
   set: v => emit('update:repeatType', v)
 })
+
+// ▶ daily=0(오늘만)도 유지되도록 숫자 변환 로직 보강
 const selectedDailyInterval = computed({
   get: () => {
-    const n = Number(props.daily)
-    return Number.isFinite(n) ? n : null   // "0" -> 0 유지, 그 외는 null
+    const n = (props.daily === '' || props.daily == null) ? null : Number(props.daily)
+    return Number.isFinite(n) ? n : null
   },
   set: v => {
-    const n = Number(v)
+    const n = (v === '' || v == null) ? null : Number(v)
     emit('update:daily', Number.isFinite(n) ? n : null)
   }
 })
+
 const selectedWeeklyMain = computed({
   get: () => props.weeks,
   set: v => emit('update:weeks', v ?? '')
@@ -137,8 +140,7 @@ const selectedDates = computed({
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   if (tab === 'daily') {
-    // ❌ emit('update:daily', null)  ← 지우지 마!
-    // daily는 그대로 두고, 다른 탭일 때만 상충 필드 정리
+    // ❌ 여기서 daily를 null로 초기화하지 않는다 (오늘만=0 유지)
   } else if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
@@ -148,7 +150,7 @@ const handleTabClick = (tab) => {
 }
 
 const selectDailyInterval = (n) => {
-  selectedDailyInterval.value = Number(n) // "0"도 0으로
+  selectedDailyInterval.value = Number(n)
 }
 
 const selectWeeklyMain = (btn) => {
@@ -177,6 +179,4 @@ const toggleDateSelection = (day) => {
   const cur = [...selectedDates.value]
   selectedDates.value = cur.includes(day) ? cur.filter(d => d !== day) : [...cur, day]
 }
-
-console.debug('[RepeatSelector] incoming daily=', props.daily, typeof props.daily)
 </script>
