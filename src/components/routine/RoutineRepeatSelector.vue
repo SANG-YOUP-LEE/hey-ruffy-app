@@ -112,8 +112,14 @@ const selectedTab = computed({
   set: v => emit('update:repeatType', v)
 })
 const selectedDailyInterval = computed({
-  get: () => props.daily,
-  set: v => emit('update:daily', v)
+  get: () => {
+    const n = Number(props.daily)
+    return Number.isFinite(n) ? n : null   // "0" -> 0 유지, 그 외는 null
+  },
+  set: v => {
+    const n = Number(v)
+    emit('update:daily', Number.isFinite(n) ? n : null)
+  }
 })
 const selectedWeeklyMain = computed({
   get: () => props.weeks,
@@ -131,7 +137,8 @@ const selectedDates = computed({
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   if (tab === 'daily') {
-    emit('update:daily', null)
+    // ❌ emit('update:daily', null)  ← 지우지 마!
+    // daily는 그대로 두고, 다른 탭일 때만 상충 필드 정리
   } else if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
@@ -141,7 +148,7 @@ const handleTabClick = (tab) => {
 }
 
 const selectDailyInterval = (n) => {
-  selectedDailyInterval.value = n
+  selectedDailyInterval.value = Number(n) // "0"도 0으로
 }
 
 const selectWeeklyMain = (btn) => {
@@ -170,4 +177,6 @@ const toggleDateSelection = (day) => {
   const cur = [...selectedDates.value]
   selectedDates.value = cur.includes(day) ? cur.filter(d => d !== day) : [...cur, day]
 }
+
+console.debug('[RepeatSelector] incoming daily=', props.daily, typeof props.daily)
 </script>

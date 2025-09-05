@@ -279,7 +279,7 @@ struct IOSAlarmScheduler {
     }
 
     // IOSAlarmScheduler.swift 맨 아래 Helpers 근처에 추가
-    static func shouldSkipPurge(baseId: String, windowSec: TimeInterval = 120) -> Bool {
+    static func shouldSkipPurge(baseId: String, windowSec: TimeInterval = 60) -> Bool {
         var skip = false
         let now = Date()
         let sema = DispatchSemaphore(value: 0)

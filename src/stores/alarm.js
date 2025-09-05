@@ -219,7 +219,8 @@ export const useAlarmStore = defineStore('alarm', {
       const isDaily = form.repeatType==='daily'
       const dailyEvery = isDaily
         ? (Number.isInteger(+form.repeatEveryDays) ? +form.repeatEveryDays
-          : (Number.isInteger(+form.repeatDaily) ? +form.repeatDaily : null))
+          : (Number.isInteger(+form.repeatDaily) ? +form.repeatDaily
+          : (Number.isInteger(+form.daily) ? +form.daily : null)))
         : null
 
       const isTodayOnly = isDaily && (
