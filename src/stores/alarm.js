@@ -140,72 +140,75 @@ export const useAlarmStore = defineStore('alarm', {
     },
 
     // === 단일 'schedule' 프로토콜 형태로 전송 ===
-    scheduleOnce({ id, title, subtitle, timestamp, link }){
-      if(scheduledKeys.has(id)) return
-      scheduledKeys.add(id)
+    scheduleOnce({ id, title, subtitle, timestamp, link, hour, minute, baseDate }){
+      // timestamp 보정: 유효하지 않으면 hour/minute로 재계산(있을 때만)
+      let ts = Number(timestamp);
+      if (!Number.isFinite(ts) || ts <= 0) {
+        if (Number.isFinite(hour) && Number.isFinite(minute)) {
+          ts = nextTimestampForOnce(Number(hour), Number(minute), asLocalDate(baseDate || new Date()));
+        } else {
+          console.warn('[alarm] scheduleOnce: invalid timestamp & no hour/minute fallback', timestamp);
+          return;
+        }
+      }
+
       postIOS({
         action: 'schedule',
         id,
         repeatMode: 'once',
-        timestamp,
+        timestamp: ts,
         title,
         subtitle,
         link
-      })
+      });
     },
 
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, endDate, link }){
-      if(scheduledKeys.has(id)) return
-      scheduledKeys.add(id)
       postIOS({
         action: 'schedule',
         id,
         repeatMode: 'daily',
         hour, minute,
-        interval: Number(interval)||1,
+        interval: Number(interval) || 1,
         startDate: startDate || null,
-        endDate: endDate || null,         // 전달만(네이티브 확장 대비)
+        endDate: endDate || null,   // 전달만(네이티브 확장 대비)
         title,
         subtitle,
         link
-      })
+      });
     },
 
     scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, startDate, endDate, link }){
-      if(scheduledKeys.has(id)) return
-      scheduledKeys.add(id)
       postIOS({
         action: 'schedule',
         id,
         repeatMode: 'weekly',
         hour, minute,
-        weekdays: Array.isArray(weekdays)?weekdays:[],
-        intervalWeeks: Number(intervalWeeks)||1,
-        startDate: startDate || null,     // 전달만(네이티브 확장 대비)
-        endDate: endDate || null,         // 전달만(네이티브 확장 대비)
+        weekdays: Array.isArray(weekdays) ? weekdays : [],
+        intervalWeeks: Number(intervalWeeks) || 1,
+        startDate: startDate || null,  // 전달만(네이티브 확장 대비)
+        endDate: endDate || null,      // 전달만(네이티브 확장 대비)
         title,
         subtitle,
         link
-      })
+      });
     },
 
     scheduleMonthly({ id, title, subtitle, day, hour, minute, startDate, endDate, link }){
-      // 여러 날짜를 같은 baseId로 보낼 때 dedup 방지를 위해 sid 부여
-      const sid=`${id}-d${pad2(day)}`
-      if(scheduledKeys.has(sid)) return
-      scheduledKeys.add(sid)
+      // 여러 날짜를 같은 baseId로 보낼 때 구분용 sid 유지
+      const sid = `${id}-d${pad2(day)}`;
       postIOS({
         action: 'schedule',
         id: sid,
         repeatMode: 'monthly',
         day: Number(day),
         hour, minute,
-        startDate: startDate || null,     // 전달만(네이티브 확장 대비)
-        endDate: endDate || null,         // 전달만(네이티브 확장 대비)
+        startDate: startDate || null,  // 전달만(네이티브 확장 대비)
+        endDate: endDate || null,      // 전달만(네이티브 확장 대비)
         title,
         subtitle,
         link
-      })
+      });
     },
 
     // ---------- 폼 -> 스케줄 준비 ----------
