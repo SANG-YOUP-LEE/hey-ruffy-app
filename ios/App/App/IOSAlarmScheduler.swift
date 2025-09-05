@@ -53,7 +53,7 @@ struct IOSAlarmScheduler {
         }
     }
 
-    // ===== Base purge (모드 전환 시 항상 먼저 호출) =====
+    // ===== Base purge =====
     static func purgeAllForBase(baseId: String) {
         UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
             let ids = reqs.map { $0.identifier }.filter { $0.hasPrefix(baseId) }
@@ -94,29 +94,18 @@ struct IOSAlarmScheduler {
         if intervalDays <= 1 {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [idDaily(baseId)])
 
-            var comp = DateComponents()
-            comp.calendar = Calendar.current           // ✅ 명시
-            comp.timeZone  = TimeZone.current          // ✅ 명시
-            comp.hour = hour
-            comp.minute = minute
-            comp.second = 0
-
+            let comp = DateComponents(calendar: Calendar.current, timeZone: TimeZone.current, hour: hour, minute: minute, second: 0)
             let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
             let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(baseId)")
             let req = UNNotificationRequest(identifier: idDaily(baseId), content: content, trigger: trig)
 
             UNUserNotificationCenter.current().add(req) { e in
-                if let t = (req.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() {
-                    let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH:mm:ss"
-                    print("daily(d1) add: next=\(f.string(from: t)), err=\(String(describing: e))")
-                } else {
-                    print("daily(d1) add: next=nil, err=\(String(describing: e))")
-                }
+                print("daily(d1) add:", e as Any)
             }
             return
         }
 
-        // dN: N일마다 (두 건만: 첫 1회 + 반복)
+        // dN: N일마다
         var first = anchor
         while first <= now { first = cal.date(byAdding: .day, value: intervalDays, to: first)! }
 
@@ -145,26 +134,21 @@ struct IOSAlarmScheduler {
         let center = UNUserNotificationCenter.current()
         let days = weekdays.isEmpty ? [1,2,3,4,5,6,7] : weekdays
 
-            // 요일 7개 전부 선택 + 매주라면 → weekly 7건 대신 daily 1건으로 최적화
-            if intervalWeeks == 1 {
-                let fullSet = Set(days)
-                if fullSet == Set([1,2,3,4,5,6,7]) {
-                    // 기존 weekly 예약들 제거
-                    let center = UNUserNotificationCenter.current()
-                    let ids = days.map { idWeekly(baseId, weekday: $0) }
-                    center.removePendingNotificationRequests(withIdentifiers: ids)
+        if intervalWeeks == 1 {
+            let fullSet = Set(days)
+            if fullSet == Set([1,2,3,4,5,6,7]) {
+                let ids = days.map { idWeekly(baseId, weekday: $0) }
+                center.removePendingNotificationRequests(withIdentifiers: ids)
 
-                    // daily(d1) 한 건으로 대체
-                    scheduleDaily(hour: hour, minute: minute,
-                                  intervalDays: 1, startDate: nil,
-                                  baseId: baseId,
-                                  line1: line1, line2: line2, line3: line3,
-                                  soundName: soundName)
-                    print("weekly→daily optimization: days=1...7, intervalWeeks=1 → daily(d1)")
-                    return
-                }
+                scheduleDaily(hour: hour, minute: minute, intervalDays: 1, startDate: nil,
+                              baseId: baseId,
+                              line1: line1, line2: line2, line3: line3,
+                              soundName: soundName)
+                print("weekly→daily optimization: days=1...7, intervalWeeks=1 → daily(d1)")
+                return
             }
-      
+        }
+
         if intervalWeeks <= 1 {
             let ids = days.map { idWeekly(baseId, weekday: $0) }
             center.removePendingNotificationRequests(withIdentifiers: ids)
@@ -181,7 +165,6 @@ struct IOSAlarmScheduler {
             return
         }
 
-        // wN: 격N주 (요일별 두 건: first + repeat)
         let secs = max(60, intervalWeeks * 7 * 86400)
         let ids = days.map { idWeeklyN(baseId, weekday: $0, n: intervalWeeks) }
         center.removePendingNotificationRequests(withIdentifiers: ids)
@@ -278,8 +261,7 @@ struct IOSAlarmScheduler {
         return Calendar.current.component(.day, from: Date())
     }
 
-    // IOSAlarmScheduler.swift 맨 아래 Helpers 근처에 추가
-    static func shouldSkipPurge(baseId: String, windowSec: TimeInterval = 60) -> Bool {
+    static func shouldSkipPurge(baseId: String, windowSec: TimeInterval = 90) -> Bool {
         var skip = false
         let now = Date()
         let sema = DispatchSemaphore(value: 0)
@@ -290,17 +272,16 @@ struct IOSAlarmScheduler {
                    let next = cal.nextTriggerDate() {
                     if abs(next.timeIntervalSince(now)) <= windowSec { skip = true; break }
                 } else if let ti = r.trigger as? UNTimeIntervalNotificationTrigger {
-                    // 첫 발사 대기 중인 timeInterval(비반복)이 창 안이라면 스킵
                     if !ti.repeats && ti.timeInterval <= windowSec { skip = true; break }
                 }
             }
             sema.signal()
         }
-        _ = sema.wait(timeout: .now() + 1.0) // 짧게 동기화
+        _ = sema.wait(timeout: .now() + 1.0)
         return skip
     }
   
-  // ===== Debug ping =====
+    // ===== Debug ping =====
     static func debugPing(after seconds: TimeInterval = 20, baseId: String = "debug") {
         let id = "\(baseId)-ping"
         let c = UNUserNotificationCenter.current()
