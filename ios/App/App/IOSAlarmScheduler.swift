@@ -30,10 +30,9 @@ struct IOSAlarmScheduler {
     private static func idEveryN(_ base: String, n: Int) -> String { "\(base)-d\(n)" }
     private static func idWeekly(_ base: String, weekday: Int) -> String { "\(base)-w1-\(weekday)" }
     private static func idWeeklyN(_ base: String, weekday: Int, n: Int) -> String { "\(base)-w\(n)-\(weekday)" }
+    private static func idWeeklyNFirst(_ base: String, weekday: Int, n: Int) -> String { "\(base)-w\(n)-\(weekday)-first" }
     private static func idMonthly(_ base: String, day: Int) -> String { "\(base)-m-\(day)" }
     private static func idOnce(_ base: String) -> String { "\(base)-once" }
-
-    private static let dedupSlack: TimeInterval = 30
 
     // ===== One-shot purge for messy past =====
     static func migrateAndCleanLegacyOnce(legacyPrefixes: [String]) {
@@ -65,15 +64,17 @@ struct IOSAlarmScheduler {
     }
 
     // ===== Once =====
-    static func scheduleOnce(at date: Date, id: String, line1: String, line2: String, line3: String, soundName: String) {
+    static func scheduleOnce(at date: Date, id: String,
+                             line1: String, line2: String, line3: String,
+                             soundName: String, link: String? = nil) {
         let c = UNUserNotificationCenter.current()
         c.removePendingNotificationRequests(withIdentifiers: [idOnce(id)])
 
-        let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(id)")
+        let content = buildContent(line1: line1, line2: line2, line3: line3,
+                                   soundName: soundName, threadKey: "heyruffy.\(id)", link: link)
         var comp = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
         comp.calendar = Calendar.current
         comp.timeZone  = TimeZone.current
-        comp.second = comp.second ?? 0
 
         let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: false)
         let req = UNNotificationRequest(identifier: idOnce(id), content: content, trigger: trig)
@@ -82,7 +83,8 @@ struct IOSAlarmScheduler {
 
     // ===== Daily / N days =====
     static func scheduleDaily(hour: Int, minute: Int, intervalDays: Int, startDate: String?, baseId: String,
-                              line1: String, line2: String, line3: String, soundName: String) {
+                              line1: String, line2: String, line3: String,
+                              soundName: String, link: String? = nil) {
         let cal = Calendar.current
         let now = Date()
         let anchor: Date = {
@@ -90,22 +92,17 @@ struct IOSAlarmScheduler {
             return cal.date(bySettingHour: hour, minute: minute, second: 0, of: now) ?? now
         }()
 
-        // d1: 매일
         if intervalDays <= 1 {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [idDaily(baseId)])
-
-            let comp = DateComponents(calendar: Calendar.current, timeZone: TimeZone.current, hour: hour, minute: minute, second: 0)
+            let comp = DateComponents(calendar: cal, timeZone: TimeZone.current, hour: hour, minute: minute, second: 0)
             let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
-            let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(baseId)")
+            let content = buildContent(line1: line1, line2: line2, line3: line3,
+                                       soundName: soundName, threadKey: "heyruffy.\(baseId)", link: link)
             let req = UNNotificationRequest(identifier: idDaily(baseId), content: content, trigger: trig)
-
-            UNUserNotificationCenter.current().add(req) { e in
-                print("daily(d1) add:", e as Any)
-            }
+            UNUserNotificationCenter.current().add(req)
             return
         }
 
-        // dN: N일마다
         var first = anchor
         while first <= now { first = cal.date(byAdding: .day, value: intervalDays, to: first)! }
 
@@ -115,40 +112,24 @@ struct IOSAlarmScheduler {
             idEveryNFirst(baseId, n: intervalDays)
         ])
 
-        let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(baseId)")
+        let content = buildContent(line1: line1, line2: line2, line3: line3,
+                                   soundName: soundName, threadKey: "heyruffy.\(baseId)", link: link)
 
-        let firstSec = max(60, first.timeIntervalSinceNow)
-        let firstTrig = UNTimeIntervalNotificationTrigger(timeInterval: firstSec, repeats: false)
-        let firstReq = UNNotificationRequest(identifier: idEveryNFirst(baseId, n: intervalDays), content: content, trigger: firstTrig)
-        center.add(firstReq) { e in print("daily(d\(intervalDays)) first add:", e as Any) }
+        let firstTrig = UNTimeIntervalNotificationTrigger(timeInterval: first.timeIntervalSinceNow, repeats: false)
+        center.add(UNNotificationRequest(identifier: idEveryNFirst(baseId, n: intervalDays), content: content, trigger: firstTrig))
 
-        let interval = TimeInterval(intervalDays * 86400)
-        let repTrig = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: true)
-        let repReq = UNNotificationRequest(identifier: idEveryN(baseId, n: intervalDays), content: content, trigger: repTrig)
-        center.add(repReq) { e in print("daily(d\(intervalDays)) repeat add:", e as Any) }
+        let repTrig = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(intervalDays * 86400), repeats: true)
+        center.add(UNNotificationRequest(identifier: idEveryN(baseId, n: intervalDays), content: content, trigger: repTrig))
     }
 
     // ===== Weekly / N weeks =====
     static func scheduleWeekly(hour: Int, minute: Int, intervalWeeks: Int, weekdays: [Int], baseId: String,
-                               line1: String, line2: String, line3: String, soundName: String) {
+                               line1: String, line2: String, line3: String,
+                               soundName: String, link: String? = nil) {
         let center = UNUserNotificationCenter.current()
         let days = weekdays.isEmpty ? [1,2,3,4,5,6,7] : weekdays
 
-        if intervalWeeks == 1 {
-            let fullSet = Set(days)
-            if fullSet == Set([1,2,3,4,5,6,7]) {
-                let ids = days.map { idWeekly(baseId, weekday: $0) }
-                center.removePendingNotificationRequests(withIdentifiers: ids)
-
-                scheduleDaily(hour: hour, minute: minute, intervalDays: 1, startDate: nil,
-                              baseId: baseId,
-                              line1: line1, line2: line2, line3: line3,
-                              soundName: soundName)
-                print("weekly→daily optimization: days=1...7, intervalWeeks=1 → daily(d1)")
-                return
-            }
-        }
-
+        // 매주
         if intervalWeeks <= 1 {
             let ids = days.map { idWeekly(baseId, weekday: $0) }
             center.removePendingNotificationRequests(withIdentifiers: ids)
@@ -158,13 +139,15 @@ struct IOSAlarmScheduler {
                 comp.timeZone = TimeZone.current
                 comp.weekday = w; comp.hour = hour; comp.minute = minute; comp.second = 0
                 let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
-                let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(baseId)")
+                let content = buildContent(line1: line1, line2: line2, line3: line3,
+                                           soundName: soundName, threadKey: "heyruffy.\(baseId)", link: link)
                 let req = UNNotificationRequest(identifier: idWeekly(baseId, weekday: w), content: content, trigger: trig)
                 center.add(req) { e in print("weekly(w1) add: wd=\(w)", e as Any) }
             }
             return
         }
 
+        // N주마다
         let secs = max(60, intervalWeeks * 7 * 86400)
         let ids = days.map { idWeeklyN(baseId, weekday: $0, n: intervalWeeks) }
         center.removePendingNotificationRequests(withIdentifiers: ids)
@@ -172,9 +155,10 @@ struct IOSAlarmScheduler {
         for w in days {
             let first = nextWeekday(w, hour: hour, minute: minute)
             let firstGap = max(60, first.timeIntervalSinceNow)
-            let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(baseId)")
+            let content = buildContent(line1: line1, line2: line2, line3: line3,
+                                       soundName: soundName, threadKey: "heyruffy.\(baseId)", link: link)
 
-            let firstId = idWeeklyN(baseId, weekday: w, n: intervalWeeks) + "-first"
+            let firstId = idWeeklyNFirst(baseId, weekday: w, n: intervalWeeks)
             center.removePendingNotificationRequests(withIdentifiers: [firstId])
             let firstTrig = UNTimeIntervalNotificationTrigger(timeInterval: firstGap, repeats: false)
             center.add(UNNotificationRequest(identifier: firstId, content: content, trigger: firstTrig)) { e in
@@ -191,32 +175,33 @@ struct IOSAlarmScheduler {
 
     // ===== Monthly =====
     static func scheduleMonthly(day: Int, hour: Int, minute: Int, baseId: String,
-                                line1: String, line2: String, line3: String, soundName: String) {
+                                line1: String, line2: String, line3: String,
+                                soundName: String, link: String? = nil) {
         let id = idMonthly(baseId, day: day)
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
 
         var comp = DateComponents()
         comp.calendar = Calendar.current
         comp.timeZone = TimeZone.current
-        comp.day = day
-        comp.hour = hour
-        comp.minute = minute
-        comp.second = 0
+        comp.day = day; comp.hour = hour; comp.minute = minute; comp.second = 0
 
-        let content = buildContent(line1: line1, line2: line2, line3: line3, soundName: soundName, threadKey: "heyruffy.\(baseId)")
+        let content = buildContent(line1: line1, line2: line2, line3: line3,
+                                   soundName: soundName, threadKey: "heyruffy.\(baseId)", link: link)
         let trig = UNCalendarNotificationTrigger(dateMatching: comp, repeats: true)
         let req = UNNotificationRequest(identifier: id, content: content, trigger: trig)
         UNUserNotificationCenter.current().add(req) { e in print("monthly add:", e as Any) }
     }
 
     // ===== Helpers =====
-    private static func buildContent(line1: String, line2: String, line3: String, soundName: String, threadKey: String) -> UNMutableNotificationContent {
+    private static func buildContent(line1: String, line2: String, line3: String,
+                                     soundName: String, threadKey: String, link: String? = nil) -> UNMutableNotificationContent {
         let c = UNMutableNotificationContent()
         c.title = line1
         c.subtitle = line2
         c.body = line3
         if let snd = safeSound(named: soundName) { c.sound = snd } else { c.sound = .default }
         c.threadIdentifier = threadKey
+        if let l = link { c.userInfo["link"] = l }
         if #available(iOS 15.0, *) { c.interruptionLevel = .timeSensitive }
         return c
     }
@@ -259,46 +244,6 @@ struct IOSAlarmScheduler {
             if p.count == 3 { return p[2] }
         }
         return Calendar.current.component(.day, from: Date())
-    }
-
-    static func shouldSkipPurge(baseId: String, windowSec: TimeInterval = 90) -> Bool {
-        var skip = false
-        let now = Date()
-        let sema = DispatchSemaphore(value: 0)
-
-        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
-            for r in reqs where r.identifier.hasPrefix(baseId) {
-                if let cal = r.trigger as? UNCalendarNotificationTrigger,
-                   let next = cal.nextTriggerDate() {
-                    if abs(next.timeIntervalSince(now)) <= windowSec { skip = true; break }
-                } else if let ti = r.trigger as? UNTimeIntervalNotificationTrigger {
-                    if !ti.repeats && ti.timeInterval <= windowSec { skip = true; break }
-                }
-            }
-            sema.signal()
-        }
-        _ = sema.wait(timeout: .now() + 1.0)
-        return skip
-    }
-  
-    // ===== Debug ping =====
-    static func debugPing(after seconds: TimeInterval = 20, baseId: String = "debug") {
-        let id = "\(baseId)-ping"
-        let c = UNUserNotificationCenter.current()
-        c.removePendingNotificationRequests(withIdentifiers: [id])
-        let content = UNMutableNotificationContent()
-        content.title = "HeyRuffy (PING)"
-        content.subtitle = "디버그 핑"
-        content.body = "지금으로부터 \(Int(seconds))초 후 트리거"
-        if #available(iOS 15.0, *) { content.interruptionLevel = .timeSensitive }
-        content.sound = .default
-        let fire = Date().addingTimeInterval(seconds)
-        var dc = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: fire)
-        dc.calendar = Calendar.current
-        dc.timeZone  = TimeZone.current
-        let trig = UNCalendarNotificationTrigger(dateMatching: dc, repeats: false)
-        let req = UNNotificationRequest(identifier: id, content: content, trigger: trig)
-        c.add(req) { e in print("debug ping add:", e as Any, "|", fire) }
     }
 }
 

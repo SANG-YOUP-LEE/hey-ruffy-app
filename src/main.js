@@ -18,6 +18,9 @@ import "./assets/css/walk_status_pop.css";
 import VueScrollPicker from "vue-scroll-picker";
 import "vue-scroll-picker/style.css";
 
+// ✅ 알림 탭 → 메인/달성현황으로 이동시키는 딥링크 리스너
+import { installDeepLinkListener } from "@/utils/deeplink";
+
 const app = createApp(App);
 const pinia = createPinia();
 
@@ -26,6 +29,10 @@ app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
 
+// 딥링크 리스너 활성화 (heyruffy://main?r=<루틴ID>)
+installDeepLinkListener();
+
+// ===== 줌/제스처 방지 =====
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
 document.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
@@ -43,9 +50,6 @@ document.addEventListener('wheel', e => {
 
 /* ──────────────────────────────────────────
    루틴 → iOS 알림 재하이드레이트 (콜드 스타트 + 포그라운드)
-   - 브릿지 준비 대기
-   - 최근 N분 내 실행 스킵
-   - 해시 비교로 중복 예약 방지
 ────────────────────────────────────────── */
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, getDocs } from 'firebase/firestore'
@@ -72,7 +76,6 @@ async function waitBridgeReady(maxTries = BRIDGE_MAX_TRIES, delayMs = BRIDGE_TRY
 
 /** ===== 해시 유틸 (안정 JSON + djb2) ===== */
 function stableRoutineSnapshot(routines){
-  // 스케줄에 영향 주는 핵심 필드만 추려서 id 기준 정렬
   const pick = (r) => ({
     id: r.id ?? r.routineId ?? '',
     title: r.title ?? r.name ?? r.text ?? '',
@@ -93,8 +96,7 @@ function stableRoutineSnapshot(routines){
 }
 function djb2(str){
   let h = 5381;
-  for (let i=0;i<str.length;i++) h = ((h << 5) + h) + str.charCodeAt(i); // h*33 + c
-  // 32bit 부호 유지하여 문자열화
+  for (let i=0;i<str.length;i++) h = ((h << 5) + h) + str.charCodeAt(i);
   return (h >>> 0).toString(16);
 }
 
@@ -114,7 +116,7 @@ function getLastHash(){ return localStorage.getItem(LS_LAST_HASH) || ''; }
 function setLastHash(h){ localStorage.setItem(LS_LAST_HASH, h); }
 
 /** ===== 실제 재하이드레이트 ===== */
-let isHydrating = false; // 동시 실행 방지
+let isHydrating = false;
 
 async function rehydrateForUser(user, reason = 'auto'){
   if (!user) return;

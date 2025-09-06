@@ -17,9 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
   // 모든 외부 id는 여기서 "routine-<id>" 로 통일
   private func routinePrefix(_ base: String) -> String { "routine-\(base)" }
-
   private func canonicalId(_ base: String) -> String { routinePrefix(base) }
-
   private func canonicalBaseId(from raw: String) -> String {
     // rt_abc-m01 / rt_abc-w5 / rt_abc-d2 / rt_abc-once / rt_abc-ping → routine-rt_abc
     let stripped = raw.replacingOccurrences(
@@ -128,7 +126,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
   }
 
-  private func scheduleOnce(id: String, title: String, body: String?, date: Date) {
+  // ✅ 지난(Delivered) 기록 정리 – 같은 루틴 prefix만
+  private func purgeDelivered(prefix: String, keepLatest: Bool = true) {
+    UNUserNotificationCenter.current().getDeliveredNotifications { notes in
+      let same = notes.filter {
+        $0.request.identifier.hasPrefix(prefix) ||
+        $0.request.content.threadIdentifier.contains(prefix)   // ← threadKey에도 포함되면 매칭
+      }
+      guard !same.isEmpty else { return }
+      let sorted = same.sorted { a, b in a.date < b.date }
+      var ids = sorted.map { $0.request.identifier }
+      if keepLatest, let last = ids.last { ids.removeAll { $0 == last } }
+      if !ids.isEmpty {
+        UNUserNotificationCenter.current()
+          .removeDeliveredNotifications(withIdentifiers: ids)
+      }
+    }
+  }
+
+  // ✅ thread + link 지원
+  private func scheduleOnce(
+    id: String,
+    title: String,
+    body: String?,
+    date: Date,
+    thread: String? = nil,
+    link: String? = nil
+  ) {
     let comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
     let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
     let c = UNMutableNotificationContent()
@@ -136,6 +160,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     if let body = body, !body.isEmpty { c.body = body }
     if #available(iOS 15.0, *) { c.interruptionLevel = .timeSensitive }
     c.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
+    if let thread = thread { c.threadIdentifier = thread }   // 그룹화
+    if let link = link { c.userInfo["link"] = link }         // 딥링크
+
     UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
     UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: c, trigger: trigger))
   }
@@ -224,11 +251,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
       let body = (dict["body"] as? String) ?? ""
       let prefix = routinePrefix(rid)
+      let linkStr = dict["link"] as? String            // ✅ 딥링크 수신
 
+      // 같은 루틴 prefix만 pending + delivered 정리
       if shouldSkipPurge(baseId: prefix) {
         print("setScheduleForRoutine purge SKIPPED (within firing window) for \(prefix)")
       } else {
         purge(prefix: prefix)
+        purgeDelivered(prefix: prefix)                 // ✅ 지난 기록 정리
       }
 
       for (i, ep) in epochs.enumerated() {
@@ -244,7 +274,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           case "monthly": id = "\(prefix)-m-\(i)"
           default:        id = "\(prefix)-x-\(i)"
         }
-        scheduleOnce(id: id, title: title, body: body, date: when)
+        // 그룹화(thread=prefix) + 딥링크(link)
+        scheduleOnce(id: id, title: title, body: body, date: when, thread: prefix, link: linkStr) // ✅
       }
       return
     }
@@ -278,11 +309,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       let titleText = (dict["title"] as? String) ?? (dict["name"] as? String) ?? "다짐"
       let subtitleText = (dict["subtitle"] as? String) ?? appName
       let bodyText = ""
+      let linkStr = dict["link"] as? String            // ✅ 딥링크 수신
 
       if shouldSkipPurge(baseId: baseId) {
         print("purge SKIPPED (within firing window) for \(baseId)")
       } else {
         IOSAlarmScheduler.purgeAllForBase(baseId: baseId)
+        purgeDelivered(prefix: baseId)                 // ✅ 지난 기록 정리
       }
 
       switch repeatMode {
@@ -300,14 +333,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           if fire <= Date() { fire = Calendar.current.date(byAdding: .day, value: 1, to: fire)! }
           print("schedule(once): fallback @ \(fire)")
         }
-        IOSAlarmScheduler.scheduleOnce(
-          at: fire,
-          id: baseId,
-          line1: titleText,
-          line2: subtitleText,
-          line3: bodyText,
-          soundName: soundName
-        )
+        // 그룹화(thread=baseId) + 딥링크(link) 전달
+        scheduleOnce(id: baseId, title: titleText, body: bodyText, date: fire, thread: baseId, link: linkStr) // ✅
 
       case "daily":
         let hm = readHourMinute(dict)
@@ -320,7 +347,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           line1: titleText,
           line2: subtitleText,
           line3: bodyText,
-          soundName: soundName
+          soundName: soundName,
+          link: linkStr                                       // ✅ 전달
         )
 
       case "weekly":
@@ -336,7 +364,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           line1: titleText,
           line2: subtitleText,
           line3: bodyText,
-          soundName: soundName
+          soundName: soundName,
+          link: linkStr                                       // ✅ 전달
         )
 
       case "monthly", "monthly-date":
@@ -348,7 +377,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           line1: titleText,
           line2: subtitleText,
           line3: bodyText,
-          soundName: soundName
+          soundName: soundName,
+          link: linkStr                                       // ✅ 전달
         )
 
       default:
@@ -380,6 +410,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                               didReceive response: UNNotificationResponse,
                               withCompletionHandler completionHandler: @escaping () -> Void) {
     let r = response.notification.request
+
+    // ✅ 알림 탭 시, 딥링크를 Capacitor로 전달
+    if let linkStr = r.content.userInfo["link"] as? String,
+       let url = URL(string: linkStr),
+       let bridgeVC = self.window?.rootViewController as? CAPBridgeViewController,
+       let bridge = bridgeVC.bridge {
+      bridge.handleOpenUrl(url, sourceApplication: nil, annotation: [:])
+    }
+
     print("DELIVERED:", r.identifier, "| title:", r.content.title, "| subtitle:", r.content.subtitle)
     completionHandler()
   }
