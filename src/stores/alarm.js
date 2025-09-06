@@ -1,5 +1,6 @@
 // File: src/stores/alarm.js
 import { defineStore } from 'pinia'
+import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
 // ▷ 임박 발사 때 기존 예약을 지우지 않으려면 false 유지(권장)
 const HARD_PURGE_FIRST = false
@@ -176,7 +177,7 @@ function setScheduleForRoutine({ routineId, mode, title, subtitle, fireTimesEpoc
     routineId: String(routineId),
     mode,
     title,
-    body: subtitle || '',          // UI 부제는 body로
+    body: subtitle || '',
     fireTimesEpoch,
     link: link || null
   })
@@ -189,18 +190,17 @@ export const useAlarmStore = defineStore('alarm', {
   actions: {
     setPermission(p){ this.permission=p },
 
-    cancel(id){ postIOS({ action:'cancel', id }); scheduledKeys.delete(id) },
+    // ▶ 변경: cancel 경로를 iosNotify로 통일
+    cancel(id){ cancelOnIOS(id); scheduledKeys.delete(id) },
     cancelSeries(baseId){
-      // 베이스만 취소해도 네이티브에서 해당 prefix 전체 purge
       this.cancel(baseId)
-      // (하위 식별자는 과거 호환 — 실제론 네이티브 prefix purge가 처리)
       for(let d=1; d<=31; d++) this.cancel(`${baseId}-m${pad2(d)}`)
       for(let w=1; w<=7; w++) this.cancel(`${baseId}-w${w}`)
     },
 
     // === 기존 프로토콜(유지) — 단발은 ts=초로 변경됨 ===
+    // ▶ 변경: schedule 경로를 iosNotify로 통일
     scheduleOnce({ id, title, subtitle, timestamp, link, hour, minute, baseDate }){
-      // timestamp 보정: 초 단위로 사용
       let ts = Number(timestamp);
       if (!Number.isFinite(ts) || ts <= 0) {
         if (Number.isFinite(hour) && Number.isFinite(minute)) {
@@ -210,11 +210,11 @@ export const useAlarmStore = defineStore('alarm', {
           return;
         }
       }
-      postIOS({
+      scheduleOnIOS({
         action: 'schedule',
         id,
         repeatMode: 'once',
-        timestamp: ts,   // ← epoch **seconds**
+        timestamp: ts,
         title,
         subtitle,
         link
@@ -222,12 +222,12 @@ export const useAlarmStore = defineStore('alarm', {
     },
 
     scheduleDaily({ id, title, subtitle, hour, minute, interval, startDate, endDate, link }){
-      postIOS({
+      scheduleOnIOS({
         action: 'schedule',
         id,
         repeatMode: 'daily',
         hour, minute,
-        interval: Number(interval) || 1,
+        interval: Math.max(1, Number(interval) || 1),
         startDate: startDate || null,
         endDate: endDate || null,
         title,
@@ -236,14 +236,32 @@ export const useAlarmStore = defineStore('alarm', {
       });
     },
 
+    // ▶ 변경: 7요일+1주 → daily로 축약
     scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, startDate, endDate, link }){
-      postIOS({
+      const days = Array.isArray(weekdays) ? weekdays : []
+      const iw = Math.max(1, Number(intervalWeeks) || 1)
+      if (iw === 1 && days.length === 7) {
+        scheduleOnIOS({
+          action: 'schedule',
+          id,
+          repeatMode: 'daily',
+          hour, minute,
+          interval: 1,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          title,
+          subtitle,
+          link
+        })
+        return
+      }
+      scheduleOnIOS({
         action: 'schedule',
         id,
         repeatMode: 'weekly',
         hour, minute,
-        weekdays: Array.isArray(weekdays) ? weekdays : [],
-        intervalWeeks: Number(intervalWeeks) || 1,
+        weekdays: days,
+        intervalWeeks: iw,
         startDate: startDate || null,
         endDate: endDate || null,
         title,
@@ -254,7 +272,7 @@ export const useAlarmStore = defineStore('alarm', {
 
     scheduleMonthly({ id, title, subtitle, day, hour, minute, startDate, endDate, link }){
       const sid = `${id}-d${pad2(day)}`;
-      postIOS({
+      scheduleOnIOS({
         action: 'schedule',
         id: sid,
         repeatMode: 'monthly',
@@ -331,12 +349,11 @@ export const useAlarmStore = defineStore('alarm', {
       const startDate = form.startDate || null
       const endDate   = form.endDate   || null
 
-      if (HARD_PURGE_FIRST) this.cancelSeries(baseId) // 기본값 false
+      if (HARD_PURGE_FIRST) this.cancelSeries(baseId)
 
-      // ---- 단발: 한 루틴 = 한 ID (초단위, +3s 보정) ----
+      // 단발
       if(isDaily && (built.isTodayOnly || built.dailyEvery===0)){
         const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
-        // 호환 유지(기존 프로토콜) + 네이티브는 seconds로 해석해야 함
         this.scheduleOnce({
           id: baseId,
           title,
@@ -347,7 +364,6 @@ export const useAlarmStore = defineStore('alarm', {
         return { ok:true, scheduled:true, type:'once', ts }
       }
 
-      // ---- 반복: 시작/종료일이 지정되어 있으면 JS에서 확정 epoch 생성 후 setScheduleForRoutine ----
       const hasRange = !!startDate || !!endDate
 
       if(isDaily && !built.isTodayOnly){
@@ -360,7 +376,6 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'daily', count:0 }
         }
-        // 범위 없으면 기존 프로토콜 유지(호환)
         const interval = Math.max(1, Number(dailyEvery||1))
         this.scheduleDaily({
           id: baseId, title,
@@ -381,8 +396,19 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'weekly', count:0 }
         }
-        // 범위 없으면 기존 프로토콜 유지
         const intervalWeeks = Math.max(1, parseInt(String(form.repeatWeeks).match(/(\d+)/)?.[1] || '1', 10))
+
+        // ★ 여기서도 7요일+1주 → daily로 축약
+        if (intervalWeeks === 1 && iosWeekdays.length === 7){
+          this.scheduleDaily({
+            id: baseId, title,
+            subtitle: subtitleDaily(`${pad2(hm.hour)}:${pad2(hm.minute)}`, 1),
+            hour: hm.hour, minute: hm.minute,
+            interval: 1, startDate, endDate, link
+          })
+          return { ok:true, scheduled:true, type:'daily', interval:1 }
+        }
+
         this.scheduleWeekly({
           id: baseId, title,
           subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
@@ -404,7 +430,6 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'monthly', count:0 }
         }
-        // 범위 없으면 기존 프로토콜 유지
         const sub = subtitleMonthly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, monthDays)
         for(const d of monthDays){
           const day = Math.max(1, Math.min(31, Number(d)||1))
@@ -417,7 +442,6 @@ export const useAlarmStore = defineStore('alarm', {
         return { ok:true, scheduled:true, type:'monthly', days: monthDays }
       }
 
-      // 기타는 안전하게 단발 처리
       const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
       this.scheduleOnce({ id: baseId, title, subtitle: `${pad2(hm.hour)}:${pad2(hm.minute)}`, timestamp: ts, link })
       return { ok:true, scheduled:true, type:'once', ts }
