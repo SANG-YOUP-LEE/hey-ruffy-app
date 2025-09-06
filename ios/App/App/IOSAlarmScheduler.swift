@@ -1,5 +1,3 @@
-// File: ios/App/App/IOSAlarmScheduler.swift
-
 import Foundation
 import UserNotifications
 import UIKit
@@ -7,22 +5,22 @@ import UIKit
 struct IOSAlarmScheduler {
 
     // ===== Debug =====
-  static func dumpPendingWithNextDates(tag: String = "dump") {
-      UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
-          print("==== PENDING[\(tag)] \(reqs.count) ====")
-          let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
-          for r in reqs {
-              if let t = (r.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() {
-                  print(" -", r.identifier, "| next:", fmt.string(from: t))
-              } else if let t = (r.trigger as? UNTimeIntervalNotificationTrigger) {
-                  print(" -", r.identifier, "| interval(s):", Int(t.timeInterval), "repeats:", t.repeats)
-              } else {
-                  print(" -", r.identifier, "| next: (nil)")
-              }
-          }
-          print("==== END PENDING[\(tag)] ====")
-      }
-  }
+    static func dumpPendingWithNextDates(tag: String = "dump") {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+            print("==== PENDING[\(tag)] \(reqs.count) ====")
+            let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            for r in reqs {
+                if let t = (r.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() {
+                    print(" -", r.identifier, "| next:", fmt.string(from: t))
+                } else if let t = (r.trigger as? UNTimeIntervalNotificationTrigger) {
+                    print(" -", r.identifier, "| interval(s):", Int(t.timeInterval), "repeats:", t.repeats)
+                } else {
+                    print(" -", r.identifier, "| next: (nil)")
+                }
+            }
+            print("==== END PENDING[\(tag)] ====")
+        }
+    }
 
     // ===== Canonical ID helpers =====
     private static func idDaily(_ base: String) -> String { "\(base)-d1" }
@@ -73,6 +71,12 @@ struct IOSAlarmScheduler {
         soundName: String,
         link: String? = nil
     ) {
+        // 과거라면 재스케줄하지 않음 (오늘만/단발 보호)
+        if date.timeIntervalSinceNow <= 1 {
+            print("scheduleOnce SKIP (past or too soon):", id, date)
+            return
+        }
+
         let c = UNUserNotificationCenter.current()
         c.removePendingNotificationRequests(withIdentifiers: [idOnce(id)])
 
@@ -246,10 +250,10 @@ struct IOSAlarmScheduler {
         let c = UNMutableNotificationContent()
         c.title = line1
         c.subtitle = line2
-        c.body = line3
+        c.body = line3.isEmpty ? "달성현황을 체크해주세요" : line3   // ✅ 기본 문구
         if let snd = safeSound(named: soundName) { c.sound = snd } else { c.sound = .default }
         c.threadIdentifier = threadKey
-        if let l = link { c.userInfo["link"] = l }           // 딥링크
+        if let l = link { c.userInfo["link"] = l }                 // 딥링크
         if #available(iOS 15.0, *) { c.interruptionLevel = .timeSensitive }
         return c
     }
