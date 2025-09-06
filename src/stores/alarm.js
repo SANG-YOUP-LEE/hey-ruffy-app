@@ -177,7 +177,7 @@ function setScheduleForRoutine({ routineId, mode, title, subtitle, fireTimesEpoc
     routineId: String(routineId),
     mode,
     title,
-    body: subtitle || '',
+    body: subtitle || '',          // UI 부제는 body로
     fireTimesEpoch,
     link: link || null
   })
@@ -214,7 +214,7 @@ export const useAlarmStore = defineStore('alarm', {
         action: 'schedule',
         id,
         repeatMode: 'once',
-        timestamp: ts,
+        timestamp: ts,   // ← epoch **seconds**
         title,
         subtitle,
         link
@@ -349,11 +349,21 @@ export const useAlarmStore = defineStore('alarm', {
       const startDate = form.startDate || null
       const endDate   = form.endDate   || null
 
-      if (HARD_PURGE_FIRST) this.cancelSeries(baseId)
+      if (HARD_PURGE_FIRST) this.cancelSeries(baseId) // 기본값 false
 
-      // 단발
-      if(isDaily && (built.isTodayOnly || built.dailyEvery===0)){
-        const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
+      // ---- 오늘만(once) 처리 — 리하이드레이트 시 스킵 + 하루 1회 중복 방지 ----
+      if (isDaily && (built.isTodayOnly || built.dailyEvery === 0)) {
+        const context = (meta && meta.context) || 'user'
+        if (context === 'rehydrate') {
+          return { ok:true, scheduled:false, reason:'skip_rehydrate_today_only' }
+        }
+        const y = new Date()
+        const ymd = `${y.getFullYear()}${String(y.getMonth()+1).padStart(2,'0')}${String(y.getDate()).padStart(2,'0')}`
+        const onceKey = `once.${baseId}.${ymd}`
+        if (localStorage.getItem(onceKey) === '1') {
+          return { ok:true, scheduled:false, reason:'already_scheduled_today' }
+        }
+        const ts = nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate || new Date()))
         this.scheduleOnce({
           id: baseId,
           title,
@@ -361,9 +371,11 @@ export const useAlarmStore = defineStore('alarm', {
           timestamp: ts,
           link
         })
+        localStorage.setItem(onceKey, '1')
         return { ok:true, scheduled:true, type:'once', ts }
       }
 
+      // ---- 반복: 시작/종료일이 지정되어 있으면 JS에서 확정 epoch 생성 후 setScheduleForRoutine ----
       const hasRange = !!startDate || !!endDate
 
       if(isDaily && !built.isTodayOnly){
@@ -376,6 +388,7 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'daily', count:0 }
         }
+        // 범위 없으면 기존 프로토콜 유지(호환)
         const interval = Math.max(1, Number(dailyEvery||1))
         this.scheduleDaily({
           id: baseId, title,
@@ -396,9 +409,10 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'weekly', count:0 }
         }
+        // 범위 없으면 기존 프로토콜 유지
         const intervalWeeks = Math.max(1, parseInt(String(form.repeatWeeks).match(/(\d+)/)?.[1] || '1', 10))
 
-        // ★ 여기서도 7요일+1주 → daily로 축약
+        // ★ 7요일+1주 → daily로 축약
         if (intervalWeeks === 1 && iosWeekdays.length === 7){
           this.scheduleDaily({
             id: baseId, title,
@@ -430,6 +444,7 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'monthly', count:0 }
         }
+        // 범위 없으면 기존 프로토콜 유지
         const sub = subtitleMonthly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, monthDays)
         for(const d of monthDays){
           const day = Math.max(1, Math.min(31, Number(d)||1))
@@ -442,6 +457,7 @@ export const useAlarmStore = defineStore('alarm', {
         return { ok:true, scheduled:true, type:'monthly', days: monthDays }
       }
 
+      // 기타는 안전하게 단발 처리
       const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
       this.scheduleOnce({ id: baseId, title, subtitle: `${pad2(hm.hour)}:${pad2(hm.minute)}`, timestamp: ts, link })
       return { ok:true, scheduled:true, type:'once', ts }
@@ -461,7 +477,8 @@ export const useAlarmStore = defineStore('alarm', {
         const routineId = r?.routineId || r?.id
         const title = r?.title || r?.name || r?.text || '알람'
         if(!routineId) continue
-        const res = this.scheduleFromForm(form, { routineId, title })
+        // ▶ 변경: 리하이드레이트 컨텍스트 전달
+        const res = this.scheduleFromForm(form, { routineId, title, context: 'rehydrate' })
         if(res?.scheduled) count++
       }
       return { ok:true, count }
