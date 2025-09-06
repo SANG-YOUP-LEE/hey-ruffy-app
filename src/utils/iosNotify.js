@@ -132,22 +132,31 @@ function normalizeSchedulePayload(msg = {}) {
   }
 
   // weekly 전용
-  if (repeatMode === 'weekly') {
-    // 요일
-    out.weekdays =
-      normalizeWeekdays(msg.weekdays) ||
-      normalizeWeekdays(msg.repeatWeekDays) ||
-      normalizeWeekdays(msg.weekday);
-    // 간격(주)
-    const iw =
-      toInt(msg.intervalWeeks) ??
-      toInt(msg.weeksInterval) ??
-      toInt(msg.everyWeeks) ??
-      // "2주마다" 같은 문자열에서 숫자만 추출
-      (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
-      1;
+if (repeatMode === 'weekly') {
+  const days =
+    normalizeWeekdays(msg.weekdays) ||
+    normalizeWeekdays(msg.repeatWeekDays) ||
+    normalizeWeekdays(msg.weekday);
+
+  const iw =
+    toInt(msg.intervalWeeks) ??
+    toInt(msg.weeksInterval) ??
+    toInt(msg.everyWeeks) ??
+    (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
+    1;
+
+  // ★ 축약 로직: 모든 요일(7) + 1주 간격 → daily 변환
+  if (iw === 1 && days && days.length === 7) {
+    repeatMode = 'daily';
+    out.repeatMode = 'daily';
+    out.interval = 1;
+    delete out.weekdays;
+    delete out.intervalWeeks;
+  } else {
+    out.weekdays = days;
     out.intervalWeeks = Math.max(1, iw);
   }
+}
 
   // monthly 전용
   if (repeatMode.startsWith('monthly')) {
