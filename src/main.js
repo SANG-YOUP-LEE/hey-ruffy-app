@@ -29,8 +29,8 @@ app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
 
-// 딥링크 리스너 활성화 (heyruffy://main?r=<루틴ID>)
-installDeepLinkListener();
+// 라우터 준비 후 딥링크 리스너 활성화 (heyruffy://main?r=<루틴ID>)
+router.isReady().then(() => installDeepLinkListener());
 
 // ===== 줌/제스처 방지 =====
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
