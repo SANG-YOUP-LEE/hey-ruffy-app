@@ -1,5 +1,3 @@
-// File: ios/App/App/AppDelegate.swift
-
 import UIKit
 import WebKit
 import UserNotifications
@@ -12,20 +10,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   var window: UIWindow?
   private let bridgeMessageName = "notify"
   private var didAttachHandler = false
-  private weak var attachedWebView: WKWebView?          // ✅ 어떤 WebView에 붙였는지 기억
+  private weak var attachedWebView: WKWebView?
   private var attachAttempts = 0
-  private let maxAttachAttempts = 20                     // ~10s (0.5s * 20)
-  private let soundName = "ruffysound001.wav"            // ensure in bundle
+  private let maxAttachAttempts = 20                // ~10s (0.5s * 20)
+  private let soundName = "ruffysound001.wav"       // ensure in bundle
 
   // 모든 외부 id는 여기서 "routine-<id>" 로 통일
-  private func canonicalId(_ base: String) -> String { "routine-\(base)" }
+  private func routinePrefix(_ base: String) -> String { "routine-\(base)" }
+
+  private func canonicalId(_ base: String) -> String { routinePrefix(base) }
 
   private func canonicalBaseId(from raw: String) -> String {
-    // rt_abc-m01 / rt_abc-w5 / rt_abc-d2 / rt_abc-once / rt_abc-ping → rt_abc
-    let stripped = raw.replacingOccurrences(of: #"(-m\d{2}|-w[1-7]|-d\d+|-once|-ping)$"#,
-                                            with: "",
-                                            options: .regularExpression)
-    return canonicalId(stripped) // "routine-\(base)"
+    // rt_abc-m01 / rt_abc-w5 / rt_abc-d2 / rt_abc-once / rt_abc-ping → routine-rt_abc
+    let stripped = raw.replacingOccurrences(
+      of: #"(-m\d{2}|-w[1-7]|-d\d+|-once|-ping)$"#,
+      with: "",
+      options: .regularExpression
+    )
+    return routinePrefix(stripped)
   }
 
   // 발사 직전 퍼지 가드(±120초)
@@ -73,14 +75,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
   func applicationDidBecomeActive(_ application: UIApplication) {
     attachBridgeHandlerOnce()
-    // 다른 SDK가 delegate 바꿔치기할 수 있으니 항상 다시 지정
     UNUserNotificationCenter.current().delegate = self
     dumpNotifSettings()
   }
 
   // MARK: - Bridge attach (retry until ready, attach 1회 보장)
   private func attachBridgeHandlerOnce() {
-    // 이미 같은 webView에 붙어 있으면 종료
     if didAttachHandler, let webView = currentWebView(), attachedWebView === webView {
       return
     }
@@ -99,10 +99,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         return
       }
 
-      // 같은 webView에 이미 붙어있다면 중복 방지
-      if self.didAttachHandler, self.attachedWebView === webView {
-        return
-      }
+      if self.didAttachHandler, self.attachedWebView === webView { return }
 
       let ucc = webView.configuration.userContentController
       ucc.removeScriptMessageHandler(forName: self.bridgeMessageName)
@@ -119,6 +116,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       let webView = bridgeVC.bridge?.webView
     else { return nil }
     return webView
+  }
+
+  // MARK: - Small helpers (native-only)
+  private func purge(prefix: String, _ done: (() -> Void)? = nil) {
+    UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+      let ids = reqs.map { $0.identifier }.filter { $0.hasPrefix(prefix) }
+      UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+      UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: ids)
+      done?()
+    }
+  }
+
+  private func scheduleOnce(id: String, title: String, body: String?, date: Date) {
+    let comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
+    let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+    let c = UNMutableNotificationContent()
+    c.title = title
+    if let body = body, !body.isEmpty { c.body = body }
+    if #available(iOS 15.0, *) { c.interruptionLevel = .timeSensitive }
+    c.sound = UNNotificationSound(named: UNNotificationSoundName(soundName))
+    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+    UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: c, trigger: trigger))
   }
 
   // MARK: - WKScriptMessageHandler
@@ -196,6 +215,48 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     let action = (dict["action"] as? String) ?? ""
     print("BRIDGE recv:", action, dict)
 
+    // ✅ 새 프로토콜: JS가 확정된 epoch(초) 배열을 전달
+    if action == "setScheduleForRoutine",
+       let rid   = dict["routineId"] as? String,
+       let mode  = dict["mode"] as? String,
+       let title = dict["title"] as? String,
+       let epochs = dict["fireTimesEpoch"] as? [Double] {
+
+      let body = (dict["body"] as? String) ?? ""
+      let prefix = routinePrefix(rid)
+
+      if shouldSkipPurge(baseId: prefix) {
+        print("setScheduleForRoutine purge SKIPPED (within firing window) for \(prefix)")
+      } else {
+        purge(prefix: prefix)
+      }
+
+      for (i, ep) in epochs.enumerated() {
+        // JS가 "초"로 보냄!
+        var when = Date(timeIntervalSince1970: ep)
+        if when.timeIntervalSinceNow < 3 { when = Date().addingTimeInterval(3) } // 안전 +3s
+
+        let id: String
+        switch mode {
+          case "once":    id = prefix                                // 단발은 항상 하나
+          case "daily":   id = "\(prefix)-d-\(i)"
+          case "weekly":  id = "\(prefix)-w-\(i)"
+          case "monthly": id = "\(prefix)-m-\(i)"
+          default:        id = "\(prefix)-x-\(i)"
+        }
+        scheduleOnce(id: id, title: title, body: body, date: when)
+      }
+      return
+    }
+
+    // ✅ 새 프로토콜: 루틴 전체 제거
+    if action == "clearScheduleForRoutine",
+       let rid = dict["routineId"] as? String {
+      purge(prefix: routinePrefix(rid))
+      return
+    }
+
+    // ✅ 레거시 호환
     switch action {
 
     case "cancel":
@@ -212,13 +273,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
       let repeatMode = (dict["repeatMode"] as? String) ?? "once"
       let baseId = canonicalId((dict["id"] as? String) ?? "alarm")
 
-      // ✅ 제목/부제 역할 교체: 처음부터 다짐 제목이 크게 보이도록
+      // 제목/부제: 다짐 제목이 크게 보이도록
       let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "HeyRuffy"
-      let titleText = (dict["title"] as? String) ?? (dict["name"] as? String) ?? "다짐"      // 큰 글씨
-      let subtitleText = (dict["subtitle"] as? String) ?? appName                            // 작은 글씨(앱 이름 등)
-      let bodyText = "" // 필요하면 dict["body"] 등을 할당
+      let titleText = (dict["title"] as? String) ?? (dict["name"] as? String) ?? "다짐"
+      let subtitleText = (dict["subtitle"] as? String) ?? appName
+      let bodyText = ""
 
-      // 발사 직전이면 purge SKIP
       if shouldSkipPurge(baseId: baseId) {
         print("purge SKIPPED (within firing window) for \(baseId)")
       } else {
@@ -227,10 +287,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
       switch repeatMode {
       case "once":
-        let tsVal = dict["timestamp"] as? Double ?? -1
+        // ⬇︎ **중요**: JS가 초(second)로 보냄 → 나누지 말고 그대로 사용
+        let tsVal = (dict["timestamp"] as? NSNumber)?.doubleValue ?? -1
         var fire: Date
         if tsVal.isFinite && !tsVal.isNaN && tsVal > 0 {
-          fire = Date(timeIntervalSince1970: tsVal / 1000.0)
+          fire = Date(timeIntervalSince1970: tsVal)
         } else {
           let hm = readHourMinute(dict)
           var comp = Calendar.current.dateComponents([.year,.month,.day], from: Date())
@@ -242,8 +303,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         IOSAlarmScheduler.scheduleOnce(
           at: fire,
           id: baseId,
-          line1: titleText,         // ← 다짐 제목
-          line2: subtitleText,      // ← 앱 이름/부제
+          line1: titleText,
+          line2: subtitleText,
           line3: bodyText,
           soundName: soundName
         )
@@ -256,8 +317,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           hour: hm.hour, minute: hm.minute,
           intervalDays: interval, startDate: startDate,
           baseId: baseId,
-          line1: titleText,         // ← 다짐 제목
-          line2: subtitleText,      // ← 앱 이름/부제
+          line1: titleText,
+          line2: subtitleText,
           line3: bodyText,
           soundName: soundName
         )
@@ -272,8 +333,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
           hour: hm.hour, minute: hm.minute,
           intervalWeeks: weeks, weekdays: wdays,
           baseId: baseId,
-          line1: titleText,         // ← 다짐 제목
-          line2: subtitleText,      // ← 앱 이름/부제
+          line1: titleText,
+          line2: subtitleText,
           line3: bodyText,
           soundName: soundName
         )
@@ -284,8 +345,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         IOSAlarmScheduler.scheduleMonthly(
           day: day, hour: hm.hour, minute: hm.minute,
           baseId: baseId,
-          line1: titleText,         // ← 다짐 제목
-          line2: subtitleText,      // ← 앱 이름/부제
+          line1: titleText,
+          line2: subtitleText,
           line3: bodyText,
           soundName: soundName
         )

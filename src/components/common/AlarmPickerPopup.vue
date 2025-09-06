@@ -24,15 +24,15 @@
           :options="hourLoopOptions"
           :drag-sensitivity="1.4"
           :touch-sensitivity="1.4"
-          :scroll-sensitivity="0.9"
+          :scroll-sensitivity="0.7"
         />
         <VueScrollPicker
           :key="pickerKey + '-m'"
           v-model="selectedMinute"
           :options="minuteLoopOptions"
-          :drag-sensitivity="1.7"
-          :touch-sensitivity="1.7"
-          :scroll-sensitivity="0.9"
+          :drag-sensitivity="1.4"
+          :touch-sensitivity="1.4"
+          :scroll-sensitivity="0.7"
           :inertia-duration="3000"
           :inertia-factor="0.9"
         />
