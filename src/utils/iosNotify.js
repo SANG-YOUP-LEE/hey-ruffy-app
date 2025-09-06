@@ -67,16 +67,16 @@ function normalizeWeekdays(raw) {
     const one = mapOneDayToken(raw);
     if (one) arr = [one];
   }
-  // 유효하지 않으면 undefined 반환 (네이티브에서 기본 1~7 처리)
   if (!arr.length) return undefined;
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
 // legacy -> unified 'schedule' payload 로 변환
 function normalizeSchedulePayload(msg = {}) {
-  // 이미 새 포맷이면 그대로 통과 (단, 타입 보정만)
+  // 이미 새 포맷이면 그대로 통과 (단, 타입/링크 보정)
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
+
     if (out.hour != null) out.hour = toInt(out.hour);
     if (out.minute != null) out.minute = toInt(out.minute);
     if (out.interval != null) out.interval = Math.max(1, toInt(out.interval) ?? 1);
@@ -84,6 +84,30 @@ function normalizeSchedulePayload(msg = {}) {
     if (!out.weekdays) out.weekdays = normalizeWeekdays(out.repeatWeekDays || out.weekday);
     if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
     if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
+
+    // ★ 딥링크 보정: link/url/deepLink 중 어떤 키가 와도 3개 모두 세팅
+    const linkCandidate = [out.link, out.url, out.deepLink, msg.link, msg.url, msg.deepLink]
+      .find(v => typeof v === 'string' && v);
+    if (linkCandidate) {
+      out.link = linkCandidate;
+      if (!out.url) out.url = linkCandidate;
+      if (!out.deepLink) out.deepLink = linkCandidate;
+    }
+
+    // 주간 7일+1주 → daily 축약(호환)
+    if (out.repeatMode === 'weekly') {
+      const days = normalizeWeekdays(out.weekdays) || [];
+      const iw = Math.max(1, toInt(out.intervalWeeks) ?? 1);
+      if (iw === 1 && days.length === 7) {
+        out.repeatMode = 'daily';
+        out.interval = 1;
+        delete out.weekdays;
+        delete out.intervalWeeks;
+      } else {
+        out.weekdays = days.length ? days : undefined;
+        out.intervalWeeks = iw;
+      }
+    }
     return out;
   }
 
@@ -113,7 +137,7 @@ function normalizeSchedulePayload(msg = {}) {
   if (out.hour == null && h2 != null) out.hour = h2;
   if (out.minute == null && m2 != null) out.minute = m2;
 
-  // 시작/종료일 (문자열 Y-M-D 만 통과; 네이티브가 필요 시 사용)
+  // 시작/종료일 (문자열 Y-M-D 만 통과)
   if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   if (isYMD(msg.endDate)) out.endDate = msg.endDate;
 
@@ -131,32 +155,31 @@ function normalizeSchedulePayload(msg = {}) {
     if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   }
 
-  // weekly 전용
-if (repeatMode === 'weekly') {
-  const days =
-    normalizeWeekdays(msg.weekdays) ||
-    normalizeWeekdays(msg.repeatWeekDays) ||
-    normalizeWeekdays(msg.weekday);
+  // weekly 전용 (+ 7요일 축약)
+  if (repeatMode === 'weekly') {
+    const days =
+      normalizeWeekdays(msg.weekdays) ||
+      normalizeWeekdays(msg.repeatWeekDays) ||
+      normalizeWeekdays(msg.weekday);
 
-  const iw =
-    toInt(msg.intervalWeeks) ??
-    toInt(msg.weeksInterval) ??
-    toInt(msg.everyWeeks) ??
-    (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
-    1;
+    const iw =
+      toInt(msg.intervalWeeks) ??
+      toInt(msg.weeksInterval) ??
+      toInt(msg.everyWeeks) ??
+      (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
+      1;
 
-  // ★ 축약 로직: 모든 요일(7) + 1주 간격 → daily 변환
-  if (iw === 1 && days && days.length === 7) {
-    repeatMode = 'daily';
-    out.repeatMode = 'daily';
-    out.interval = 1;
-    delete out.weekdays;
-    delete out.intervalWeeks;
-  } else {
-    out.weekdays = days;
-    out.intervalWeeks = Math.max(1, iw);
+    if (iw === 1 && days && days.length === 7) {
+      repeatMode = 'daily';
+      out.repeatMode = 'daily';
+      out.interval = 1;
+      delete out.weekdays;
+      delete out.intervalWeeks;
+    } else {
+      out.weekdays = days;
+      out.intervalWeeks = Math.max(1, iw);
+    }
   }
-}
 
   // monthly 전용
   if (repeatMode.startsWith('monthly')) {
@@ -164,8 +187,20 @@ if (repeatMode === 'weekly') {
     if (d != null) out.day = Math.max(1, Math.min(31, d));
   }
 
-  // 딥링크 패스
-  if (typeof msg.link === 'string') out.link = msg.link;
+  // ★ 딥링크(호환 위해 3키 모두 채움)
+  if (typeof msg.link === 'string' && msg.link) {
+    out.link = msg.link;
+    out.url = out.url || msg.link;
+    out.deepLink = out.deepLink || msg.link;
+  } else if (typeof msg.url === 'string' && msg.url) {
+    out.url = msg.url;
+    out.link = out.link || msg.url;
+    out.deepLink = out.deepLink || msg.url;
+  } else if (typeof msg.deepLink === 'string' && msg.deepLink) {
+    out.deepLink = msg.deepLink;
+    out.link = out.link || msg.deepLink;
+    out.url = out.url || msg.deepLink;
+  }
 
   return out;
 }

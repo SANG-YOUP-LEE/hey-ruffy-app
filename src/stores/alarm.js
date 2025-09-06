@@ -97,7 +97,7 @@ function sameYMD(a,b){
   return A.getFullYear()===B.getFullYear() && A.getMonth()===B.getMonth() && A.getDate()===B.getDate()
 }
 
-// ── ★ 핵심 변경 1: 단발(ts=초, 최소+3초) ─────────────────────
+// ── ★ 단발(ts=초, 최소+3초) ─────────────────────
 function nextTimestampForOnce(hour, minute, baseDate){
   const nowMs = Date.now()
   const base=baseDate instanceof Date?new Date(baseDate):new Date()
@@ -130,7 +130,7 @@ function subtitleMonthly(timeStr, days){
 
 let scheduledKeys=new Set()
 
-// ── ★ 추가: 시작/종료일을 JS에서 직접 적용하는 epoch 생성기들(간결 버전) ──
+// ── 시작/종료일 기반 epoch 생성기 ──
 const toEpoch = d => Math.floor(d.getTime()/1000)
 const startOfDay = d => { const x=new Date(d); x.setHours(0,0,0,0); return x }
 function buildDailyEpochsBetween(startDate, endDate, hour, minute, everyDays=1){
