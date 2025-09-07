@@ -1,6 +1,7 @@
 // File: src/utils/iosNotify.js
-// iOS 브릿지 전송을 단일 프로토콜(action: "schedule")로 정규화
-// 기존 호출부는 그대로 두고, 여기서 모두 최신 포맷으로 변환 + 레거시 API 별칭까지 export.
+// iOS 브릿지 전송을 단일 프로토콜로 우선화
+// ✅ 새 프로토콜: action: "setScheduleForRoutine" (routineId, fireTimesEpoch[])
+// 🧳 레거시: action: "schedule" (daily/weekly/once 등) → 그대로 통과 (호환 유지)
 
 const mh = () => window.webkit?.messageHandlers?.notify;
 
@@ -16,7 +17,7 @@ const safePost = (payload) => {
 const log = (...args) => console.warn('⚡️ ', ...args);
 
 // ───────────────────────────────────────────
-// Normalizers
+// Normalizers (기존 유지)
 // ───────────────────────────────────────────
 
 const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
@@ -42,7 +43,6 @@ function mapOneDayToken(d) {
   }
   const s = String(d).trim();
   if (s === '') return undefined;
-  // "일요일" → "일"
   const head = s.slice(0, 1);
   if (KOR_DAY[head]) return KOR_DAY[head];
   if (ENG_DAY[s.toLowerCase()]) return ENG_DAY[s.toLowerCase()];
@@ -58,11 +58,7 @@ function normalizeWeekdays(raw) {
   if (Array.isArray(raw)) {
     arr = raw.map(mapOneDayToken).filter(Boolean);
   } else if (typeof raw === 'object') {
-    // 예: { mon:true, tue:false } 또는 { '월':1, '수': true }
-    arr = Object.entries(raw)
-      .filter(([, v]) => !!v)
-      .map(([k]) => mapOneDayToken(k))
-      .filter(Boolean);
+    arr = Object.entries(raw).filter(([, v]) => !!v).map(([k]) => mapOneDayToken(k)).filter(Boolean);
   } else {
     const one = mapOneDayToken(raw);
     if (one) arr = [one];
@@ -71,9 +67,9 @@ function normalizeWeekdays(raw) {
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
-// legacy -> unified 'schedule' payload 로 변환
+// legacy -> unified 'schedule' payload 로 변환 (레거시 호환 유지)
 function normalizeSchedulePayload(msg = {}) {
-  // 이미 새 포맷이면 그대로 통과 (단, 타입/링크 보정)
+  // 이미 새 포맷이면 그대로(아래에서 setScheduleForRoutine로 분기)
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
 
@@ -85,7 +81,6 @@ function normalizeSchedulePayload(msg = {}) {
     if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
     if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
 
-    // ★ 딥링크 보정: link/url/deepLink 중 어떤 키가 와도 3개 모두 세팅
     const linkCandidate = [out.link, out.url, out.deepLink, msg.link, msg.url, msg.deepLink]
       .find(v => typeof v === 'string' && v);
     if (linkCandidate) {
@@ -94,7 +89,6 @@ function normalizeSchedulePayload(msg = {}) {
       if (!out.deepLink) out.deepLink = linkCandidate;
     }
 
-    // 주간 7일+1주 → daily 축약(호환)
     if (out.repeatMode === 'weekly') {
       const days = normalizeWeekdays(out.weekdays) || [];
       const iw = Math.max(1, toInt(out.intervalWeeks) ?? 1);
@@ -113,21 +107,16 @@ function normalizeSchedulePayload(msg = {}) {
 
   const out = { action: 'schedule' };
 
-  // id (가능하면 문서 ID 사용 권장)
   out.id = msg.id || msg.baseId || 'inline';
-
-  // 제목/서브타이틀
   out.title = msg.title || msg.name || '알람';
   out.subtitle = msg.subtitle || '';
 
-  // 반복 모드
   let repeatMode = msg.repeatMode || msg.repeatType || 'once';
   if (!['once', 'daily', 'weekly', 'monthly', 'monthly-date', 'monthly-nth'].includes(repeatMode)) {
     repeatMode = 'once';
   }
   out.repeatMode = repeatMode;
 
-  // 시간 정보 (숫자/문자 모두 허용)
   const h1 = toInt(msg.hour);
   const m1 = toInt(msg.minute);
   const h2 = toInt(msg?.alarm?.hour);
@@ -137,15 +126,12 @@ function normalizeSchedulePayload(msg = {}) {
   if (out.hour == null && h2 != null) out.hour = h2;
   if (out.minute == null && m2 != null) out.minute = m2;
 
-  // 시작/종료일 (문자열 Y-M-D 만 통과)
   if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   if (isYMD(msg.endDate)) out.endDate = msg.endDate;
 
-  // once 전용: timestamp(ms)
   const ts = toInt(msg.timestamp);
   if (repeatMode === 'once' && ts && ts > 0) out.timestamp = ts;
 
-  // daily 전용
   if (repeatMode === 'daily') {
     const interval =
       toInt(msg.interval) ??
@@ -155,7 +141,6 @@ function normalizeSchedulePayload(msg = {}) {
     if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   }
 
-  // weekly 전용 (+ 7요일 축약)
   if (repeatMode === 'weekly') {
     const days =
       normalizeWeekdays(msg.weekdays) ||
@@ -181,13 +166,11 @@ function normalizeSchedulePayload(msg = {}) {
     }
   }
 
-  // monthly 전용
   if (repeatMode.startsWith('monthly')) {
     const d = toInt(msg.day) ?? toInt((String(msg.repeatMonthDays || '').match(/(\d+)/) || [])[1]);
     if (d != null) out.day = Math.max(1, Math.min(31, d));
   }
 
-  // ★ 딥링크(호환 위해 3키 모두 채움)
   if (typeof msg.link === 'string' && msg.link) {
     out.link = msg.link;
     out.url = out.url || msg.link;
@@ -209,18 +192,56 @@ function normalizeSchedulePayload(msg = {}) {
 // Public API
 // ───────────────────────────────────────────
 
+/**
+ * ✅ 새 프로토콜 우선:
+ * msg 안에 { routineId, fireTimesEpoch } 가 있으면
+ * action: "setScheduleForRoutine" 로 보냄.
+ * 그 외에는 레거시 "schedule"로 호환 송신.
+ */
 export function scheduleOnIOS(msg) {
   if (!mh()) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
+
+  // 새 프로토콜 감지
+  const rid = msg?.routineId || msg?.routineID || msg?.rid;
+  const epochs = Array.isArray(msg?.fireTimesEpoch) ? msg.fireTimesEpoch.filter(Number.isFinite) : null;
+
+  if (rid && epochs && epochs.length > 0) {
+    const payload = {
+      action: 'setScheduleForRoutine',
+      routineId: String(rid),
+      mode: msg.mode || msg.repeatMode || 'once',
+      title: msg.title || msg.name || '알람',
+      body: msg.body || '',
+      fireTimesEpoch: epochs,
+      link: msg.link || msg.url || msg.deepLink || undefined,
+    };
+    log('[iosNotify] scheduleOnIOS:REQ(setScheduleForRoutine)', payload);
+    safePost(payload);
+    return;
+  }
+
+  // 레거시 경로(호환 유지)
   const unified = normalizeSchedulePayload(msg);
-  log('[iosNotify] scheduleOnIOS:REQ', unified);
+  log('[iosNotify] scheduleOnIOS:REQ(schedule)', unified);
   safePost(unified);
 }
 
+/**
+ * cancel:
+ * - "routine-rt_xxx" 형태면 baseId 로 전송
+ * - 그 외에는 레거시 id 로 전송 (네이티브가 처리)
+ */
 export function cancelOnIOS(idOrBase) {
   if (!mh()) { log('[iosNotify] cancelOnIOS:NO_BRIDGE'); return; }
   if (!idOrBase) return;
-  const id = String(idOrBase);
-  safePost({ action: 'cancel', id });
+  const raw = String(idOrBase);
+  if (raw.startsWith('routine-')) {
+    // 네이티브는 baseId를 권장
+    safePost({ action: 'cancel', baseId: raw });
+  } else {
+    // 레거시 호환
+    safePost({ action: 'cancel', id: raw });
+  }
 }
 
 export function debugPingOnIOS(sec = 20, tag = 'rt_ping') {

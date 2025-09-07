@@ -294,7 +294,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     switch action {
 
     case "cancel":
-      if let raw = dict["id"] as? String {
+      if let baseId = dict["baseId"] as? String {
+        let prefix = baseId.hasSuffix("-") ? baseId : baseId + "-"
+        purge(prefix: prefix)
+        purgeDelivered(prefix: prefix)
+        IOSAlarmScheduler.dumpPendingWithNextDates(tag: "after-cancel")
+      } else if let raw = dict["id"] as? String {
         let base = canonicalBaseId(from: raw)
         if shouldSkipPurge(baseId: base) {
           print("cancel SKIPPED (within firing window) for \(base)")
