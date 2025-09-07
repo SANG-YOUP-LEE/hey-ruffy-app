@@ -2,24 +2,15 @@
 import { defineStore } from 'pinia'
 import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
-// ▷ 임박 발사 때 기존 예약을 지우지 않으려면 false 유지(권장)
 const HARD_PURGE_FIRST = false
 
-// ── iOS/Android 브릿지 ─────────────────────────────────────
 function postIOS(payload){
-  try {
-    console.log('[postIOS]', JSON.stringify(payload))
-    window.webkit?.messageHandlers?.notify?.postMessage(payload)
-  } catch (_) {}
-  try {
-    // Android(WebView) 대응: 있으면 같이 보냄 (문자열만 허용되는 구현 고려)
-    window.ReactNativeWebView?.postMessage?.(JSON.stringify(payload))
-  } catch (_) {}
+  try { window.webkit?.messageHandlers?.notify?.postMessage(payload) } catch (_) {}
+  try { window.ReactNativeWebView?.postMessage?.(JSON.stringify(payload)) } catch (_) {}
 }
 
 const pad2 = n => String(n).padStart(2,'0')
 
-// --- 시간 파서 ---
 function parseAlarmTime(v){
   if(!v) return null
   if(typeof v==='string'){
@@ -60,20 +51,18 @@ function asLocalDate(dateLike){
   return new Date(dateLike)
 }
 
-// --- 요일 유틸 ---
 const WD_LABEL=['일','월','화','수','목','금','토']
 const MAP_KOR = { '일':1,'월':2,'화':3,'수':4,'목':5,'금':6,'토':7 }
 const MAP_ENG = { su:1,sun:1, mo:2,mon:2, tu:3,tue:3, we:4,wed:4, th:5,thu:5, fr:6,fri:6, sa:7,sat:7 }
 const MAP_ICS = { SU:1, MO:2, TU:3, WE:4, TH:5, FR:6, SA:7 }
 
-// form.repeatWeekDays → iOS(일=1..토=7)로 정규화
 function toIOSWeekdayNums(arr){
   if(!Array.isArray(arr)) return []
   const mapMonFirstToApple = {1:2,2:3,3:4,4:5,5:6,6:7,7:1}
   const normOne = (x) => {
     if (typeof x === 'number') {
-      if (x>=1 && x<=7) return mapMonFirstToApple[x] || x  // (월=1) 가정치 → Apple(일=1)
-      if (x>=0 && x<=6) return x===0 ? 1 : x+1             // 0(Sun)..6(Sat) → 1..7
+      if (x>=1 && x<=7) return mapMonFirstToApple[x] || x
+      if (x>=0 && x<=6) return x===0 ? 1 : x+1
       return null
     }
     const s = String(x).trim()
@@ -91,28 +80,27 @@ function toIOSWeekdayNums(arr){
   }
   return [...new Set(arr.map(normOne).filter(Boolean))].sort((a,b)=>a-b)
 }
+
 function sameYMD(a,b){
   if(!a||!b) return false
   const A=asLocalDate(a), B=asLocalDate(b)
   return A.getFullYear()===B.getFullYear() && A.getMonth()===B.getMonth() && A.getDate()===B.getDate()
 }
 
-// ── ★ 단발(ts=초, 최소+3초) ─────────────────────
 function nextTimestampForOnce(hour, minute, baseDate){
   const nowMs = Date.now()
   const base=baseDate instanceof Date?new Date(baseDate):new Date()
-  base.setHours(hour,minute,0,0)               // 초=0
+  base.setHours(hour,minute,0,0)
   let ms = base.getTime()
-  if(ms - nowMs < 3000){                       // 최소 리드타임 +3초
+  if(ms - nowMs < 3000){
     const t = new Date()
     t.setSeconds(t.getSeconds() + 3)
     t.setMilliseconds(0)
     ms = t.getTime()
   }
-  return Math.floor(ms/1000)                   // ← epoch **초**
+  return Math.floor(ms/1000)
 }
 
-// --- 서브타이틀 생성 ---
 function subtitleDaily(timeStr, n){
   if((n|0)===0) return `오늘만 ${timeStr}`
   if(n===1) return `매일 ${timeStr}`
@@ -130,7 +118,6 @@ function subtitleMonthly(timeStr, days){
 
 let scheduledKeys=new Set()
 
-// ── 시작/종료일 기반 epoch 생성기 ──
 const toEpoch = d => Math.floor(d.getTime()/1000)
 const startOfDay = d => { const x=new Date(d); x.setHours(0,0,0,0); return x }
 function buildDailyEpochsBetween(startDate, endDate, hour, minute, everyDays=1){
@@ -149,7 +136,7 @@ function buildWeeklyEpochsBetween(startDate, endDate, iosWeekdays, hour, minute)
   const out=[]; const now=new Date()
   const s=startOfDay(asLocalDate(startDate||now))
   const e=startOfDay(asLocalDate(endDate||s))
-  const set=new Set((iosWeekdays||[]).map(n=>((n%7)+7)%7===0?0:((n%7)+7)%7)) // 1..7 → 1..6,0
+  const set=new Set((iosWeekdays||[]).map(n => n % 7)) // 1..7 → 1..6,0(Sun)
   for(let d=new Date(s); d.getTime()<=e.getTime(); d.setDate(d.getDate()+1)){
     if(!set.has(d.getDay())) continue
     const fire=new Date(d); fire.setHours(hour,minute,0,0)
@@ -170,14 +157,13 @@ function buildMonthlyEpochsBetween(startDate, endDate, monthDays, hour, minute){
   return out
 }
 
-// ── 네이티브로 “확정 시각들”을 보내는 공통 경로(충돌 방지) ──
 function setScheduleForRoutine({ routineId, mode, title, subtitle, fireTimesEpoch, link }){
   postIOS({
     action:'setScheduleForRoutine',
     routineId: String(routineId),
     mode,
     title,
-    body: subtitle || '',          // UI 부제는 body로
+    body: subtitle || '',
     fireTimesEpoch,
     link: link || null
   })
@@ -190,7 +176,6 @@ export const useAlarmStore = defineStore('alarm', {
   actions: {
     setPermission(p){ this.permission=p },
 
-    // ▶ 변경: cancel 경로를 iosNotify로 통일
     cancel(id){ cancelOnIOS(id); scheduledKeys.delete(id) },
     cancelSeries(baseId){
       this.cancel(baseId)
@@ -198,15 +183,12 @@ export const useAlarmStore = defineStore('alarm', {
       for(let w=1; w<=7; w++) this.cancel(`${baseId}-w${w}`)
     },
 
-    // === 기존 프로토콜(유지) — 단발은 ts=초로 변경됨 ===
-    // ▶ 변경: schedule 경로를 iosNotify로 통일
     scheduleOnce({ id, title, subtitle, timestamp, link, hour, minute, baseDate }){
       let ts = Number(timestamp);
       if (!Number.isFinite(ts) || ts <= 0) {
         if (Number.isFinite(hour) && Number.isFinite(minute)) {
           ts = nextTimestampForOnce(Number(hour), Number(minute), asLocalDate(baseDate || new Date()));
         } else {
-          console.warn('[alarm] scheduleOnce: invalid timestamp & no hour/minute fallback', timestamp);
           return;
         }
       }
@@ -214,7 +196,7 @@ export const useAlarmStore = defineStore('alarm', {
         action: 'schedule',
         id,
         repeatMode: 'once',
-        timestamp: ts,   // ← epoch **seconds**
+        timestamp: ts,
         title,
         subtitle,
         link
@@ -236,7 +218,6 @@ export const useAlarmStore = defineStore('alarm', {
       });
     },
 
-    // ▶ 변경: 7요일+1주 → daily로 축약
     scheduleWeekly({ id, title, subtitle, hour, minute, weekdays, intervalWeeks, startDate, endDate, link }){
       const days = Array.isArray(weekdays) ? weekdays : []
       const iw = Math.max(1, Number(intervalWeeks) || 1)
@@ -286,7 +267,6 @@ export const useAlarmStore = defineStore('alarm', {
       });
     },
 
-    // ---------- 폼 -> 스케줄 준비 ----------
     buildFromForm(form){
       const hm=parseAlarmTime(form.alarmTime)
       if(!hm) return null
@@ -334,7 +314,6 @@ export const useAlarmStore = defineStore('alarm', {
       }
     },
 
-    // ---------- 실제 스케줄 ----------
     scheduleFromForm(form, meta){
       if(this.permission==='denied') return { ok:false, reason:'permission_denied' }
 
@@ -349,9 +328,8 @@ export const useAlarmStore = defineStore('alarm', {
       const startDate = form.startDate || null
       const endDate   = form.endDate   || null
 
-      if (HARD_PURGE_FIRST) this.cancelSeries(baseId) // 기본값 false
+      if (HARD_PURGE_FIRST) this.cancelSeries(baseId)
 
-      // ---- 오늘만(once) 처리 — 리하이드레이트 시 스킵 + 하루 1회 중복 방지 ----
       if (isDaily && (built.isTodayOnly || built.dailyEvery === 0)) {
         const context = (meta && meta.context) || 'user'
         if (context === 'rehydrate') {
@@ -375,7 +353,6 @@ export const useAlarmStore = defineStore('alarm', {
         return { ok:true, scheduled:true, type:'once', ts }
       }
 
-      // ---- 반복: 시작/종료일이 지정되어 있으면 JS에서 확정 epoch 생성 후 setScheduleForRoutine ----
       const hasRange = !!startDate || !!endDate
 
       if(isDaily && !built.isTodayOnly){
@@ -388,7 +365,6 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'daily', count:0 }
         }
-        // 범위 없으면 기존 프로토콜 유지(호환)
         const interval = Math.max(1, Number(dailyEvery||1))
         this.scheduleDaily({
           id: baseId, title,
@@ -409,10 +385,7 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'weekly', count:0 }
         }
-        // 범위 없으면 기존 프로토콜 유지
         const intervalWeeks = Math.max(1, parseInt(String(form.repeatWeeks).match(/(\d+)/)?.[1] || '1', 10))
-
-        // ★ 7요일+1주 → daily로 축약
         if (intervalWeeks === 1 && iosWeekdays.length === 7){
           this.scheduleDaily({
             id: baseId, title,
@@ -422,7 +395,6 @@ export const useAlarmStore = defineStore('alarm', {
           })
           return { ok:true, scheduled:true, type:'daily', interval:1 }
         }
-
         this.scheduleWeekly({
           id: baseId, title,
           subtitle: subtitleWeekly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, iosWeekdays),
@@ -444,7 +416,6 @@ export const useAlarmStore = defineStore('alarm', {
           }
           return { ok:true, scheduled:false, type:'monthly', count:0 }
         }
-        // 범위 없으면 기존 프로토콜 유지
         const sub = subtitleMonthly(`${pad2(hm.hour)}:${pad2(hm.minute)}`, monthDays)
         for(const d of monthDays){
           const day = Math.max(1, Math.min(31, Number(d)||1))
@@ -457,18 +428,13 @@ export const useAlarmStore = defineStore('alarm', {
         return { ok:true, scheduled:true, type:'monthly', days: monthDays }
       }
 
-      // 기타는 안전하게 단발 처리
       const ts=nextTimestampForOnce(hm.hour, hm.minute, asLocalDate(startDate||new Date()))
       this.scheduleOnce({ id: baseId, title, subtitle: `${pad2(hm.hour)}:${pad2(hm.minute)}`, timestamp: ts, link })
       return { ok:true, scheduled:true, type:'once', ts }
     },
 
-    // ---------- dedup 키 초기화(호환 유지) ----------
-    resetDedup(){
-      scheduledKeys = new Set()
-    },
+    resetDedup(){ scheduledKeys = new Set() },
 
-    // ---------- 파베 루틴 재하이드레이션(호환 유지) ----------
     rehydrateFromRoutines(routines){
       if(!Array.isArray(routines) || routines.length===0) return { ok:true, count:0 }
       let count = 0
@@ -477,7 +443,6 @@ export const useAlarmStore = defineStore('alarm', {
         const routineId = r?.routineId || r?.id
         const title = r?.title || r?.name || r?.text || '알람'
         if(!routineId) continue
-        // ▶ 변경: 리하이드레이트 컨텍스트 전달
         const res = this.scheduleFromForm(form, { routineId, title, context: 'rehydrate' })
         if(res?.scheduled) count++
       }

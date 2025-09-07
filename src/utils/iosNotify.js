@@ -1,11 +1,5 @@
-// File: src/utils/iosNotify.js
-// iOS 브릿지 전송을 단일 프로토콜로 우선화
-// ✅ 새 프로토콜: action: "setScheduleForRoutine" (routineId, fireTimesEpoch[])
-// 🧳 레거시: action: "schedule" (daily/weekly/once 등) → 그대로 통과 (호환 유지)
-
 const mh = () => window.webkit?.messageHandlers?.notify;
 
-// 안전 전송 + 공통 로그
 const safePost = (payload) => {
   try {
     console.log('[iosNotify][TX]', JSON.stringify(payload));
@@ -15,10 +9,6 @@ const safePost = (payload) => {
   }
 };
 const log = (...args) => console.warn('⚡️ ', ...args);
-
-// ───────────────────────────────────────────
-// Normalizers (기존 유지)
-// ───────────────────────────────────────────
 
 const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 const toInt = (v) => {
@@ -38,7 +28,7 @@ function mapOneDayToken(d) {
   if (d == null) return undefined;
   if (typeof d === 'number') {
     if (d >= 1 && d <= 7) return d;
-    if (d >= 0 && d <= 6) return d + 1; // 0=Sun 케이스 방어
+    if (d >= 0 && d <= 6) return d + 1;
     return undefined;
   }
   const s = String(d).trim();
@@ -67,12 +57,39 @@ function normalizeWeekdays(raw) {
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
-// legacy -> unified 'schedule' payload 로 변환 (레거시 호환 유지)
+function toICSList(nums) {
+  const map = {1:'SU',2:'MO',3:'TU',4:'WE',5:'TH',6:'FR',7:'SA'};
+  return Array.isArray(nums) ? nums.map(n => map[n]).filter(Boolean) : undefined;
+}
+
+function normalizeEpochs(raw) {
+  const list = Array.isArray(raw) ? raw : (raw == null ? [] : [raw]);
+  const now = Date.now();
+  const toMs = (v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000);
+  };
+  const uniq = new Set();
+  for (const v of list) {
+    const ms = toMs(v);
+    if (ms && ms > now) uniq.add(ms);
+  }
+  return Array.from(uniq).sort((a, b) => a - b);
+}
+
+function buildTodayTimestamp(hour, minute) {
+  const h = toInt(hour), m = toInt(minute);
+  if (h == null || m == null) return null;
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  const t = d.getTime();
+  return t > Date.now() ? t : null;
+}
+
 function normalizeSchedulePayload(msg = {}) {
-  // 이미 새 포맷이면 그대로(아래에서 setScheduleForRoutine로 분기)
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
-
     if (out.hour != null) out.hour = toInt(out.hour);
     if (out.minute != null) out.minute = toInt(out.minute);
     if (out.interval != null) out.interval = Math.max(1, toInt(out.interval) ?? 1);
@@ -80,15 +97,12 @@ function normalizeSchedulePayload(msg = {}) {
     if (!out.weekdays) out.weekdays = normalizeWeekdays(out.repeatWeekDays || out.weekday);
     if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
     if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
-
-    const linkCandidate = [out.link, out.url, out.deepLink, msg.link, msg.url, msg.deepLink]
-      .find(v => typeof v === 'string' && v);
+    const linkCandidate = [out.link, out.url, out.deepLink, msg.link, msg.url, msg.deepLink].find(v => typeof v === 'string' && v);
     if (linkCandidate) {
       out.link = linkCandidate;
       if (!out.url) out.url = linkCandidate;
       if (!out.deepLink) out.deepLink = linkCandidate;
     }
-
     if (out.repeatMode === 'weekly') {
       const days = normalizeWeekdays(out.weekdays) || [];
       const iw = Math.max(1, toInt(out.intervalWeeks) ?? 1);
@@ -100,19 +114,19 @@ function normalizeSchedulePayload(msg = {}) {
       } else {
         out.weekdays = days.length ? days : undefined;
         out.intervalWeeks = iw;
+        if (out.weekdays && !out.weekdaysICS) out.weekdaysICS = toICSList(out.weekdays);
       }
     }
     return out;
   }
 
   const out = { action: 'schedule' };
-
   out.id = msg.id || msg.baseId || 'inline';
   out.title = msg.title || msg.name || '알람';
   out.subtitle = msg.subtitle || '';
 
   let repeatMode = msg.repeatMode || msg.repeatType || 'once';
-  if (!['once', 'daily', 'weekly', 'monthly', 'monthly-date', 'monthly-nth'].includes(repeatMode)) {
+  if (!['once', 'daily', 'weekly', 'monthly', 'monthly-date', 'monthly-nth', 'today'].includes(repeatMode)) {
     repeatMode = 'once';
   }
   out.repeatMode = repeatMode;
@@ -133,27 +147,14 @@ function normalizeSchedulePayload(msg = {}) {
   if (repeatMode === 'once' && ts && ts > 0) out.timestamp = ts;
 
   if (repeatMode === 'daily') {
-    const interval =
-      toInt(msg.interval) ??
-      toInt(msg.intervalDays) ??
-      toInt(msg.repeatEveryDays) ?? 1;
+    const interval = toInt(msg.interval) ?? toInt(msg.intervalDays) ?? toInt(msg.repeatEveryDays) ?? 1;
     out.interval = Math.max(1, interval);
     if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   }
 
   if (repeatMode === 'weekly') {
-    const days =
-      normalizeWeekdays(msg.weekdays) ||
-      normalizeWeekdays(msg.repeatWeekDays) ||
-      normalizeWeekdays(msg.weekday);
-
-    const iw =
-      toInt(msg.intervalWeeks) ??
-      toInt(msg.weeksInterval) ??
-      toInt(msg.everyWeeks) ??
-      (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
-      1;
-
+    const days = normalizeWeekdays(msg.weekdays) || normalizeWeekdays(msg.repeatWeekDays) || normalizeWeekdays(msg.weekday);
+    const iw = toInt(msg.intervalWeeks) ?? toInt(msg.weeksInterval) ?? toInt(msg.everyWeeks) ?? (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ?? 1;
     if (iw === 1 && days && days.length === 7) {
       repeatMode = 'daily';
       out.repeatMode = 'daily';
@@ -163,6 +164,7 @@ function normalizeSchedulePayload(msg = {}) {
     } else {
       out.weekdays = days;
       out.intervalWeeks = Math.max(1, iw);
+      if (out.weekdays && !out.weekdaysICS) out.weekdaysICS = toICSList(out.weekdays);
     }
   }
 
@@ -188,58 +190,59 @@ function normalizeSchedulePayload(msg = {}) {
   return out;
 }
 
-// ───────────────────────────────────────────
-// Public API
-// ───────────────────────────────────────────
-
-/**
- * ✅ 새 프로토콜 우선:
- * msg 안에 { routineId, fireTimesEpoch } 가 있으면
- * action: "setScheduleForRoutine" 로 보냄.
- * 그 외에는 레거시 "schedule"로 호환 송신.
- */
 export function scheduleOnIOS(msg) {
   if (!mh()) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
+  const modeRaw = msg?.mode || msg?.repeatMode;
+  const mode = typeof modeRaw === 'string' ? modeRaw.toLowerCase() : '';
+  const isToday = mode === 'today';
+  const isOnce = mode === 'once';
 
-  // 새 프로토콜 감지
   const rid = msg?.routineId || msg?.routineID || msg?.rid;
-  const epochs = Array.isArray(msg?.fireTimesEpoch) ? msg.fireTimesEpoch.filter(Number.isFinite) : null;
-
-  if (rid && epochs && epochs.length > 0) {
-    const payload = {
-      action: 'setScheduleForRoutine',
-      routineId: String(rid),
-      mode: msg.mode || msg.repeatMode || 'once',
-      title: msg.title || msg.name || '알람',
-      body: msg.body || '',
-      fireTimesEpoch: epochs,
-      link: msg.link || msg.url || msg.deepLink || undefined,
-    };
-    log('[iosNotify] scheduleOnIOS:REQ(setScheduleForRoutine)', payload);
-    safePost(payload);
-    return;
+  if (rid) {
+    let epochs = normalizeEpochs(msg?.fireTimesEpoch);
+    if ((!epochs || epochs.length === 0) && (isToday || isOnce)) {
+      const ts = buildTodayTimestamp(msg?.hour ?? msg?.alarm?.hour, msg?.minute ?? msg?.alarm?.minute);
+      if (ts) epochs = [ts];
+    }
+    if (epochs && epochs.length > 0) {
+      const payload = {
+        action: 'setScheduleForRoutine',
+        routineId: String(rid),
+        mode: isToday ? 'once' : (msg.mode || msg.repeatMode || 'once'),
+        title: msg.title || msg.name || '알람',
+        body: msg.body || '',
+        fireTimesEpoch: epochs,
+        link: msg.link || msg.url || msg.deepLink || undefined,
+      };
+      log('[iosNotify] scheduleOnIOS:REQ(setScheduleForRoutine)', payload);
+      safePost(payload);
+      return;
+    }
   }
 
-  // 레거시 경로(호환 유지)
   const unified = normalizeSchedulePayload(msg);
+  if (isToday || unified.repeatMode === 'today') {
+    unified.repeatMode = 'once';
+    if (!unified.timestamp) {
+      const ts = buildTodayTimestamp(unified.hour, unified.minute);
+      if (ts) unified.timestamp = Math.floor(ts / 1000);
+    }
+  }
+  if (unified.repeatMode === 'once' && unified.timestamp && unified.timestamp > 1e12) {
+    unified.timestamp = Math.floor(unified.timestamp / 1000);
+  }
+
   log('[iosNotify] scheduleOnIOS:REQ(schedule)', unified);
   safePost(unified);
 }
 
-/**
- * cancel:
- * - "routine-rt_xxx" 형태면 baseId 로 전송
- * - 그 외에는 레거시 id 로 전송 (네이티브가 처리)
- */
 export function cancelOnIOS(idOrBase) {
   if (!mh()) { log('[iosNotify] cancelOnIOS:NO_BRIDGE'); return; }
   if (!idOrBase) return;
   const raw = String(idOrBase);
   if (raw.startsWith('routine-')) {
-    // 네이티브는 baseId를 권장
-    safePost({ action: 'cancel', baseId: raw });
+    safePost({ action: 'purgeBase', baseId: raw });
   } else {
-    // 레거시 호환
     safePost({ action: 'cancel', id: raw });
   }
 }
@@ -254,23 +257,17 @@ export function dumpPendingOnIOS(tag = 'manual') {
   safePost({ action: 'dumpPending', tag });
 }
 
-// (가끔 다른 파일에서 그냥 postIOS만 쓰는 경우가 있어 노출)
 export function postIOS(payload) { safePost(payload); }
 
-// ───────────────────────────────────────────
-// Legacy Shims (다른 파일 호환용 이름)
-// ───────────────────────────────────────────
 export function scheduleRoutineAlerts(msg) { scheduleOnIOS(msg); }
 export function cancelRoutineAlerts(id)    { cancelOnIOS(id); }
 
-// ───────────────────────────────────────────
 export default {
   scheduleOnIOS,
   cancelOnIOS,
   debugPingOnIOS,
   dumpPendingOnIOS,
   postIOS,
-  // legacy 별칭
   scheduleRoutineAlerts,
   cancelRoutineAlerts,
 };

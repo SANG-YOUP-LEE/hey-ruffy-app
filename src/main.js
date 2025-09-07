@@ -1,6 +1,6 @@
 // src/main.js
 import { createApp, watch } from "vue";
-import { createPinia } from "pinia";
+import { createPinia, setActivePinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 
@@ -24,6 +24,8 @@ const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
+setActivePinia(pinia);
+
 app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
@@ -49,6 +51,7 @@ import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useAlarmStore } from '@/stores/alarm'
 import { useAuthStore } from '@/stores/auth'
+import { App as CapApp } from '@capacitor/app'
 
 const FOREGROUND_COOLDOWN_MS = 3 * 60 * 1000;
 const BRIDGE_MAX_TRIES = 20;
@@ -149,6 +152,10 @@ const onVis = () => {
   }
 };
 document.addEventListener('visibilitychange', onVis);
+
+CapApp.addListener('appStateChange', ({ isActive }) => {
+  if (isActive && currentUid) rehydrateForUid(currentUid, 'appState');
+});
 
 watch(() => auth.user?.uid || null, (uid) => {
   currentUid = uid;
