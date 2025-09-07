@@ -1,6 +1,7 @@
 <template>
   <div class="app-root safe-area">
     <RouterView v-if="auth.ready" />
+    <GlobalConfirm />
   </div>
 </template>
 
@@ -9,6 +10,7 @@ import { RouterView } from 'vue-router'
 import { onMounted, onBeforeUnmount, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { initIOSRoutineScheduler } from '@/utils/iosRoutineScheduler'
+import GlobalConfirm from '@/components/common/GlobalConfirm.vue'
 
 let stopIOSWatch = null
 let unwatchAuth = null

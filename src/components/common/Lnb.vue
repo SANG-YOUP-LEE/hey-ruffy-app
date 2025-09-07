@@ -92,12 +92,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { getAuth, signOut } from 'firebase/auth'
 import { useAuthStore } from '@/stores/auth'
 import { useRoutinesStore } from '@/stores/routines'
+import { useModalStore } from '@/stores/modal'
 
 const emit = defineEmits(['close'])
 const router = useRouter()
 const route = useRoute()
 const a = useAuthStore()
 const rStore = useRoutinesStore()
+const modal = useModalStore()
 
 const section = computed(() => route.query.section || '')
 const user = computed(() => a.user)
@@ -118,17 +120,28 @@ const ruffySrc = computed(() =>
 function goLogin() { router.push('/login') }
 
 async function logout() {
-  try {
-    await signOut(getAuth())
-  } finally {
+  try { await signOut(getAuth()) } finally {
     a.$patch({ user: null, profile: null, ready: true })
     emit('close')
     router.replace({ path: '/main', query: {} })
   }
 }
 
-function deleteAllRoutines() {
+async function deleteAllRoutines() {
+  const ok = await modal.confirm({
+    title: '다짐 모두 삭제',
+    message: '정말 삭제할까요? 다짐 삭제는 되돌릴 수 없어요.',
+    okText: '확인',
+    cancelText: '취소',
+  })
+  if (!ok) return
   rStore.deleteRoutines((rStore.items || []).map(r => r.id))
+  await modal.confirm({
+    title: '완료',
+    message: '다짐이 모두 삭제되었습니다.',
+    okText: '확인',
+    cancelText: '', // 숨김
+  })
 }
 
 function handleClose() {

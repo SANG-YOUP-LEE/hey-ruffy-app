@@ -47,20 +47,6 @@
       @save="onSaved"
       :routineToEdit="editingRoutine"
     />
-
-    <teleport to="body">
-      <div v-if="showBulkDeleteConfirm" class="com_popup_wrap">
-        <div class="popup_inner alert">
-          <div class="popup_tit"><h2>선택한 다짐을 삭제할까요?</h2></div>
-          <div class="popup_body">삭제된 다짐은 되돌릴 수 없어요.</div>
-          <div class="popup_btm">
-            <button @click="_confirmBulkDelete(onDelete)" class="p_basic">삭제</button>
-            <button @click="closeBulkDeleteConfirm" class="p_white">취소</button>
-          </div>
-          <button class="close_btn" @click="closeBulkDeleteConfirm"><span>닫기</span></button>
-        </div>
-      </div>
-    </teleport>
   </div>
 </template>
 
@@ -87,13 +73,15 @@ import { useRoutineBinding } from '@/composables/useRoutineBinding'
 import { useBulkDelete } from '@/composables/useBulkDelete'
 import { useMainNavigation } from '@/composables/useMainNavigation'
 import { useVH } from '@/composables/useVH'
+import { useModalStore } from '@/stores/modal'
 
 const route = useRoute()
 const router = useRouter()
 
 const rStore = useRoutinesStore()
 const mv = useMainViewStore()
-const { isLoading, hasFetched, isAddRoutineOpen, showLnb, selectedDate, isFutureDate, selectedView, editingRoutine, showBulkDeleteConfirm, headerShort } = storeToRefs(mv)
+const modal = useModalStore()
+const { isLoading, hasFetched, isAddRoutineOpen, showLnb, selectedDate, isFutureDate, selectedView, editingRoutine, headerShort } = storeToRefs(mv)
 
 const panelOpen = computed(() => showLnb.value || route.path === '/lnb')
 
@@ -106,7 +94,7 @@ const { isScrolled: scrolledRef, headerShort: headerShortRef, updateScrollState 
 const update = () => nextTick(updateScrollState)
 
 const { initBinding, disposeBinding, refreshBinding } = useRoutineBinding(rStore, mv, update)
-const { close: closeBulkDeleteConfirm, confirm: _confirmBulkDelete, toggle: handleToggleDeleteMode } = useBulkDelete(rStore, mv)
+const { toggle: handleToggleDeleteMode } = useBulkDelete(rStore, mv)
 const nav = useMainNavigation(rStore, mv, { scrolledRef, headerShortRef, update })
 
 function onSaved(rt){
@@ -132,5 +120,22 @@ onBeforeUnmount(() => { disposeVH(); disposeBinding() })
 watchEffect(() => {
   mv.setLoading(rStore.isLoading)
   mv.setFetched(rStore.hasFetched)
+})
+
+watchEffect(async () => {
+  if (mv.showBulkDeleteConfirm) {
+    const ok = await modal.confirm({
+      title: '선택한 다짐을 삭제할까요?',
+      message: '삭제된 다짐은 되돌릴 수 없어요.',
+      okText: '삭제',
+      cancelText: '취소',
+    })
+    mv.showBulkDeleteConfirm = false
+    if (ok) {
+      await onDelete(rStore.deleteTargets || [])
+      await modal.confirm({ title: '완료', message: '선택한 다짐을 삭제했어요.', okText: '확인', cancelText: '' })
+      handleToggleDeleteMode()
+    }
+  }
 })
 </script>
