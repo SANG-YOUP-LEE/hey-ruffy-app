@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { useAuthStore } from '@/stores/auth'
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
@@ -22,23 +22,15 @@ const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목',
 const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
-// ── ★ 추가: 오늘만(0~6일마다) 복원을 단단히 하기 위한 헬퍼들
 const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
 
 function deriveRepeatDailyFromRoutine(r) {
-  // 1) 이미 숫자로 저장된 경우
   if (Number.isInteger(r?.repeatDaily)) return clampDaily(r.repeatDaily)
-
-  // 2) repeatEveryDays 사용중인 문서(0~6)
   if (r?.repeatEveryDays !== undefined && r.repeatEveryDays !== '') {
     const n = Number(r.repeatEveryDays)
     if (Number.isFinite(n)) return clampDaily(n)
   }
-
-  // 3) iCal 규격으로 once가 들어온 경우
   if (r?.rule && r.rule.freq === 'once') return 0
-
-  // 4) startDate==endDate 인 경우(오늘만)
   if (r?.startDate && r?.endDate) {
     const same =
       +r.startDate?.year === +r.endDate?.year &&
@@ -46,12 +38,9 @@ function deriveRepeatDailyFromRoutine(r) {
       +r.startDate?.day === +r.endDate?.day
     if (same) return 0
   }
-
-  // 5) 문자열 anchor/end만 같던 아주 옛 포맷
   if (typeof r?.start === 'string' && typeof r?.end === 'string' && r.start === r.end) {
     return 0
   }
-
   return null
 }
 
@@ -202,12 +191,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.routineId = routine.id || null
       this.title = routine.title || ''
       this.repeatType = routine.repeatType || 'daily'
-
-      // ── ★ 변경: 다양한 옛/새 포맷에서 "오늘만"을 정확히 복원
       this.repeatDaily = this.repeatType === 'daily'
         ? deriveRepeatDailyFromRoutine(routine)
         : null
-
       this.repeatWeeks = routine.repeatWeeks || ''
       const rawWeekDays = Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []
       const weekDaysKor = typeof rawWeekDays[0] === 'number' ? daysNumToKor(rawWeekDays) : rawWeekDays
@@ -277,9 +263,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
       try {
         if (!this.validate()) return { ok:false }
 
-        const auth = getAuth()
-        const user = auth.currentUser
-        if (!user) return { ok:false, error:'로그인이 필요합니다.' }
+        const auth = useAuthStore()
+        await auth.ensureReady()
+        const uid = auth.user?.uid
+        if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
 
         const payload = this.payload
         let res
@@ -287,13 +274,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
         if (this.mode === 'edit' && this.routineId) {
           const rid = getBaseId(this.routineId)
           await setDoc(
-            doc(db, 'users', user.uid, 'routines', rid),
+            doc(db, 'users', uid, 'routines', rid),
             { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
             { merge: true }
           )
           res = { ok:true, id: rid, data: payload }
         } else {
-          const colRef = collection(db, 'users', user.uid, 'routines')
+          const colRef = collection(db, 'users', uid, 'routines')
           const nowMs = Date.now()
           const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
           res = { ok:true, id: docRef.id, data: payload }

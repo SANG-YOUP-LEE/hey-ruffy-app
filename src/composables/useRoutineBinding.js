@@ -1,10 +1,12 @@
 // src/composables/useRoutineBinding.js
-import { auth } from '@/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
-import { authReadyPromise } from '@/lib/authReady'
+import { computed, watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 export function useRoutineBinding(rStore, mv, onUpdate) {
-  let stopAuth = null
+  const auth = useAuthStore()
+  const uidRef = computed(() => auth.user?.uid || null)
+
+  let stopWatch = null
   let currentUid = null
   const update = () => { if (onUpdate) onUpdate() }
 
@@ -28,15 +30,23 @@ export function useRoutineBinding(rStore, mv, onUpdate) {
   }
 
   const initBinding = async () => {
-    await authReadyPromise
-    if (auth.currentUser) await bindFor(auth.currentUser.uid)
-    stopAuth = onAuthStateChanged(auth, (user) => {
-      if (user && user.uid !== currentUid) bindFor(user.uid)
-      else if (!user) { currentUid = null; releaseAll() }
-    })
+    await auth.initOnce()
+    if (stopWatch) return
+    stopWatch = watch(uidRef, async (uid) => {
+      if (uid && uid !== currentUid) {
+        await bindFor(uid)
+      } else if (!uid && currentUid) {
+        currentUid = null
+        releaseAll()
+      } else if (!uid && currentUid == null) {
+        releaseAll()
+      }
+    }, { immediate: true })
   }
 
-  const disposeBinding = () => { if (stopAuth) stopAuth(); stopAuth = null }
+  const disposeBinding = () => {
+    if (stopWatch) { stopWatch(); stopWatch = null }
+  }
 
   const refreshBinding = async () => {
     if (!currentUid) return

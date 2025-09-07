@@ -89,7 +89,6 @@ body,
   height: calc(100dvh - var(--sat) - var(--sab));
   padding: var(--sat) var(--sar) var(--sab) var(--sal);
   box-sizing: border-box;
-  background:#fff;
 }
 
 .header{ top: var(--sat); }

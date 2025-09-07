@@ -273,6 +273,12 @@ html.sp-open #main_wrap{
   position: relative;
 }
 
+.lnb_header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
 .lnb .lnb_header a.close {
   width: 1.8rem;
   height: 1.8rem;
@@ -384,7 +390,8 @@ html.sp-open #main_wrap{
   -webkit-overflow-scrolling: touch;
 }
 
-.lnb_wrap .lnb_menu a {
+.lnb_wrap .lnb_menu a,
+.lnb_switch.open .lnb_detail a  {
   width: 100%;
   display: inline-block;
   padding: 1rem 0 1rem 0;
@@ -395,6 +402,58 @@ html.sp-open #main_wrap{
   letter-spacing: -0.05rem;
   background: url('../images/ico_next.png') no-repeat 100% 50%/1rem;
   border-bottom: 1px solid #e6e6e6
+}
+
+.lnb_switch {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  height: calc(100dvh - 8rem);
+  z-index: 1;
+}
+
+.lnb_panel {
+  position: absolute;
+  inset: 0;
+  padding: 0 2rem 6rem;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.lnb_main,
+.lnb_detail {
+  will-change: transform, opacity;
+  transition: transform .38s cubic-bezier(.2,.6,.2,1), opacity .38s linear;
+}
+
+.lnb_main {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lnb_detail {
+  transform: translateX(4%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lnb_switch.open .lnb_main {
+  transform: translateX(-4%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lnb_switch.open .lnb_detail {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+  padding:0 2rem 2rem 3rem
+}
+
+.lnb_switch.open .lnb_detail h2 {
+  color:#333;
+  margin-bottom:1rem;
 }
 
 #main_body .no_data {

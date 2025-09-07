@@ -1,7 +1,10 @@
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
-    <SlidePanel :show="showLnb" @close="showLnb = false"><LnbView @close="showLnb = false" /></SlidePanel>
+    <SlidePanel :show="panelOpen" @close="closePanel">
+      <LnbView @close="closePanel" />
+    </SlidePanel>
+
     <div id="main_body">
       <div class="main_fixed" v-if="hasFetched && rStore.items?.length">
         <MainDateScroll v-if="rStore.selectedPeriod==='T'" :selectedDate="selectedDate" @selectDate="nav.selectDate" />
@@ -14,6 +17,7 @@
           @changeView="nav.changeView" @changePeriod="nav.changePeriod" @toggleDeleteMode="handleToggleDeleteMode"
         />
       </div>
+
       <div class="main_scroll">
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
         <div v-else-if="hasFetched && !mv.displayedRoutines?.length" class="no_data">
@@ -34,9 +38,16 @@
         </template>
       </div>
     </div>
+
     <FooterView @refresh-main="refreshBinding" />
     <button @click="openRoutine()" class="add"><span>다짐 추가하기</span></button>
-    <AddRoutineSelector v-if="isAddRoutineOpen" @close="isAddRoutineOpen=false; editingRoutine=null" @save="onSaved" :routineToEdit="editingRoutine" />
+    <AddRoutineSelector
+      v-if="isAddRoutineOpen"
+      @close="isAddRoutineOpen=false; editingRoutine=null"
+      @save="onSaved"
+      :routineToEdit="editingRoutine"
+    />
+
     <teleport to="body">
       <div v-if="showBulkDeleteConfirm" class="com_popup_wrap">
         <div class="popup_inner alert">
@@ -54,7 +65,10 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, nextTick, watchEffect } from 'vue'
+import { onMounted, onBeforeUnmount, nextTick, watchEffect, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+
 import AddRoutineSelector from '@/views/AddRoutineSelector.vue'
 import HeaderView from '@/components/common/Header.vue'
 import LnbView from '@/components/common/Lnb.vue'
@@ -64,6 +78,7 @@ import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 import SlidePanel from '@/components/common/SlidePanel.vue'
+
 import { normalize as normalizeRecurrence } from '@/utils/recurrence'
 import { useRoutinesStore } from '@/stores/routines'
 import { useMainViewStore } from '@/stores/mainView'
@@ -72,11 +87,20 @@ import { useRoutineBinding } from '@/composables/useRoutineBinding'
 import { useBulkDelete } from '@/composables/useBulkDelete'
 import { useMainNavigation } from '@/composables/useMainNavigation'
 import { useVH } from '@/composables/useVH'
-import { storeToRefs } from 'pinia'
+
+const route = useRoute()
+const router = useRouter()
 
 const rStore = useRoutinesStore()
 const mv = useMainViewStore()
 const { isLoading, hasFetched, isAddRoutineOpen, showLnb, selectedDate, isFutureDate, selectedView, editingRoutine, showBulkDeleteConfirm, headerShort } = storeToRefs(mv)
+
+const panelOpen = computed(() => showLnb.value || route.path === '/lnb')
+
+function closePanel(){
+  showLnb.value = false
+  if (route.path === '/lnb') router.replace('/main')
+}
 
 const { isScrolled: scrolledRef, headerShort: headerShortRef, updateScrollState } = useMainScroll(rStore, mv)
 const update = () => nextTick(updateScrollState)

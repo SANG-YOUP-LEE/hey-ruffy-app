@@ -1,5 +1,5 @@
 // src/main.js
-import { createApp } from "vue";
+import { createApp, watch } from "vue";
 import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
@@ -18,7 +18,6 @@ import "./assets/css/walk_status_pop.css";
 import VueScrollPicker from "vue-scroll-picker";
 import "vue-scroll-picker/style.css";
 
-// ✅ 알림 탭 → 메인/달성현황으로 이동시키는 딥링크 리스너
 import { installDeepLinkListener } from "@/utils/deeplink";
 
 const app = createApp(App);
@@ -29,10 +28,8 @@ app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
 
-// 라우터 준비 후 딥링크 리스너 활성화 (heyruffy://main?r=<루틴ID>)
 router.isReady().then(() => installDeepLinkListener());
 
-// ===== 줌/제스처 방지 =====
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
 document.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
@@ -48,20 +45,15 @@ document.addEventListener('wheel', e => {
   if (e.ctrlKey) e.preventDefault();
 }, { passive: false });
 
-/* ──────────────────────────────────────────
-   루틴 → iOS 알림 재하이드레이트 (콜드 스타트 + 포그라운드)
-────────────────────────────────────────── */
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { collection, getDocs } from 'firebase/firestore'
-import { auth, db } from '@/firebase'
+import { db } from '@/firebase'
 import { useAlarmStore } from '@/stores/alarm'
+import { useAuthStore } from '@/stores/auth'
 
-/** ===== 설정값 ===== */
-const FOREGROUND_COOLDOWN_MS = 3 * 60 * 1000; // 최근 3분 내면 스킵
-const BRIDGE_MAX_TRIES = 20;                  // 0.3s × 20 = ~6s
+const FOREGROUND_COOLDOWN_MS = 3 * 60 * 1000;
+const BRIDGE_MAX_TRIES = 20;
 const BRIDGE_TRY_DELAY_MS = 300;
 
-/** ===== 브릿지 체크/대기 ===== */
 function hasIOSBridge(){
   return !!(window.webkit?.messageHandlers?.notify);
 }
@@ -74,7 +66,6 @@ async function waitBridgeReady(maxTries = BRIDGE_MAX_TRIES, delayMs = BRIDGE_TRY
   return false;
 }
 
-/** ===== 해시 유틸 (안정 JSON + djb2) ===== */
 function stableRoutineSnapshot(routines){
   const pick = (r) => ({
     id: r.id ?? r.routineId ?? '',
@@ -100,11 +91,9 @@ function djb2(str){
   return (h >>> 0).toString(16);
 }
 
-/** ===== 로컬 상태키 ===== */
 const LS_LAST_HASH = 'alarm.lastHash';
 const LS_LAST_HYDRATE_MS = 'alarm.lastHydrateAtMs';
 
-/** ===== 실행 가드 ===== */
 function shouldSkipByTime(now = Date.now()){
   const last = Number(localStorage.getItem(LS_LAST_HYDRATE_MS) || 0);
   return last && (now - last) < FOREGROUND_COOLDOWN_MS;
@@ -115,39 +104,27 @@ function saveHydrateTime(ts = Date.now()){
 function getLastHash(){ return localStorage.getItem(LS_LAST_HASH) || ''; }
 function setLastHash(h){ localStorage.setItem(LS_LAST_HASH, h); }
 
-/** ===== 실제 재하이드레이트 ===== */
 let isHydrating = false;
 
-async function rehydrateForUser(user, reason = 'auto'){
-  if (!user) return;
+async function rehydrateForUid(uid, reason = 'auto'){
+  if (!uid) return;
   if (isHydrating) return;
   const now = Date.now();
-  if (shouldSkipByTime(now)) {
-    console.log('[alarm rehydrate] skipped by cooldown:', reason);
-    return;
-  }
+  if (shouldSkipByTime(now)) return;
   const bridgeReady = await waitBridgeReady();
-  if (!bridgeReady) {
-    console.warn('[alarm rehydrate] iOS bridge not ready → skip:', reason);
-    return;
-  }
+  if (!bridgeReady) return;
 
   isHydrating = true;
   try {
-    const snap = await getDocs(collection(db, `users/${user.uid}/routines`));
+    const snap = await getDocs(collection(db, `users/${uid}/routines`));
     const routines = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    // 해시 비교
     const snapshot = stableRoutineSnapshot(routines);
     const newHash = djb2(snapshot);
     const oldHash = getLastHash();
     if (newHash === oldHash) {
-      console.log('[alarm rehydrate] no changes (hash match) → skip:', reason);
       saveHydrateTime(now);
       return;
     }
-
-    // 변경됨 → 재스케줄
     const alarm = useAlarmStore();
     if (typeof alarm.resetDedup === 'function') alarm.resetDedup();
     if (typeof alarm.rehydrateFromRoutines === 'function') {
@@ -155,7 +132,6 @@ async function rehydrateForUser(user, reason = 'auto'){
     }
     setLastHash(newHash);
     saveHydrateTime(now);
-    console.log('[alarm rehydrate] done:', routines.length, 'reason=', reason);
   } catch (e) {
     console.warn('[alarm rehydrate] failed:', e);
   } finally {
@@ -163,17 +139,18 @@ async function rehydrateForUser(user, reason = 'auto'){
   }
 }
 
-/** ===== 트리거: 콜드 스타트 + 인증변경 + 포그라운드 ===== */
-const current = getAuth().currentUser;
-if (current) {
-  rehydrateForUser(current, 'cold-start');
-}
-onAuthStateChanged(auth, (user) => {
-  rehydrateForUser(user, 'auth-state');
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    const u = getAuth().currentUser;
-    if (u) rehydrateForUser(u, 'foreground');
+const auth = useAuthStore();
+auth.initOnce();
+
+let currentUid = null;
+const onVis = () => {
+  if (document.visibilityState === 'visible' && currentUid) {
+    rehydrateForUid(currentUid, 'foreground');
   }
-});
+};
+document.addEventListener('visibilitychange', onVis);
+
+watch(() => auth.user?.uid || null, (uid) => {
+  currentUid = uid;
+  rehydrateForUid(uid, 'auth-state');
+}, { immediate: true });
