@@ -298,7 +298,7 @@ html.sp-open #main_wrap{
   right: 2rem;
   width: auto;
   position: absolute;
-  bottom: 5rem;
+  bottom: 0;
 }
 
 .lnb .lnb_footer a {
