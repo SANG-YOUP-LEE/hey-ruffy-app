@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
+import { useSchedulerStore } from '@/stores/scheduler'
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
@@ -21,6 +22,32 @@ const eqDateObj = (a,b) => { if (!a || !b) return false; return +a.year===+b.yea
 const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목','금','토','일']; if (!Array.isArray(arr) || arr.length !== 7) return false; const set = new Set(arr.map(String)); return need.every(d => set.has(d)) }
 const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
+
+// 추가: 알람시간 파서 & 절대 ISO 조립
+const parseHM = (t) => {
+  if (!t) return null
+  if (typeof t === 'string') {
+    const m = t.match(/^\s*(\d{1,2}):(\d{2})\s*$/)
+    if (m) return { hour: Math.max(0, Math.min(23, +m[1])), minute: Math.max(0, Math.min(59, +m[2])) }
+    const m2 = t.match(/^\s*(AM|PM)\s*(\d{1,2}):(\d{2})\s*$/i)
+    if (m2) {
+      let h = +m2[2]; const mm = +m2[3]; const ampm = m2[1].toUpperCase()
+      if (ampm === 'PM' && h < 12) h += 12
+      if (ampm === 'AM' && h === 12) h = 0
+      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
+    }
+  } else if (typeof t === 'object') {
+    let h = +t.hour; const mm = +t.minute; const ampm = String(t.ampm || '').toUpperCase()
+    if (ampm === 'PM' && h < 12) h += 12
+    if (ampm === 'AM' && h === 12) h = 0
+    if (Number.isFinite(h) && Number.isFinite(mm)) return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
+  }
+  return null
+}
+const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
+  if (!dateISO || !hm) return null
+  return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00` // 프로젝트 TZ가 바뀌면 조정
+}
 
 const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
 
@@ -284,6 +311,45 @@ export const useRoutineFormStore = defineStore('routineForm', {
           const nowMs = Date.now()
           const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
           res = { ok:true, id: docRef.id, data: payload }
+        }
+
+        // 저장 성공 후 스케줄 재설정
+        try {
+          const sch = useSchedulerStore()
+          const hm = parseHM(this.alarmTime || payload.alarmTime)
+          const routineId = res?.id
+          const title = this.title || payload.title || '알림'
+
+          if (routineId && hm) {
+            if (this.icsRule?.freq === 'once') {
+              const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+              const atISO = toAtISO(dateISO, hm)
+              if (atISO) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'ONCE', at: atISO }
+                )
+              }
+            } else if (payload?.repeatType === 'daily') {
+              const n = Number(payload?.repeatEveryDays || 0)
+              if (n > 0) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'DAILY_EVERY_N', n }
+                )
+              }
+            } else if (payload?.repeatType === 'weekly') {
+              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
+              if (days.length) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'WEEKLY', days }
+                )
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[routineForm] schedule error', e)
         }
 
         return res

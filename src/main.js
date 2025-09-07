@@ -49,7 +49,6 @@ document.addEventListener('wheel', e => {
 
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase'
-import { useAlarmStore } from '@/stores/alarm'
 import { useAuthStore } from '@/stores/auth'
 import { App as CapApp } from '@capacitor/app'
 
