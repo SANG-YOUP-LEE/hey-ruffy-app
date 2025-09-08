@@ -1,3 +1,4 @@
+// src/utils/iosNotify.js
 const mh = () => window.webkit?.messageHandlers?.notify;
 
 const safePost = (payload) => {
@@ -97,12 +98,15 @@ function normalizeSchedulePayload(msg = {}) {
     if (!out.weekdays) out.weekdays = normalizeWeekdays(out.repeatWeekDays || out.weekday);
     if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
     if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
-    const linkCandidate = [out.link, out.url, out.deepLink, msg.link, msg.url, msg.deepLink].find(v => typeof v === 'string' && v);
-    if (linkCandidate) {
-      out.link = linkCandidate;
-      if (!out.url) out.url = linkCandidate;
-      if (!out.deepLink) out.deepLink = linkCandidate;
-    }
+
+    // 링크 제거 (딮링크 안씀)
+    delete out.link;
+    delete out.url;
+    delete out.deepLink;
+
+    // 커스텀 사운드 추가
+    out.sound = "ruffysound001.wav";
+
     if (out.repeatMode === 'weekly') {
       const days = normalizeWeekdays(out.weekdays) || [];
       const iw = Math.max(1, toInt(out.intervalWeeks) ?? 1);
@@ -173,17 +177,13 @@ function normalizeSchedulePayload(msg = {}) {
     if (d != null) out.day = Math.max(1, Math.min(31, d));
   }
 
-  if (typeof msg.link === 'string' && msg.link) {
-    out.link = msg.link;
-    out.url = out.url || msg.link;
-    out.deepLink = out.deepLink || msg.link;
-  } else if (typeof msg.url === 'string' && msg.url) {
-     
-  } else if (typeof msg.deepLink === 'string' && msg.deepLink) {
-    out.deepLink = msg.deepLink;
-    out.link = out.link || msg.deepLink;
-    out.url = out.url || msg.deepLink;
-  }
+  // 링크 제거
+  delete out.link;
+  delete out.url;
+  delete out.deepLink;
+
+  // 커스텀 사운드 추가
+  out.sound = "ruffysound001.wav";
 
   return out;
 }
@@ -210,7 +210,7 @@ export function scheduleOnIOS(msg) {
         title: msg.title || msg.name || '알람',
         body: msg.body || '',
         fireTimesEpoch: epochs,
-        link: msg.link || msg.url || msg.deepLink || undefined,
+        sound: "ruffysound001.wav", // ← 사운드 강제
       };
       log('[iosNotify] scheduleOnIOS:REQ(setScheduleForRoutine)', payload);
       safePost(payload);

@@ -2,10 +2,8 @@ require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
 
 platform :ios, '14.0'
 use_frameworks!
+project 'App.xcodeproj'   # ← 이 줄 추가
 
-# workaround to avoid Xcode caching of Pods that requires
-# Product -> Clean Build Folder after new Cordova plugins installed
-# Requires CocoaPods 1.6 or newer
 install! 'cocoapods', :disable_input_output_paths => true
 
 def capacitor_pods
@@ -16,11 +14,7 @@ end
 
 target 'App' do
   capacitor_pods
-
-  # ✅ Firebase SDK 전체 추가
-  pod 'FirebaseCore'
-  pod 'FirebaseAnalytics'   # 이벤트 추적용
-  pod 'FirebaseMessaging'   # 푸시 알림용
+  # Add your Pods here
 end
 
 post_install do |installer|

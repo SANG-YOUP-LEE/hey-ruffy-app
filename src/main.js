@@ -32,7 +32,9 @@ app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
 
+// ───────────────────────────────────────────
 // gesture/zoom 방지
+// ───────────────────────────────────────────
 document.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
 document.addEventListener("gesturechange", e => e.preventDefault(), { passive: false });
 document.addEventListener("gestureend", e => e.preventDefault(), { passive: false });
@@ -86,6 +88,7 @@ function stableRoutineSnapshot(routines) {
   const arr = routines.map(pick).sort((a, b) => String(a.id).localeCompare(String(b.id)));
   return JSON.stringify(arr);
 }
+
 function djb2(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);

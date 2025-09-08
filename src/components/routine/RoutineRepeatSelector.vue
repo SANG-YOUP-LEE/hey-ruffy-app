@@ -128,10 +128,30 @@ const selectedWeeklyMain = computed({
   get: () => props.weeks,
   set: v => emit('update:weeks', v ?? '')
 })
+
+/**
+ * ✅ 핵심: 편집 진입 시 7개 요일만 저장돼 있어도 '매일'을 자동 ON으로 보이게 함
+ * - GET: 요일 7개 모두 있으면 ['매일', ...요일들]로 변환해 UI에 표시
+ * - SET: '매일'이 포함되면 저장 값은 7개 요일로 정규화
+ */
 const selectedWeeklyDays = computed({
-  get: () => props.weekDays,
-  set: v => emit('update:weekDays', Array.isArray(v) ? [...v] : [])
+  get: () => {
+    const arr = Array.isArray(props.weekDays) ? [...props.weekDays] : []
+    const all = ['월','화','수','목','금','토','일']
+    const hasAll = all.every(d => arr.includes(d))
+    return hasAll && !arr.includes('매일') ? ['매일', ...all] : arr
+  },
+  set: v => {
+    const all = ['월','화','수','목','금','토','일']
+    if (Array.isArray(v) && v.includes('매일')) {
+      emit('update:weekDays', [...all])
+    } else {
+      const next = Array.isArray(v) ? v.filter(d => d !== '매일') : []
+      emit('update:weekDays', next)
+    }
+  }
 })
+
 const selectedDates = computed({
   get: () => props.monthDays,
   set: v => emit('update:monthDays', Array.isArray(v) ? [...v] : [])
@@ -160,12 +180,16 @@ const selectWeeklyMain = (btn) => {
 const toggleWeeklyDay = (btn) => {
   const cur = [...selectedWeeklyDays.value]
   if (btn === '매일') {
-    selectedWeeklyDays.value = cur.includes('매일') ? [] : ['매일','월','화','수','목','금','토','일']
+    selectedWeeklyDays.value = cur.includes('매일')
+      ? []
+      : ['매일','월','화','수','목','금','토','일']
     return
   }
   if (cur.includes(btn)) {
     const next = cur.filter(d => d !== btn)
-    selectedWeeklyDays.value = next.includes('매일') && next.length < 8 ? next.filter(d => d !== '매일') : next
+    selectedWeeklyDays.value = next.includes('매일') && next.length < 8
+      ? next.filter(d => d !== '매일')
+      : next
   } else {
     cur.push(btn)
     const allDays = ['월','화','수','목','금','토','일']
@@ -175,8 +199,19 @@ const toggleWeeklyDay = (btn) => {
   }
 }
 
+/**
+ * ✅ 월간 날짜는 최대 3개까지 선택 허용
+ * - 4번째부터는 무시(필요하면 토스트 추가)
+ */
 const toggleDateSelection = (day) => {
-  const cur = [...selectedDates.value]
-  selectedDates.value = cur.includes(day) ? cur.filter(d => d !== day) : [...cur, day]
+  const cur = Array.isArray(selectedDates.value) ? [...selectedDates.value] : []
+  if (cur.includes(day)) {
+    selectedDates.value = cur.filter(d => d !== day)
+    return
+  }
+  if (cur.length >= 3) {
+    return
+  }
+  selectedDates.value = [...cur, day]
 }
 </script>

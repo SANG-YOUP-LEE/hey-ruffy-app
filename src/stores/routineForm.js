@@ -24,7 +24,7 @@ const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목',
 const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
-// 추가: 알람시간 파서 & 절대 ISO 조립
+// 알람시간 파서
 const parseHM = (t) => {
   if (!t) return null
   if (typeof t === 'string') {
@@ -47,7 +47,7 @@ const parseHM = (t) => {
 }
 const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
   if (!dateISO || !hm) return null
-  return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00` // 프로젝트 TZ가 바뀌면 조정
+  return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00`
 }
 
 const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
@@ -78,10 +78,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
     routineId: null,
     title: '',
     repeatType: 'daily',
-    repeatDaily: null,
-    repeatWeeks: '',
-    repeatWeekDays: [],
-    repeatMonthDays: [],
+    repeatDaily: null,      // 0=오늘만, 1~6 = N일마다
+    repeatWeeks: '',        // '매주','2주마다',...
+    repeatWeekDays: [],     // ['월','화',...]
+    weeklyDaily: false,     // ✅ '매일' 토글 상태
+    repeatMonthDays: [],    // [1..31], 최대 3개
     startDate: null,
     endDate: null,
     alarmTime: null,
@@ -96,6 +97,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     tz: 'Asia/Seoul',
     isSaving: false
   }),
+
   getters: {
     hasWalk(state) {
       if (state.isWalkModeOff) return false
@@ -112,12 +114,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
     icsRule(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+
+      // 주간이지만 interval=1이고 7일 전부면 -> daily로 축약
       if (state.repeatType === 'weekly') {
         const intervalW = parseInterval(state.repeatWeeks)
-        if (intervalW === 1 && isAllKoreanWeekdays(state.repeatWeekDays)) {
+        if (intervalW === 1 && (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))) {
           return { freq: 'daily', interval: 1, anchor: anchorISO }
         }
       }
+
       if (state.repeatType === 'daily') {
         if (!Number.isInteger(state.repeatDaily)) return null
         const n = state.repeatDaily
@@ -125,13 +130,17 @@ export const useRoutineFormStore = defineStore('routineForm', {
         const interval = Math.min(6, Math.max(1, n))
         return { freq: 'daily', interval, anchor: anchorISO }
       }
+
       if (state.repeatType === 'weekly') {
         const interval = parseInterval(state.repeatWeeks)
-        return { freq: 'weekly', interval, anchor: anchorISO, byWeekday: weeklyDaysToICS(state.repeatWeekDays) }
+        const weekDaysKor = state.weeklyDaily ? ['월','화','수','목','금','토','일'] : state.repeatWeekDays
+        return { freq: 'weekly', interval, anchor: anchorISO, byWeekday: weeklyDaysToICS(weekDaysKor) }
       }
+
       if (state.repeatType === 'monthly') {
         return { freq: 'monthly', interval: 1, anchor: anchorISO, byMonthDay: (state.repeatMonthDays||[]).map(Number) }
       }
+
       return { freq: state.repeatType, interval: 1, anchor: anchorISO }
     },
     payload(state) {
@@ -141,8 +150,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       const weeklyIsDaily =
         state.repeatType === 'weekly' &&
-        parseInterval(state.repeatWeeks) === 1 &&
-        isAllKoreanWeekdays(state.repeatWeekDays)
+        (parseInterval(state.repeatWeeks) === 1) &&
+        (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))
 
       const normalizedType = weeklyIsDaily ? 'daily' : state.repeatType
       const dailyInterval =
@@ -153,7 +162,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const endForTodayOnly =
         normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
 
-      const weeklyDaysNum = normalizedType === 'weekly' ? daysKorToNum(state.repeatWeekDays) : []
+      const weeklyDaysNum =
+        normalizedType === 'weekly'
+          ? (state.weeklyDaily ? [1,2,3,4,5,6,7] : daysKorToNum(state.repeatWeekDays))
+          : []
 
       const cleaned = {
         title: state.title,
@@ -163,7 +175,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
           normalizedType === 'daily'
             ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
             : null,
-        repeatWeeks: normalizedType === 'weekly' ? state.repeatWeeks || '' : '',
+        repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
         repeatWeekDays: weeklyDaysNum,
         repeatMonthDays:
           normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
@@ -185,6 +197,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       return deepClean(cleaned)
     }
   },
+
   actions: {
     setComment(v) {
       this.comment = String(v ?? '')
@@ -192,6 +205,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     },
     setError(key, msg) { this.fieldErrors = { ...this.fieldErrors, [key]: msg } },
     clearErrors() { this.fieldErrors = {} },
+
     reset() {
       this.mode = 'create'
       this.routineId = null
@@ -200,6 +214,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatDaily = null
       this.repeatWeeks = ''
       this.repeatWeekDays = []
+      this.weeklyDaily = false
       this.repeatMonthDays = []
       this.startDate = null
       this.endDate = null
@@ -213,6 +228,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.comment = ''
       this.clearErrors()
     },
+
     initFrom(routine) {
       if (!routine) { this.reset(); return }
       this.mode = 'edit'
@@ -223,9 +239,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
         ? deriveRepeatDailyFromRoutine(routine)
         : null
       this.repeatWeeks = routine.repeatWeeks || ''
+
       const rawWeekDays = Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []
       const weekDaysKor = typeof rawWeekDays[0] === 'number' ? daysNumToKor(rawWeekDays) : rawWeekDays
       this.repeatWeekDays = weekDaysKor
+      this.weeklyDaily = isAllKoreanWeekdays(weekDaysKor)  // ✅ 편집 진입 시 7일이면 매일 토글
+
       this.repeatMonthDays = routine.repeatMonthDays || []
       this.startDate = routine.startDate || null
       this.endDate = routine.endDate || null
@@ -239,6 +258,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.comment = String(routine.comment ?? '')
       this.clearErrors()
     },
+
     toggleWalk(off) {
       this.isWalkModeOff = !!off
       if (this.isWalkModeOff) {
@@ -262,34 +282,48 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.goalCount = Number.isInteger(n) && n > 0 ? n : null
       const fe = { ...this.fieldErrors }; delete fe.goal; this.fieldErrors = fe
     },
+
     validate() {
       this.clearErrors()
       if (!this.title || String(this.title).trim() === '') { this.setError('title','다짐 제목을 입력해주세요.'); return false }
       if (!this.repeatType) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
+
       if (this.repeatType === 'daily') {
         if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
           this.setError('repeat','반복 주기를 선택해주세요.')
           return false
         }
       }
-      if (this.repeatType === 'weekly' && (!this.repeatWeeks || !this.repeatWeekDays || this.repeatWeekDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
+
+      if (this.repeatType === 'weekly') {
+        const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
+        if (!valid) { this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.'); return false }
+      }
+
       if (this.repeatType === 'monthly') {
+        if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
+          this.setError('repeat','반복 주기를 선택해주세요.'); return false
+        }
         if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
           this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`); return false
         }
       }
-      if (this.repeatType === 'monthly' && (!this.repeatMonthDays || this.repeatMonthDays.length === 0)) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
+
       if (!Number.isInteger(this.colorIndex)) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
+
       const sc = sanitizeComment(this.comment)
       if (this.comment && this.comment.trim().length > 200) { this.setError('comment','코멘트는 200자 이내로 입력해주세요.'); return false }
+
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
         if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
+
       if (sc === null) this.comment = ''
       return true
     },
+
     async save() {
       if (this.isSaving) return { ok:false }
       this.isSaving = true
@@ -343,6 +377,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
                   { id: routineId, title, hour: hm.hour, minute: hm.minute },
                   { mode: 'DAILY_EVERY_N', n }
                 )
+              } else {
+                // daily 이지만 n이 0/null이면 매일 1 간주
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'DAILY_EVERY_N', n: 1 }
+                )
               }
             } else if (payload?.repeatType === 'weekly') {
               const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
@@ -350,6 +390,14 @@ export const useRoutineFormStore = defineStore('routineForm', {
                 sch.reschedule(
                   { id: routineId, title, hour: hm.hour, minute: hm.minute },
                   { mode: 'WEEKLY', days }
+                )
+              }
+            } else if (payload?.repeatType === 'monthly') {
+              const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
+              if (days.length) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'MONTHLY', days }
                 )
               }
             }
