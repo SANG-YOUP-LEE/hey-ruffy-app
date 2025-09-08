@@ -4,8 +4,9 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
+import { useSchedulerStore } from '@/stores/scheduler'
 
-// ✅ iOS 알림 브리지
+// ✅ iOS 네이티브 알림 브리지
 import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
@@ -21,12 +22,11 @@ const normalizeCardSkinStrict = (v) => { const m = String(v || '').match(/(\d{1,
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const deepClean = (v) => { if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean); if (v && typeof v === 'object') { const r = {}; Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) }); return r } return v }
 const sanitizeComment = (v) => { if (v == null) return null; let s = String(v).replace(/[\u200B-\u200D\uFEFF]/g,''); s = s.replace(/\r\n?/g,'\n').trim(); if (s.length === 0) return null; if (s.length > 200) s = s.slice(0,200); return s }
-const eqDateObj = (a,b) => { if (!a || !b) return false; return +a.year===+b.year && +a.month===+b.month && +a.day===+b.day }
 const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목','금','토','일']; if (!Array.isArray(arr) || arr.length !== 7) return false; const set = new Set(arr.map(String)); return need.every(d => set.has(d)) }
 const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
-// 알람시간 파서
+// ── 시간 파서/도우미 ─────────────────────────────────────
 const parseHM = (t) => {
   if (!t) return null
   if (typeof t === 'string') {
@@ -47,9 +47,18 @@ const parseHM = (t) => {
   }
   return null
 }
+
 const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
   if (!dateISO || !hm) return null
+  // 고정 +09:00 (Asia/Seoul). 필요하면 tz 적용 로직 확장.
   return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00`
+}
+
+const atISOToEpochMs = (atISO) => {
+  if (!atISO) return null
+  const d = new Date(atISO)
+  const ms = d.getTime()
+  return Number.isFinite(ms) ? ms : null
 }
 
 const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
@@ -74,6 +83,7 @@ function deriveRepeatDailyFromRoutine(r) {
   return null
 }
 
+// ── Pinia Store ─────────────────────────────────────────
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
     mode: 'create',
@@ -83,7 +93,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     repeatDaily: null,      // 0=오늘만, 1~6 = N일마다
     repeatWeeks: '',        // '매주','2주마다',...
     repeatWeekDays: [],     // ['월','화',...]
-    weeklyDaily: false,     // ✅ '매일' 토글 상태
+    weeklyDaily: false,     // '매일' 토글
     repeatMonthDays: [],    // [1..31], 최대 3개
     startDate: null,
     endDate: null,
@@ -117,7 +127,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
-      // 주간이지만 interval=1이고 7일 전부면 -> daily로 축약
+      // 주간인데 interval=1이고 7일 전부면 -> daily로 축약
       if (state.repeatType === 'weekly') {
         const intervalW = parseInterval(state.repeatWeeks)
         if (intervalW === 1 && (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))) {
@@ -245,7 +255,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const rawWeekDays = Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []
       const weekDaysKor = typeof rawWeekDays[0] === 'number' ? daysNumToKor(rawWeekDays) : rawWeekDays
       this.repeatWeekDays = weekDaysKor
-      this.weeklyDaily = isAllKoreanWeekdays(weekDaysKor)  // ✅ 편집 진입 시 7일이면 매일 토글
+      this.weeklyDaily = isAllKoreanWeekdays(weekDaysKor)
 
       this.repeatMonthDays = routine.repeatMonthDays || []
       this.startDate = routine.startDate || null
@@ -355,55 +365,125 @@ export const useRoutineFormStore = defineStore('routineForm', {
           res = { ok:true, id: docRef.id, data: payload }
         }
 
-        // ✅ 저장 성공 후, iOS 네이티브 알림을 직접 스케줄
+        // ── 앱 내부 스케줄러(기존) 유지 ─────────────────────
         try {
+          const sch = useSchedulerStore()
           const hm = parseHM(this.alarmTime || payload.alarmTime)
           const routineId = res?.id
-          const baseId = routineId ? `routine-${routineId}` : null
           const title = this.title || payload.title || '알림'
 
           if (routineId && hm) {
-            // 중복 방지: 동일 baseId로 잡힌 알림 제거
-            await cancelOnIOS(baseId)
-
-            const common = {
-              id: baseId,
-              title,
-              body: sanitizeComment(this.comment) || '',
-              hour: hm.hour,
-              minute: hm.minute,
-              sound: 'ruffysound001.wav',
-            }
-
-            const type = payload?.repeatType || 'daily'
             if (this.icsRule?.freq === 'once') {
-              // 오늘 한 번
-              scheduleOnIOS({ ...common, repeatMode: 'today' })
-            } else if (type === 'daily') {
-              // N일 간격은 네이티브 쪽에서 아직 미구현 → 일단 매일
-              scheduleOnIOS({ ...common, repeatMode: 'daily', interval: 1 })
-            } else if (type === 'weekly') {
-              const days = Array.isArray(payload?.repeatWeekDays)
-                ? payload.repeatWeekDays.slice().sort((a,b)=>a-b)
-                : []
-              if (days.length) {
-                scheduleOnIOS({ ...common, repeatMode: 'weekly', weekdays: days })
-              } else {
-                scheduleOnIOS({ ...common, repeatMode: 'daily', interval: 1 })
+              const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+              const atISO = toAtISO(dateISO, hm)
+              if (atISO) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'ONCE', at: atISO }
+                )
               }
-            } else if (type === 'monthly') {
-              const days = Array.isArray(payload?.repeatMonthDays)
-                ? payload.repeatMonthDays.slice().sort((a,b)=>a-b)
-                : []
+            } else if (payload?.repeatType === 'daily') {
+              const n = Number(payload?.repeatEveryDays || 0)
+              sch.reschedule(
+                { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                { mode: 'DAILY_EVERY_N', n: n > 0 ? n : 1 }
+              )
+            } else if (payload?.repeatType === 'weekly') {
+              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
               if (days.length) {
-                scheduleOnIOS({ ...common, repeatMode: 'monthly', monthDays: days })
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'WEEKLY', days }
+                )
               }
-            } else {
-              scheduleOnIOS({ ...common, repeatMode: 'daily', interval: 1 })
+            } else if (payload?.repeatType === 'monthly') {
+              const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
+              if (days.length) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'MONTHLY', days }
+                )
+              }
             }
           }
         } catch (e) {
-          console.warn('[routineForm] iOS schedule error', e)
+          console.warn('[routineForm] schedule error', e)
+        }
+
+        // ── iOS 네이티브 로컬 알림 ───────────────────────
+        try {
+          const hm = parseHM(this.alarmTime || payload.alarmTime)
+          const routineId = res?.id
+          const title = this.title || payload.title || '알람'
+          const baseId = routineId ? `routine-${routineId}` : null
+
+          if (routineId && hm) {
+            // 편집 시 기존 알림 제거
+            if (this.mode === 'edit' && baseId) {
+              await cancelOnIOS(baseId) // baseId가 routine-로 시작 → purgeBase 동작
+            }
+
+            if (this.icsRule?.freq === 'once') {
+              // ✅ 정확 날짜·시간 1회 알림: epoch(ms)로 스케줄
+              const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+              const atISO = toAtISO(dateISO, hm)
+              const ms = atISOToEpochMs(atISO)
+              if (ms) {
+                await scheduleOnIOS({
+                  routineId: baseId,
+                  title,
+                  body: '',
+                  mode: 'once',
+                  fireTimesEpoch: [ms],        // ← 초단위(정확 시간) 경로 사용
+                  sound: 'ruffysound001.wav'
+                })
+              }
+            } else if (payload?.repeatType === 'daily') {
+              // ✅ 반복: 캘린더 반복 (매일)
+              await scheduleOnIOS({
+                id: baseId,
+                title,
+                repeatMode: 'daily',
+                hour: hm.hour,
+                minute: hm.minute,
+                sound: 'ruffysound001.wav'
+              })
+            } else if (payload?.repeatType === 'weekly') {
+              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays : []
+              await scheduleOnIOS({
+                id: baseId,
+                title,
+                repeatMode: 'weekly',
+                weekdays: days,               // [1..7] (일=1 … 토=7)
+                hour: hm.hour,
+                minute: hm.minute,
+                sound: 'ruffysound001.wav'
+              })
+            } else if (payload?.repeatType === 'monthly') {
+              const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays : []
+              await scheduleOnIOS({
+                id: baseId,
+                title,
+                repeatMode: 'monthly',
+                monthDays: days,              // [1..31]
+                hour: hm.hour,
+                minute: hm.minute,
+                sound: 'ruffysound001.wav'
+              })
+            } else {
+              // 안전망: 매일
+              await scheduleOnIOS({
+                id: baseId,
+                title,
+                repeatMode: 'daily',
+                hour: hm.hour,
+                minute: hm.minute,
+                sound: 'ruffysound001.wav'
+              })
+            }
+          }
+        } catch (e) {
+          console.warn('[routineForm] iOS scheduleOnIOS error', e)
         }
 
         return res
