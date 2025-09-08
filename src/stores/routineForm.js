@@ -4,7 +4,9 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
-import { useSchedulerStore } from '@/stores/scheduler'
+
+// ✅ iOS 알림 브리지
+import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
@@ -353,57 +355,55 @@ export const useRoutineFormStore = defineStore('routineForm', {
           res = { ok:true, id: docRef.id, data: payload }
         }
 
-        // 저장 성공 후 스케줄 재설정
+        // ✅ 저장 성공 후, iOS 네이티브 알림을 직접 스케줄
         try {
-          const sch = useSchedulerStore()
           const hm = parseHM(this.alarmTime || payload.alarmTime)
           const routineId = res?.id
+          const baseId = routineId ? `routine-${routineId}` : null
           const title = this.title || payload.title || '알림'
 
           if (routineId && hm) {
+            // 중복 방지: 동일 baseId로 잡힌 알림 제거
+            await cancelOnIOS(baseId)
+
+            const common = {
+              id: baseId,
+              title,
+              body: sanitizeComment(this.comment) || '',
+              hour: hm.hour,
+              minute: hm.minute,
+              sound: 'ruffysound001.wav',
+            }
+
+            const type = payload?.repeatType || 'daily'
             if (this.icsRule?.freq === 'once') {
-              const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
-              const atISO = toAtISO(dateISO, hm)
-              if (atISO) {
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'ONCE', at: atISO }
-                )
-              }
-            } else if (payload?.repeatType === 'daily') {
-              const n = Number(payload?.repeatEveryDays || 0)
-              if (n > 0) {
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'DAILY_EVERY_N', n }
-                )
+              // 오늘 한 번
+              scheduleOnIOS({ ...common, repeatMode: 'today' })
+            } else if (type === 'daily') {
+              // N일 간격은 네이티브 쪽에서 아직 미구현 → 일단 매일
+              scheduleOnIOS({ ...common, repeatMode: 'daily', interval: 1 })
+            } else if (type === 'weekly') {
+              const days = Array.isArray(payload?.repeatWeekDays)
+                ? payload.repeatWeekDays.slice().sort((a,b)=>a-b)
+                : []
+              if (days.length) {
+                scheduleOnIOS({ ...common, repeatMode: 'weekly', weekdays: days })
               } else {
-                // daily 이지만 n이 0/null이면 매일 1 간주
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'DAILY_EVERY_N', n: 1 }
-                )
+                scheduleOnIOS({ ...common, repeatMode: 'daily', interval: 1 })
               }
-            } else if (payload?.repeatType === 'weekly') {
-              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
+            } else if (type === 'monthly') {
+              const days = Array.isArray(payload?.repeatMonthDays)
+                ? payload.repeatMonthDays.slice().sort((a,b)=>a-b)
+                : []
               if (days.length) {
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'WEEKLY', days }
-                )
+                scheduleOnIOS({ ...common, repeatMode: 'monthly', monthDays: days })
               }
-            } else if (payload?.repeatType === 'monthly') {
-              const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
-              if (days.length) {
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'MONTHLY', days }
-                )
-              }
+            } else {
+              scheduleOnIOS({ ...common, repeatMode: 'daily', interval: 1 })
             }
           }
         } catch (e) {
-          console.warn('[routineForm] schedule error', e)
+          console.warn('[routineForm] iOS schedule error', e)
         }
 
         return res

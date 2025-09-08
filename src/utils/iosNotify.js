@@ -7,11 +7,12 @@
 const mh = () => window?.webkit?.messageHandlers?.notify;
 
 export function isBridgeAvailable() {
-  return !!mh();
+  const handler = mh();
+  return !!(handler && typeof handler.postMessage === 'function');
 }
 
 // 브리지가 늦게 붙는 환경(웹뷰 초기화 직후) 대비
-async function waitBridgeReady(maxTries = 25, delayMs = 120) {
+export async function waitBridgeReady(maxTries = 25, delayMs = 120) {
   if (isBridgeAvailable()) return true;
   for (let i = 0; i < maxTries; i++) {
     await new Promise(r => setTimeout(r, delayMs));
@@ -22,8 +23,13 @@ async function waitBridgeReady(maxTries = 25, delayMs = 120) {
 
 const safePost = (payload) => {
   try {
+    const handler = mh();
+    if (!handler || typeof handler.postMessage !== 'function') {
+      console.warn('[iosNotify][NO_BRIDGE]', payload);
+      return;
+    }
     console.log('[iosNotify][TX]', JSON.stringify(payload));
-    mh()?.postMessage(payload);
+    handler.postMessage(payload);
   } catch (e) {
     console.warn('[iosNotify][ERR]', e);
   }
@@ -311,6 +317,7 @@ export const cancelRoutineAlerts   = cancelOnIOS;
 
 export default {
   isBridgeAvailable,
+  waitBridgeReady,
   scheduleOnIOS,
   cancelOnIOS,
   debugPingOnIOS,
