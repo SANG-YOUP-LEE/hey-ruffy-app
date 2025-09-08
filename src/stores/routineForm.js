@@ -424,22 +424,26 @@ export const useRoutineFormStore = defineStore('routineForm', {
             }
 
             if (this.icsRule?.freq === 'once') {
-              // ✅ 정확 날짜·시간 1회 알림: epoch(ms)로 스케줄
+              // ✅ 정확 날짜·시간 1회 알림: epoch(초) + 과거 방지
               const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
               const atISO = toAtISO(dateISO, hm)
               const ms = atISOToEpochMs(atISO)
-              if (ms) {
+              const now = Date.now()
+
+              if (ms && ms > now) {
+                const sec = Math.floor(ms / 1000)
                 await scheduleOnIOS({
                   routineId: baseId,
                   title,
                   body: '',
                   mode: 'once',
-                  fireTimesEpoch: [ms],        // ← 초단위(정확 시간) 경로 사용
+                  fireTimesEpoch: [sec],   // ← 초 단위
                   sound: 'ruffysound001.wav'
                 })
+              } else {
+                console.warn('[routineForm] once schedule skipped (past time)', { atISO })
               }
             } else if (payload?.repeatType === 'daily') {
-              // ✅ 반복: 캘린더 반복 (매일)
               await scheduleOnIOS({
                 id: baseId,
                 title,
@@ -454,7 +458,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
                 id: baseId,
                 title,
                 repeatMode: 'weekly',
-                weekdays: days,               // [1..7] (일=1 … 토=7)
+                weekdays: days,            // [1..7] (일=1 … 토=7)
                 hour: hm.hour,
                 minute: hm.minute,
                 sound: 'ruffysound001.wav'
@@ -465,7 +469,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
                 id: baseId,
                 title,
                 repeatMode: 'monthly',
-                monthDays: days,              // [1..31]
+                monthDays: days,           // [1..31]
                 hour: hm.hour,
                 minute: hm.minute,
                 sound: 'ruffysound001.wav'
