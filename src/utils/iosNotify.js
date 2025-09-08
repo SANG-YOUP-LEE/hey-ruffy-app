@@ -1,5 +1,24 @@
 // src/utils/iosNotify.js
-const mh = () => window.webkit?.messageHandlers?.notify;
+// iOS WebKit bridge helper for local notifications
+
+// ───────────────────────────────────────────
+// Bridge helpers
+// ───────────────────────────────────────────
+const mh = () => window?.webkit?.messageHandlers?.notify;
+
+export function isBridgeAvailable() {
+  return !!mh();
+}
+
+// 브리지가 늦게 붙는 환경(웹뷰 초기화 직후) 대비
+async function waitBridgeReady(maxTries = 25, delayMs = 120) {
+  if (isBridgeAvailable()) return true;
+  for (let i = 0; i < maxTries; i++) {
+    await new Promise(r => setTimeout(r, delayMs));
+    if (isBridgeAvailable()) return true;
+  }
+  return false;
+}
 
 const safePost = (payload) => {
   try {
@@ -9,9 +28,14 @@ const safePost = (payload) => {
     console.warn('[iosNotify][ERR]', e);
   }
 };
+
 const log = (...args) => console.warn('⚡️ ', ...args);
 
+// ───────────────────────────────────────────
+// Parsing / normalization
+// ───────────────────────────────────────────
 const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
 const toInt = (v) => {
   if (typeof v === 'number' && Number.isFinite(v)) return Math.floor(v);
   if (typeof v === 'string' && v.trim() !== '') {
@@ -29,12 +53,12 @@ function mapOneDayToken(d) {
   if (d == null) return undefined;
   if (typeof d === 'number') {
     if (d >= 1 && d <= 7) return d;
-    if (d >= 0 && d <= 6) return d + 1;
+    if (d >= 0 && d <= 6) return d + 1; // 0~6 -> 1~7
     return undefined;
   }
   const s = String(d).trim();
-  if (s === '') return undefined;
-  const head = s.slice(0, 1);
+  if (!s) return undefined;
+  const head = s.slice(0, 1); // '월' 등
   if (KOR_DAY[head]) return KOR_DAY[head];
   if (ENG_DAY[s.toLowerCase()]) return ENG_DAY[s.toLowerCase()];
   if (ICS_DAY[s.toUpperCase()]) return ICS_DAY[s.toUpperCase()];
@@ -49,7 +73,10 @@ function normalizeWeekdays(raw) {
   if (Array.isArray(raw)) {
     arr = raw.map(mapOneDayToken).filter(Boolean);
   } else if (typeof raw === 'object') {
-    arr = Object.entries(raw).filter(([, v]) => !!v).map(([k]) => mapOneDayToken(k)).filter(Boolean);
+    arr = Object.entries(raw)
+      .filter(([, v]) => !!v)
+      .map(([k]) => mapOneDayToken(k))
+      .filter(Boolean);
   } else {
     const one = mapOneDayToken(raw);
     if (one) arr = [one];
@@ -69,7 +96,7 @@ function normalizeEpochs(raw) {
   const toMs = (v) => {
     const n = Number(v);
     if (!Number.isFinite(n)) return null;
-    return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000);
+    return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000); // sec -> ms
   };
   const uniq = new Set();
   for (const v of list) {
@@ -88,6 +115,18 @@ function buildTodayTimestamp(hour, minute) {
   return t > Date.now() ? t : null;
 }
 
+// ───────────────────────────────────────────
+// Payload normalization (links 제거, sound 강제)
+// ───────────────────────────────────────────
+const DEFAULT_SOUND = 'ruffysound001.wav';
+
+function stripLinks(obj) {
+  if (!obj) return;
+  delete obj.link;
+  delete obj.url;
+  delete obj.deepLink;
+}
+
 function normalizeSchedulePayload(msg = {}) {
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
@@ -99,13 +138,8 @@ function normalizeSchedulePayload(msg = {}) {
     if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
     if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
 
-    // 링크 제거 (딮링크 안씀)
-    delete out.link;
-    delete out.url;
-    delete out.deepLink;
-
-    // 커스텀 사운드 추가
-    out.sound = "ruffysound001.wav";
+    stripLinks(out);
+    out.sound = DEFAULT_SOUND;
 
     if (out.repeatMode === 'weekly') {
       const days = normalizeWeekdays(out.weekdays) || [];
@@ -124,6 +158,7 @@ function normalizeSchedulePayload(msg = {}) {
     return out;
   }
 
+  // 일반 케이스
   const out = { action: 'schedule' };
   out.id = msg.id || msg.baseId || 'inline';
   out.title = msg.title || msg.name || '알람';
@@ -151,20 +186,29 @@ function normalizeSchedulePayload(msg = {}) {
   if (repeatMode === 'once' && ts && ts > 0) out.timestamp = ts;
 
   if (repeatMode === 'daily') {
-    const interval = toInt(msg.interval) ?? toInt(msg.intervalDays) ?? toInt(msg.repeatEveryDays) ?? 1;
+    const interval =
+      toInt(msg.interval) ??
+      toInt(msg.intervalDays) ??
+      toInt(msg.repeatEveryDays) ??
+      1;
     out.interval = Math.max(1, interval);
     if (isYMD(msg.startDate)) out.startDate = msg.startDate;
   }
 
   if (repeatMode === 'weekly') {
-    const days = normalizeWeekdays(msg.weekdays) || normalizeWeekdays(msg.repeatWeekDays) || normalizeWeekdays(msg.weekday);
-    const iw = toInt(msg.intervalWeeks) ?? toInt(msg.weeksInterval) ?? toInt(msg.everyWeeks) ?? (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ?? 1;
+    const days =
+      normalizeWeekdays(msg.weekdays) ||
+      normalizeWeekdays(msg.repeatWeekDays) ||
+      normalizeWeekdays(msg.weekday);
+    const iw =
+      toInt(msg.intervalWeeks) ??
+      toInt(msg.weeksInterval) ??
+      toInt(msg.everyWeeks) ??
+      (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
+      1;
     if (iw === 1 && days && days.length === 7) {
-      repeatMode = 'daily';
       out.repeatMode = 'daily';
       out.interval = 1;
-      delete out.weekdays;
-      delete out.intervalWeeks;
     } else {
       out.weekdays = days;
       out.intervalWeeks = Math.max(1, iw);
@@ -177,29 +221,32 @@ function normalizeSchedulePayload(msg = {}) {
     if (d != null) out.day = Math.max(1, Math.min(31, d));
   }
 
-  // 링크 제거
-  delete out.link;
-  delete out.url;
-  delete out.deepLink;
-
-  // 커스텀 사운드 추가
-  out.sound = "ruffysound001.wav";
+  stripLinks(out);
+  out.sound = DEFAULT_SOUND;
 
   return out;
 }
 
-export function scheduleOnIOS(msg) {
-  if (!mh()) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
+// ───────────────────────────────────────────
+// Public APIs
+// ───────────────────────────────────────────
+export async function scheduleOnIOS(msg) {
+  if (!(await waitBridgeReady())) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
+
   const modeRaw = msg?.mode || msg?.repeatMode;
   const mode = typeof modeRaw === 'string' ? modeRaw.toLowerCase() : '';
   const isToday = mode === 'today';
   const isOnce = mode === 'once';
 
+  // 특정 루틴 세트로 바로 쏘는 경로 (epoch 배열)
   const rid = msg?.routineId || msg?.routineID || msg?.rid;
   if (rid) {
     let epochs = normalizeEpochs(msg?.fireTimesEpoch);
     if ((!epochs || epochs.length === 0) && (isToday || isOnce)) {
-      const ts = buildTodayTimestamp(msg?.hour ?? msg?.alarm?.hour, msg?.minute ?? msg?.alarm?.minute);
+      const ts = buildTodayTimestamp(
+        msg?.hour ?? msg?.alarm?.hour,
+        msg?.minute ?? msg?.alarm?.minute
+      );
       if (ts) epochs = [ts];
     }
     if (epochs && epochs.length > 0) {
@@ -210,7 +257,7 @@ export function scheduleOnIOS(msg) {
         title: msg.title || msg.name || '알람',
         body: msg.body || '',
         fireTimesEpoch: epochs,
-        sound: "ruffysound001.wav", // ← 사운드 강제
+        sound: DEFAULT_SOUND,
       };
       log('[iosNotify] scheduleOnIOS:REQ(setScheduleForRoutine)', payload);
       safePost(payload);
@@ -218,7 +265,9 @@ export function scheduleOnIOS(msg) {
     }
   }
 
+  // 일반 스케줄
   const unified = normalizeSchedulePayload(msg);
+
   if (isToday || unified.repeatMode === 'today') {
     unified.repeatMode = 'once';
     if (!unified.timestamp) {
@@ -227,15 +276,15 @@ export function scheduleOnIOS(msg) {
     }
   }
   if (unified.repeatMode === 'once' && unified.timestamp && unified.timestamp > 1e12) {
-    unified.timestamp = Math.floor(unified.timestamp / 1000);
+    unified.timestamp = Math.floor(unified.timestamp / 1000); // ms -> sec
   }
 
   log('[iosNotify] scheduleOnIOS:REQ(schedule)', unified);
   safePost(unified);
 }
 
-export function cancelOnIOS(idOrBase) {
-  if (!mh()) { log('[iosNotify] cancelOnIOS:NO_BRIDGE'); return; }
+export async function cancelOnIOS(idOrBase) {
+  if (!(await waitBridgeReady())) { log('[iosNotify] cancelOnIOS:NO_BRIDGE'); return; }
   if (!idOrBase) return;
   const raw = String(idOrBase);
   if (raw.startsWith('routine-')) {
@@ -245,22 +294,23 @@ export function cancelOnIOS(idOrBase) {
   }
 }
 
-export function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
-  if (!mh()) { log('[iosNotify] debugPingOnIOS:NO_BRIDGE'); return; }
+export async function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
+  if (!(await waitBridgeReady())) { log('[iosNotify] debugPingOnIOS:NO_BRIDGE'); return; }
   safePost({ action: 'debugPing', baseId: tag, seconds: toInt(sec) ?? 20 });
 }
 
-export function dumpPendingOnIOS(tag = 'manual') {
-  if (!mh()) { log('[iosNotify] dumpPendingOnIOS:NO_BRIDGE'); return; }
+export async function dumpPendingOnIOS(tag = 'manual') {
+  if (!(await waitBridgeReady())) { log('[iosNotify] dumpPendingOnIOS:NO_BRIDGE'); return; }
   safePost({ action: 'dumpPending', tag });
 }
 
 export function postIOS(payload) { safePost(payload); }
 
-export function scheduleRoutineAlerts(msg) { scheduleOnIOS(msg); }
-export function cancelRoutineAlerts(id)    { cancelOnIOS(id); }
+export const scheduleRoutineAlerts = scheduleOnIOS;
+export const cancelRoutineAlerts   = cancelOnIOS;
 
 export default {
+  isBridgeAvailable,
   scheduleOnIOS,
   cancelOnIOS,
   debugPingOnIOS,

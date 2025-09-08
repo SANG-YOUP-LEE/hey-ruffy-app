@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1D2B2B782E6E8C89005FF04B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1D2B2B772E6E8C89005FF04B /* GoogleService-Info.plist */; };
 		1D2B2B7A2E6E8D06005FF04B /* ruffysound001.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1D2B2B792E6E8D06005FF04B /* ruffysound001.wav */; };
+		1DD2385A2E6EA756007B26D7 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD238592E6EA756007B26D7 /* SceneDelegate.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -22,6 +23,7 @@
 /* Begin PBXFileReference section */
 		1D2B2B772E6E8C89005FF04B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		1D2B2B792E6E8D06005FF04B /* ruffysound001.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ruffysound001.wav; sourceTree = "<group>"; };
+		1DD238592E6EA756007B26D7 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,6 +89,7 @@
 				50B271D01FEDC1A000F3C39B /* public */,
 				1D2B2B772E6E8C89005FF04B /* GoogleService-Info.plist */,
 				1D2B2B792E6E8D06005FF04B /* ruffysound001.wav */,
+				1DD238592E6EA756007B26D7 /* SceneDelegate.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -218,6 +221,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				1DD2385A2E6EA756007B26D7 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
