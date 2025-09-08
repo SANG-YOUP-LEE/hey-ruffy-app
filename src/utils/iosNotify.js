@@ -178,9 +178,7 @@ function normalizeSchedulePayload(msg = {}) {
     out.url = out.url || msg.link;
     out.deepLink = out.deepLink || msg.link;
   } else if (typeof msg.url === 'string' && msg.url) {
-    out.url = msg.url;
-    out.link = out.link || msg.url;
-    out.deepLink = out.deepLink || msg.url;
+     
   } else if (typeof msg.deepLink === 'string' && msg.deepLink) {
     out.deepLink = msg.deepLink;
     out.link = out.link || msg.deepLink;

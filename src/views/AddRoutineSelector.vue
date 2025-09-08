@@ -137,7 +137,6 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
-import { useAlarmStore } from '@/stores/alarm'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
@@ -151,7 +150,6 @@ import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const form = useRoutineFormStore()
-const alarm = useAlarmStore()
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
@@ -205,7 +203,6 @@ async function saveRoutine() {
   if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
   // 알람 예약
-  alarm.scheduleFromForm(form, { routineId, title })
 
   gotoFinish(r.data)
 }

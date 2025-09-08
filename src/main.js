@@ -18,63 +18,64 @@ import "./assets/css/walk_status_pop.css";
 import VueScrollPicker from "vue-scroll-picker";
 import "vue-scroll-picker/style.css";
 
-import { installDeepLinkListener } from "@/utils/deeplink";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase";
+import { useAuthStore } from "@/stores/auth";
+import { App as CapApp } from "@capacitor/app";
+import { initIOSRoutineScheduler } from "@/utils/iosRoutineScheduler";
 
 const app = createApp(App);
 const pinia = createPinia();
-
 app.use(pinia);
 setActivePinia(pinia);
-
 app.use(router);
 app.use(VueScrollPicker);
 app.mount("#app");
 
-router.isReady().then(() => installDeepLinkListener());
-
-document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
-document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
-document.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
+// gesture/zoom 방지
+document.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
+document.addEventListener("gesturechange", e => e.preventDefault(), { passive: false });
+document.addEventListener("gestureend", e => e.preventDefault(), { passive: false });
 
 let lastTouchEnd = 0;
-document.addEventListener('touchend', e => {
+document.addEventListener("touchend", e => {
   const now = Date.now();
   if (now - lastTouchEnd <= 300) e.preventDefault();
   lastTouchEnd = now;
 }, { passive: false });
 
-document.addEventListener('wheel', e => {
+document.addEventListener("wheel", e => {
   if (e.ctrlKey) e.preventDefault();
 }, { passive: false });
 
-import { collection, getDocs } from 'firebase/firestore'
-import { db } from '@/firebase'
-import { useAuthStore } from '@/stores/auth'
-import { App as CapApp } from '@capacitor/app'
-
+// ───────────────────────────────────────────
+// 알림 리하이드레이트(쿨다운/해시 가드)
+// ───────────────────────────────────────────
 const FOREGROUND_COOLDOWN_MS = 3 * 60 * 1000;
 const BRIDGE_MAX_TRIES = 20;
 const BRIDGE_TRY_DELAY_MS = 300;
+const LS_LAST_HYDRATE_MS = "rfy_last_hydrate_ms";
+const LS_LAST_HASH = "rfy_last_routines_hash";
 
-function hasIOSBridge(){
+function hasIOSBridge() {
   return !!(window.webkit?.messageHandlers?.notify);
 }
-async function waitBridgeReady(maxTries = BRIDGE_MAX_TRIES, delayMs = BRIDGE_TRY_DELAY_MS){
+async function waitBridgeReady(maxTries = BRIDGE_MAX_TRIES, delayMs = BRIDGE_TRY_DELAY_MS) {
   if (hasIOSBridge()) return true;
-  for (let i=0;i<maxTries;i++){
+  for (let i = 0; i < maxTries; i++) {
     await new Promise(r => setTimeout(r, delayMs));
     if (hasIOSBridge()) return true;
   }
   return false;
 }
 
-function stableRoutineSnapshot(routines){
+function stableRoutineSnapshot(routines) {
   const pick = (r) => ({
-    id: r.id ?? r.routineId ?? '',
-    title: r.title ?? r.name ?? r.text ?? '',
-    repeatType: r.repeatType ?? '',
+    id: r.id ?? r.routineId ?? "",
+    title: r.title ?? r.name ?? r.text ?? "",
+    repeatType: r.repeatType ?? "",
     repeatEveryDays: r.repeatEveryDays ?? null,
-    repeatWeeks: r.repeatWeeks ?? '',
+    repeatWeeks: r.repeatWeeks ?? "",
     repeatWeekDays: Array.isArray(r.repeatWeekDays) ? [...r.repeatWeekDays] : [],
     repeatMonthDays: Array.isArray(r.repeatMonthDays) ? [...r.repeatMonthDays] : [],
     startDate: r.startDate ?? null,
@@ -82,33 +83,27 @@ function stableRoutineSnapshot(routines){
     alarmTime: r.alarmTime ?? null,
     tz: r.tz ?? null,
   });
-  const arr = routines
-    .map(pick)
-    .sort((a,b) => String(a.id).localeCompare(String(b.id)));
+  const arr = routines.map(pick).sort((a, b) => String(a.id).localeCompare(String(b.id)));
   return JSON.stringify(arr);
 }
-function djb2(str){
+function djb2(str) {
   let h = 5381;
-  for (let i=0;i<str.length;i++) h = ((h << 5) + h) + str.charCodeAt(i);
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
   return (h >>> 0).toString(16);
 }
 
-const LS_LAST_HASH = 'alarm.lastHash';
-const LS_LAST_HYDRATE_MS = 'alarm.lastHydrateAtMs';
-
-function shouldSkipByTime(now = Date.now()){
+function shouldSkipByTime(now = Date.now()) {
   const last = Number(localStorage.getItem(LS_LAST_HYDRATE_MS) || 0);
   return last && (now - last) < FOREGROUND_COOLDOWN_MS;
 }
-function saveHydrateTime(ts = Date.now()){
+function saveHydrateTime(ts = Date.now()) {
   localStorage.setItem(LS_LAST_HYDRATE_MS, String(ts));
 }
-function getLastHash(){ return localStorage.getItem(LS_LAST_HASH) || ''; }
-function setLastHash(h){ localStorage.setItem(LS_LAST_HASH, h); }
+function getLastHash() { return localStorage.getItem(LS_LAST_HASH) || ""; }
+function setLastHash(h) { localStorage.setItem(LS_LAST_HASH, h); }
 
 let isHydrating = false;
-
-async function rehydrateForUid(uid, reason = 'auto'){
+async function rehydrateForUid(uid, reason = "auto") {
   if (!uid) return;
   if (isHydrating) return;
   const now = Date.now();
@@ -127,36 +122,42 @@ async function rehydrateForUid(uid, reason = 'auto'){
       saveHydrateTime(now);
       return;
     }
-    const alarm = useAlarmStore();
-    if (typeof alarm.resetDedup === 'function') alarm.resetDedup();
-    if (typeof alarm.rehydrateFromRoutines === 'function') {
-      await alarm.rehydrateFromRoutines(routines);
-    }
     setLastHash(newHash);
     saveHydrateTime(now);
   } catch (e) {
-    console.warn('[alarm rehydrate] failed:', e);
+    console.warn("[alarm rehydrate] failed:", e);
   } finally {
     isHydrating = false;
   }
 }
 
+// ───────────────────────────────────────────
+// Auth & iOS 예약 싱크
+// ───────────────────────────────────────────
 const auth = useAuthStore();
 auth.initOnce();
 
 let currentUid = null;
+let stopIOS = null;
+
 const onVis = () => {
-  if (document.visibilityState === 'visible' && currentUid) {
-    rehydrateForUid(currentUid, 'foreground');
+  if (document.visibilityState === "visible" && currentUid) {
+    rehydrateForUid(currentUid, "foreground");
   }
 };
-document.addEventListener('visibilitychange', onVis);
+document.addEventListener("visibilitychange", onVis);
 
-CapApp.addListener('appStateChange', ({ isActive }) => {
-  if (isActive && currentUid) rehydrateForUid(currentUid, 'appState');
+CapApp.addListener("appStateChange", ({ isActive }) => {
+  if (isActive && currentUid) rehydrateForUid(currentUid, "appState");
 });
 
 watch(() => auth.user?.uid || null, (uid) => {
   currentUid = uid;
-  rehydrateForUid(uid, 'auth-state');
+  if (stopIOS) { try { stopIOS(); } catch {} stopIOS = null; }
+  if (uid) { stopIOS = initIOSRoutineScheduler(uid); }
+  rehydrateForUid(uid, "auth-state");
 }, { immediate: true });
+
+window.addEventListener("beforeunload", () => {
+  if (stopIOS) { try { stopIOS(); } catch {} }
+});

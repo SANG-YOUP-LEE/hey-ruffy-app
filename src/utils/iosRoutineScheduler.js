@@ -46,12 +46,22 @@ function toIOSPayloads(r) {
     return [{ ...base }]
   }
 
-  if (mode === 'weekly') {
+  
+const __mapWeekdayToIOS = (wd) => {
+  const n = Number(wd);
+  if (!Number.isFinite(n)) return wd;
+  // UI 저장은 1=월..7=일로 들어올 수 있음 -> iOS는 1=일..7=토
+  if (n >= 1 && n <= 7) return n === 7 ? 1 : n + 1;
+  return wd;
+};
+
+if (mode === 'weekly') {
     const everyWeeks = r.everyWeeks ?? r.weeksInterval ?? 1   // 1=매주, 2=격주, 4/5=매4/5주
-    const weekdays = Array.isArray(r?.alarm?.weekdays) && r.alarm.weekdays.length
+    let weekdays = Array.isArray(r?.alarm?.weekdays) && r.alarm.weekdays.length
       ? r.alarm.weekdays
       : (Array.isArray(r.weekdays) && r.weekdays.length ? r.weekdays : (r.weekday ? [r.weekday] : []))
 
+    weekdays = weekdays.map(__mapWeekdayToIOS);
     return weekdays.map((wd) => ({
       ...base,
       groupId: `${groupBase}__wd${wd}`, // 요일별 분리(취소 쉬움)
