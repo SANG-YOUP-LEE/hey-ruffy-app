@@ -528,13 +528,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
             const endISO   = payload.end
 
             // ✅ 어떤 모드로 재등록하든 과거에 남아 있을 수 있는 daily 알람 먼저 제거
-              try {
-                await waitBridgeReady();
-                postIOS({ action: 'cancel', id: `routine-${routineId}-daily` });
-              } catch (e) {
-                console.warn('[routineForm] daily cancel failed', e);
-              }
-            
+            try {
+              await waitBridgeReady();
+              postIOS({ action: 'cancel', id: `routine-${routineId}-daily` });
+            } catch (e) {
+              console.warn('[routineForm] daily cancel failed', e);
+            }
+
             // 1) N>1일/주 → JS에서 epoch 배열 생성 후 iOS에 직접 등록
             let usedEpochs = null
             if (payload?.repeatType === 'daily') {
@@ -573,10 +573,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
               })
             } else {
               // 2) 그 외(오늘만/매일/매주/매월) → 기존 스케줄러 사용
-
               if (this.icsRule?.freq === 'once') {
-                // ✅ FIX: 오늘만(once)일 때는 'daily'만 정확히 제거하고, once는 남긴다
-                // (base purge를 쓰면 once까지 지워질 수 있음)
+                // ✅ 오늘만(once)일 때는 'daily'만 정확히 제거하고, once는 남긴다
                 if (routineId) {
                   postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
                 }
