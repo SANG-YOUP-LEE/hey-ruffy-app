@@ -64,23 +64,36 @@ export const useSchedulerStore = defineStore('scheduler', {
     },
 
     scheduleWeekly(base, hour, minute, days, title, body = '') {
-      if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
-      const uniq = Array.from(new Set(days.map(d => parseInt(d, 10)))).filter(d => d >= 1 && d <= 7).sort((a,b)=>a-b)
-      uniq.forEach(w => {
-        post({
-          action: 'schedule',
-          id: `${base}-wk-${w}`,
-          baseId: base,
-          repeatMode: 'weekly',
-          weekdays: [w],         // 1=일 ~ 7=토
-          intervalWeeks: 1,
-          hour: Number(hour),
-          minute: Number(minute),
-          title,
-          body,
-        })
-      })
-    },
+  if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
+
+  // 1..7만 허용(일=1 … 토=7), 중복 제거 + 정렬
+  const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
+    .filter(d => d >= 1 && d <= 7)
+    .sort((a,b) => a - b)
+
+  if (!weekdays.length) return
+
+  post({
+    action: 'schedule',
+    // ✅ Swift가 보는 키
+    repeatMode: 'weekly',
+    // (참고로 type을 같이 보내도 무방하지만 Swift는 repeatMode만 사용)
+    // type: 'weekly',
+
+    id: `${base}-weekly`,
+    base,
+
+    // ✅ Swift는 hour/minute만 읽음 (h/m 금지!)
+    hour: Number(hour),
+    minute: Number(minute),
+
+    // ✅ 여러 요일을 한 번에
+    weekdays,
+
+    title,
+    body,
+  })
+},
 
     scheduleMonthly(base, hour, minute, monthDays, title, body = '') {
       if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(monthDays) || !monthDays.length) return

@@ -133,9 +133,12 @@ function stripLinks(obj) {
   delete obj.deepLink;
 }
 
+// 🔁 교체: normalizeSchedulePayload (이 함수만 통으로 교체)
 function normalizeSchedulePayload(msg = {}) {
+  // ── 1) 이미 action:'schedule' 형태로 들어온 케이스 ──
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
+
     if (out.hour != null) out.hour = toInt(out.hour);
     if (out.minute != null) out.minute = toInt(out.minute);
     if (out.interval != null) out.interval = Math.max(1, toInt(out.interval) ?? 1);
@@ -147,6 +150,7 @@ function normalizeSchedulePayload(msg = {}) {
     stripLinks(out);
     out.sound = DEFAULT_SOUND;
 
+    // weekly 보정
     if (out.repeatMode === 'weekly') {
       const days = normalizeWeekdays(out.weekdays) || [];
       const iw = Math.max(1, toInt(out.intervalWeeks) ?? 1);
@@ -161,10 +165,36 @@ function normalizeSchedulePayload(msg = {}) {
         if (out.weekdays && !out.weekdaysICS) out.weekdaysICS = toICSList(out.weekdays);
       }
     }
+
+    // ✅ monthly pass-through: monthDays 배열을 그대로 유지
+    if (String(out.repeatMode).startsWith('monthly')) {
+      // 우선순위: out.monthDays / out.repeatMonthDays / msg.monthDays / msg.repeatMonthDays
+      const arr =
+        (Array.isArray(out.monthDays) ? out.monthDays
+      : Array.isArray(out.repeatMonthDays) ? out.repeatMonthDays
+      : Array.isArray(msg.monthDays) ? msg.monthDays
+      : Array.isArray(msg.repeatMonthDays) ? msg.repeatMonthDays
+      : null);
+
+      if (arr) {
+        out.monthDays = arr.map(toInt).filter(n => n >= 1 && n <= 31);
+        // 배열이 있으면 단일 day는 불필요
+        delete out.day;
+      } else {
+        // 배열이 없을 때만 단일 day fallback
+        const d =
+          toInt(out.day) ??
+          toInt(msg.day) ??
+          toInt((String(out.repeatMonthDays || '').match(/(\d+)/) || [])[1]) ??
+          toInt((String(msg.repeatMonthDays || '').match(/(\d+)/) || [])[1]);
+        if (d != null) out.day = Math.max(1, Math.min(31, d));
+      }
+    }
+
     return out;
   }
 
-  // 일반 케이스
+  // ── 2) 일반 오브젝트를 받아 schedule 페이로드로 만드는 케이스 ──
   const out = { action: 'schedule' };
   out.id = msg.id || msg.baseId || 'inline';
   out.title = msg.title || msg.name || '알람';
@@ -212,6 +242,7 @@ function normalizeSchedulePayload(msg = {}) {
       toInt(msg.everyWeeks) ??
       (toInt((String(msg.repeatWeeks || '').match(/(\d+)/) || [])[1])) ??
       1;
+
     if (iw === 1 && days && days.length === 7) {
       out.repeatMode = 'daily';
       out.interval = 1;
@@ -222,9 +253,22 @@ function normalizeSchedulePayload(msg = {}) {
     }
   }
 
-  if (repeatMode.startsWith('monthly')) {
-    const d = toInt(msg.day) ?? toInt((String(msg.repeatMonthDays || '').match(/(\d+)/) || [])[1]);
-    if (d != null) out.day = Math.max(1, Math.min(31, d));
+  // ✅ monthly pass-through: monthDays 배열 보존 + 단일 day fallback
+  if (String(repeatMode).startsWith('monthly')) {
+    const arr =
+      (Array.isArray(msg.monthDays) ? msg.monthDays
+    : Array.isArray(msg.repeatMonthDays) ? msg.repeatMonthDays
+    : null);
+
+    if (arr) {
+      out.monthDays = arr.map(toInt).filter(n => n >= 1 && n <= 31);
+      delete out.day; // 배열이 있으면 단일 day는 사용 안 함
+    } else {
+      const d =
+        toInt(msg.day) ??
+        toInt((String(msg.repeatMonthDays || '').match(/(\d+)/) || [])[1]);
+      if (d != null) out.day = Math.max(1, Math.min(31, d));
+    }
   }
 
   stripLinks(out);
