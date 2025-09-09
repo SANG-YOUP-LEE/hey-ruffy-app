@@ -22,9 +22,8 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useAuthStore } from "@/stores/auth";
 import { App as CapApp } from "@capacitor/app";
-import { initIOSRoutineScheduler } from "@/utils/iosRoutineScheduler";
 
-// ✅ iOS 알림 브리지 유틸 전역 노출 (콘솔/임시 버튼에서 바로 호출 가능)
+// ✅ iOS 알림 브리지 유틸 전역 노출
 import {
   scheduleOnIOS,
   cancelOnIOS,
@@ -54,40 +53,10 @@ app.mount("#app");
 // ───────────────────────────────────────────
 const hasIOSBridge = () => !!(window.webkit?.messageHandlers?.notify);
 
-//
-// 개발 편의: 전역 바인딩 (Safari 콘솔에서 직접 호출 가능)
-//   - scheduleOnIOS({...})
-//   - cancelOnIOS("id")
-//   - dumpPendingOnIOS("tag")
-//   - debugPingOnIOS(5)
-//
 window.scheduleOnIOS = scheduleOnIOS;
 window.cancelOnIOS = cancelOnIOS;
 window.dumpPendingOnIOS = dumpPendingOnIOS;
 window.debugPingOnIOS = debugPingOnIOS;
-
-// (옵션) 개발 중 자동 1회 테스트 알림: WebView가 준비되어 있고 브리지 있으면 5초 뒤 울림
-if (import.meta.env.DEV) {
-  // 콘솔에서 중복 호출해도 무해
-  if (hasIOSBridge()) {
-    try {
-      debugPingOnIOS(5, "boot");
-      console.log("[DEV] scheduled debugPing(5s)");
-    } catch (e) {
-      console.warn("[DEV] auto debugPing failed:", e);
-    }
-  } else {
-    // 브리지 붙기 전에 로드되면 살짝 늦춰서 재시도
-    setTimeout(() => {
-      if (hasIOSBridge()) {
-        try {
-          debugPingOnIOS(5, "boot-late");
-          console.log("[DEV] scheduled debugPing(5s, late)");
-        } catch {}
-      }
-    }, 800);
-  }
-}
 
 // ───────────────────────────────────────────
 // gesture/zoom 방지
@@ -182,8 +151,7 @@ async function rehydrateForUid(uid, reason = "auto") {
     setLastHash(newHash);
     saveHydrateTime(now);
 
-    // (필요하면 여기서 routine별 scheduleOnIOS 호출 가능)
-    // 예: routines.forEach(r => scheduleOnIOS({...}))
+    // 필요하면 여기서 routine별 scheduleOnIOS 호출 가능
   } catch (e) {
     console.warn("[alarm rehydrate] failed:", e);
   } finally {
@@ -198,7 +166,6 @@ const auth = useAuthStore();
 auth.initOnce();
 
 let currentUid = null;
-let stopIOS = null;
 
 const onVis = () => {
   if (document.visibilityState === "visible" && currentUid) {
@@ -213,11 +180,9 @@ CapApp.addListener("appStateChange", ({ isActive }) => {
 
 watch(() => auth.user?.uid || null, (uid) => {
   currentUid = uid;
-  if (stopIOS) { try { stopIOS(); } catch {} stopIOS = null; }
-  if (uid) { stopIOS = initIOSRoutineScheduler(uid); }
-  rehydrateForUid(uid, "auth-state");
+  if (uid) rehydrateForUid(uid, "auth-state");
 }, { immediate: true });
 
 window.addEventListener("beforeunload", () => {
-  if (stopIOS) { try { stopIOS(); } catch {} }
+  // 필요 시 클린업
 });
