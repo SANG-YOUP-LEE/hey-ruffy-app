@@ -10,7 +10,7 @@ export const useSchedulerStore = defineStore('scheduler', {
   actions: {
     purge(base) {
       if (!base) return
-      post({ action: 'purgeBase', id: base })
+      post({ action: 'purgeBase', baseId: base })
     },
 
     scheduleOnce(base, atISO, title, body = '') {
@@ -44,7 +44,7 @@ export const useSchedulerStore = defineStore('scheduler', {
 
     cancel(base) {
       if (!base) return
-      post({ action: 'purgeBase', id: base })
+      post({ action: 'purgeBase', baseId: base })
     },
 
     reschedule(routine, repeat) {

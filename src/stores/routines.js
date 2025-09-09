@@ -6,6 +6,7 @@ import {
   togglePause as repoTogglePause,
   deleteMany as repoDeleteMany,
 } from '@/stores/routinesRepo'
+import { purgeBases } from '@/utils/iosNotify' // ✅ 추가
 
 /* ───────── helpers ───────── */
 const nowTs = () => Date.now()
@@ -63,7 +64,8 @@ function normalizeRoutine(r) {
     goalCount: Number(r.goalCount ?? 0),
 
     // 반복 규칙 (뷰/필터가 참조함)
-    repeatType: r.repeatType || 'daily',
+    repeatType: r.repeatType || 'daily'
+    ,
     repeatEveryDays: r.repeatEveryDays ?? null,      // ★ 누락 보완
     repeatDays: Array.isArray(r.repeatDays) ? r.repeatDays : [],
     repeatWeeks: r.repeatWeeks || '',
@@ -143,6 +145,16 @@ export const useRoutinesStore = defineStore('routines', {
       const uid = this._boundUid
       const ridList = []
       for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))
+
+      // ✅ iOS 알람 먼저 전량 취소 (routine-<id> 규칙)
+      if (ridList.length) {
+        try {
+          const baseIds = ridList.map(id => `routine-${id}`)
+          purgeBases(baseIds)
+        } catch (_) {}
+      }
+
+      // Firestore 삭제
       if (uid && ridList.length) {
         try { await repoDeleteMany(uid, ridList) } catch (_) {}
       }

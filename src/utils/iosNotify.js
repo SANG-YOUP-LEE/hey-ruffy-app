@@ -300,6 +300,17 @@ export async function cancelOnIOS(idOrBase) {
   }
 }
 
+// ✅ 추가: 베이스 단위 취소 API (표준화)
+export function purgeBase(baseId) {
+  if (!baseId) return;
+  safePost({ action: 'purgeBase', baseId });
+}
+
+// ✅ 추가: 여러 베이스 한번에 취소
+export function purgeBases(baseIds = []) {
+  for (const b of baseIds) purgeBase(b);
+}
+
 export async function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
   if (!(await waitBridgeReady())) { log('[iosNotify] debugPingOnIOS:NO_BRIDGE'); return; }
   safePost({ action: 'debugPing', baseId: tag, seconds: toInt(sec) ?? 20 });
@@ -320,6 +331,8 @@ export default {
   waitBridgeReady,
   scheduleOnIOS,
   cancelOnIOS,
+  purgeBase,      // ✅ 추가
+  purgeBases,     // ✅ 추가
   debugPingOnIOS,
   dumpPendingOnIOS,
   postIOS,
