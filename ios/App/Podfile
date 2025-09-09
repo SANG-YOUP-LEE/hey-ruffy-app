@@ -1,9 +1,13 @@
+# ios/Podfile
 require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
 
 platform :ios, '14.0'
 use_frameworks!
-project 'App.xcodeproj'   # ← 이 줄 추가
 
+# Xcode 프로젝트 지정
+project 'App.xcodeproj'
+
+# 빌드 캐시 최적화 스위치(경로 추정 비활성)
 install! 'cocoapods', :disable_input_output_paths => true
 
 def capacitor_pods
@@ -19,4 +23,14 @@ end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+
+  # ⚠️ Cordova/Capacitor 헤더의 따옴표 include 경고가 에러로 승격되는 문제 차단
+  installer.pods_project.targets.each do |t|
+    t.build_configurations.each do |config|
+      # "double-quoted include in framework header" 경고 끔
+      config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+      # 경고를 에러로 취급 금지
+      config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+    end
+  end
 end

@@ -59,7 +59,7 @@ window.dumpPendingOnIOS = dumpPendingOnIOS;
 window.debugPingOnIOS = debugPingOnIOS;
 
 // ───────────────────────────────────────────
-// gesture/zoom 방지
+// gesture/zoom 방지  (오타: 'gesturestart ' → 'gesturestart')
 // ───────────────────────────────────────────
 document.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
 document.addEventListener("gesturechange", e => e.preventDefault(), { passive: false });
@@ -107,6 +107,7 @@ function stableRoutineSnapshot(routines) {
     endDate: r.endDate ?? null,
     alarmTime: r.alarmTime ?? null,
     tz: r.tz ?? null,
+    rule: r.rule ?? null,
   });
   const arr = routines.map(pick).sort((a, b) => String(a.id).localeCompare(String(b.id)));
   return JSON.stringify(arr);
@@ -127,6 +128,117 @@ function saveHydrateTime(ts = Date.now()) {
 }
 function getLastHash() { return localStorage.getItem(LS_LAST_HASH) || ""; }
 function setLastHash(h) { localStorage.setItem(LS_LAST_HASH, h); }
+
+// 시간 파서 (HH:MM 문자열 → {hour, minute})
+function parseHM(t) {
+  if (!t) return null;
+  const m = String(t).match(/^\s*(\d{1,2}):(\d{2})\s*$/);
+  if (m) {
+    const h = Math.max(0, Math.min(23, +m[1]));
+    const mm = Math.max(0, Math.min(59, +m[2]));
+    return { hour: h, minute: mm };
+  }
+  return null;
+}
+
+// ISO YYYY-MM-DD 생성 (Date-like object {year,month,day})
+const p2 = n => String(n).padStart(2, "0");
+const toISODate = d => (d ? `${d.year}-${p2(d.month)}-${p2(d.day)}` : null);
+const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date());
+const safeISOFromDateObj = (obj) => {
+  const s = toISODate(obj);
+  return (typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)) ? s : null;
+};
+
+// once용 atISO(+09:00 고정)
+const toAtISO = (dateISO, hm) => {
+  if (!dateISO || !hm) return null;
+  return `${dateISO}T${p2(hm.hour)}:${p2(hm.minute)}:00+09:00`;
+};
+const atISOToEpochMs = (atISO) => {
+  const d = new Date(atISO);
+  const ms = d.getTime();
+  return Number.isFinite(ms) ? ms : null;
+};
+
+// 루틴 1개를 iOS에 예약
+async function scheduleRoutineOnIOS(r) {
+  const id = r.id ?? r.routineId;
+  if (!id) return;
+  const baseId = `routine-${id}`;
+  const hm = parseHM(r.alarmTime);
+  if (!hm) return;
+
+  // 기존 것 전부 제거 후 재등록 (중복 방지)
+  try { await cancelOnIOS(baseId); } catch {}
+
+  const title = r.title || "알림";
+
+  // once 판단: rule.freq === 'once' 이거나 daily간격 0 (오늘만)
+  const isOnce =
+    (r.rule && r.rule.freq === "once") ||
+    (r.repeatType === "daily" && (r.repeatDaily === 0 || r.repeatEveryDays === 0)) ||
+    (typeof r.start === "string" && typeof r.end === "string" && r.start === r.end);
+
+  if (isOnce) {
+    const anchor = r.start || safeISOFromDateObj(r.startDate) || todayISO();
+    const atISO = toAtISO(anchor, hm);
+    const ms = atISOToEpochMs(atISO);
+    if (ms && ms > Date.now()) {
+      const sec = Math.floor(ms / 1000);
+      await scheduleOnIOS({
+        id: baseId,
+        title,
+        repeatMode: "once",
+        fireTimesEpoch: [sec],
+        sound: "ruffysound001.wav",
+      });
+    }
+    return;
+  }
+
+  if (r.repeatType === "weekly") {
+    const days = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [];
+    if (days.length) {
+      await scheduleOnIOS({
+        id: baseId,
+        title,
+        repeatMode: "weekly",
+        weekdays: days, // [1..7]
+        hour: hm.hour,
+        minute: hm.minute,
+        sound: "ruffysound001.wav",
+      });
+      return;
+    }
+  }
+
+  if (r.repeatType === "monthly") {
+    const days = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [];
+    if (days.length) {
+      await scheduleOnIOS({
+        id: baseId,
+        title,
+        repeatMode: "monthly",
+        monthDays: days, // [1..31]
+        hour: hm.hour,
+        minute: hm.minute,
+        sound: "ruffysound001.wav",
+      });
+      return;
+    }
+  }
+
+  // 기본: 매일
+  await scheduleOnIOS({
+    id: baseId,
+    title,
+    repeatMode: "daily",
+    hour: hm.hour,
+    minute: hm.minute,
+    sound: "ruffysound001.wav",
+  });
+}
 
 let isHydrating = false;
 async function rehydrateForUid(uid, reason = "auto") {
@@ -151,7 +263,17 @@ async function rehydrateForUid(uid, reason = "auto") {
     setLastHash(newHash);
     saveHydrateTime(now);
 
-    // 필요하면 여기서 routine별 scheduleOnIOS 호출 가능
+    // 🔁 실제 예약
+    for (const r of routines) {
+      try {
+        await scheduleRoutineOnIOS(r);
+      } catch (e) {
+        console.warn("[rehydrate] schedule fail for", r?.id, e);
+      }
+    }
+
+    // 디버깅: 현재 예약 목록 한번 찍기
+    try { await dumpPendingOnIOS("rehydrate"); } catch {}
   } catch (e) {
     console.warn("[alarm rehydrate] failed:", e);
   } finally {
@@ -186,3 +308,17 @@ watch(() => auth.user?.uid || null, (uid) => {
 window.addEventListener("beforeunload", () => {
   // 필요 시 클린업
 });
+
+// ==== 강제 리하이드레이트 (Safari 콘솔에서 호출) ====
+window.rehydrateNow = async () => {
+  try {
+    localStorage.removeItem(LS_LAST_HYDRATE_MS); // 쿨다운 무시
+    const uid = currentUid || useAuthStore().user?.uid || null;
+    console.log("[rehydrateNow] start. uid=", uid);
+    await rehydrateForUid(uid, "manual");
+    try { await dumpPendingOnIOS("manual"); } catch {}
+    console.log("[rehydrateNow] done");
+  } catch (e) {
+    console.warn("[rehydrateNow] error", e);
+  }
+};
