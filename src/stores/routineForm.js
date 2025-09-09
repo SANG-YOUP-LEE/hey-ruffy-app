@@ -8,6 +8,8 @@ import { useSchedulerStore } from '@/stores/scheduler'
 // ✅ iOS 네이티브 알림 브리지
 import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
+// 중복 생성 방지용(동일 틱/연속 탭 가드)
+let __pendingCreateId = null
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
@@ -360,174 +362,189 @@ export const useRoutineFormStore = defineStore('routineForm', {
       return true
     },
 
-        async save() {
-        if (this.isSaving) return { ok:false }
-        this.isSaving = true
-        try {
-          if (!this.validate()) return { ok:false }
+       async save() {
+  if (this.isSaving) return { ok:false }
+  this.isSaving = true
+  try {
+    if (!this.validate()) return { ok:false }
 
-          const auth = useAuthStore()
-          await auth.ensureReady()
-          const uid = auth.user?.uid
-          if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
+    const auth = useAuthStore()
+    await auth.ensureReady()
+    const uid = auth.user?.uid
+    if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
 
-          // ⬇️ alarmTime 정규화(HH:mm) - Firestore에는 문자열로만 저장
-          const basePayload = this.payload
-          const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
-          const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
-          const payload = { ...basePayload, alarmTime: normalizedAlarm }
+    // ⬇️ 알람 정규화: UI용 객체 유지 + 스케줄러용 HH:mm 추가
+    const basePayload = this.payload
 
-          let res
-          if (this.mode === 'edit' && this.routineId) {
-            const rid = getBaseId(this.routineId)
-            await setDoc(
-              doc(db, 'users', uid, 'routines', rid),
-              { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
-              { merge: true }
+    // 1) 스케줄러/네이티브용 HH:mm
+    const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
+    const alarmHM = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
+
+    // 2) UI 표시용 객체(오전/오후 유지)
+    const toKoAmpm = (a) => (a === 'PM' || a === '오후') ? '오후'
+                           : (a === 'AM' || a === '오전') ? '오전' : ''
+    const pad2 = (n) => String(n ?? '').padStart(2,'0')
+
+    let alarmObj = null
+    if (this.alarmTime && typeof this.alarmTime === 'object') {
+      alarmObj = {
+        ampm: toKoAmpm(this.alarmTime.ampm),
+        hour: pad2(this.alarmTime.hour),
+        minute: pad2(this.alarmTime.minute)
+      }
+    } else if (basePayload.alarmTime && typeof basePayload.alarmTime === 'object') {
+      const a = basePayload.alarmTime
+      alarmObj = { ampm: toKoAmpm(a.ampm), hour: pad2(a.hour), minute: pad2(a.minute) }
+    }
+
+    // 최종 페이로드: alarmTime(객체) 유지 + alarmHM 추가
+    const payload = { ...basePayload, alarmTime: alarmObj, alarmHM }
+
+    let res
+    if (this.mode === 'edit' && this.routineId) {
+      const rid = getBaseId(this.routineId)
+      await setDoc(
+        doc(db, 'users', uid, 'routines', rid),
+        { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
+        { merge: true }
+      )
+      res = { ok:true, id: rid, data: payload }
+    } else {
+      const colRef = collection(db, 'users', uid, 'routines')
+      const nowMs = Date.now()
+      const docRef = await addDoc(
+        colRef,
+        { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs }
+      )
+      res = { ok:true, id: docRef.id, data: payload }
+    }
+
+    // ── 앱 내부 스케줄러(기존) 유지 ─────────────────────
+    try {
+      const sch = useSchedulerStore()
+      const hm = parseHM(alarmHM || this.alarmTime || payload.alarmTime)
+      const routineId = res?.id
+      const title = this.title || payload.title || '알림'
+
+      if (routineId && hm) {
+        if (this.icsRule?.freq === 'once') {
+          const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+          const atISO = toAtISO(dateISO, hm)
+          if (atISO) {
+            sch.reschedule(
+              { id: routineId, title, hour: hm.hour, minute: hm.minute },
+              { mode: 'ONCE', at: atISO }
             )
-            res = { ok:true, id: rid, data: payload }
-          } else {
-            const colRef = collection(db, 'users', uid, 'routines')
-            const nowMs = Date.now()
-            const docRef = await addDoc(colRef, {
-              ...payload,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp(),
-              createdAtMs: nowMs,
-              updatedAtMs: nowMs
-            })
-            res = { ok:true, id: docRef.id, data: payload }
           }
-
-          // ── 앱 내부 스케줄러(기존) 유지 ─────────────────────
-          try {
-            const sch = useSchedulerStore()
-            const hm = parseHM(this.alarmTime || payload.alarmTime)
-            const routineId = res?.id
-            const title = this.title || payload.title || '알림'
-
-            if (routineId && hm) {
-              if (this.icsRule?.freq === 'once') {
-                const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
-                const atISO = toAtISO(dateISO, hm)
-                if (atISO) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'ONCE', at: atISO }
-                  )
-                }
-              } else if (payload?.repeatType === 'daily') {
-                const n = Number(payload?.repeatEveryDays || 0)
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'DAILY_EVERY_N', n: n > 0 ? n : 1 }
-                )
-              } else if (payload?.repeatType === 'weekly') {
-                const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
-                if (days.length) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'WEEKLY', days }
-                  )
-                }
-              } else if (payload?.repeatType === 'monthly') {
-                const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
-                if (days.length) {
-                  // 내부 스케줄러는 참고용, 실제 알림은 네이티브 담당
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'MONTHLY', days }
-                  )
-                }
-              }
-            }
-          } catch (e) {
-            console.warn('[routineForm] schedule error', e)
+        } else if (payload?.repeatType === 'daily') {
+          const n = Number(payload?.repeatEveryDays || 0)
+          sch.reschedule(
+            { id: routineId, title, hour: hm.hour, minute: hm.minute },
+            { mode: 'DAILY_EVERY_N', n: n > 0 ? n : 1 }
+          )
+        } else if (payload?.repeatType === 'weekly') {
+          const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
+          if (days.length) {
+            sch.reschedule(
+              { id: routineId, title, hour: hm.hour, minute: hm.minute },
+              { mode: 'WEEKLY', days }
+            )
           }
-
-          // ── iOS 네이티브 로컬 알림 ───────────────────────
-          try {
-            const hm = parseHM(this.alarmTime || payload.alarmTime)
-            const routineId = res?.id
-            const title = this.title || payload.title || '알람'
-            const baseId = routineId ? `routine-${routineId}` : null
-
-            if (routineId && hm && baseId) {
-              // ✅ 신규/수정 구분 없이 항상 purge 먼저 → 중복 방지
-              await cancelOnIOS(baseId)
-
-              if (this.icsRule?.freq === 'once') {
-                // 정확 날짜·시간 1회 알림: epoch(초) + 과거 방지
-                const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
-                const atISO = toAtISO(dateISO, hm)
-                const ms = atISOToEpochMs(atISO)
-                const now = Date.now()
-
-                if (ms && ms > now) {
-                  const sec = Math.floor(ms / 1000)
-                  await scheduleOnIOS({
-                    id: baseId,
-                    title,
-                    repeatMode: 'once',
-                    fireTimesEpoch: [sec],
-                    sound: 'ruffysound001.wav'
-                  })
-                } else {
-                  console.warn('[routineForm] once schedule skipped (past time)', { atISO })
-                }
-              } else if (payload?.repeatType === 'daily') {
-                await scheduleOnIOS({
-                  id: baseId,
-                  title,
-                  repeatMode: 'daily',
-                  hour: hm.hour,
-                  minute: hm.minute,
-                  sound: 'ruffysound001.wav'
-                })
-              } else if (payload?.repeatType === 'weekly') {
-                const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays : []
-                await scheduleOnIOS({
-                  id: baseId,
-                  title,
-                  repeatMode: 'weekly',
-                  weekdays: days, // [1..7] (일=1 … 토=7)
-                  hour: hm.hour,
-                  minute: hm.minute,
-                  sound: 'ruffysound001.wav'
-                })
-              } else if (payload?.repeatType === 'monthly') {
-                const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays : []
-                await scheduleOnIOS({
-                  id: baseId,
-                  title,
-                  repeatMode: 'monthly',
-                  monthDays: days, // [1..31]
-                  hour: hm.hour,
-                  minute: hm.minute,
-                  sound: 'ruffysound001.wav'
-                })
-              } else {
-                // 안전망: 매일
-                await scheduleOnIOS({
-                  id: baseId,
-                  title,
-                  repeatMode: 'daily',
-                  hour: hm.hour,
-                  minute: hm.minute,
-                  sound: 'ruffysound001.wav'
-                })
-              }
-            }
-          } catch (e) {
-            console.warn('[routineForm] iOS scheduleOnIOS error', e)
+        } else if (payload?.repeatType === 'monthly') {
+          const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
+          if (days.length) {
+            sch.reschedule(
+              { id: routineId, title, hour: hm.hour, minute: hm.minute },
+              { mode: 'MONTHLY', days }
+            )
           }
-
-          return res
-        } catch (e) {
-          return { ok:false, error: String(e && e.message ? e.message : e) }
-        } finally {
-          this.isSaving = false
         }
       }
+    } catch (e) {
+      console.warn('[routineForm] schedule error', e)
+    }
+
+    // ── iOS 네이티브 로컬 알림 ───────────────────────
+    try {
+      const hm = parseHM(alarmHM || this.alarmTime || payload.alarmTime)
+      const routineId = res?.id
+      const title = this.title || payload.title || '알람'
+      const baseId = routineId ? `routine-${routineId}` : null
+
+      if (routineId && hm) {
+        if (this.mode === 'edit' && baseId) {
+          await cancelOnIOS(baseId)
+        }
+
+        if (this.icsRule?.freq === 'once') {
+          const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+          const atISO = toAtISO(dateISO, hm)
+          const ms = atISOToEpochMs(atISO)
+          const now = Date.now()
+          if (ms && ms > now) {
+            const sec = Math.floor(ms / 1000)
+            await scheduleOnIOS({
+              id: baseId,
+              title,
+              repeatMode: 'once',
+              fireTimesEpoch: [sec],
+              sound: 'ruffysound001.wav'
+            })
+          } else {
+            console.warn('[routineForm] once schedule skipped (past time)', { atISO })
+          }
+        } else if (payload?.repeatType === 'daily') {
+          await scheduleOnIOS({
+            id: baseId,
+            title,
+            repeatMode: 'daily',
+            hour: hm.hour,
+            minute: hm.minute,
+            sound: 'ruffysound001.wav'
+          })
+        } else if (payload?.repeatType === 'weekly') {
+          const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays : []
+          await scheduleOnIOS({
+            id: baseId,
+            title,
+            repeatMode: 'weekly',
+            weekdays: days,
+            hour: hm.hour,
+            minute: hm.minute,
+            sound: 'ruffysound001.wav'
+          })
+        } else if (payload?.repeatType === 'monthly') {
+          const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays : []
+          await scheduleOnIOS({
+            id: baseId,
+            title,
+            repeatMode: 'monthly',
+            monthDays: days,
+            hour: hm.hour,
+            minute: hm.minute,
+            sound: 'ruffysound001.wav'
+          })
+        } else {
+          await scheduleOnIOS({
+            id: baseId,
+            title,
+            repeatMode: 'daily',
+            hour: hm.hour,
+            minute: hm.minute,
+            sound: 'ruffysound001.wav'
+          })
+        }
+      }
+    } catch (e) {
+      console.warn('[routineForm] iOS scheduleOnIOS error', e)
+    }
+
+    return res
+  } catch (e) {
+    return { ok:false, error: String(e && e.message ? e.message : e) }
+  } finally {
+    this.isSaving = false
+  }
+}
   }
 })
