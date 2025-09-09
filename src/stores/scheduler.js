@@ -1,3 +1,4 @@
+// src/stores/scheduler.js
 import { defineStore } from 'pinia'
 
 const mh = () => window.webkit?.messageHandlers?.notify
@@ -64,26 +65,18 @@ export const useSchedulerStore = defineStore('scheduler', {
 
     scheduleWeekly(base, hour, minute, days, title, body = '') {
       if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
-
-      // 1..7만 허용(일=1 … 토=7), 중복 제거 + 정렬
       const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
         .filter(d => d >= 1 && d <= 7)
         .sort((a,b) => a - b)
-
       if (!weekdays.length) return
-
       post({
         action: 'schedule',
         repeatMode: 'weekly',
         id: `${base}-weekly`,
-
-        // ✅ 키 통일: baseId 사용
-        baseId: base,
-
+        base,
         hour: Number(hour),
         minute: Number(minute),
         weekdays,
-
         title,
         body,
       })
@@ -121,6 +114,8 @@ export const useSchedulerStore = defineStore('scheduler', {
       if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
 
       if (q.has(base)) clearTimeout(q.get(base))
+
+      // 🔧 여기서는 의도적으로 purge → schedule 순서를 유지(명시적 재설정 시)
       this.purge(base)
       const t = setTimeout(() => {
         if (repeat.mode === 'ONCE') {
@@ -147,8 +142,8 @@ export const useSchedulerStore = defineStore('scheduler', {
             baseId: base,
             repeatMode: 'daily',
             interval: n,
-            hour: Number(hour),     // ✅ 숫자 캐스팅
-            minute: Number(minute), // ✅ 숫자 캐스팅
+            hour,
+            minute,
             title,
             body,
           })
@@ -158,6 +153,7 @@ export const useSchedulerStore = defineStore('scheduler', {
     },
 
     // 파이어스토어에서 불러온 루틴들로 재하이드레이트
+    // ✅ ONCE(오늘만)으로 저장된 루틴은 "건드리지 않도록" purge 위치를 변경
     rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
       list.forEach((r) => {
@@ -168,39 +164,42 @@ export const useSchedulerStore = defineStore('scheduler', {
         const { hour, minute } = resolveAlarmHM(r)
         if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
 
-        this.purge(base)
-
         const rt = String(r.repeatType || 'daily').toLowerCase()
 
+        // 1) daily인데 오늘만(once)이면 건드리지 않음 (purge 금지)
         if (rt === 'daily') {
-          // ✅ 오늘만(once)은 제외
           if (Number(r.repeatDaily) === 0 || r.rule?.freq === 'once') {
             return
           }
+          // 실제로 daily를 재등록할 때만 purge
+          this.purge(base)
           this.scheduleDaily(base, hour, minute, title, body)
           return
         }
 
+        // 2) weekly
         if (rt.includes('week')) {
           const days = Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length
             ? r.repeatWeekDays
             : (Array.isArray(r.repeatDays) ? r.repeatDays : [])
           if (Array.isArray(days) && days.length) {
+            this.purge(base)
             this.scheduleWeekly(base, hour, minute, days, title, body)
             return
           }
         }
 
+        // 3) monthly
         if (rt.includes('month')) {
           const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
           if (md.length) {
+            this.purge(base)
             this.scheduleMonthly(base, hour, minute, md, title, body)
             return
           }
         }
 
-        // ✅ 기본 데일리 강제 등록 제거 (once가 다시 daily로 깔리는 문제 방지)
-        return
+        // 그 외 타입은 조용히 스킵 (기본 DAILY 강제 설치 없음)
       })
     }
   }
