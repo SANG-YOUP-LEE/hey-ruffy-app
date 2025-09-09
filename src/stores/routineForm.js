@@ -362,7 +362,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       return true
     },
 
-       async save() {
+     async save() {
   if (this.isSaving) return { ok:false }
   this.isSaving = true
   try {
@@ -373,34 +373,14 @@ export const useRoutineFormStore = defineStore('routineForm', {
     const uid = auth.user?.uid
     if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
 
-    // ⬇️ 알람 정규화: UI용 객체 유지 + 스케줄러용 HH:mm 추가
+    // ⬇️ alarmTime 정규화(HH:mm) — Firestore엔 항상 "HH:mm"으로 저장
     const basePayload = this.payload
-
-    // 1) 스케줄러/네이티브용 HH:mm
     const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
-    const alarmHM = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
-
-    // 2) UI 표시용 객체(오전/오후 유지)
-    const toKoAmpm = (a) => (a === 'PM' || a === '오후') ? '오후'
-                           : (a === 'AM' || a === '오전') ? '오전' : ''
-    const pad2 = (n) => String(n ?? '').padStart(2,'0')
-
-    let alarmObj = null
-    if (this.alarmTime && typeof this.alarmTime === 'object') {
-      alarmObj = {
-        ampm: toKoAmpm(this.alarmTime.ampm),
-        hour: pad2(this.alarmTime.hour),
-        minute: pad2(this.alarmTime.minute)
-      }
-    } else if (basePayload.alarmTime && typeof basePayload.alarmTime === 'object') {
-      const a = basePayload.alarmTime
-      alarmObj = { ampm: toKoAmpm(a.ampm), hour: pad2(a.hour), minute: pad2(a.minute) }
-    }
-
-    // 최종 페이로드: alarmTime(객체) 유지 + alarmHM 추가
-    const payload = { ...basePayload, alarmTime: alarmObj, alarmHM }
+    const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
+    const payload = { ...basePayload, alarmTime: normalizedAlarm }
 
     let res
+
     if (this.mode === 'edit' && this.routineId) {
       const rid = getBaseId(this.routineId)
       await setDoc(
@@ -412,23 +392,21 @@ export const useRoutineFormStore = defineStore('routineForm', {
     } else {
       const colRef = collection(db, 'users', uid, 'routines')
       const nowMs = Date.now()
-      const docRef = await addDoc(
-        colRef,
-        { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs }
-      )
+      const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
       res = { ok:true, id: docRef.id, data: payload }
     }
 
-    // ── 앱 내부 스케줄러(기존) 유지 ─────────────────────
+    // ── 앱 내부 스케줄러(기존) ── 필요 없으면 그대로 두거나 주석처리 가능
     try {
       const sch = useSchedulerStore()
-      const hm = parseHM(alarmHM || this.alarmTime || payload.alarmTime)
+      const hm = parseHM(this.alarmTime || payload.alarmTime)
       const routineId = res?.id
       const title = this.title || payload.title || '알림'
 
       if (routineId && hm) {
         if (this.icsRule?.freq === 'once') {
-          const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+          // once는 내부 스케줄러에도 오늘 날짜 기준으로 넣어줌
+          const dateISO = todayISO()
           const atISO = toAtISO(dateISO, hm)
           if (atISO) {
             sch.reschedule(
@@ -466,21 +444,26 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
     // ── iOS 네이티브 로컬 알림 ───────────────────────
     try {
-      const hm = parseHM(alarmHM || this.alarmTime || payload.alarmTime)
+      const hm = parseHM(this.alarmTime || payload.alarmTime)
       const routineId = res?.id
       const title = this.title || payload.title || '알람'
       const baseId = routineId ? `routine-${routineId}` : null
 
       if (routineId && hm) {
+        // 편집 시 기존 알림 제거 (중복 방지)
         if (this.mode === 'edit' && baseId) {
-          await cancelOnIOS(baseId)
+          await cancelOnIOS(baseId) // baseId가 routine-로 시작 → purgeBase 동작
         }
 
         if (this.icsRule?.freq === 'once') {
-          const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
+          // ✅ once: "오늘 날짜" + 선택 시각으로 고정
+          const dateISO = todayISO()
           const atISO = toAtISO(dateISO, hm)
           const ms = atISOToEpochMs(atISO)
           const now = Date.now()
+
+          console.log('[once DEBUG]', { dateISO, atISO, ms, now, diff: (ms ?? 0) - now })
+
           if (ms && ms > now) {
             const sec = Math.floor(ms / 1000)
             await scheduleOnIOS({
@@ -508,7 +491,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
             id: baseId,
             title,
             repeatMode: 'weekly',
-            weekdays: days,
+            weekdays: days, // [1..7]
             hour: hm.hour,
             minute: hm.minute,
             sound: 'ruffysound001.wav'
@@ -519,12 +502,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
             id: baseId,
             title,
             repeatMode: 'monthly',
-            monthDays: days,
+            monthDays: days, // [1..31]
             hour: hm.hour,
             minute: hm.minute,
             sound: 'ruffysound001.wav'
           })
         } else {
+          // 안전망: 매일
           await scheduleOnIOS({
             id: baseId,
             title,
