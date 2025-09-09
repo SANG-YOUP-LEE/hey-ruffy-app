@@ -1,4 +1,3 @@
-// src/stores/scheduler.js
 import { defineStore } from 'pinia'
 
 const mh = () => window.webkit?.messageHandlers?.notify
@@ -64,36 +63,31 @@ export const useSchedulerStore = defineStore('scheduler', {
     },
 
     scheduleWeekly(base, hour, minute, days, title, body = '') {
-  if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
+      if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
 
-  // 1..7만 허용(일=1 … 토=7), 중복 제거 + 정렬
-  const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
-    .filter(d => d >= 1 && d <= 7)
-    .sort((a,b) => a - b)
+      // 1..7만 허용(일=1 … 토=7), 중복 제거 + 정렬
+      const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
+        .filter(d => d >= 1 && d <= 7)
+        .sort((a,b) => a - b)
 
-  if (!weekdays.length) return
+      if (!weekdays.length) return
 
-  post({
-    action: 'schedule',
-    // ✅ Swift가 보는 키
-    repeatMode: 'weekly',
-    // (참고로 type을 같이 보내도 무방하지만 Swift는 repeatMode만 사용)
-    // type: 'weekly',
+      post({
+        action: 'schedule',
+        repeatMode: 'weekly',
+        id: `${base}-weekly`,
 
-    id: `${base}-weekly`,
-    base,
+        // ✅ 키 통일: baseId 사용
+        baseId: base,
 
-    // ✅ Swift는 hour/minute만 읽음 (h/m 금지!)
-    hour: Number(hour),
-    minute: Number(minute),
+        hour: Number(hour),
+        minute: Number(minute),
+        weekdays,
 
-    // ✅ 여러 요일을 한 번에
-    weekdays,
-
-    title,
-    body,
-  })
-},
+        title,
+        body,
+      })
+    },
 
     scheduleMonthly(base, hour, minute, monthDays, title, body = '') {
       if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(monthDays) || !monthDays.length) return
@@ -153,8 +147,8 @@ export const useSchedulerStore = defineStore('scheduler', {
             baseId: base,
             repeatMode: 'daily',
             interval: n,
-            hour,
-            minute,
+            hour: Number(hour),     // ✅ 숫자 캐스팅
+            minute: Number(minute), // ✅ 숫자 캐스팅
             title,
             body,
           })
@@ -177,6 +171,16 @@ export const useSchedulerStore = defineStore('scheduler', {
         this.purge(base)
 
         const rt = String(r.repeatType || 'daily').toLowerCase()
+
+        if (rt === 'daily') {
+          // ✅ 오늘만(once)은 제외
+          if (Number(r.repeatDaily) === 0 || r.rule?.freq === 'once') {
+            return
+          }
+          this.scheduleDaily(base, hour, minute, title, body)
+          return
+        }
+
         if (rt.includes('week')) {
           const days = Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length
             ? r.repeatWeekDays
@@ -186,6 +190,7 @@ export const useSchedulerStore = defineStore('scheduler', {
             return
           }
         }
+
         if (rt.includes('month')) {
           const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
           if (md.length) {
@@ -193,7 +198,9 @@ export const useSchedulerStore = defineStore('scheduler', {
             return
           }
         }
-        this.scheduleDaily(base, hour, minute, title, body)
+
+        // ✅ 기본 데일리 강제 등록 제거 (once가 다시 daily로 깔리는 문제 방지)
+        return
       })
     }
   }
