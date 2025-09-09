@@ -23,10 +23,10 @@ import { db } from "@/firebase";
 import { useAuthStore } from "@/stores/auth";
 import { App as CapApp } from "@capacitor/app";
 
-// ✅ iOS 네이티브 알림 브리지 (이 파일만 사용)
+// ✅ iOS 네이티브 알림 브리지 (디버그만 사용: 예약은 scheduler.js 전담)
 import {
-  scheduleOnIOS,
-  cancelOnIOS,
+  // scheduleOnIOS,   // 제거
+  // cancelOnIOS,     // 제거
   dumpPendingOnIOS,
 } from "@/utils/iosNotify";
 
@@ -72,15 +72,15 @@ document.addEventListener("wheel", e => {
 // iOS 브리지 유틸 전역 바인딩(개발/운영 공용: 점검용)
 // ───────────────────────────────────────────
 const hasIOSBridge = () => !!(window.webkit?.messageHandlers?.notify);
-window.scheduleOnIOS = scheduleOnIOS;
-window.cancelOnIOS = cancelOnIOS;
+// window.scheduleOnIOS = scheduleOnIOS;   // 제거
+// window.cancelOnIOS = cancelOnIOS;       // 제거
 window.dumpPendingOnIOS = dumpPendingOnIOS;
 
 // ───────────────────────────────────────────
 // 리하이드레이트(재등록) 안정 로직
 //  - 쿨다운(기본 3분)
 //  - 해시가드(루틴 변화 없으면 스킵)
-//  - 예약 전 purge(cancelOnIOS)로 중복 제거
+//  - 예약 전 purge(cancelOnIOS)로 중복 제거  ← 이제 scheduler가 전담
 // ───────────────────────────────────────────
 
 // 저장 키
@@ -140,75 +140,16 @@ const toISODate = d => (d?.year && d?.month && d?.day) ? `${d.year}-${p2(d.month
 const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date());
 const toAtISO = (dateISO, hm) => (dateISO && hm) ? `${dateISO}T${p2(hm.hour)}:${p2(hm.minute)}:00+09:00` : null;
 
-// 한 개 루틴 예약 (중복 방지 위해 먼저 purge)
+// 한 개 루틴 예약 (중복 방지 위해 먼저 purge) ← 이제 실예약은 scheduler가 담당
 async function scheduleOne(r) {
   const rid = r.id ?? r.routineId; if (!rid) return;
   const baseId = `routine-${rid}`;
   const hm = parseHM(r.alarmTime); if (!hm) return;
 
-  // 1) purge
-  try { await cancelOnIOS(baseId); } catch {}
-
-  // 2) 매핑
-  const title = r.title || "알림";
-
-  // 단발성(ONCE) 판단: rule.freq === 'once' 또는 daily 간격 0 또는 start==end
-  const isOnce =
-    (r.rule?.freq === "once") ||
-    (r.repeatType === "daily" && (r.repeatEveryDays === 0 || r.repeatDaily === 0)) ||
-    (typeof r.start === "string" && typeof r.end === "string" && r.start === r.end);
-
-  if (isOnce) {
-    const anchor = r.start || toISODate(r.startDate) || todayISO();
-    const atISO = toAtISO(anchor, hm);
-    const ms = atISO ? new Date(atISO).getTime() : NaN;
-    if (Number.isFinite(ms) && ms > Date.now()) {
-      await scheduleOnIOS({
-        id: baseId,
-        title,
-        repeatMode: "once",
-        fireTimesEpoch: [Math.floor(ms / 1000)],
-        sound: "ruffysound001.wav",
-      });
-    }
-    return;
-  }
-
-  if (r.repeatType === "weekly" && Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length) {
-    await scheduleOnIOS({
-      id: baseId,
-      title,
-      repeatMode: "weekly",
-      weekdays: r.repeatWeekDays,       // [1..7] (일=1 … 토=7)
-      hour: hm.hour,
-      minute: hm.minute,
-      sound: "ruffysound001.wav",
-    });
-    return;
-  }
-
-  if (r.repeatType === "monthly" && Array.isArray(r.repeatMonthDays) && r.repeatMonthDays.length) {
-    await scheduleOnIOS({
-      id: baseId,
-      title,
-      repeatMode: "monthly",
-      monthDays: r.repeatMonthDays,     // [1..31]
-      hour: hm.hour,
-      minute: hm.minute,
-      sound: "ruffysound001.wav",
-    });
-    return;
-  }
-
-  // 기본: 매일
-  await scheduleOnIOS({
-    id: baseId,
-    title,
-    repeatMode: "daily",
-    hour: hm.hour,
-    minute: hm.minute,
-    sound: "ruffysound001.wav",
-  });
+  // 과거: cancelOnIOS(baseId)로 purge → scheduleOnIOS(...) 호출
+  // 현재: 예약은 routines/scheduler가 처리하므로 여기서는 아무 것도 하지 않음.
+  // (남겨둔 이유: 해시/쿨다운 로직의 형태를 유지하기 위해)
+  void baseId; void hm; // linter quiet
 }
 
 // 전체 리하이드레이트
@@ -233,13 +174,9 @@ async function rehydrateForUid(uid, reason = "auto", { force = false } = {}) {
     setHash(newHash);
     markHydrated();
 
-    // 예약(중복 방지: scheduleOne 안에서 purge)
-    for (const r of routines) {
-      try { await scheduleOne(r); }
-      catch (e) { console.warn("[rehydrate] schedule fail:", r?.id, e); }
-    }
-
-    // 점검 로그
+    // 과거: 여기서 scheduleOne(r)로 직접 예약했음 → 중복 원인
+    // 현재: 예약은 routines.js(bind) → scheduler.js(rehydrateFromRoutines) 경로가 수행
+    //       이 파일에서는 디버그 덤프만 남김
     try { await dumpPendingOnIOS(reason || "rehydrate"); } catch {}
   } catch (e) {
     console.warn("[rehydrate] failed:", e);

@@ -5,8 +5,8 @@ import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/fires
 import { useAuthStore } from '@/stores/auth'
 import { useSchedulerStore } from '@/stores/scheduler'
 
-// ✅ iOS 네이티브 알림 브리지
-import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
+// ⛔️ iOS 네이티브 알림 직접 호출 제거 (중복 예약 방지)
+// import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
 // 중복 생성 방지용(동일 틱/연속 탭 가드)
 let __pendingCreateId = null
@@ -28,7 +28,6 @@ const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isF
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
 // ── 시간 파서/도우미 ─────────────────────────────────────
-// ⬇️ 수정: 한글 '오전/오후'도 지원
 const parseHM = (t) => {
   if (!t) return null
 
@@ -74,9 +73,7 @@ const parseHM = (t) => {
 
 const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
   if (!dateISO || !hm) return null
-  // ✅ hm 유효성 체크 추가
   if (!Number.isFinite(hm.hour) || !Number.isFinite(hm.minute)) return null
-  // 고정 +09:00 (Asia/Seoul). 필요하면 tz 적용 로직 확장.
   return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00`
 }
 
@@ -322,262 +319,180 @@ export const useRoutineFormStore = defineStore('routineForm', {
     },
 
     validate() {
-  this.clearErrors()
+      this.clearErrors()
 
-  // 공통 필드 체크
-  if (!this.title || String(this.title).trim() === '') {
-    this.setError('title','다짐 제목을 입력해주세요.')
-    return false
-  }
-  if (!this.repeatType) {
-    this.setError('repeat','반복 주기를 선택해주세요.')
-    return false
-  }
+      // 공통 필드 체크
+      if (!this.title || String(this.title).trim() === '') {
+        this.setError('title','다짐 제목을 입력해주세요.')
+        return false
+      }
+      if (!this.repeatType) {
+        this.setError('repeat','반복 주기를 선택해주세요.')
+        return false
+      }
 
-  // 반복 주기별 체크
-  if (this.repeatType === 'daily') {
-    if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
-      this.setError('repeat','반복 주기를 선택해주세요.')
-      return false
-    }
-  }
+      // 반복 주기별 체크
+      if (this.repeatType === 'daily') {
+        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+          this.setError('repeat','반복 주기를 선택해주세요.')
+          return false
+        }
+      }
 
-  if (this.repeatType === 'weekly') {
-    const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
-    if (!valid) {
-      this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
-      return false
-    }
-  }
+      if (this.repeatType === 'weekly') {
+        const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
+        if (!valid) {
+          this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
+          return false
+        }
+      }
 
-  if (this.repeatType === 'monthly') {
-    if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
-      this.setError('repeat','반복 주기를 선택해주세요.')
-      return false
-    }
-    if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
-      this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
-      return false
-    }
-  }
+      if (this.repeatType === 'monthly') {
+        if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
+          this.setError('repeat','반복 주기를 선택해주세요.')
+          return false
+        }
+        if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
+          this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
+          return false
+        }
+      }
 
-  if (!Number.isInteger(this.colorIndex)) {
-    this.setError('priority','다짐 색상을 선택해주세요.')
-    return false
-  }
+      if (!Number.isInteger(this.colorIndex)) {
+        this.setError('priority','다짐 색상을 선택해주세요.')
+        return false
+      }
 
-  const sc = sanitizeComment(this.comment)
-  if (this.comment && this.comment.trim().length > 200) {
-    this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
-    return false
-  }
+      const sc = sanitizeComment(this.comment)
+      if (this.comment && this.comment.trim().length > 200) {
+        this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
+        return false
+      }
 
-  // 걷기 모드 켜져 있을 때만 체크
-  if (!this.isWalkModeOff) {
-    if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-    if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-    if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
-  }
+      // 걷기 모드 켜져 있을 때만 체크
+      if (!this.isWalkModeOff) {
+        if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
+        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
+        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+      }
 
-  // 코멘트 정리
-  if (sc === null) this.comment = ''
+      // 코멘트 정리
+      if (sc === null) this.comment = ''
 
-  // ✅ “오늘만(once)”일 때 과거시간 방지
-  // repeatType=daily && repeatDaily=0 이면 오늘만(once)로 간주
-  const isOnce =
-    this.repeatType === 'daily' &&
-    Number.isInteger(this.repeatDaily) &&
-    this.repeatDaily === 0
+      // ✅ “오늘만(once)”일 때 과거시간 방지
+      // repeatType=daily && repeatDaily=0 이면 오늘만(once)로 간주
+      const isOnce =
+        this.repeatType === 'daily' &&
+        Number.isInteger(this.repeatDaily) &&
+        this.repeatDaily === 0
 
-  if (isOnce) {
-    const hm = parseHM(this.alarmTime) // {ampm:'오전/오후', hour:'HH', minute:'MM'} or "HH:mm"
-    if (!hm) {
-      this.setError('alarm','알람 시간을 선택해주세요.')
-      return false
-    }
-    // 기준 날짜: 선택된 시작일 있으면 그 날, 없으면 오늘(Asia/Seoul)
-    const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
-    const atISO = toAtISO(dateISO, hm)   // "YYYY-MM-DDTHH:mm:00+09:00"
-    const ms = atISOToEpochMs(atISO)
-    const now = Date.now()
-    const GRACE_MS = 5000 // 5초 유예 (사용자 탭/저장 지연 보정)
+      if (isOnce) {
+        const hm = parseHM(this.alarmTime)
+        if (!hm) {
+          this.setError('alarm','알람 시간을 선택해주세요.')
+          return false
+        }
+        const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
+        const atISO = toAtISO(dateISO, hm)
+        const ms = atISOToEpochMs(atISO)
+        const now = Date.now()
+        const GRACE_MS = 5000
 
-    if (!ms || ms <= (now + GRACE_MS)) {
-      this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
-      return false
-    }
-  }
+        if (!ms || ms <= (now + GRACE_MS)) {
+          this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
+          return false
+        }
+      }
 
-  return true
-},
+      return true
+    },
 
     async save() {
-  if (this.isSaving) return { ok:false }
-  this.isSaving = true
-  try {
-    if (!this.validate()) return { ok:false }
+      if (this.isSaving) return { ok:false }
+      this.isSaving = true
+      try {
+        if (!this.validate()) return { ok:false }
 
-    const auth = useAuthStore()
-    await auth.ensureReady()
-    const uid = auth.user?.uid
-    if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
+        const auth = useAuthStore()
+        await auth.ensureReady()
+        const uid = auth.user?.uid
+        if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
 
-    // ⬇️ alarmTime 정규화(HH:mm) — Firestore엔 항상 "HH:mm"으로 저장
-    const basePayload = this.payload
-    const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
-    const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
-    const payload = { ...basePayload, alarmTime: normalizedAlarm }
+        // ⬇️ alarmTime 정규화(HH:mm) — Firestore엔 항상 "HH:mm"으로 저장
+        const basePayload = this.payload
+        const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
+        const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
+        const payload = { ...basePayload, alarmTime: normalizedAlarm }
 
-    let res
+        let res
 
-    if (this.mode === 'edit' && this.routineId) {
-      const rid = getBaseId(this.routineId)
-      await setDoc(
-        doc(db, 'users', uid, 'routines', rid),
-        { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
-        { merge: true }
-      )
-      res = { ok:true, id: rid, data: payload }
-    } else {
-      const colRef = collection(db, 'users', uid, 'routines')
-      const nowMs = Date.now()
-      const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
-      res = { ok:true, id: docRef.id, data: payload }
-    }
-
-    // ── 앱 내부 스케줄러(기존) ── 필요 없으면 그대로 두거나 주석처리 가능
-    try {
-      const sch = useSchedulerStore()
-      const hm = parseHM(this.alarmTime || payload.alarmTime)
-      const routineId = res?.id
-      const title = this.title || payload.title || '알림'
-
-      if (routineId && hm) {
-        if (this.icsRule?.freq === 'once') {
-          // once는 내부 스케줄러에도 오늘 날짜 기준으로 넣어줌
-          const dateISO = todayISO()
-          const atISO = toAtISO(dateISO, hm)
-          if (atISO) {
-            sch.reschedule(
-              { id: routineId, title, hour: hm.hour, minute: hm.minute },
-              { mode: 'ONCE', at: atISO }
-            )
-          }
-        } else if (payload?.repeatType === 'daily') {
-          const n = Number(payload?.repeatEveryDays || 0)
-          sch.reschedule(
-            { id: routineId, title, hour: hm.hour, minute: hm.minute },
-            { mode: 'DAILY_EVERY_N', n: n > 0 ? n : 1 }
+        if (this.mode === 'edit' && this.routineId) {
+          const rid = getBaseId(this.routineId)
+          await setDoc(
+            doc(db, 'users', uid, 'routines', rid),
+            { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
+            { merge: true }
           )
-        } else if (payload?.repeatType === 'weekly') {
-          const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
-          if (days.length) {
-            sch.reschedule(
-              { id: routineId, title, hour: hm.hour, minute: hm.minute },
-              { mode: 'WEEKLY', days }
-            )
-          }
-        } else if (payload?.repeatType === 'monthly') {
-          const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
-          if (days.length) {
-            sch.reschedule(
-              { id: routineId, title, hour: hm.hour, minute: hm.minute },
-              { mode: 'MONTHLY', days }
-            )
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[routineForm] schedule error', e)
-    }
-
-    // ── iOS 네이티브 로컬 알림 ───────────────────────
-    try {
-      const hm = parseHM(this.alarmTime || payload.alarmTime)
-      const routineId = res?.id
-      const title = this.title || payload.title || '알람'
-      const baseId = routineId ? `routine-${routineId}` : null
-
-      if (routineId && hm) {
-        // 편집 시 기존 알림 제거 (중복 방지)
-        if (this.mode === 'edit' && baseId) {
-          await cancelOnIOS(baseId) // baseId가 routine-로 시작 → purgeBase 동작
-        }
-
-        if (this.icsRule?.freq === 'once') {
-          // ✅ once: "오늘 날짜" + 선택 시각으로 고정
-          const dateISO = todayISO()
-          const atISO = toAtISO(dateISO, hm)
-          const ms = atISOToEpochMs(atISO)
-          const now = Date.now()
-
-          console.log('[once DEBUG]', { dateISO, atISO, ms, now, diff: (ms ?? 0) - now })
-
-          if (ms && ms > now) {
-            const sec = Math.floor(ms / 1000)
-            await scheduleOnIOS({
-              id: baseId,
-              title,
-              repeatMode: 'once',
-              fireTimesEpoch: [sec],
-              sound: 'ruffysound001.wav'
-            })
-          } else {
-            console.warn('[routineForm] once schedule skipped (past time)', { atISO })
-          }
-        } else if (payload?.repeatType === 'daily') {
-          await scheduleOnIOS({
-            id: baseId,
-            title,
-            repeatMode: 'daily',
-            hour: hm.hour,
-            minute: hm.minute,
-            sound: 'ruffysound001.wav'
-          })
-        } else if (payload?.repeatType === 'weekly') {
-          const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays : []
-          await scheduleOnIOS({
-            id: baseId,
-            title,
-            repeatMode: 'weekly',
-            weekdays: days, // [1..7]
-            hour: hm.hour,
-            minute: hm.minute,
-            sound: 'ruffysound001.wav'
-          })
-        } else if (payload?.repeatType === 'monthly') {
-          const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays : []
-          await scheduleOnIOS({
-            id: baseId,
-            title,
-            repeatMode: 'monthly',
-            monthDays: days, // [1..31]
-            hour: hm.hour,
-            minute: hm.minute,
-            sound: 'ruffysound001.wav'
-          })
+          res = { ok:true, id: rid, data: payload }
         } else {
-          // 안전망: 매일
-          await scheduleOnIOS({
-            id: baseId,
-            title,
-            repeatMode: 'daily',
-            hour: hm.hour,
-            minute: hm.minute,
-            sound: 'ruffysound001.wav'
-          })
+          const colRef = collection(db, 'users', uid, 'routines')
+          const nowMs = Date.now()
+          const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
+          res = { ok:true, id: docRef.id, data: payload }
         }
-      }
-    } catch (e) {
-      console.warn('[routineForm] iOS scheduleOnIOS error', e)
-    }
 
-    return res
-  } catch (e) {
-    return { ok:false, error: String(e && e.message ? e.message : e) }
-  } finally {
-    this.isSaving = false
-  }
-}
+        // ── ✅ iOS 예약은 스케줄러 단일 경로로만 처리 ─────────────────
+        try {
+          const sch = useSchedulerStore()
+          const hm = parseHM(this.alarmTime || payload.alarmTime)
+          const routineId = res?.id
+          const title = this.title || payload.title || '알림'
+
+          if (routineId && hm) {
+            if (this.icsRule?.freq === 'once') {
+              const dateISO = todayISO()
+              const atISO = toAtISO(dateISO, hm)
+              if (atISO) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'ONCE', at: atISO }
+                )
+              }
+            } else if (payload?.repeatType === 'daily') {
+              const n = Number(payload?.repeatEveryDays || 0)
+              sch.reschedule(
+                { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                { mode: 'DAILY_EVERY_N', n: n > 0 ? n : 1 }
+              )
+            } else if (payload?.repeatType === 'weekly') {
+              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
+              if (days.length) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'WEEKLY', days }
+                )
+              }
+            } else if (payload?.repeatType === 'monthly') {
+              const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
+              if (days.length) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'MONTHLY', days }
+                )
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[routineForm] schedule error', e)
+        }
+        // ─────────────────────────────────────────────────────────────
+
+        return res
+      } catch (e) {
+        return { ok:false, error: String(e && e.message ? e.message : e) }
+      } finally {
+        this.isSaving = false
+      }
+    }
   }
 })
