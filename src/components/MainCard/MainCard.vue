@@ -269,12 +269,28 @@ const periodText = computed(() => {
 })
 
 const alarmText = computed(() => {
-  const a = props.routine?.alarmTime || {}
+  const a = props.routine?.alarmTime
+  if (!a) return ''
+
+  // 1) 새 포맷: "HH:mm" (24시간제 문자열)
+  if (typeof a === 'string') {
+    const m = a.match(/^(\d{2}):(\d{2})$/)
+    if (!m) return ''
+    const hh24 = Number(m[1])
+    const mm = m[2]
+    const ampm = hh24 < 12 ? '오전' : '오후'
+    const hh12 = hh24 % 12 === 0 ? 12 : (hh24 % 12)
+    return `${ampm} ${String(hh12).padStart(2, '0')}시 ${mm}분`
+  }
+
+  // 2) 구 포맷: { ampm: '오전'|'오후'|('AM'|'PM'), hour: '01'..'12', minute: '00'..'59' }
   const hh = a.hour
   const mm = a.minute
   if (hh == null || mm == null) return ''
-  const ampm = a.ampm ? `${a.ampm} ` : ''
-  return `${ampm}${pad(hh)}:${pad(mm)}`
+
+  const koAmpm = a.ampm === 'AM' ? '오전' : a.ampm === 'PM' ? '오후' : (a.ampm || '')
+  if (!koAmpm) return `${String(hh).padStart(2,'0')}시 ${String(mm).padStart(2,'0')}분`
+  return `${koAmpm} ${String(hh).padStart(2,'0')}시 ${String(mm).padStart(2,'0')}분`
 })
 
 const canShowStatusButton = computed(() => {

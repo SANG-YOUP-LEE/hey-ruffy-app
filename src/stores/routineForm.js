@@ -322,47 +322,96 @@ export const useRoutineFormStore = defineStore('routineForm', {
     },
 
     validate() {
-      this.clearErrors()
-      if (!this.title || String(this.title).trim() === '') { this.setError('title','다짐 제목을 입력해주세요.'); return false }
-      if (!this.repeatType) { this.setError('repeat','반복 주기를 선택해주세요.'); return false }
+  this.clearErrors()
 
-      if (this.repeatType === 'daily') {
-        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
-          this.setError('repeat','반복 주기를 선택해주세요.')
-          return false
-        }
-      }
+  // 공통 필드 체크
+  if (!this.title || String(this.title).trim() === '') {
+    this.setError('title','다짐 제목을 입력해주세요.')
+    return false
+  }
+  if (!this.repeatType) {
+    this.setError('repeat','반복 주기를 선택해주세요.')
+    return false
+  }
 
-      if (this.repeatType === 'weekly') {
-        const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
-        if (!valid) { this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.'); return false }
-      }
+  // 반복 주기별 체크
+  if (this.repeatType === 'daily') {
+    if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+      this.setError('repeat','반복 주기를 선택해주세요.')
+      return false
+    }
+  }
 
-      if (this.repeatType === 'monthly') {
-        if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
-          this.setError('repeat','반복 주기를 선택해주세요.'); return false
-        }
-        if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
-          this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`); return false
-        }
-      }
+  if (this.repeatType === 'weekly') {
+    const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
+    if (!valid) {
+      this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
+      return false
+    }
+  }
 
-      if (!Number.isInteger(this.colorIndex)) { this.setError('priority','다짐 색상을 선택해주세요.'); return false }
+  if (this.repeatType === 'monthly') {
+    if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
+      this.setError('repeat','반복 주기를 선택해주세요.')
+      return false
+    }
+    if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
+      this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
+      return false
+    }
+  }
 
-      const sc = sanitizeComment(this.comment)
-      if (this.comment && this.comment.trim().length > 200) { this.setError('comment','코멘트는 200자 이내로 입력해주세요.'); return false }
+  if (!Number.isInteger(this.colorIndex)) {
+    this.setError('priority','다짐 색상을 선택해주세요.')
+    return false
+  }
 
-      if (!this.isWalkModeOff) {
-        if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
-      }
+  const sc = sanitizeComment(this.comment)
+  if (this.comment && this.comment.trim().length > 200) {
+    this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
+    return false
+  }
 
-      if (sc === null) this.comment = ''
-      return true
-    },
+  // 걷기 모드 켜져 있을 때만 체크
+  if (!this.isWalkModeOff) {
+    if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
+    if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
+    if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+  }
 
-     async save() {
+  // 코멘트 정리
+  if (sc === null) this.comment = ''
+
+  // ✅ “오늘만(once)”일 때 과거시간 방지
+  // repeatType=daily && repeatDaily=0 이면 오늘만(once)로 간주
+  const isOnce =
+    this.repeatType === 'daily' &&
+    Number.isInteger(this.repeatDaily) &&
+    this.repeatDaily === 0
+
+  if (isOnce) {
+    const hm = parseHM(this.alarmTime) // {ampm:'오전/오후', hour:'HH', minute:'MM'} or "HH:mm"
+    if (!hm) {
+      this.setError('alarm','알람 시간을 선택해주세요.')
+      return false
+    }
+    // 기준 날짜: 선택된 시작일 있으면 그 날, 없으면 오늘(Asia/Seoul)
+    const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
+    const atISO = toAtISO(dateISO, hm)   // "YYYY-MM-DDTHH:mm:00+09:00"
+    const ms = atISOToEpochMs(atISO)
+    const now = Date.now()
+    const GRACE_MS = 5000 // 5초 유예 (사용자 탭/저장 지연 보정)
+
+    if (!ms || ms <= (now + GRACE_MS)) {
+      this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
+      return false
+    }
+  }
+
+  return true
+},
+
+    async save() {
   if (this.isSaving) return { ok:false }
   this.isSaving = true
   try {

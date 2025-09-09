@@ -35,7 +35,8 @@ const props = defineProps({
   routineId: { type: [String, Number], default: null },
   routineTitle: { type: String, default: '알람' },
   bodyText: { type: String, default: '헤이러피 알람' },
-  modelValue: { type: Object, default: null }
+  // ✅ 문자열("HH:mm")도 허용
+  modelValue: { type: [Object, String, null], default: null }
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -100,17 +101,40 @@ const clearAlarm = () => {
 }
 
 /* ---------------- helpers ---------------- */
+// "HH:mm" → {ampm, hour(2), minute(2)}
+function parseHHMM(str) {
+  const m = String(str || '').match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return null
+  let h = parseInt(m[1], 10)
+  const minute = m[2]
+  if (!(h >= 0 && h <= 23)) return null
+  const ampm = h < 12 ? '오전' : '오후'
+  const h12 = ((h + 11) % 12) + 1 // 0→12, 13→1 …
+  return { ampm, hour: String(h12).padStart(2,'0'), minute }
+}
+
 function sanitize(v) {
+  // ✅ 문자열 "HH:mm"도 처리
+  if (typeof v === 'string') {
+    const parsed = parseHHMM(v)
+    if (parsed) return parsed
+    return { ampm:'', hour:'', minute:'' }
+  }
   if (!v) return { ampm:'', hour:'', minute:'' }
   const a = toKoAmpm(v.ampm)
   const h = pad2(v.hour)
   const m = pad2(v.minute)
   return { ampm: a, hour: h, minute: m }
 }
+
 function isEqual(a, b) {
   if (!a || !b) return a === b
-  return a.ampm === b.ampm && String(a.hour) === String(b.hour) && String(a.minute) === String(b.minute)
+  // b가 문자열일 수도 있으므로 문자열도 정규화해서 비교
+  const aa = typeof a === 'string' ? sanitize(a) : a
+  const bb = typeof b === 'string' ? sanitize(b) : b
+  return aa.ampm === bb.ampm && String(aa.hour) === String(bb.hour) && String(aa.minute) === String(bb.minute)
 }
+
 function toKoAmpm(a) {
   if (a === 'PM' || a === '오후') return '오후'
   if (a === 'AM' || a === '오전') return '오전'
@@ -121,4 +145,5 @@ function pad2(n) {
   if (!/^\d{1,2}$/.test(s)) return ''
   return s.padStart(2, '0')
 }
+
 </script>
