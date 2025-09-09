@@ -9,6 +9,9 @@ import { useSchedulerStore } from '@/stores/scheduler'
 // ✅ iOS 네이티브 알림 (N>1 간격은 epoch 배열로 직접 등록)
 import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 
+// ✅ 추가: purge → 단일등록 전용 API만 불러옴
+import { purgeRoutineAll, scheduleDaily, scheduleOnce } from '@/utils/iosNotify'
+
 // 중복 생성 방지용(동일 틱/연속 탭 가드)
 let __pendingCreateId = null
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
@@ -179,6 +182,43 @@ function buildWeeklyEpochs({ startISO, endISO, hour, minute, intervalWeeks, week
   }
 
   return Array.from(new Set(out)).sort((a,b)=>a-b)
+}
+
+// ✅ 추가: 저장 후 purge → 단일 재등록 전용
+const to24h = (ampm, h12) => {
+  const h = Number(h12);
+  if (ampm === '오전') return h === 12 ? 0 : h;
+  if (ampm === '오후') return h === 12 ? 12 : h + 12;
+  return h;
+};
+
+async function applyAlarmAfterSave_minimal({ id, repeatType, repeatEveryDays, start, startDate, alarmTime, ampm, hour, minute, title }) {
+  if (!id) return;
+  // 1) 먼저 모두 purge
+  await purgeRoutineAll(id);
+
+  // 2) HH:mm 또는 UI 분리값을 24H로
+  let h = null, m = null;
+  const hmParsed = parseHM(alarmTime);
+  if (hmParsed) {
+    h = hmParsed.hour; m = hmParsed.minute;
+  } else if (hour != null && minute != null) {
+    h = to24h(ampm, hour); m = Number(minute);
+  }
+
+  if (h == null || m == null) return;
+
+  // 오늘만(once) 판단: daily + everyDays === 0
+  const isTodayOnly = (repeatType === 'daily' && Number(repeatEveryDays || 0) === 0);
+
+  if (isTodayOnly) {
+    const dateISO = safeISOFromDateObj(startDate) || todayISO();
+    const atISO = toAtISO(dateISO, { hour: h, minute: m });
+    const atMs = atISOToEpochMs(atISO);
+    if (atMs) await scheduleOnce({ rid: id, atMs, title });
+  } else {
+    await scheduleDaily({ rid: id, hour: h, minute: m, title });
+  }
 }
 
 // ── Pinia Store ─────────────────────────────────────────
@@ -515,98 +555,19 @@ export const useRoutineFormStore = defineStore('routineForm', {
           res = { ok:true, id: docRef.id, data: payload }
         }
 
-        // ── 예약 처리 ─────────────────────────────────────
+        // ── ✅ 여기만 교체: 저장 직후 항상 purge → 하나만 재등록 ──
         try {
-          const sch = useSchedulerStore()
-          const hm = parseHM(this.alarmTime || payload.alarmTime)
-          const routineId = res?.id
-          const title = this.title || payload.title || '알림'
-          const baseId = routineId ? `routine-${routineId}` : null
-
-          if (routineId && hm) {
-            const startISO = payload.start
-            const endISO   = payload.end
-
-            // 1) N>1일/주 → JS에서 epoch 배열 생성 후 iOS에 직접 등록
-            let usedEpochs = null
-            if (payload?.repeatType === 'daily') {
-              const n = Number(payload?.repeatEveryDays || 0)
-              if (n >= 2) {
-                usedEpochs = buildDailyEpochs({
-                  startISO, endISO,
-                  hour: hm.hour, minute: hm.minute,
-                  intervalDays: n
-                })
-              }
-            } else if (payload?.repeatType === 'weekly') {
-              const m = String(payload.repeatWeeks || '').match(/(\d+)/)
-              const intervalW = m ? Math.max(1, parseInt(m[1],10)) : 1
-              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays : []
-              if (intervalW >= 2 && days.length) {
-                usedEpochs = buildWeeklyEpochs({
-                  startISO, endISO,
-                  hour: hm.hour, minute: hm.minute,
-                  intervalWeeks: intervalW,
-                  weekdays: days   // [1..7] (월=1 … 일=7)
-                })
-              }
-            }
-
-            if (Array.isArray(usedEpochs) && usedEpochs.length) {
-              // 중복 방지: 기존 베이스 purge
-              if (baseId) await cancelOnIOS(baseId)
-              // iOS에 1회성 트리거들 대량 등록
-              await scheduleOnIOS({
-                routineId,                // setScheduleForRoutine 경로로 전달
-                title,
-                repeatMode: 'once',
-                fireTimesEpoch: usedEpochs,
-                sound: 'ruffysound001.wav'
-              })
-            } else {
-              // 2) 그 외(오늘만/매일/매주/매월) → 기존 스케줄러 사용
-              if (this.icsRule?.freq === 'once') {
-                const dateISO = todayISO()
-                const atISO = toAtISO(dateISO, hm)
-                if (atISO) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'ONCE', at: atISO }
-                  )
-                }
-              } else if (payload?.repeatType === 'daily') {
-                const n = Number(payload?.repeatEveryDays || 0)
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: n > 1 ? 'DAILY_EVERY_N' : 'DAILY', n: n > 1 ? n : 1 }
-                )
-              } else if (payload?.repeatType === 'weekly') {
-                const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
-                if (days.length) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'WEEKLY', days }
-                  )
-                }
-              } else if (payload?.repeatType === 'monthly') {
-                const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
-                if (days.length) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'MONTHLY', days }
-                  )
-                }
-              } else {
-                // 안전망: 매일
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'DAILY' }
-                )
-              }
-            }
-          }
+          await applyAlarmAfterSave_minimal({
+            id: res?.id,
+            repeatType: payload.repeatType,
+            repeatEveryDays: payload.repeatEveryDays,
+            start: payload.start,
+            startDate: this.startDate,
+            alarmTime: this.alarmTime || payload.alarmTime,
+            title: this.title || payload.title || '알림'
+          })
         } catch (e) {
-          console.warn('[routineForm] schedule error', e)
+          console.warn('[routineForm] minimal schedule error', e)
         }
         // ────────────────────────────────────────────────
 
