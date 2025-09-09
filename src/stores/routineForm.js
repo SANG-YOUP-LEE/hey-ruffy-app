@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSchedulerStore } from '@/stores/scheduler'
 
 // ✅ iOS 네이티브 알림 (N>1 간격은 epoch 배열로 직접 등록)
-import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
+import { scheduleOnIOS, cancelOnIOS, postIOS } from '@/utils/iosNotify' // ← postIOS 추가
 
 // 중복 생성 방지용(동일 틱/연속 탭 가드)
 let __pendingCreateId = null
@@ -567,8 +567,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
               // 2) 그 외(오늘만/매일/매주/매월) → 기존 스케줄러 사용
 
               if (this.icsRule?.freq === 'once') {
-                // ✅ FIX: 오늘만(once) 저장 시 기존 daily가 남아 2번 울리던 문제 방지
-                if (baseId) await cancelOnIOS(baseId)
+                // ✅ FIX: 오늘만(once)일 때는 'daily'만 정확히 제거하고, once는 남긴다
+                // (base purge를 쓰면 once까지 지워질 수 있음)
+                if (routineId) {
+                  postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
+                }
 
                 const dateISO = todayISO()
                 const atISO = toAtISO(dateISO, hm)
