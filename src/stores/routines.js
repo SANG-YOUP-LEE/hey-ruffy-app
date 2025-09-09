@@ -6,7 +6,8 @@ import {
   togglePause as repoTogglePause,
   deleteMany as repoDeleteMany,
 } from '@/stores/routinesRepo'
-import { purgeBases } from '@/utils/iosNotify' // ✅ 추가
+import { purgeBases } from '@/utils/iosNotify'
+import { useSchedulerStore } from '@/stores/scheduler' // ✅ 추가
 
 /* ───────── helpers ───────── */
 const nowTs = () => Date.now()
@@ -64,16 +65,15 @@ function normalizeRoutine(r) {
     goalCount: Number(r.goalCount ?? 0),
 
     // 반복 규칙 (뷰/필터가 참조함)
-    repeatType: r.repeatType || 'daily'
-    ,
-    repeatEveryDays: r.repeatEveryDays ?? null,      // ★ 누락 보완
+    repeatType: r.repeatType || 'daily',
+    repeatEveryDays: r.repeatEveryDays ?? null,
     repeatDays: Array.isArray(r.repeatDays) ? r.repeatDays : [],
     repeatWeeks: r.repeatWeeks || '',
     repeatWeekDays: Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [],
     repeatMonthDays: Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [],
-    rule: r.rule || null,                             // ★ 누락 보완
-    start: r.start || null,                           // ★ 누락 보완 (문자열 YYYY-MM-DD 가능)
-    end: r.end || null,                               // ★ 누락 보완
+    rule: r.rule || null,
+    start: r.start || null, // YYYY-MM-DD 가능
+    end: r.end || null,
 
     // 기간
     startDate: r.startDate || null,
@@ -129,6 +129,8 @@ export const useRoutinesStore = defineStore('routines', {
       const i = this.items.findIndex((v) => v.id === n.id)
       if (i === -1) this.items.unshift(n)
       else this.items.splice(i, 1, { ...this.items[i], ...n, updatedAt: nowTs(), updatedAtMs: nowTs() })
+      // ✅ 추가/수정된 루틴 즉시 스케줄
+      try { useSchedulerStore().rehydrateFromRoutines([n]) } catch (_) {}
     },
 
     updateRoutine(id, payload) {
@@ -139,6 +141,8 @@ export const useRoutinesStore = defineStore('routines', {
       next.updatedAt = nowTs()
       next.updatedAtMs = nowTs()
       this.items.splice(i, 1, next)
+      // ✅ 업데이트된 루틴도 즉시 리스케줄
+      try { useSchedulerStore().rehydrateFromRoutines([next]) } catch (_) {}
     },
 
     async deleteRoutines(ids) {
@@ -174,6 +178,8 @@ export const useRoutinesStore = defineStore('routines', {
       if (uid && rid) {
         try { await repoTogglePause(uid, rid, !!isPaused) } catch (_) {}
       }
+      // ✅ 일시정지/재개 시 스케줄 반영
+      try { useSchedulerStore().rehydrateFromRoutines([it]) } catch (_) {}
     },
 
     async changeStatus({ id, status, date }) {
@@ -247,6 +253,8 @@ export const useRoutinesStore = defineStore('routines', {
           this.items = normalizeAndDedupe(list)
           this.isLoading = false
           this.hasFetched = true
+          // ✅ 파베에서 받아온 전체 루틴을 즉시 리스케줄
+          try { useSchedulerStore().rehydrateFromRoutines(this.items) } catch (_) {}
         },
         () => {
           this.items = []
