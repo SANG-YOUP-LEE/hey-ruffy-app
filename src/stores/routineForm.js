@@ -371,11 +371,23 @@ export const useRoutineFormStore = defineStore('routineForm', {
         const uid = auth.user?.uid
         if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
 
-        // ⬇️ 추가: alarmTime 정규화(HH:mm)
+        // ⬇️ 알람시간 포맷: UI 호환(객체) + iOS용(HH:mm) 동시 저장
         const basePayload = this.payload
         const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
-        const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
-        const payload = { ...basePayload, alarmTime: normalizedAlarm }
+
+        let alarmTimeObj = null   // UI가 기대하는 형태
+        let alarmHM = null        // iOS 스케줄링용 "HH:mm"
+        if (hmParsed) {
+          const h24 = hmParsed.hour
+          const m = hmParsed.minute
+          const ampmKor = h24 < 12 ? '오전' : '오후'
+          const h12 = ((h24 % 12) || 12)      // 0,12 -> 12 처리
+          alarmTimeObj = { ampm: ampmKor, hour: String(h12), minute: p(m) }
+          alarmHM = `${p(h24)}:${p(m)}`
+        }
+
+        // 🔁 payload에 반영: alarmTime(객체), alarmHM(문자열) 둘 다 저장
+        const payload = { ...basePayload, alarmTime: alarmTimeObj, alarmHM }
 
         let res
 
@@ -397,7 +409,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         // ── 앱 내부 스케줄러(기존) 유지 ─────────────────────
         try {
           const sch = useSchedulerStore()
-          const hm = parseHM(this.alarmTime || payload.alarmTime)
+          // iOS용 문자열이 있으면 우선, 없으면 객체도 파싱됨
+          const hm = parseHM(alarmHM || this.alarmTime || payload.alarmTime)
           const routineId = res?.id
           const title = this.title || payload.title || '알림'
 
@@ -442,7 +455,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
         // ── iOS 네이티브 로컬 알림 ───────────────────────
         try {
-          const hm = parseHM(this.alarmTime || payload.alarmTime)
+          // iOS용 문자열이 있으면 우선 사용 (없어도 객체 파싱됨)
+          const hm = parseHM(alarmHM || this.alarmTime || payload.alarmTime)
           const routineId = res?.id
           const title = this.title || payload.title || '알람'
           const baseId = routineId ? `routine-${routineId}` : null
@@ -454,7 +468,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
             }
 
             if (this.icsRule?.freq === 'once') {
-              // ✅ 정확 날짜·시간 1회 알림: epoch(초) + 과거 방지 + 파라미터 키 통일(id)
+              // 정확 날짜·시간 1회 알림: epoch(초) + 과거 방지
               const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
               const atISO = toAtISO(dateISO, hm)
               const ms = atISOToEpochMs(atISO)
@@ -466,7 +480,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
                   id: baseId,
                   title,
                   repeatMode: 'once',
-                  fireTimesEpoch: [sec],   // ← 초 단위
+                  fireTimesEpoch: [sec],
                   sound: 'ruffysound001.wav'
                 })
               } else {
