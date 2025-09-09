@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSchedulerStore } from '@/stores/scheduler'
 
 // ✅ iOS 네이티브 알림 (N>1 간격은 epoch 배열로 직접 등록)
-import { scheduleOnIOS, cancelOnIOS, postIOS } from '@/utils/iosNotify' // ← postIOS 추가
+import { scheduleOnIOS, cancelOnIOS, postIOS, waitBridgeReady } from '@/utils/iosNotify'
 
 // 중복 생성 방지용(동일 틱/연속 탭 가드)
 let __pendingCreateId = null
@@ -527,6 +527,14 @@ export const useRoutineFormStore = defineStore('routineForm', {
             const startISO = payload.start
             const endISO   = payload.end
 
+            // ✅ 어떤 모드로 재등록하든 과거에 남아 있을 수 있는 daily 알람 먼저 제거
+              try {
+                await waitBridgeReady();
+                postIOS({ action: 'cancel', id: `routine-${routineId}-daily` });
+              } catch (e) {
+                console.warn('[routineForm] daily cancel failed', e);
+              }
+            
             // 1) N>1일/주 → JS에서 epoch 배열 생성 후 iOS에 직접 등록
             let usedEpochs = null
             if (payload?.repeatType === 'daily') {

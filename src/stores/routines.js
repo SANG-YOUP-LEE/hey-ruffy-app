@@ -6,7 +6,7 @@ import {
   togglePause as repoTogglePause,
   deleteMany as repoDeleteMany,
 } from '@/stores/routinesRepo'
-import { purgeBases } from '@/utils/iosNotify'
+import { purgeBases, cancelOnIOS, postIOS, waitBridgeReady } from '@/utils/iosNotify'
 import { useSchedulerStore } from '@/stores/scheduler' // ✅ 추가
 
 /* ───────── helpers ───────── */
@@ -145,28 +145,50 @@ export const useRoutinesStore = defineStore('routines', {
       try { useSchedulerStore().rehydrateFromRoutines([next]) } catch (_) {}
     },
 
-    async deleteRoutines(ids) {
-      const uid = this._boundUid
-      const ridList = []
-      for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))
+      async deleteRoutines(ids) {
+        const uid = this._boundUid
+        const ridList = []
+        for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))
 
-      // ✅ iOS 알람 먼저 전량 취소 (routine-<id> 규칙)
-      if (ridList.length) {
-        try {
-          const baseIds = ridList.map(id => `routine-${id}`)
-          purgeBases(baseIds)
-        } catch (_) {}
-      }
+        // ✅ iOS 알람 먼저 정리: daily 개별 취소 → 베이스 purge
+        if (ridList.length) {
+          try {
+            // 브리지 준비
+            await waitBridgeReady()
 
-      // Firestore 삭제
-      if (uid && ridList.length) {
-        try { await repoDeleteMany(uid, ridList) } catch (_) {}
-      }
-      const set = new Set(ridList)
-      this.items = this.items.filter((v) => !set.has(v.id))
-      this.deleteTargets = []
-      this.deleteMode = false
-    },
+            // 1) 각 루틴의 daily 잔재 제거 (이중 울림 방지)
+            for (const id of ridList) {
+              const baseId = `routine-${id}`
+              postIOS({ action: 'cancel', id: `${baseId}-daily` })
+            }
+
+            // 2) 베이스 전량 purge (daily/once/… 모두)
+            const baseIds = ridList.map(id => `routine-${id}`)
+            purgeBases(baseIds)
+
+            // 🔁 필요시 순차 보장 버전(위 한 줄 대신):
+            // for (const id of ridList) { await cancelOnIOS(`routine-${id}`) }
+          } catch (e) {
+            console.warn('[routines.deleteRoutines] ios purge failed', e)
+          }
+        }
+
+        // 🔥 Firestore 삭제
+        if (uid && ridList.length) {
+          try {
+            await repoDeleteMany(uid, ridList)
+          } catch (e) {
+            console.warn('[routines.deleteRoutines] repo delete failed', e)
+          }
+        }
+
+        // 로컬 스토어 정리
+        const set = new Set(ridList)
+        this.items = this.items.filter((v) => !set.has(v.id))
+        this.deleteTargets = []
+        this.deleteMode = false
+      },
+
 
     async togglePause({ id, isPaused }) {
       const uid = this._boundUid
