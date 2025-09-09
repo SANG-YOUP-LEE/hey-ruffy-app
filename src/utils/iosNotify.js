@@ -35,7 +35,7 @@ const safePost = (payload) => {
   }
 };
 
-const log = (...args) => console.warn('⚡️ ', ...args);
+const log = (...args) => console.debug('[iosNotify]', ...args); // or console.info
 
 // ───────────────────────────────────────────
 // Parsing / normalization
