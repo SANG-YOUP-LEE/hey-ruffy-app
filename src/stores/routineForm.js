@@ -1,4 +1,3 @@
-// src/stores/routineForm.js
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
@@ -27,22 +26,45 @@ const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isF
 const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
 // ── 시간 파서/도우미 ─────────────────────────────────────
+// ⬇️ 수정: 한글 '오전/오후'도 지원
 const parseHM = (t) => {
   if (!t) return null
+
   if (typeof t === 'string') {
-    const m = t.match(/^\s*(\d{1,2}):(\d{2})\s*$/)
-    if (m) return { hour: Math.max(0, Math.min(23, +m[1])), minute: Math.max(0, Math.min(59, +m[2])) }
-    const m2 = t.match(/^\s*(AM|PM)\s*(\d{1,2}):(\d{2})\s*$/i)
-    if (m2) {
-      let h = +m2[2]; const mm = +m2[3]; const ampm = m2[1].toUpperCase()
+    const s = t.trim()
+
+    // 24시간 "HH:mm"
+    let m = s.match(/^(\d{1,2}):(\d{2})$/)
+    if (m) {
+      const h = Math.max(0, Math.min(23, +m[1]))
+      const mm = Math.max(0, Math.min(59, +m[2]))
+      return { hour: h, minute: mm }
+    }
+
+    // 영어 AM/PM 12시간제: "AM 9:05" / "9:05 PM"
+    m = s.match(/^(?:\s*(AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i)
+    if (m && (m[1] || m[4])) {
+      let h = +m[2], mm = +m[3]
+      const ampm = (m[1] || m[4] || '').toUpperCase()
       if (ampm === 'PM' && h < 12) h += 12
       if (ampm === 'AM' && h === 12) h = 0
       return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
     }
+
+    // 한글 오전/오후 12시간제: "오전 9:05" / "9:05 오후"
+    m = s.match(/^(?:\s*(오전|오후)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후))?$/)
+    if (m && (m[1] || m[4])) {
+      let h = +m[2], mm = +m[3]
+      const ampmKr = (m[1] || m[4] || '')
+      if (ampmKr === '오후' && h < 12) h += 12
+      if (ampmKr === '오전' && h === 12) h = 0
+      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
+    }
   } else if (typeof t === 'object') {
-    let h = +t.hour; const mm = +t.minute; const ampm = String(t.ampm || '').toUpperCase()
-    if (ampm === 'PM' && h < 12) h += 12
-    if (ampm === 'AM' && h === 12) h = 0
+    let h = +t.hour; const mm = +t.minute
+    const ampm = String(t.ampm || '').toUpperCase()
+    if (ampm === 'PM' || t.ampm === '오후') { if (h < 12) h += 12 }
+    if (ampm === 'AM' || t.ampm === '오전') { if (h === 12) h = 0 }
     if (Number.isFinite(h) && Number.isFinite(mm)) return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
   }
   return null
@@ -349,7 +371,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
         const uid = auth.user?.uid
         if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
 
-        const payload = this.payload
+        // ⬇️ 추가: alarmTime 정규화(HH:mm)
+        const basePayload = this.payload
+        const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
+        const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
+        const payload = { ...basePayload, alarmTime: normalizedAlarm }
+
         let res
 
         if (this.mode === 'edit' && this.routineId) {
