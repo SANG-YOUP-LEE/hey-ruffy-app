@@ -23,23 +23,25 @@ import { db } from "@/firebase";
 import { useAuthStore } from "@/stores/auth";
 import { App as CapApp } from "@capacitor/app";
 
-// ✅ iOS 알림 브리지 유틸 전역 노출
+// ✅ iOS 네이티브 알림 브리지 (이 파일만 사용)
 import {
   scheduleOnIOS,
   cancelOnIOS,
   dumpPendingOnIOS,
-  debugPingOnIOS,
 } from "@/utils/iosNotify";
 
-// --- boot error hooks ---
+// --- 부팅 에러 훅(필수 아님, 안정성 위해 최소만 유지) ---
 window.addEventListener("error", e => {
-  console.error("[BOOT][window.onerror]", e.message, e.filename, e.lineno, e.colno, e.error);
+  console.error("[BOOT][window.onerror]", e.message, e.filename, e.lineno, e.colno);
 });
 window.addEventListener("unhandledrejection", e => {
   console.error("[BOOT][unhandledrejection]", e.reason);
 });
 console.log("[BOOT] main.js start");
 
+// ───────────────────────────────────────────
+// Vue 부팅
+// ───────────────────────────────────────────
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
@@ -49,17 +51,7 @@ app.use(VueScrollPicker);
 app.mount("#app");
 
 // ───────────────────────────────────────────
-// iOS 브리지 헬퍼
-// ───────────────────────────────────────────
-const hasIOSBridge = () => !!(window.webkit?.messageHandlers?.notify);
-
-window.scheduleOnIOS = scheduleOnIOS;
-window.cancelOnIOS = cancelOnIOS;
-window.dumpPendingOnIOS = dumpPendingOnIOS;
-window.debugPingOnIOS = debugPingOnIOS;
-
-// ───────────────────────────────────────────
-// gesture/zoom 방지  (오타: 'gesturestart ' → 'gesturestart')
+// 제스처/줌 방지 (오타 수정 완료)
 // ───────────────────────────────────────────
 document.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
 document.addEventListener("gesturechange", e => e.preventDefault(), { passive: false });
@@ -77,156 +69,135 @@ document.addEventListener("wheel", e => {
 }, { passive: false });
 
 // ───────────────────────────────────────────
-// 알림 리하이드레이트(쿨다운/해시 가드)
+// iOS 브리지 유틸 전역 바인딩(개발/운영 공용: 점검용)
 // ───────────────────────────────────────────
-const FOREGROUND_COOLDOWN_MS = 3 * 60 * 1000;
-const BRIDGE_MAX_TRIES = 20;
-const BRIDGE_TRY_DELAY_MS = 300;
+const hasIOSBridge = () => !!(window.webkit?.messageHandlers?.notify);
+window.scheduleOnIOS = scheduleOnIOS;
+window.cancelOnIOS = cancelOnIOS;
+window.dumpPendingOnIOS = dumpPendingOnIOS;
+
+// ───────────────────────────────────────────
+// 리하이드레이트(재등록) 안정 로직
+//  - 쿨다운(기본 3분)
+//  - 해시가드(루틴 변화 없으면 스킵)
+//  - 예약 전 purge(cancelOnIOS)로 중복 제거
+// ───────────────────────────────────────────
+
+// 저장 키
 const LS_LAST_HYDRATE_MS = "rfy_last_hydrate_ms";
 const LS_LAST_HASH = "rfy_last_routines_hash";
 
-async function waitBridgeReady(maxTries = BRIDGE_MAX_TRIES, delayMs = BRIDGE_TRY_DELAY_MS) {
+// 쿨다운
+const COOLDOWN_MS = 20 * 1000;
+const shouldCooldown = () => {
+  const last = Number(localStorage.getItem(LS_LAST_HYDRATE_MS) || 0);
+  return last && (Date.now() - last) < COOLDOWN_MS;
+};
+const markHydrated = () => localStorage.setItem(LS_LAST_HYDRATE_MS, String(Date.now()));
+
+// 해시
+const stableRoutineSnapshot = (rs) => {
+  const pick = r => ({
+    id: r.id ?? r.routineId ?? "",
+    title: r.title ?? "",
+    repeatType: r.repeatType ?? "",
+    repeatEveryDays: r.repeatEveryDays ?? null,
+    repeatWeekDays: Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [],
+    repeatMonthDays: Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [],
+    startDate: r.startDate ?? null,
+    endDate: r.endDate ?? null,
+    start: r.start ?? null,
+    end: r.end ?? null,
+    alarmTime: r.alarmTime ?? null,
+    rule: r.rule ?? null,
+  });
+  return JSON.stringify(rs.map(pick).sort((a,b)=>String(a.id).localeCompare(String(b.id))));
+};
+const djb2 = (s) => { let h=5381; for (let i=0;i<s.length;i++) h=((h<<5)+h)+s.charCodeAt(i); return (h>>>0).toString(16); };
+const getHash = () => localStorage.getItem(LS_LAST_HASH) || "";
+const setHash = (h) => localStorage.setItem(LS_LAST_HASH, h);
+
+// 브리지 대기
+const waitBridgeReady = async (tries = 20, delay = 300) => {
   if (hasIOSBridge()) return true;
-  for (let i = 0; i < maxTries; i++) {
-    await new Promise(r => setTimeout(r, delayMs));
+  for (let i = 0; i < tries; i++) {
+    await new Promise(r => setTimeout(r, delay));
     if (hasIOSBridge()) return true;
   }
   return false;
-}
+};
 
-function stableRoutineSnapshot(routines) {
-  const pick = (r) => ({
-    id: r.id ?? r.routineId ?? "",
-    title: r.title ?? r.name ?? r.text ?? "",
-    repeatType: r.repeatType ?? "",
-    repeatEveryDays: r.repeatEveryDays ?? null,
-    repeatWeeks: r.repeatWeeks ?? "",
-    repeatWeekDays: Array.isArray(r.repeatWeekDays) ? [...r.repeatWeekDays] : [],
-    repeatMonthDays: Array.isArray(r.repeatMonthDays) ? [...r.repeatMonthDays] : [],
-    startDate: r.startDate ?? null,
-    endDate: r.endDate ?? null,
-    alarmTime: r.alarmTime ?? null,
-    tz: r.tz ?? null,
-    rule: r.rule ?? null,
-  });
-  const arr = routines.map(pick).sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  return JSON.stringify(arr);
-}
-
-function djb2(str) {
-  let h = 5381;
-  for (let i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
-  return (h >>> 0).toString(16);
-}
-
-function shouldSkipByTime(now = Date.now()) {
-  const last = Number(localStorage.getItem(LS_LAST_HYDRATE_MS) || 0);
-  return last && (now - last) < FOREGROUND_COOLDOWN_MS;
-}
-function saveHydrateTime(ts = Date.now()) {
-  localStorage.setItem(LS_LAST_HYDRATE_MS, String(ts));
-}
-function getLastHash() { return localStorage.getItem(LS_LAST_HASH) || ""; }
-function setLastHash(h) { localStorage.setItem(LS_LAST_HASH, h); }
-
-// 시간 파서 (HH:MM 문자열 → {hour, minute})
-function parseHM(t) {
-  if (!t) return null;
-  const m = String(t).match(/^\s*(\d{1,2}):(\d{2})\s*$/);
-  if (m) {
-    const h = Math.max(0, Math.min(23, +m[1]));
-    const mm = Math.max(0, Math.min(59, +m[2]));
-    return { hour: h, minute: mm };
-  }
-  return null;
-}
-
-// ISO YYYY-MM-DD 생성 (Date-like object {year,month,day})
-const p2 = n => String(n).padStart(2, "0");
-const toISODate = d => (d ? `${d.year}-${p2(d.month)}-${p2(d.day)}` : null);
+// 시간/날짜 헬퍼
+const p2 = n => String(n).padStart(2,"0");
+const parseHM = t => {
+  const m = String(t || "").match(/^\s*(\d{1,2}):(\d{2})\s*$/);
+  if (!m) return null;
+  const hour = Math.min(23, Math.max(0, +m[1]));
+  const minute = Math.min(59, Math.max(0, +m[2]));
+  return { hour, minute };
+};
+const toISODate = d => (d?.year && d?.month && d?.day) ? `${d.year}-${p2(d.month)}-${p2(d.day)}` : null;
 const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date());
-const safeISOFromDateObj = (obj) => {
-  const s = toISODate(obj);
-  return (typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)) ? s : null;
-};
+const toAtISO = (dateISO, hm) => (dateISO && hm) ? `${dateISO}T${p2(hm.hour)}:${p2(hm.minute)}:00+09:00` : null;
 
-// once용 atISO(+09:00 고정)
-const toAtISO = (dateISO, hm) => {
-  if (!dateISO || !hm) return null;
-  return `${dateISO}T${p2(hm.hour)}:${p2(hm.minute)}:00+09:00`;
-};
-const atISOToEpochMs = (atISO) => {
-  const d = new Date(atISO);
-  const ms = d.getTime();
-  return Number.isFinite(ms) ? ms : null;
-};
+// 한 개 루틴 예약 (중복 방지 위해 먼저 purge)
+async function scheduleOne(r) {
+  const rid = r.id ?? r.routineId; if (!rid) return;
+  const baseId = `routine-${rid}`;
+  const hm = parseHM(r.alarmTime); if (!hm) return;
 
-// 루틴 1개를 iOS에 예약
-async function scheduleRoutineOnIOS(r) {
-  const id = r.id ?? r.routineId;
-  if (!id) return;
-  const baseId = `routine-${id}`;
-  const hm = parseHM(r.alarmTime);
-  if (!hm) return;
-
-  // 기존 것 전부 제거 후 재등록 (중복 방지)
+  // 1) purge
   try { await cancelOnIOS(baseId); } catch {}
 
+  // 2) 매핑
   const title = r.title || "알림";
 
-  // once 판단: rule.freq === 'once' 이거나 daily간격 0 (오늘만)
+  // 단발성(ONCE) 판단: rule.freq === 'once' 또는 daily 간격 0 또는 start==end
   const isOnce =
-    (r.rule && r.rule.freq === "once") ||
-    (r.repeatType === "daily" && (r.repeatDaily === 0 || r.repeatEveryDays === 0)) ||
+    (r.rule?.freq === "once") ||
+    (r.repeatType === "daily" && (r.repeatEveryDays === 0 || r.repeatDaily === 0)) ||
     (typeof r.start === "string" && typeof r.end === "string" && r.start === r.end);
 
   if (isOnce) {
-    const anchor = r.start || safeISOFromDateObj(r.startDate) || todayISO();
+    const anchor = r.start || toISODate(r.startDate) || todayISO();
     const atISO = toAtISO(anchor, hm);
-    const ms = atISOToEpochMs(atISO);
-    if (ms && ms > Date.now()) {
-      const sec = Math.floor(ms / 1000);
+    const ms = atISO ? new Date(atISO).getTime() : NaN;
+    if (Number.isFinite(ms) && ms > Date.now()) {
       await scheduleOnIOS({
         id: baseId,
         title,
         repeatMode: "once",
-        fireTimesEpoch: [sec],
+        fireTimesEpoch: [Math.floor(ms / 1000)],
         sound: "ruffysound001.wav",
       });
     }
     return;
   }
 
-  if (r.repeatType === "weekly") {
-    const days = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [];
-    if (days.length) {
-      await scheduleOnIOS({
-        id: baseId,
-        title,
-        repeatMode: "weekly",
-        weekdays: days, // [1..7]
-        hour: hm.hour,
-        minute: hm.minute,
-        sound: "ruffysound001.wav",
-      });
-      return;
-    }
+  if (r.repeatType === "weekly" && Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length) {
+    await scheduleOnIOS({
+      id: baseId,
+      title,
+      repeatMode: "weekly",
+      weekdays: r.repeatWeekDays,       // [1..7] (일=1 … 토=7)
+      hour: hm.hour,
+      minute: hm.minute,
+      sound: "ruffysound001.wav",
+    });
+    return;
   }
 
-  if (r.repeatType === "monthly") {
-    const days = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [];
-    if (days.length) {
-      await scheduleOnIOS({
-        id: baseId,
-        title,
-        repeatMode: "monthly",
-        monthDays: days, // [1..31]
-        hour: hm.hour,
-        minute: hm.minute,
-        sound: "ruffysound001.wav",
-      });
-      return;
-    }
+  if (r.repeatType === "monthly" && Array.isArray(r.repeatMonthDays) && r.repeatMonthDays.length) {
+    await scheduleOnIOS({
+      id: baseId,
+      title,
+      repeatMode: "monthly",
+      monthDays: r.repeatMonthDays,     // [1..31]
+      hour: hm.hour,
+      minute: hm.minute,
+      sound: "ruffysound001.wav",
+    });
+    return;
   }
 
   // 기본: 매일
@@ -240,85 +211,79 @@ async function scheduleRoutineOnIOS(r) {
   });
 }
 
+// 전체 리하이드레이트
 let isHydrating = false;
-async function rehydrateForUid(uid, reason = "auto") {
+async function rehydrateForUid(uid, reason = "auto", { force = false } = {}) {
   if (!uid) return;
   if (isHydrating) return;
-  const now = Date.now();
-  if (shouldSkipByTime(now)) return;
-  const bridgeReady = await waitBridgeReady();
-  if (!bridgeReady) return;
+  if (!force && shouldCooldown()) return;
+  if (!(await waitBridgeReady())) return;
 
   isHydrating = true;
   try {
     const snap = await getDocs(collection(db, `users/${uid}/routines`));
     const routines = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    const snapshot = stableRoutineSnapshot(routines);
-    const newHash = djb2(snapshot);
-    const oldHash = getLastHash();
-    if (newHash === oldHash) {
-      saveHydrateTime(now);
+
+    const newHash = djb2(stableRoutineSnapshot(routines));
+    const oldHash = getHash();
+    if (!force && newHash === oldHash) {
+      markHydrated();
       return;
     }
-    setLastHash(newHash);
-    saveHydrateTime(now);
+    setHash(newHash);
+    markHydrated();
 
-    // 🔁 실제 예약
+    // 예약(중복 방지: scheduleOne 안에서 purge)
     for (const r of routines) {
-      try {
-        await scheduleRoutineOnIOS(r);
-      } catch (e) {
-        console.warn("[rehydrate] schedule fail for", r?.id, e);
-      }
+      try { await scheduleOne(r); }
+      catch (e) { console.warn("[rehydrate] schedule fail:", r?.id, e); }
     }
 
-    // 디버깅: 현재 예약 목록 한번 찍기
-    try { await dumpPendingOnIOS("rehydrate"); } catch {}
+    // 점검 로그
+    try { await dumpPendingOnIOS(reason || "rehydrate"); } catch {}
   } catch (e) {
-    console.warn("[alarm rehydrate] failed:", e);
+    console.warn("[rehydrate] failed:", e);
   } finally {
     isHydrating = false;
   }
 }
 
 // ───────────────────────────────────────────
-/** Auth & iOS 예약 싱크 */
+// Auth & 상태 변화에 맞춘 재등록 트리거
 // ───────────────────────────────────────────
 const auth = useAuthStore();
 auth.initOnce();
 
 let currentUid = null;
 
-const onVis = () => {
+document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && currentUid) {
     rehydrateForUid(currentUid, "foreground");
   }
-};
-document.addEventListener("visibilitychange", onVis);
+});
 
 CapApp.addListener("appStateChange", ({ isActive }) => {
-  if (isActive && currentUid) rehydrateForUid(currentUid, "appState");
+  if (isActive && currentUid) {
+    rehydrateForUid(currentUid, "appState");
+  }
 });
 
 watch(() => auth.user?.uid || null, (uid) => {
   currentUid = uid;
-  if (uid) rehydrateForUid(uid, "auth-state");
+  if (uid) rehydrateForUid(uid, "auth-state", { force: true }); // 최초엔 force 1회
 }, { immediate: true });
 
 window.addEventListener("beforeunload", () => {
-  // 필요 시 클린업
+  // 필요시 클린업
 });
 
-// ==== 강제 리하이드레이트 (Safari 콘솔에서 호출) ====
-window.rehydrateNow = async () => {
-  try {
-    localStorage.removeItem(LS_LAST_HYDRATE_MS); // 쿨다운 무시
-    const uid = currentUid || useAuthStore().user?.uid || null;
-    console.log("[rehydrateNow] start. uid=", uid);
-    await rehydrateForUid(uid, "manual");
-    try { await dumpPendingOnIOS("manual"); } catch {}
-    console.log("[rehydrateNow] done");
-  } catch (e) {
-    console.warn("[rehydrateNow] error", e);
-  }
+// ───────────────────────────────────────────
+// 수동 강제 재등록 (콘솔에서 호출)
+// ───────────────────────────────────────────
+window.rehydrateNow = async (force = true) => {
+  const uid = currentUid || useAuthStore().user?.uid || null;
+  console.log("[rehydrateNow] start uid=", uid, "force=", force);
+  await rehydrateForUid(uid, "manual", { force });
+  try { await dumpPendingOnIOS("manual"); } catch {}
+  console.log("[rehydrateNow] done");
 };
