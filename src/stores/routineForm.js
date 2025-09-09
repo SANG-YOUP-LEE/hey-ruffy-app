@@ -360,7 +360,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       return true
     },
 
-    async save() {
+        async save() {
       if (this.isSaving) return { ok:false }
       this.isSaving = true
       try {
