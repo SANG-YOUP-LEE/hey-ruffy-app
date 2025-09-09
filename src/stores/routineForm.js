@@ -50,6 +50,8 @@ const parseHM = (t) => {
 
 const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
   if (!dateISO || !hm) return null
+  // ✅ hm 유효성 체크 추가
+  if (!Number.isFinite(hm.hour) || !Number.isFinite(hm.minute)) return null
   // 고정 +09:00 (Asia/Seoul). 필요하면 tz 적용 로직 확장.
   return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00`
 }
@@ -399,6 +401,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
             } else if (payload?.repeatType === 'monthly') {
               const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
               if (days.length) {
+                // 내부 스케줄러가 MONTHLY 미지원일 수 있으니 호출은 유지하되, 네이티브가 실제 알림 담당
                 sch.reschedule(
                   { id: routineId, title, hour: hm.hour, minute: hm.minute },
                   { mode: 'MONTHLY', days }
@@ -418,13 +421,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
           const baseId = routineId ? `routine-${routineId}` : null
 
           if (routineId && hm) {
-            // 편집 시 기존 알림 제거
+            // 편집 시 기존 알림 제거 (중복 방지)
             if (this.mode === 'edit' && baseId) {
               await cancelOnIOS(baseId) // baseId가 routine-로 시작 → purgeBase 동작
             }
 
             if (this.icsRule?.freq === 'once') {
-              // ✅ 정확 날짜·시간 1회 알림: epoch(초) + 과거 방지
+              // ✅ 정확 날짜·시간 1회 알림: epoch(초) + 과거 방지 + 파라미터 키 통일(id)
               const dateISO = payload?.start || safeISOFromDateObj(this.startDate) || todayISO()
               const atISO = toAtISO(dateISO, hm)
               const ms = atISOToEpochMs(atISO)
@@ -433,10 +436,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
               if (ms && ms > now) {
                 const sec = Math.floor(ms / 1000)
                 await scheduleOnIOS({
-                  routineId: baseId,
+                  id: baseId,
                   title,
-                  body: '',
-                  mode: 'once',
+                  repeatMode: 'once',
                   fireTimesEpoch: [sec],   // ← 초 단위
                   sound: 'ruffysound001.wav'
                 })

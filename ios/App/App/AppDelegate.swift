@@ -21,42 +21,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         }
         application.registerForRemoteNotifications()
 
-        // ✅ 앱 시작 5초 뒤 무조건 울리는 로컬 알림 (JS 경로 안 탐)
-        smokeTestLocalAfter(seconds: 5)
-
-        // ✅ 현재 대기중 알림도 바로 덤프해서 확인
-        dumpPending(tag: "boot")
-
+        // ✅ 더 이상 smoke test 알림 없음
         return true
-    }
-
-    // MARK: - Smoke test (native only)
-    private func smokeTestLocalAfter(seconds: Int) {
-        let content = UNMutableNotificationContent()
-        content.title = "LOCAL TEST"
-        content.body  = "fires in \(seconds)s"
-        content.sound = UNNotificationSound(named: UNNotificationSoundName("ruffysound001.wav"))
-
-        let trig = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(max(1, seconds)), repeats: false)
-        let id = "smoke__\(UUID().uuidString)"
-        let req = UNNotificationRequest(identifier: id, content: content, trigger: trig)
-
-        UNUserNotificationCenter.current().add(req) { err in
-            if let err = err {
-                print("[iOS] smoke add error -> \(err)")
-            } else {
-                print("[iOS] smoke scheduled id=\(id) in \(seconds)s")
-            }
-        }
-    }
-
-    private func dumpPending(tag: String) {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
-            print("[iOS] dumpPending(\(tag)) count=\(reqs.count)")
-            for r in reqs {
-                print(" - id=\(r.identifier) trigger=\(String(describing: r.trigger))")
-            }
-        }
     }
 
     // MARK: - Foreground presentation (배너/사운드 강제 표시)

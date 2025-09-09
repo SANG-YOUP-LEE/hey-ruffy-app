@@ -6,16 +6,12 @@ import UserNotifications
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-
-    // 브리지 중복 부착 방지
     private var notifyAttached = false
-    // 프로그램적으로 CAPBridge 올림
     private let USE_PROGRAMMATIC_ROOT = true
 
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
                options connectionOptions: UIScene.ConnectionOptions) {
-
         guard let windowScene = scene as? UIWindowScene else { return }
 
         if USE_PROGRAMMATIC_ROOT {
@@ -27,10 +23,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             print("[iOS] Root set programmatically -> CAPBridgeViewController")
         }
 
-        // 포그라운드 알림 표시 보장
         UNUserNotificationCenter.current().delegate = self
 
-        // 바로 한 번 붙여보고, 준비 전이면 200ms 후 1회만 재시도
         if !attachNotifyBridgeIfPossible() {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
                 _ = self?.attachNotifyBridgeIfPossible()
@@ -39,23 +33,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // 혹시 다른 플러그인이 덮어쓴 경우를 대비해 활성화 시 한 번 더 지정
         UNUserNotificationCenter.current().delegate = self
-        // 이미 붙었으면 스킵됨
         _ = attachNotifyBridgeIfPossible()
     }
 
     @discardableResult
     private func attachNotifyBridgeIfPossible() -> Bool {
         if notifyAttached { return true }
-        guard let capVC = findCAP(from: window?.rootViewController) else {
-            // CAPBridge 아직 준비 전: 여기서 무한 재시도하지 않음
+        guard let capVC = findCAP(from: window?.rootViewController),
+              let webView = capVC.bridge?.webView else {
             return false
         }
-        guard let webView = capVC.bridge?.webView else {
-            return false
-        }
-
         let uc = webView.configuration.userContentController
         uc.removeScriptMessageHandler(forName: "notify")
         uc.add(self, name: "notify")
@@ -64,7 +52,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         return true
     }
 
-    // 컨테이너(네비/탭) 내부까지 탐색
     private func findCAP(from vc: UIViewController?) -> CAPBridgeViewController? {
         if let c = vc as? CAPBridgeViewController { return c }
         if let nav = vc as? UINavigationController {
@@ -85,11 +72,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 // MARK: - JS Bridge Handler
 extension SceneDelegate: WKScriptMessageHandler {
-
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
-        guard message.name == "notify" else { return }
-        guard let dict = message.body as? [String: Any] else { return }
+        guard message.name == "notify",
+              let dict = message.body as? [String: Any] else { return }
 
         let action = (dict["action"] as? String ?? "").lowercased()
         let data   = (dict["payload"] as? [String: Any]) ?? dict
@@ -98,32 +84,23 @@ extension SceneDelegate: WKScriptMessageHandler {
         switch action {
         case "schedule":
             scheduleFromPayload(data)
-
         case "setscheduleforroutine":
             scheduleRoutineByEpochs(data)
-
         case "cancel":
             if let id = data["id"] as? String {
                 UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
                 print("[iOS] cancel id=\(id)")
             }
-
         case "purge", "purgebase":
             if let baseId = data["baseId"] as? String { purgeBase(baseId) }
-
         case "dumppending":
             dumpPending(tag: data["tag"] as? String ?? "manual")
-
-        case "debugping":
-            let sec = int(from: data["seconds"]) ?? 5
-            debugPing(after: sec)
-
         default:
             break
         }
     }
 
-    // MARK: - Helpers
+    // Helpers
     private func int(from any: Any?) -> Int? {
         if let n = any as? NSNumber { return n.intValue }
         if let s = any as? String, let n = Int(s.trimmingCharacters(in: .whitespaces)) { return n }
@@ -132,11 +109,7 @@ extension SceneDelegate: WKScriptMessageHandler {
 
     private func weekdays(from any: Any?) -> [Int] {
         guard let arr = any as? [Any] else { return [] }
-        var out: [Int] = []
-        for v in arr {
-            if let n = int(from: v) { out.append(n) }
-        }
-        return Array(Set(out)).sorted()
+        return Array(Set(arr.compactMap { int(from: $0) })).sorted()
     }
 
     private func purgeBase(_ base: String) {
@@ -156,7 +129,6 @@ extension SceneDelegate: WKScriptMessageHandler {
         }
     }
 
-    // 사운드 폴백 (.default로 안전)
     private func sound(from nameOrNil: String?) -> UNNotificationSound {
         let chosen = (nameOrNil?.isEmpty == false) ? nameOrNil! : "ruffysound001.wav"
         let base = (chosen as NSString).deletingPathExtension
@@ -168,24 +140,11 @@ extension SceneDelegate: WKScriptMessageHandler {
         }
     }
 
-    // MARK: - Quick test
-    private func debugPing(after sec: Int) {
-        let content = UNMutableNotificationContent()
-        content.title = "Ping"
-        content.body  = "debugPing \(sec)s"
-        content.sound = sound(from: "ruffysound001.wav")
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(max(1, sec)), repeats: false)
-        let req = UNNotificationRequest(identifier: "debugPing__\(UUID().uuidString)", content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(req)
-        print("[iOS] debugPing scheduled in \(sec)s")
-    }
-
-    // MARK: - Schedule by generic payload
+    // MARK: - Schedule from payload
     private func scheduleFromPayload(_ p: [String: Any]) {
         let center = UNUserNotificationCenter.current()
         let id = (p["id"] as? String) ?? UUID().uuidString
-        let title = (p["title"] as? String) ?? (p["name"] as? String) ?? "알람"
+        let title = (p["title"] as? String) ?? "알람"
         let body  = (p["body"] as? String) ?? ""
         let mode  = (p["repeatMode"] as? String ?? "").lowercased()
 
@@ -194,9 +153,8 @@ extension SceneDelegate: WKScriptMessageHandler {
         if !body.isEmpty { content.body = body }
         content.sound = sound(from: p["sound"] as? String)
 
-        let alarm = p["alarm"] as? [String: Any]
-        let hour = int(from: alarm?["hour"]) ?? int(from: p["hour"]) ?? 9
-        let minute = int(from: alarm?["minute"]) ?? int(from: p["minute"]) ?? 0
+        let hour = int(from: p["hour"]) ?? 9
+        let minute = int(from: p["minute"]) ?? 0
 
         func trig(hour: Int, minute: Int, weekday: Int? = nil, monthDay: Int? = nil, repeats: Bool) -> UNCalendarNotificationTrigger {
             var comps = DateComponents()
@@ -211,11 +169,8 @@ extension SceneDelegate: WKScriptMessageHandler {
         case "daily":
             center.add(UNNotificationRequest(identifier: id, content: content,
                                              trigger: trig(hour: hour, minute: minute, repeats: true)))
-
         case "weekly":
-            let wds = weekdays(from: p["weekdays"]).isEmpty
-                ? (int(from: p["weekday"]).map { [$0] } ?? [])
-                : weekdays(from: p["weekdays"])
+            let wds = weekdays(from: p["weekdays"])
             if wds.isEmpty {
                 center.add(UNNotificationRequest(identifier: id, content: content,
                                                  trigger: trig(hour: hour, minute: minute, repeats: true)))
@@ -226,10 +181,8 @@ extension SceneDelegate: WKScriptMessageHandler {
                                                      trigger: trig(hour: hour, minute: minute, weekday: w, repeats: true)))
                 }
             }
-
         case "monthly":
-            let raw = (p["monthDays"] as? [Any]) ?? []
-            let days = raw.compactMap { int(from: $0) }
+            let days = (p["monthDays"] as? [Any])?.compactMap { int(from: $0) } ?? []
             if days.isEmpty, let d = int(from: p["day"]) {
                 center.add(UNNotificationRequest(identifier: id, content: content,
                                                  trigger: trig(hour: hour, minute: minute, monthDay: d, repeats: true)))
@@ -240,14 +193,12 @@ extension SceneDelegate: WKScriptMessageHandler {
                                                      trigger: trig(hour: hour, minute: minute, monthDay: d, repeats: true)))
                 }
             }
-
-        case "once", "today", "single":
+        case "once", "today":
             var comps = DateComponents()
             comps.hour = hour
             comps.minute = minute
             center.add(UNNotificationRequest(identifier: id, content: content,
                                              trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)))
-
         default:
             center.add(UNNotificationRequest(identifier: id, content: content,
                                              trigger: trig(hour: hour, minute: minute, repeats: true)))
@@ -256,10 +207,9 @@ extension SceneDelegate: WKScriptMessageHandler {
         print("[iOS] scheduleFromPayload done id=\(id) mode=\(mode)")
     }
 
-    // MARK: - Schedule by epoch list
     private func scheduleRoutineByEpochs(_ p: [String: Any]) {
         let center = UNUserNotificationCenter.current()
-        let rid = (p["routineId"] as? String) ?? (p["id"] as? String) ?? "routine-\(UUID().uuidString)"
+        let rid = (p["routineId"] as? String) ?? "routine-\(UUID().uuidString)"
         let title = (p["title"] as? String) ?? "알람"
         let body  = (p["body"] as? String) ?? ""
 
@@ -269,31 +219,22 @@ extension SceneDelegate: WKScriptMessageHandler {
         content.sound = sound(from: p["sound"] as? String)
 
         let list = (p["fireTimesEpoch"] as? [Any]) ?? []
-        var count = 0
         let now = Date().timeIntervalSince1970
-
         for v in list {
             var sec: TimeInterval?
-            if let n = v as? NSNumber {
-                let d = n.doubleValue
-                sec = (d > 1e11) ? d / 1000.0 : d
-            } else if let s = v as? String, let d = Double(s) {
-                sec = (d > 1e11) ? d / 1000.0 : d
-            }
+            if let n = v as? NSNumber { sec = n.doubleValue > 1e11 ? n.doubleValue/1000 : n.doubleValue }
+            if let s = v as? String, let d = Double(s) { sec = d > 1e11 ? d/1000 : d }
             guard let s = sec, s > now else { continue }
             let date = Date(timeIntervalSince1970: s)
             let comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
             let nid = "\(rid)__t\(Int(s))"
             let trig = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
-            let req  = UNNotificationRequest(identifier: nid, content: content, trigger: trig)
-            center.add(req)
-            count += 1
+            center.add(UNNotificationRequest(identifier: nid, content: content, trigger: trig))
         }
-        print("[iOS] scheduleRoutineByEpochs rid=\(rid) scheduled=\(count)")
+        print("[iOS] scheduleRoutineByEpochs rid=\(rid)")
     }
 }
 
-// 포그라운드에서도 배너/사운드
 extension SceneDelegate: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
