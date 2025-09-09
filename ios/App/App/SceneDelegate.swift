@@ -194,6 +194,22 @@ extension SceneDelegate: WKScriptMessageHandler {
                 }
             }
         case "once", "today":
+            // ✅ timestamp(sec/ms) 우선 사용, 없으면 시간만으로 1회 예약
+            if let tsAny = p["timestamp"] {
+                var sec: TimeInterval?
+                if let n = tsAny as? NSNumber {
+                    sec = n.doubleValue > 1e11 ? n.doubleValue / 1000 : n.doubleValue
+                } else if let s = tsAny as? String, let d = Double(s) {
+                    sec = d > 1e11 ? d / 1000 : d
+                }
+                if let s = sec, s > Date().timeIntervalSince1970 {
+                    let date = Date(timeIntervalSince1970: s)
+                    let comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
+                    let trig = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
+                    center.add(UNNotificationRequest(identifier: id, content: content, trigger: trig))
+                    break
+                }
+            }
             var comps = DateComponents()
             comps.hour = hour
             comps.minute = minute
