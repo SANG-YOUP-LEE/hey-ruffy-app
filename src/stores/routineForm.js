@@ -44,7 +44,7 @@ const parseHM = (t) => {
       return { hour: h, minute: mm }
     }
 
-    // 영어 AM/PM 12시간제: "AM 9:05" / "9:05 PM"
+    // 영어 AM/PM 12시간제
     m = s.match(/^(?:\s*(AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i)
     if (m && (m[1] || m[4])) {
       let h = +m[2], mm = +m[3]
@@ -54,7 +54,7 @@ const parseHM = (t) => {
       return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
     }
 
-    // 한글 오전/오후 12시간제: "오전 9:05" / "9:05 오후"
+    // 한글 오전/오후 12시간제
     m = s.match(/^(?:\s*(오전|오후)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후))?$/)
     if (m && (m[1] || m[4])) {
       let h = +m[2], mm = +m[3]
@@ -529,10 +529,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
             // ✅ 어떤 모드로 재등록하든 과거에 남아 있을 수 있는 daily 알람 먼저 제거
             try {
-              await waitBridgeReady();
-              postIOS({ action: 'cancel', id: `routine-${routineId}-daily` });
+              await waitBridgeReady()
+              postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
             } catch (e) {
-              console.warn('[routineForm] daily cancel failed', e);
+              console.warn('[routineForm] daily cancel failed', e)
             }
 
             // 1) N>1일/주 → JS에서 epoch 배열 생성 후 iOS에 직접 등록
@@ -572,20 +572,38 @@ export const useRoutineFormStore = defineStore('routineForm', {
                 sound: 'ruffysound001.wav'
               })
             } else {
-              // 2) 그 외(오늘만/매일/매주/매월) → 기존 스케줄러 사용
+              // 2) 그 외(오늘만/매일/매주/매월)
               if (this.icsRule?.freq === 'once') {
-                // ✅ 오늘만(once)일 때는 'daily'만 정확히 제거하고, once는 남긴다
-                if (routineId) {
+                // ---- ONCE(오늘만): daily 확실히 제거 + 네이티브로 1회만 등록 ----
+                try {
+                  await waitBridgeReady()
                   postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
-                }
 
-                const dateISO = todayISO()
-                const atISO = toAtISO(dateISO, hm)
-                if (atISO) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'ONCE', at: atISO }
-                  )
+                  const dateISO = todayISO()
+                  const atISO = toAtISO(dateISO, hm)
+                  if (atISO) {
+                    const atMs = atISOToEpochMs(atISO)
+                    if (Number.isFinite(atMs)) {
+                      await scheduleOnIOS({
+                        routineId,
+                        title,
+                        repeatMode: 'once',
+                        fireTimesEpoch: [Math.floor(atMs / 1000)],
+                        sound: 'ruffysound001.wav'
+                      })
+                    }
+                  }
+                  // ONCE는 여기서 종료 (아래 분기로 안 내려감)
+                } catch (e) {
+                  console.warn('[routineForm] native once failed, fallback to scheduler ONCE', e)
+                  const dateISO = todayISO()
+                  const atISO = toAtISO(dateISO, hm)
+                  if (atISO) {
+                    sch.reschedule(
+                      { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                      { mode: 'ONCE', at: atISO }
+                    )
+                  }
                 }
               } else if (payload?.repeatType === 'daily') {
                 const n = Number(payload?.repeatEveryDays || 0)
