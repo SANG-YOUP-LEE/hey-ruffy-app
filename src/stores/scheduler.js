@@ -5,198 +5,286 @@ import { waitBridgeReady, scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
 
-// 12시간제 → 24시간제 변환
-// 문자열("HH:mm" / "HH.mm" / 오전/오후 / AM/PM) + 객체 + 낱개 hour/minute 모두 지원
+// ── "HH:mm" / "HH.mm" / 오전/오후 / AM/PM / 객체({hour,minute,ampm}) / 낱개(hour,minute)
 function resolveAlarmHM(r) {
-  const a = r?.alarmTime;
+  const a = r?.alarmTime
 
-  // 문자열 처리
+  // 문자열
   if (typeof a === 'string') {
-    // 점(·)/가운뎃점/공백 → ":" 로 통일
-    const s0 = a.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':');
-
-    // (1) 오전/오후/AM/PM 포함 패턴 (앞/뒤 모두 허용)
-    let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i);
+    const s0 = a.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':')
+    // 오전/오후/AM/PM
+    let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i)
     if (m && (m[1] || m[4])) {
-      let h = +m[2], mm = +m[3];
-      const tag = (m[1] || m[4] || '').toUpperCase();
-      if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12; }
-      if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0; }
-      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) };
+      let h = +m[2], mm = +m[3]
+      const tag = (m[1] || m[4] || '').toUpperCase()
+      if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12 }
+      if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0 }
+      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
     }
-
-    // (2) 순수 24시간 "HH:mm"
-    m = s0.match(/^(\d{1,2}):(\d{2})$/);
+    // 24시간
+    m = s0.match(/^(\d{1,2}):(\d{2})$/)
     if (m) {
-      const h = Math.max(0, Math.min(23, +m[1]));
-      const mm = Math.max(0, Math.min(59, +m[2]));
-      return { hour: h, minute: mm };
+      const h = Math.max(0, Math.min(23, +m[1]))
+      const mm = Math.max(0, Math.min(59, +m[2]))
+      return { hour: h, minute: mm }
     }
   }
 
-  // 객체 {ampm, hour, minute}
+  // 객체
   if (a && typeof a === 'object' && a.hour != null && a.minute != null) {
-    let h = parseInt(String(a.hour), 10);
-    const mm = parseInt(String(a.minute), 10);
-    const tag = String(a.ampm || '').toUpperCase();
-    if (tag === 'PM' || a.ampm === '오후') { if (h < 12) h += 12; }
-    if (tag === 'AM' || a.ampm === '오전') { if (h === 12) h = 0; }
+    let h = parseInt(String(a.hour), 10)
+    const mm = parseInt(String(a.minute), 10)
+    const tag = String(a.ampm || '').toUpperCase()
+    if (tag === 'PM' || a.ampm === '오후') { if (h < 12) h += 12 }
+    if (tag === 'AM' || a.ampm === '오전') { if (h === 12) h = 0 }
     if (Number.isFinite(h) && Number.isFinite(mm)) {
-      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) };
+      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
     }
   }
 
-  // 낱개 필드(r.hour/minute or r.alarm.hour/minute)
-  const h2 = Number(r?.hour ?? r?.alarm?.hour);
-  const m2 = Number(r?.minute ?? r?.alarm?.minute);
-  if (Number.isFinite(h2) && Number.isFinite(m2)) {
-    return { hour: h2, minute: m2 };
-  }
+  // 낱개
+  const h2 = Number(r?.hour ?? r?.alarm?.hour)
+  const m2 = Number(r?.minute ?? r?.alarm?.minute)
+  if (Number.isFinite(h2) && Number.isFinite(m2)) return { hour: h2, minute: m2 }
 
-  // 못 읽으면 null (스케줄러가 이 루틴은 skip해서 09:00 기본값 방지)
-  return null;
+  return null
 }
 
-// 마지막 등록 상태 기억
-const lastIdsByBase = new Map()
+// ── 요일 정규화: 숫자(1~7) 우선, '월'~'일'도 허용
+const KOR2NUM = { '월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':7 }
+function normalizeWeekdays(raw) {
+  if (!raw) return []
+  const arr = Array.isArray(raw) ? raw : [raw]
+  const toNum = (v) => {
+    if (v == null) return null
+    if (typeof v === 'number' && Number.isFinite(v)) return v
+    const s = String(v).replace(/['"]/g,'').trim()
+    if (!s) return null
+    if (KOR2NUM[s[0]]) return KOR2NUM[s[0]]
+    const n = parseInt(s, 10)
+    return Number.isFinite(n) ? n : null
+  }
+  return Array.from(new Set(arr.map(toNum).filter(n => n >= 1 && n <= 7))).sort((a,b)=>a-b)
+}
 
-// 루틴 → 필요한 알람 id와 페이로드 계산
-function computeDesired(r) {
+// ── 일/주/월 루틴 → 단 한 번의 scheduleOnIOS 호출로 끝내는 payload 생성
+function computeDesiredFromRoutine(r) {
   const baseId = baseOf(r.id)
-
   const hm = resolveAlarmHM(r)
   if (!hm) return { baseId, items: [] }
   const { hour, minute } = hm
 
   const title = r.title || ''
   const mode = String(r.repeatType || 'daily').toLowerCase()
-  const items = []
 
+  // DAILY
   if (mode.startsWith('daily')) {
-    // 매일 1개
-    items.push({
-      id: `${baseId}-daily`,
-      rid: r.id,
-      repeatMode: 'daily',
-      hour, minute, title,
-    })
-  } else if (mode.startsWith('week')) {
-    // 요일 배열 수집/정규화 (숫자 1..7)
-    let raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays.slice()
-            : Array.isArray(r.repeatDays)     ? r.repeatDays.slice()
-            : []
-
-    // 주간-매일 토글 보정: weeklyDaily 켜져 있고 배열이 비었으면 1..7
-    if (r.weeklyDaily === true && raw.length === 0) {
-      raw = [1,2,3,4,5,6,7]
-    }
-
-    const toNum = (d) => {
-      if (d == null) return null
-      if (typeof d === 'number' && Number.isFinite(d)) return d
-      const s = String(d).replace(/['"]/g,'').trim()
-      if (!s) return null
-      const kor = { '월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':7 }
-      if (kor[s[0]]) return kor[s[0]]
-      const n = parseInt(s,10)
-      return Number.isFinite(n) ? n : null
-    }
-
-    const weekdays = Array.from(new Set(raw.map(toNum).filter(n => n>=1 && n<=7))).sort((a,b)=>a-b)
-
-    if (weekdays.length === 0) return { baseId, items: [] }
-
-    if (weekdays.length === 7) {
-      // 7일 전부면 daily 하나로 축약
-      items.push({
+    return {
+      baseId,
+      items: [{
         id: `${baseId}-daily`,
         rid: r.id,
         repeatMode: 'daily',
         hour, minute, title,
-      })
-    } else {
-      // ✅ 한 번의 호출에 weekdays 배열을 통째로 전달 (purge 충돌 방지)
-      items.push({
+      }]
+    }
+  }
+
+  // WEEKLY (요일 배열 1회 전송)
+  if (mode.startsWith('week')) {
+    let days = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays
+             : Array.isArray(r.repeatDays)     ? r.repeatDays
+             : []
+    // weeklyDaily 토글 보정
+    if (r.weeklyDaily === true && (!days || days.length === 0)) {
+      days = [1,2,3,4,5,6,7]
+    }
+    const weekdays = normalizeWeekdays(days)
+    if (weekdays.length === 0) return { baseId, items: [] }
+
+    // 전부 선택 → daily 1개로 축약
+    if (weekdays.length === 7) {
+      return {
+        baseId,
+        items: [{
+          id: `${baseId}-daily`,
+          rid: r.id,
+          repeatMode: 'daily',
+          hour, minute, title,
+        }]
+      }
+    }
+    return {
+      baseId,
+      items: [{
         id: `${baseId}-weekly`,
         rid: r.id,
         repeatMode: 'weekly',
         hour, minute, title,
-        weekdays,              // <— 핵심
-      })
+        weekdays,                // 한 번에 전달
+      }]
     }
-  } else if (mode.startsWith('month')) {
-    // 월간 날짜들(여러 개면 한 번의 호출에 배열로)
-    const uniq = Array.from(
-      new Set((Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []).map(d => parseInt(d,10)))
-    ).filter(d => d>=1 && d<=31).sort((a,b)=>a-b)
-
-    if (uniq.length === 0) return { baseId, items: [] }
-
-    // ✅ 한 번의 호출에 repeatMonthDays 통째로 전달 (purge 충돌 방지)
-    items.push({
-      id: `${baseId}-monthly`,
-      rid: r.id,
-      repeatMode: 'monthly-date',
-      hour, minute, title,
-      repeatMonthDays: uniq,   // <— 핵심
-    })
   }
 
-  return { baseId, items }
+  // MONTHLY (여러 날짜 → 한 번에 배열로 전달)
+  if (mode.startsWith('month')) {
+    const md = (Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [])
+      .map(n => parseInt(n,10))
+      .filter(n => n>=1 && n<=31)
+      .sort((a,b)=>a-b)
+    if (!md.length) return { baseId, items: [] }
+    return {
+      baseId,
+      items: [{
+        id: `${baseId}-monthly`,      // 가상 id (iOS에서 내부로 -m-# 여러개 발행)
+        rid: r.id,
+        repeatMode: 'monthly-date',
+        hour, minute, title,
+        repeatMonthDays: md,          // 배열로 한 번에
+      }]
+    }
+  }
+
+  return { baseId, items: [] }
 }
+
+// ── routineForm.save() 가 두 번째 인자 repeat {mode, days} 를 줄 때 대응
+function computeDesiredFromRepeat(routine, repeat) {
+  const baseId = baseOf(routine.id)
+  const hm = resolveAlarmHM(routine)
+  if (!hm) return { baseId, items: [] }
+  const { hour, minute } = hm
+  const title = routine.title || ''
+
+  const mode = String(repeat?.mode || '').toUpperCase()
+
+  // DAILY
+  if (mode === 'DAILY' || mode === 'DAILY_EVERY_1') {
+    return {
+      baseId,
+      items: [{
+        id: `${baseId}-daily`,
+        rid: routine.id,
+        repeatMode: 'daily',
+        hour, minute, title,
+      }]
+    }
+  }
+
+  // WEEKLY
+  if (mode === 'WEEKLY') {
+    const weekdays = normalizeWeekdays(repeat?.days || [])
+    if (weekdays.length === 0) return { baseId, items: [] }
+    if (weekdays.length === 7) {
+      return {
+        baseId,
+        items: [{
+          id: `${baseId}-daily`,
+          rid: routine.id,
+          repeatMode: 'daily',
+          hour, minute, title,
+        }]
+      }
+    }
+    return {
+      baseId,
+      items: [{
+        id: `${baseId}-weekly`,
+        rid: routine.id,
+        repeatMode: 'weekly',
+        hour, minute, title,
+        weekdays,
+      }]
+    }
+  }
+
+  // MONTHLY
+  if (mode === 'MONTHLY') {
+    const md = (Array.isArray(repeat?.days) ? repeat.days : [])
+      .map(n => parseInt(n,10))
+      .filter(n => n>=1 && n<=31)
+      .sort((a,b)=>a-b)
+    if (!md.length) return { baseId, items: [] }
+    return {
+      baseId,
+      items: [{
+        id: `${baseId}-monthly`,
+        rid: routine.id,
+        repeatMode: 'monthly-date',
+        hour, minute, title,
+        repeatMonthDays: md,
+      }]
+    }
+  }
+
+  // 그 외는 스킵
+  return { baseId, items: [] }
+}
+
+// 마지막 등록 상태(논리 id) 추적 — 필요시 UI내 중복 호출 억제용
+const lastIdsByBase = new Map()
 
 export const useSchedulerStore = defineStore('scheduler', {
   actions: {
-    // 루틴 전체 재하이드레이트 (purge 없음)
+    // 루틴들 한번에 재하이드레이트
     async rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
       await waitBridgeReady()
 
       for (const r of list) {
         if (!r || r.isPaused) continue
-        const { baseId, items } = computeDesired(r)
 
-        const prevIds = lastIdsByBase.get(baseId) || new Set()
-        const nextIds = new Set(items.map(i => i.id))
+        const { baseId, items } = computeDesiredFromRoutine(r)
 
-        // 필요 없는 id는 cancel
-        for (const oldId of prevIds) {
-          if (!nextIds.has(oldId)) {
-            await cancelOnIOS(oldId)
-            await sleep(10)
-          }
+        // 베이스 단위로 항상 먼저 purge (다중 호출 레이스 방지)
+        await cancelOnIOS(baseId)
+        await sleep(20)
+
+        if (!items.length) {
+          lastIdsByBase.set(baseId, new Set())
+          continue
         }
 
-        // 새 id는 schedule
-        for (const it of items) {
-          if (!prevIds.has(it.id)) {
-            await scheduleOnIOS(it)
-            await sleep(10)
-          }
-        }
+        // 한 베이스당 단 한번 scheduleOnIOS
+        await scheduleOnIOS(items[0])
+        await sleep(20)
 
-        // 상태 갱신
-        lastIdsByBase.set(baseId, nextIds)
+        lastIdsByBase.set(baseId, new Set([items[0].id]))
       }
     },
 
-    // 특정 루틴만 다시 예약
-    async reschedule(routine) {
+    // routineForm.save()에서 호출: (routine, repeat) 모두 허용
+    async reschedule(routine, repeat) {
       if (!routine) return
-      await this.rehydrateFromRoutines([routine])
+      await waitBridgeReady()
+
+      const src = repeat
+        ? computeDesiredFromRepeat(routine, repeat)
+        : computeDesiredFromRoutine(routine)
+
+      const { baseId, items } = src
+
+      // 항상 베이스 purge 후, 단 한번 schedule
+      await cancelOnIOS(baseId)
+      await sleep(20)
+
+      if (!items.length) {
+        lastIdsByBase.set(baseId, new Set())
+        return
+      }
+
+      await scheduleOnIOS(items[0])
+      await sleep(20)
+
+      lastIdsByBase.set(baseId, new Set([items[0].id]))
     },
 
-    // 특정 루틴 제거
+    // 특정 루틴 전체 제거
     async cancelRoutine(routineId) {
       const baseId = baseOf(routineId)
-      const prev = lastIdsByBase.get(baseId)
-      if (prev) {
-        for (const id of prev) {
-          await cancelOnIOS(id)
-          await sleep(10)
-        }
-        lastIdsByBase.delete(baseId)
-      }
-    }
+      await cancelOnIOS(baseId) // 베이스 통째 purge
+      await sleep(20)
+      lastIdsByBase.delete(baseId)
+    },
   }
 })
