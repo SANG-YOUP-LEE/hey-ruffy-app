@@ -9,7 +9,7 @@
         <p>하지 말랑 하지말고 그냥 말랑말랑해~</p>
       </div>
       <div class="right">
-        <button class="calendar" @click="goCalendar"><span>달력열기</span></button>
+        <button class="calendar" @click="showTemp = true"><span>달력열기</span></button>
       </div>
     </div>
     <div class="ruffys_item">
@@ -18,13 +18,13 @@
       <span class="ruffy03"></span>
       <span class="ruffy04"></span>
     </div>
+    <MainViewTemp v-if="showTemp" />
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
-const goCalendar = () => {
-  router.push({ name: 'MainViewTemp' })
-}
+import { ref } from 'vue'
+import MainViewTemp from '@/views/MainView_temp.vue'
+
+const showTemp = ref(false)
 </script>
