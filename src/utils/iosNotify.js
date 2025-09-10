@@ -161,16 +161,29 @@ const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
 const _toInt = (v) => (Number.isFinite(+v) ? Math.floor(+v) : undefined);
 
 function ensureThreeLine(payload, src) {
-  const mode = src?.repeatMode || src?.mode || 'daily';
-  const label = LABEL_MAP(mode);
-  const h = _toInt(src?.hour ?? src?.alarm?.hour) ?? 9;
-  const m = _toInt(src?.minute ?? src?.alarm?.minute) ?? 0;
+  const mode = src?.repeatMode || src?.mode || 'daily'
+  const label = (() => {
+    const s = String(mode || '').toLowerCase()
+    if (s.startsWith('daily')) return 'Daily'
+    if (s.startsWith('weekly')) return 'Weekly'
+    if (s.startsWith('monthly')) return 'Monthly'
+    if (s === 'once' || s === 'today') return 'Daily'
+    return 'Daily'
+  })()
+
+  const h = Number(src?.hour ?? src?.alarm?.hour)
+  const m = Number(src?.minute ?? src?.alarm?.minute)
+  const hh = Number.isFinite(h) ? String(h).padStart(2, '0') : '00'
+  const mm = Number.isFinite(m) ? String(m).padStart(2, '0') : '00'
+
+  const routineTitle = src?.title || src?.name || '(No title)'
+
   return {
     ...payload,
     title: 'Hey Ruffy',
-    subtitle: `[${label}] ${src?.title || src?.name || ''}`.trim(),
-    body: `[${_pad2(h)}:${_pad2(m)} · ${label}] 달성현황을 체크해주세요`,
-  };
+    subtitle: `[${label}] ${routineTitle}`,
+    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
+  }
 }
 
 // ─────────────── purge race 방지 ───────────────
