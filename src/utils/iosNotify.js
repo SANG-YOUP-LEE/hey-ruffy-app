@@ -300,48 +300,50 @@ export async function scheduleOnIOS(msg) {
     }
 
     // ── WEEKLY
-      if (isWeekly) {
-        if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-          log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
-          return;
-        }
+if (isWeekly) {
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
+    return;
+  }
 
-        // 요일 소스: repeatWeekDays / weekdays / weekday → 숫자 1..7로 정규화
-        let weekdays =
-          Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
-          Array.isArray(msg?.weekdays)      ? msg.weekdays      :
-          (msg?.repeatWeekDays || msg?.weekday);
+  // 요일 소스: repeatWeekDays / weekdays / weekday → [1..7] 정규화
+  let weekdays =
+    Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
+    Array.isArray(msg?.weekdays)      ? msg.weekdays      :
+    (msg?.repeatWeekDays || msg?.weekday);
 
-        weekdays = normalizeWeekdays(weekdays) || [];
-        if (!weekdays.length) {
-          log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
-          return;
-        }
+  weekdays = normalizeWeekdays(weekdays) || [];
+  if (!weekdays.length) {
+    log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
+    return;
+  }
 
-        // ✅ 주간(weekly)일 때는 "매일(7일)"도 절대 daily로 축약하지 않음
-        //    → 요일별 7개의 알림으로 분리 등록 (ID: routine-<rid>-w-<day>)
-        await purgeThenSchedule(b, async () => {
-          for (const d of weekdays) {
-            const payload = {
-              action: 'schedule',
-              id: `${b}-w-${d}`,          // 요일별 개별 ID
-              baseId: b,
-              repeatMode: 'weekly',
-              weekdays: [d],              // 각 알림은 1개 요일만
-              hour, minute,
-              alarm: { hour, minute },    // 호환용
-              sound: DEFAULT_SOUND,
-            };
-            const finalWeekly = ensureThreeLine(
-              payload,
-              { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [d] }
-            );
-            log('[iosNotify] scheduleOnIOS:REQ(weekly-1day)', finalWeekly);
-            safePost(finalWeekly);
-          }
-        });
-        return;
-      }
+  // "매주 매일"이면 7개로 확장
+  const days = (weekdays.length === 7) ? [1,2,3,4,5,6,7] : weekdays;
+
+  // ❗️중요: 여기서는 base purge 금지
+  // 스케줄러가 요일마다 여러 번 호출하기 때문에 purge를 하면 앞에서 넣은 알람이 계속 지워짐.
+  for (const d of days) {
+    const payload = {
+      action: 'schedule',
+      id: `${b}-w-${d}__wd${d}`,   // 요일별 고유 id
+      baseId: b,
+      repeatMode: 'weekly',
+      hour, minute,                // top-level 시간
+      alarm: { hour, minute },     // 호환용
+      weekdays: [d],               // 네이티브가 단일 요일로 읽도록
+      sound: DEFAULT_SOUND,
+    };
+    const finalWeekly = ensureThreeLine(
+      payload,
+      { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [d] }
+    );
+    log('[iosNotify] scheduleOnIOS:REQ(weekly:day)', finalWeekly);
+    safePost(finalWeekly);
+    await sleep(10); // 네이티브 연속등록 버퍼
+  }
+  return;
+}
   }
 
   // ── Fallback: 정규화 후 그대로 전송 (가능하면 거의 타지 않도록 위에서 분기)
