@@ -56,8 +56,9 @@
 }
 
 #header .left .ruffys img {
-  width: 60%;
-  height: 60%;
+  width: 80%;
+  height: 80%;
+  margin:0 auto;
   object-fit: contain;
 }
 /*
