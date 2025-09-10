@@ -125,6 +125,9 @@ function stripLinks(obj) {
   delete obj.deepLink;
 }
 
+// ───────────────────────────────────────────
+// Payload normalization (★ baseId/title 보존 추가)
+// ───────────────────────────────────────────
 function normalizeSchedulePayload(msg = {}) {
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
@@ -139,28 +142,26 @@ function normalizeSchedulePayload(msg = {}) {
     out.sound = DEFAULT_SOUND;
     return out;
   }
+
   const out = { action: 'schedule' };
   out.id = msg.id || msg.baseId || 'inline';
   out.repeatMode = msg.repeatMode || msg.repeatType || 'once';
   out.hour = toInt(msg.hour ?? msg?.alarm?.hour);
   out.minute = toInt(msg.minute ?? msg?.alarm?.minute);
+
+  // ★ 여기 추가: purge 및 제목 유지에 필요
+  out.baseId = msg.baseId || (msg.routineId ? baseId(msg.routineId) : undefined);
+  out.title  = msg.title || msg.name || out.title;
+  out.name   = msg.name  || msg.title || out.name;
+
+  stripLinks(out);
   out.sound = DEFAULT_SOUND;
   return out;
 }
 
 // ─────────────── 3줄 알림 강제 포맷 ───────────────
-const LABEL_MAP = (m) => {
-  const s = String(m || '').toLowerCase();
-  if (s.startsWith('daily')) return '데일리';
-  if (s.startsWith('weekly')) return '위클리';
-  if (s.startsWith('monthly')) return '먼슬리';
-  if (s === 'once' || s === 'today') return '데일리';
-  return '데일리';
-};
 const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
-const _toInt = (v) => (Number.isFinite(+v) ? Math.floor(+v) : undefined);
 
-// ⬇️ src/utils/iosNotify.js 안의 ensureThreeLine 전체 교체
 function ensureThreeLine(payload, src) {
   const modeSrc = src?.repeatMode || src?.mode || payload?.repeatMode || 'daily';
   const mode = String(modeSrc).toLowerCase();
@@ -169,7 +170,6 @@ function ensureThreeLine(payload, src) {
               : (mode === 'once' || mode === 'today') ? 'Daily'
               : 'Daily';
 
-  // 시간 소스 캐치: src → payload → timestamp(once)
   const pick = (a,b,c,d) => a ?? b ?? c ?? d;
 
   let rawH = pick(
@@ -181,7 +181,7 @@ function ensureThreeLine(payload, src) {
     Number(payload?.minute), Number(payload?.alarm?.minute)
   );
 
-  // 문자열 alarmTime도 파싱 시도 (ex "17:00", "10.30", "오후 5:00")
+  // 문자열 alarmTime까지 파싱
   if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
     const str = src?.alarmTime || payload?.alarmTime;
     if (typeof str === 'string') {
@@ -200,7 +200,7 @@ function ensureThreeLine(payload, src) {
     }
   }
 
-  // 그래도 없으면 timestamp(초/밀리초)에서 추출 (once 대비)
+  // timestamp(once)에서 추출
   if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
     const ts = Number(src?.timestamp ?? payload?.timestamp);
     if (Number.isFinite(ts) && ts > 0) {
@@ -211,17 +211,16 @@ function ensureThreeLine(payload, src) {
     }
   }
 
-  const hh = Number.isFinite(rawH) ? String(rawH).padStart(2, '0') : '00';
-  const mm = Number.isFinite(rawM) ? String(rawM).padStart(2, '0') : '00';
+  const hh = Number.isFinite(rawH) ? _pad2(rawH) : '00';
+  const mm = Number.isFinite(rawM) ? _pad2(rawM) : '00';
 
   const routineTitle =
     (src?.title || src?.name || payload?.title || payload?.name || '').trim() || '(제목없음)';
 
-  // iOS가 subtitle을 가끔 숨기므로, body 첫 줄에 제목을 같이 넣어 항상 보이게
   return {
     ...payload,
     title: 'Hey Ruffy',
-    subtitle: routineTitle, // 보조(안 보일 수도 있음)
+    subtitle: routineTitle, // iOS가 가릴 수도 있으니 body에도 1줄 포함
     body: `${routineTitle}\n[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
   };
 }
@@ -276,27 +275,31 @@ export async function scheduleOnIOS(msg) {
     }
 
     if (isDaily) {
-        // ⬇️ 시간 값이 유효하지 않으면 스킵
-        if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-          log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
-          return;
-        }
-        await purgeThenSchedule(b, async () => {
-          const payload = {
-            action: 'schedule',
-            id: idDaily(rid),
-            repeatMode: 'daily',
-            alarm: { hour, minute },   // ✅ 기본값 9:00 제거
-            sound: DEFAULT_SOUND,
-          };
-          const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
-          log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
-          safePost(finalDaily);
-        });
+      // 시간 없으면 스킵(이전의 9:00 기본값 제거)
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+        log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
         return;
       }
+      await purgeThenSchedule(b, async () => {
+        const payload = {
+          action: 'schedule',
+          id: idDaily(rid),
+          repeatMode: 'daily',
+          alarm: { hour, minute },
+          sound: DEFAULT_SOUND,
+        };
+        const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
+        log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
+        safePost(finalDaily);
+      });
+      return;
+    }
+    // weekly/monthly 등은 아래 일반 경로로 내려감
   }
+
+  // 일반 경로(weekly/monthly 등)
   const unified = normalizeSchedulePayload(msg);
+
   if (isToday || unified.repeatMode === 'today') {
     unified.repeatMode = 'once';
     if (!unified.timestamp) {
@@ -308,7 +311,7 @@ export async function scheduleOnIOS(msg) {
     unified.timestamp = Math.floor(unified.timestamp / 1000);
   }
 
-  const finalPayload = ensureThreeLine(unified, unified);
+  const finalPayload = ensureThreeLine(unified, { ...msg, ...unified });
   if (finalPayload.baseId) {
     await purgeThenSchedule(finalPayload.baseId, async () => {
       log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
@@ -344,14 +347,22 @@ export function purgeRoutineAll(rid) {
 
 export function scheduleDaily({ rid, hour, minute, title }) {
   if (!rid) return;
+  const h = toInt(hour), m = toInt(minute);
+  // ★ 시간 없으면 스킵(더 이상 9:00 기본 주입 안 함)
+  if (!Number.isFinite(h) || !Number.isFinite(m)) {
+    log('[iosNotify] scheduleDaily:SKIP(no time)', { rid, hour, minute });
+    return;
+  }
   const payload = {
     action: 'schedule',
     id: idDaily(rid),
     repeatMode: 'daily',
-    alarm: { hour: toInt(hour) ?? 9, minute: toInt(minute) ?? 0 },
+    alarm: { hour: h, minute: m },
     sound: DEFAULT_SOUND,
+    baseId: baseId(rid),
+    title,
   };
-  const finalPayload = ensureThreeLine(payload, { title, hour, minute, repeatMode: 'daily' });
+  const finalPayload = ensureThreeLine(payload, { title, hour: h, minute: m, repeatMode: 'daily' });
   log('[iosNotify] scheduleDaily', finalPayload);
   safePost(finalPayload);
 }
@@ -365,6 +376,8 @@ export function scheduleOnce({ rid, atMs, title }) {
     repeatMode: 'once',
     timestamp: Math.floor(tsMs / 1000),
     sound: DEFAULT_SOUND,
+    baseId: baseId(rid),
+    title,
   };
   const finalPayload = ensureThreeLine(payload, { title, repeatMode: 'once' });
   log('[iosNotify] scheduleOnce', finalPayload);
