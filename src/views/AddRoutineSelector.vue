@@ -202,7 +202,7 @@ async function saveRoutine() {
   const MAX_LEN = 20
   if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
-  // 알람 예약
+  //알림
 
   gotoFinish(r.data)
 }
