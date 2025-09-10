@@ -62,98 +62,88 @@ const lastIdsByBase = new Map()
 
 // 루틴 → 필요한 알람 id와 페이로드 계산
 function computeDesired(r) {
-  const baseId = baseOf(r.id);
+  const baseId = baseOf(r.id)
 
-  const hm = resolveAlarmHM(r);
-  if (!hm) return { baseId, items: [] };
-  const { hour, minute } = hm;
+  const hm = resolveAlarmHM(r)
+  if (!hm) return { baseId, items: [] }
+  const { hour, minute } = hm
 
-  const title = r.title || '';
-  const mode = String(r.repeatType || 'daily').toLowerCase();
-  const items = [];
+  const title = r.title || ''
+  const mode = String(r.repeatType || 'daily').toLowerCase()
+  const items = []
 
   if (mode.startsWith('daily')) {
+    // 매일 1개
     items.push({
       id: `${baseId}-daily`,
       rid: r.id,
       repeatMode: 'daily',
       hour, minute, title,
-    });
+    })
   } else if (mode.startsWith('week')) {
-    // 1) 원본 요일 소스
-    let rawDays = Array.isArray(r.repeatWeekDays)
-      ? r.repeatWeekDays.slice()
-      : (Array.isArray(r.repeatDays) ? r.repeatDays.slice() : []);
+    // 요일 배열 수집/정규화 (숫자 1..7)
+    let raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays.slice()
+            : Array.isArray(r.repeatDays)     ? r.repeatDays.slice()
+            : []
 
-    // 2) 주간-매일 토글 보정: weeklyDaily === true 이고 배열이 비었으면 1..7로 채움
-    if (r.weeklyDaily === true && rawDays.length === 0) {
-      rawDays = [1,2,3,4,5,6,7];
+    // 주간-매일 토글 보정: weeklyDaily 켜져 있고 배열이 비었으면 1..7
+    if (r.weeklyDaily === true && raw.length === 0) {
+      raw = [1,2,3,4,5,6,7]
     }
 
-    // 3) 문자열/숫자 섞여도 정규화
     const toNum = (d) => {
-      if (d == null) return null;
-      if (typeof d === 'number' && Number.isFinite(d)) return d;
-      const s = String(d).replace(/['"]/g,'').trim();
-      if (!s) return null;
-      // 한글 요일 한 글자 → 숫자(월:1 … 일:7)
-      const korMap = { '월':1, '화':2, '수':3, '목':4, '금':5, '토':6, '일':7 };
-      if (korMap[s[0]]) return korMap[s[0]];
-      const n = parseInt(s, 10);
-      return Number.isFinite(n) ? n : null;
-    };
-
-    const days = Array.from(
-      new Set(
-        rawDays.map(toNum).filter(n => n >= 1 && n <= 7)
-      )
-    ).sort((a,b)=>a-b);
-
-    if (days.length === 0) {
-      // 요일이 아예 없으면 스킵 (기본 9:00 주입 방지)
-      return { baseId, items: [] };
+      if (d == null) return null
+      if (typeof d === 'number' && Number.isFinite(d)) return d
+      const s = String(d).replace(/['"]/g,'').trim()
+      if (!s) return null
+      const kor = { '월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':7 }
+      if (kor[s[0]]) return kor[s[0]]
+      const n = parseInt(s,10)
+      return Number.isFinite(n) ? n : null
     }
 
-    // 4) 7일 전부면 daily 하나로 축약
-    if (days.length === 7) {
+    const weekdays = Array.from(new Set(raw.map(toNum).filter(n => n>=1 && n<=7))).sort((a,b)=>a-b)
+
+    if (weekdays.length === 0) return { baseId, items: [] }
+
+    if (weekdays.length === 7) {
+      // 7일 전부면 daily 하나로 축약
       items.push({
         id: `${baseId}-daily`,
         rid: r.id,
         repeatMode: 'daily',
         hour, minute, title,
-      });
+      })
     } else {
-      // 5) 요일별 개별 알림(주간 64개 제한 내에서 안정적)
-      days.forEach((wd) => {
-        items.push({
-          id: `${baseId}-w-${wd}__wd${wd}`, // 식별 확실히
-          rid: r.id,
-          repeatMode: 'weekly',
-          hour, minute, title,
-          weekday: wd,       // 단일 요일
-          weekdays: [wd],    // 호환 필드
-        });
-      });
+      // ✅ 한 번의 호출에 weekdays 배열을 통째로 전달 (purge 충돌 방지)
+      items.push({
+        id: `${baseId}-weekly`,
+        rid: r.id,
+        repeatMode: 'weekly',
+        hour, minute, title,
+        weekdays,              // <— 핵심
+      })
     }
   } else if (mode.startsWith('month')) {
-    const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [];
-    md.forEach(d => {
-      const dayNum = Number(d);
-      if (Number.isFinite(dayNum) && dayNum >= 1 && dayNum <= 31) {
-        items.push({
-          id: `${baseId}-m-${dayNum}`,
-          rid: r.id,
-          repeatMode: 'monthly-date',
-          hour, minute, title,
-          day: dayNum,
-        });
-      }
-    });
+    // 월간 날짜들(여러 개면 한 번의 호출에 배열로)
+    const uniq = Array.from(
+      new Set((Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []).map(d => parseInt(d,10)))
+    ).filter(d => d>=1 && d<=31).sort((a,b)=>a-b)
+
+    if (uniq.length === 0) return { baseId, items: [] }
+
+    // ✅ 한 번의 호출에 repeatMonthDays 통째로 전달 (purge 충돌 방지)
+    items.push({
+      id: `${baseId}-monthly`,
+      rid: r.id,
+      repeatMode: 'monthly-date',
+      hour, minute, title,
+      repeatMonthDays: uniq,   // <— 핵심
+    })
   }
 
-  return { baseId, items };
+  return { baseId, items }
 }
-
 
 export const useSchedulerStore = defineStore('scheduler', {
   actions: {
