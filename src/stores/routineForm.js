@@ -442,7 +442,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       // 코멘트 정리
       if (sc === null) this.comment = ''
 
-      // ✅ “오늘만(once)”일 때 과거시간 방지
+     // ✅ “오늘만(once)”일 때 알람 과거시간 검증 (알람 있을 때만)
       const isOnce =
         this.repeatType === 'daily' &&
         Number.isInteger(this.repeatDaily) &&
@@ -450,19 +450,19 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       if (isOnce) {
         const hm = parseHM(this.alarmTime)
-        if (!hm) {
-          this.setError('alarm','알람 시간을 선택해주세요.')
-          return false
-        }
-        const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
-        const atISO = toAtISO(dateISO, hm)
-        const ms = atISOToEpochMs(atISO)
-        const now = Date.now()
-        const GRACE_MS = 5000
 
-        if (!ms || ms <= (now + GRACE_MS)) {
-          this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
-          return false
+        // 알람 설정한 경우에만 과거시간 체크
+        if (hm) {
+          const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
+          const atISO = toAtISO(dateISO, hm)
+          const ms = atISOToEpochMs(atISO)
+          const now = Date.now()
+          const GRACE_MS = 5000
+
+          if (!ms || ms <= (now + GRACE_MS)) {
+            this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
+            return false
+          }
         }
       }
 
