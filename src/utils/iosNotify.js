@@ -1,4 +1,9 @@
 // src/utils/iosNotify.js
+// iOS WebKit bridge helper for local notifications
+
+// ───────────────────────────────────────────
+// Bridge helpers
+// ───────────────────────────────────────────
 const mh = () => window?.webkit?.messageHandlers?.notify;
 
 export function isBridgeAvailable() {
@@ -31,10 +36,16 @@ const safePost = (payload) => {
 
 const log = (...args) => console.debug('[iosNotify]', ...args);
 
+// ───────────────────────────────────────────
+// ID helpers (루틴 단일화 규칙)
+// ───────────────────────────────────────────
 const baseId = (rid) => `routine-${rid}`;
 const idDaily = (rid) => `${baseId(rid)}-daily`;
 const idOnce  = (rid, tsMs) => `${baseId(rid)}-once-${tsMs}`;
 
+// ───────────────────────────────────────────
+// Parsing / normalization
+// ───────────────────────────────────────────
 const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
 const toInt = (v) => {
@@ -116,6 +127,9 @@ function buildTodayTimestamp(hour, minute) {
   return t > Date.now() ? t : null;
 }
 
+// ───────────────────────────────────────────
+// Payload normalization
+// ───────────────────────────────────────────
 const DEFAULT_SOUND = 'ruffysound001.wav';
 
 function stripLinks(obj) {
@@ -125,6 +139,7 @@ function stripLinks(obj) {
   delete obj.deepLink;
 }
 
+// 🔁 교체: normalizeSchedulePayload
 function normalizeSchedulePayload(msg = {}) {
   if (msg && msg.action === 'schedule') {
     const out = { ...msg };
@@ -260,33 +275,9 @@ function normalizeSchedulePayload(msg = {}) {
   return out;
 }
 
-const LABEL_MAP = (m) => {
-  const s = String(m || '').toLowerCase();
-  if (s.startsWith('daily'))   return '데일리';
-  if (s.startsWith('weekly'))  return '위클리';
-  if (s.startsWith('monthly')) return '먼슬리';
-  if (s === 'once' || s === 'today') return '데일리';
-  return '데일리';
-};
-const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
-const _toInt = (v) => (Number.isFinite(+v) ? Math.floor(+v) : undefined);
-
-function ensureThreeLine(payload, src) {
-  const mode = src?.repeatMode || src?.mode || 'daily';
-  const label = LABEL_MAP(mode);
-  const h = _toInt(src?.hour ?? src?.alarm?.hour) ?? 9;
-  const m = _toInt(src?.minute ?? src?.alarm?.minute) ?? 0;
-  const titleText = 'Hey Ruffy';
-  const subText = `[${label}] ${src?.title || src?.name || ''}`.trim();
-  const bodyText = `[${_pad2(h)}:${_pad2(m)} · ${label}] 달성현황을 체크해주세요`;
-  return {
-    ...payload,
-    title: titleText,
-    subtitle: subText,
-    body: bodyText,
-  };
-}
-
+// ───────────────────────────────────────────
+// Public APIs
+// ───────────────────────────────────────────
 export async function scheduleOnIOS(msg) {
   if (!(await waitBridgeReady())) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
 
@@ -298,10 +289,12 @@ export async function scheduleOnIOS(msg) {
 
   const rid = msg?.routineId || msg?.routineID || msg?.rid;
 
+  // 루틴ID가 있는 경우: 항상 베이스 단위 정리 후 단일 등록
   if (rid) {
     const hour = toInt(msg?.hour ?? msg?.alarm?.hour);
     const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
 
+    // purgeBase로 같은 루틴의 기존 예약(daily/once 전부) 제거
     safePost({ action: 'purgeBase', baseId: baseId(rid) });
 
     if (isToday || isOnce) {
@@ -322,9 +315,8 @@ export async function scheduleOnIOS(msg) {
         timestamp: Math.floor(tsMs / 1000),
         sound: DEFAULT_SOUND,
       };
-      const finalOnce = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'once' });
-      log('[iosNotify] scheduleOnIOS:REQ(once)', finalOnce);
-      safePost(finalOnce);
+      log('[iosNotify] scheduleOnIOS:REQ(once)', payload);
+      safePost(payload);
       return;
     }
 
@@ -337,13 +329,15 @@ export async function scheduleOnIOS(msg) {
         alarm: { hour: hour ?? 9, minute: minute ?? 0 },
         sound: DEFAULT_SOUND,
       };
-      const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
-      log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
-      safePost(finalDaily);
+      log('[iosNotify] scheduleOnIOS:REQ(daily)', payload);
+      safePost(payload);
       return;
     }
+
+    // 그 외(weekly/monthly 등)는 일반 경로로
   }
 
+  // 일반 스케줄
   const unified = normalizeSchedulePayload(msg);
 
   if (isToday || unified.repeatMode === 'today') {
@@ -357,9 +351,8 @@ export async function scheduleOnIOS(msg) {
     unified.timestamp = Math.floor(unified.timestamp / 1000);
   }
 
-  const finalPayload = ensureThreeLine(unified, unified);
-  log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
-  safePost(finalPayload);
+  log('[iosNotify] scheduleOnIOS:REQ(schedule)', unified);
+  safePost(unified);
 }
 
 export async function cancelOnIOS(idOrBase) {
@@ -382,6 +375,7 @@ export function purgeBases(baseIds = []) {
   for (const b of baseIds) purgeBase(b);
 }
 
+// 편의 API (루틴 스케줄 전용) — 외부에서도 직접 호출 가능
 export function purgeRoutineAll(rid) {
   if (!rid) return;
   safePost({ action: 'purgeBase', baseId: baseId(rid) });
@@ -397,9 +391,8 @@ export function scheduleDaily({ rid, hour, minute, title }) {
     alarm: { hour: toInt(hour) ?? 9, minute: toInt(minute) ?? 0 },
     sound: DEFAULT_SOUND,
   };
-  const finalPayload = ensureThreeLine(payload, { title, hour, minute, repeatMode: 'daily' });
-  log('[iosNotify] scheduleDaily', finalPayload);
-  safePost(finalPayload);
+  log('[iosNotify] scheduleDaily', payload);
+  safePost(payload);
 }
 
 export function scheduleOnce({ rid, atMs, title }) {
@@ -413,9 +406,8 @@ export function scheduleOnce({ rid, atMs, title }) {
     timestamp: Math.floor(tsMs / 1000),
     sound: DEFAULT_SOUND,
   };
-  const finalPayload = ensureThreeLine(payload, { title, repeatMode: 'once' });
-  log('[iosNotify] scheduleOnce', finalPayload);
-  safePost(finalPayload);
+  log('[iosNotify] scheduleOnce', payload);
+  safePost(payload);
 }
 
 export async function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
