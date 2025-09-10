@@ -63,13 +63,38 @@ const lastIdsByBase = new Map()
 // 루틴 → 필요한 알람 id와 페이로드 계산
 function computeDesired(r) {
   const baseId = baseOf(r.id)
+
+  // 시간 파싱(없으면 스킵)
   const hm = resolveAlarmHM(r)
   if (!hm) return { baseId, items: [] }
   const { hour, minute } = hm
 
   const title = r.title || ''
-  const mode = String(r.repeatType || 'daily').toLowerCase()
+  const mode  = String(r.repeatType || 'daily').toLowerCase()
   const items = []
+
+  // ── 요일 정규화: 숫자(1..7), 한글(월..일), ICS(SU..SA) 모두 지원
+  const KOR_DAY = { '일':7, '월':1, '화':2, '수':3, '목':4, '금':5, '토':6 }
+  const ICS_DAY = { SU:7, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 }
+
+  const mapOneDay = (d) => {
+    if (d == null) return undefined
+    if (typeof d === 'number' && d >= 1 && d <= 7) return d
+    const s = String(d).trim()
+    if (!s) return undefined
+    // 숫자로 들어온 문자열
+    if (/^\d+$/.test(s)) {
+      const n = +s
+      return (n >= 1 && n <= 7) ? n : undefined
+    }
+    // 한글 한 글자(월..일)
+    if (KOR_DAY[s]) return KOR_DAY[s]
+    // ICS 요일
+    if (ICS_DAY[s.toUpperCase()]) return ICS_DAY[s.toUpperCase()]
+    return undefined
+  }
+
+  const uniqSort = (arr) => Array.from(new Set(arr)).sort((a,b)=>a-b)
 
   if (mode.startsWith('daily')) {
     items.push({
@@ -79,35 +104,45 @@ function computeDesired(r) {
       hour, minute, title,
     })
   } else if (mode.startsWith('week')) {
-    const rawDays = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : r.repeatDays || []
-    const days = Array.from(new Set(rawDays.map(n => Number(n)).filter(n => n >= 1 && n <= 7))).sort((a,b) => a - b)
+    // 원천: repeatWeekDays 우선, 없으면 repeatDays
+    const rawDays = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays
+                  : Array.isArray(r.repeatDays)     ? r.repeatDays
+                  : []
+
+    // 주간 “매일” 토글이 있는 데이터가 숫자 1..7로 저장되어 있을 수도, 한글/ICS로 저장되었을 수도 있으니 전부 정규화
+    const days = uniqSort(rawDays.map(mapOneDay).filter(Boolean))
 
     if (days.length) {
+      // 요일별로 **각각 1개씩** 등록 (매일이면 7개 생성)
       days.forEach(d => {
         items.push({
-          id: `${baseId}-w-${d}`,
+          id: `${baseId}-w-${d}`,     // 요일별 유니크 id
           rid: r.id,
           repeatMode: 'weekly',
           hour, minute, title,
-          weekdays: [d],
+          weekdays: [d],              // iOS 쪽엔 숫자 1..7로 전달
         })
       })
     }
   } else if (mode.startsWith('month')) {
     const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
     md.forEach(d => {
-      items.push({
-        id: `${baseId}-m-${d}`,
-        rid: r.id,
-        repeatMode: 'monthly-date',
-        hour, minute, title,
-        day: d,
-      })
+      const day = Number(d)
+      if (Number.isFinite(day) && day >= 1 && day <= 31) {
+        items.push({
+          id: `${baseId}-m-${day}`,
+          rid: r.id,
+          repeatMode: 'monthly-date',
+          hour, minute, title,
+          day,
+        })
+      }
     })
   }
 
   return { baseId, items }
 }
+
 
 export const useSchedulerStore = defineStore('scheduler', {
   actions: {
