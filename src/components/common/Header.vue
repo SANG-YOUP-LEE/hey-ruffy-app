@@ -9,7 +9,7 @@
         <p>하지 말랑 하지말고 그냥 말랑말랑해~</p>
       </div>
       <div class="right">
-        <button class="calendar"><span>달력열기</span></button>
+        <button class="calendar" @click="goCalendar"><span>달력열기</span></button>
       </div>
     </div>
     <div class="ruffys_item">
@@ -20,3 +20,11 @@
     </div>
   </div>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const goCalendar = () => {
+  router.push({ name: 'MainViewTemp' })
+}
+</script>
