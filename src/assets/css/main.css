@@ -55,13 +55,12 @@
 #header .left .ruffys::after {
   content: "";
   position: absolute;
-  bottom: -0.6rem;
-  right: 0.8rem;
+  bottom: 0;
+  right: 0;
   width: 0;
   height: 0;
-  border-left: 0.6rem solid transparent;
-  border-right: 0.6rem solid transparent;
-  border-top: 0.6rem solid #ffef6e;
+  border-top: 0.8rem solid #ffef6e;
+  border-left: 0.8rem solid transparent;
 }
 
 #header .left .title {
@@ -71,32 +70,33 @@
 
 #header .left .title h1 {
   margin: 0;
-  line-height:2.4rem;
-  font-size: 1.4rem;
+  line-height:2.8rem;
+  font-size: 1.6rem;
   display: inline-block;
   color:#333;
 }
 
 #header .left .title p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   letter-spacing: -0.02rem;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'S-CoreDream-4Regular';
+  color:#aaa;
 }
 
 #header .right button {
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 1.8rem;
+  height: 1.8rem;
   margin-left:0.6rem;
   display: inline-block;
 }
 
 #header .right button:last-child {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.6rem;
+  height: 1.6rem;
 }
 
 /*
