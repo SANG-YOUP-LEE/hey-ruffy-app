@@ -34,7 +34,7 @@
           :touch-sensitivity="1.4"
           :scroll-sensitivity="0.7"
           :inertia-duration="3000"
-          :inertia-factor="0.9"
+          :inertia-factor="0.98"
         />
       </div>
 
