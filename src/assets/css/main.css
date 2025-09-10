@@ -24,13 +24,6 @@
   border-bottom: 1px solid #e6e6e6;
 }
 
-#header .h1 {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
 #header .left,
 #header .right {
   position: absolute;
@@ -70,13 +63,13 @@
   font-family: 'S-CoreDream-4Regular';
 }
 
-#header .left button,
 #header .right button {
   width: 1.8rem;
   height: 1.8rem;
   display: inline-block;
 }
 
+/*
 #header .ruffys_item {
   width: 100%;
   display: flex;
@@ -100,6 +93,7 @@
 #header.short .ruffys_item {
   display: none;
 }
+*/
 
 #footer {
   position: fixed;
@@ -138,7 +132,6 @@
   -webkit-overflow-scrolling: touch;
   padding: 0.5rem 1.5rem 0.5rem 1.5rem;
   padding-bottom: calc(1.5rem + 3.6rem + var(--sab));
-  background-color: #fafafa;
   flex: 1;
   display: flex;
   flex-direction: column;
