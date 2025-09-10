@@ -1,6 +1,6 @@
 // src/stores/scheduler.js
 import { defineStore } from 'pinia'
-import { waitBridgeReady, scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
+
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
