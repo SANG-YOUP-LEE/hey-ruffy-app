@@ -276,12 +276,16 @@ export async function scheduleOnIOS(msg) {
     }
 
     if (isDaily) {
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+        log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
+        return; // 시간 없으면 예약 안 함
+      }
       await purgeThenSchedule(b, async () => {
         const payload = {
           action: 'schedule',
           id: idDaily(rid),
           repeatMode: 'daily',
-          alarm: { hour: hour ?? 9, minute: minute ?? 0 },
+          alarm: { hour, minute }, // ✅ 9시 기본값 제거
           sound: DEFAULT_SOUND,
         };
         const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
