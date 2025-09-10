@@ -3,7 +3,7 @@
     <div class="left">
       <p class="ruffys">
         <span>
-          <img :src="imgSrc" alt="Ruffy" />
+          <img :src="ruffySrc" alt="Ruffy" />
         </span>
       </p>
       <div class="title">
@@ -19,27 +19,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/firebase'
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
-// assets 폴더에서 직접 import
-import ruffy01 from '@/assets/images/ruffy01.png'
-import ruffy02 from '@/assets/images/ruffy02.png'
-import ruffy03 from '@/assets/images/ruffy03.png'
-import ruffy04 from '@/assets/images/ruffy04.png'
+const a = useAuthStore()
+const profile = computed(() => a.profile)
 
-const imgSrc = ref('')
-const auth = useAuthStore()
+const RUFFY_MAP = {
+  option1: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href,
+  option2: new URL('@/assets/images/hey_ruffy_temp02.png', import.meta.url).href,
+  option3: new URL('@/assets/images/hey_ruffy_temp03.png', import.meta.url).href,
+  option4: new URL('@/assets/images/hey_ruffy_temp04.png', import.meta.url).href,
+}
+const DEFAULT_RUFFY = new URL('@/assets/images/ico_user_gray.png', import.meta.url).href
 
-onMounted(async () => {
-  await auth.ensureReady?.()
-  const uid = auth.user?.uid
-  if (!uid) return
-  const snap = await getDoc(doc(db, 'users', uid))
-  const id = snap.exists() ? snap.data().selectedRuffy : ''
-  const map = { ruffy01, ruffy02, ruffy03, ruffy04 }
-  imgSrc.value = map[id] || ruffy01
-})
+const ruffySrc = computed(() =>
+  profile.value?.selectedRuffy ? RUFFY_MAP[profile.value.selectedRuffy] : DEFAULT_RUFFY
+)
 </script>
