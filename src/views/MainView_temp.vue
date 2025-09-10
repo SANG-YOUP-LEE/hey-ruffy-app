@@ -7,7 +7,7 @@
 
     <div id="main_body">
       <div class="main_fixed" v-if="hasFetched && rStore.items?.length">
-        ㄴㄴㄴ<MainDateScroll v-if="rStore.selectedPeriod==='T'" :selectedDate="selectedDate" @selectDate="nav.selectDate" />
+        <!--MainDateScroll v-if="rStore.selectedPeriod==='T'" :selectedDate="selectedDate" @selectDate="nav.selectDate" /-->
         <MainRoutineTotal
           :isFuture="isFutureDate" :selectedDate="selectedDate"
           v-model:modelValue="rStore.selectedFilter"
