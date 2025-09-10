@@ -20,7 +20,7 @@
   flex-direction: column;
   width: 100%;
   height:5rem;
-  padding-top:1rem;
+  padding:1.5rem;
   box-sizing: border-box;
 }
 
@@ -34,12 +34,12 @@
 
 
 #header .left {
-  left:1rem;
+  left:1.5rem;
   display: flex;
 }
 
 #header .right {
-  right:1rem;
+  right:1.5rem;
 }
 
 #header .left .ruffys {
