@@ -32,7 +32,7 @@
           :options="minuteLoopOptions"
           :drag-sensitivity="1.4"
           :touch-sensitivity="1.4"
-          :scroll-sensitivity="0.7"
+          :scroll-sensitivity="0.5"
           :inertia-duration="3000"
           :inertia-factor="0.98"
         />
