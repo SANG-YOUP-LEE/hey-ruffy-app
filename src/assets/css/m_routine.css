@@ -18,20 +18,15 @@
   background-color:#fff;
 }
 
-/*
+
 #main_body .date_scroll .date_fixed_today {
   grid-area: today;
   position: sticky;
   left: 0;
   z-index: 10;
   flex-shrink:0;
-  font-weight:bold;
-  border-right:none;
-  border-bottom:none;
-  border-top-left-radius: 1.5rem;
-  background-color:red;
 }
-*/
+
 #main_body .date_scroll .date_group {
   grid-area: group;
   display:flex;
