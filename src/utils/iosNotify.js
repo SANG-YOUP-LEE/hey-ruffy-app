@@ -239,16 +239,19 @@ export async function scheduleOnIOS(msg) {
 
   const modeRaw = msg?.mode || msg?.repeatMode;
   const mode = typeof modeRaw === 'string' ? modeRaw.toLowerCase() : '';
-  const isToday = mode === 'today';
-  const isOnce = mode === 'once';
-  const isDaily = mode === 'daily';
+  const isToday   = mode === 'today';
+  const isOnce    = mode === 'once';
+  const isDaily   = mode === 'daily';
+  const isWeekly  = mode.startsWith('weekly');
+  const isMonthly = mode.startsWith('monthly');
   const rid = msg?.routineId || msg?.routineID || msg?.rid;
 
   if (rid) {
-    const hour = toInt(msg?.hour ?? msg?.alarm?.hour);
+    const hour   = toInt(msg?.hour ?? msg?.alarm?.hour);
     const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
     const b = baseId(rid);
 
+    // ── ONCE / TODAY
     if (isToday || isOnce) {
       let tsMs;
       const epochs = normalizeEpochs(msg?.fireTimesEpoch);
@@ -274,8 +277,8 @@ export async function scheduleOnIOS(msg) {
       return;
     }
 
+    // ── DAILY
     if (isDaily) {
-      // 시간 없으면 스킵(이전의 9:00 기본값 제거)
       if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
         log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
         return;
@@ -285,7 +288,8 @@ export async function scheduleOnIOS(msg) {
           action: 'schedule',
           id: idDaily(rid),
           repeatMode: 'daily',
-          alarm: { hour, minute },
+          hour, minute,                   // top-level도 같이
+          alarm: { hour, minute },        // 호환용
           sound: DEFAULT_SOUND,
         };
         const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
@@ -294,12 +298,111 @@ export async function scheduleOnIOS(msg) {
       });
       return;
     }
-    // weekly/monthly 등은 아래 일반 경로로 내려감
+
+    // ── WEEKLY
+    if (isWeekly) {
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+        log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
+        return;
+      }
+      // 요일 소스(숫자 1..7 선호, 없으면 문자열을 normalize)
+      let weekdays =
+        Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
+        Array.isArray(msg?.weekdays)      ? msg.weekdays      :
+        normalizeWeekdays(msg?.repeatWeekDays || msg?.weekday) || [];
+
+      // 문자열 요일이 섞여 들어올 수 있으니 최종 normalize
+      weekdays = normalizeWeekdays(weekdays) || [];
+
+      if (!weekdays.length) {
+        log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
+        return;
+      }
+
+      // 7일 전부면 weekly 대신 daily 하나로 축약
+      if (weekdays.length === 7) {
+        await purgeThenSchedule(b, async () => {
+          const payload = {
+            action: 'schedule',
+            id: idDaily(rid),
+            repeatMode: 'daily',
+            hour, minute,
+            alarm: { hour, minute },
+            sound: DEFAULT_SOUND,
+          };
+          const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
+          log('[iosNotify] scheduleOnIOS:REQ(daily←weekly7)', finalDaily);
+          safePost(finalDaily);
+        });
+        return;
+      }
+
+      await purgeThenSchedule(b, async () => {
+        const payload = {
+          action: 'schedule',
+          id: `${b}-weekly`,
+          baseId: b,
+          repeatMode: 'weekly',
+          hour, minute,
+          weekdays,
+          sound: DEFAULT_SOUND,
+        };
+        const finalWeekly = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays });
+        log('[iosNotify] scheduleOnIOS:REQ(weekly)', finalWeekly);
+        safePost(finalWeekly);
+      });
+      return;
+    }
+
+    // ── MONTHLY (monthly-date 계열)
+    if (isMonthly) {
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+        log('[iosNotify] scheduleOnIOS:SKIP(monthly, no time)');
+        return;
+      }
+      let monthDays = Array.isArray(msg?.monthDays) ? msg.monthDays
+                    : Array.isArray(msg?.repeatMonthDays) ? msg.repeatMonthDays
+                    : null;
+
+      if (!monthDays || !monthDays.length) {
+        // 단일 day 필드 지원
+        const d = toInt(msg?.day);
+        monthDays = d ? [d] : [];
+      }
+      monthDays = (monthDays || [])
+        .map(toInt)
+        .filter(n => n >= 1 && n <= 31);
+
+      if (!monthDays.length) {
+        log('[iosNotify] scheduleOnIOS:SKIP(monthly, no monthDays)');
+        return;
+      }
+
+      await purgeThenSchedule(b, async () => {
+        // 여러 날짜면 각각 개별 id로 스케줄
+        for (const d of monthDays) {
+          const payload = {
+            action: 'schedule',
+            id: `${b}-m-${d}`,
+            baseId: b,
+            repeatMode: 'monthly-date',
+            day: d,
+            hour, minute,
+            sound: DEFAULT_SOUND,
+          };
+          const finalMonthly = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'monthly', day: d });
+          log('[iosNotify] scheduleOnIOS:REQ(monthly-date)', finalMonthly);
+          safePost(finalMonthly);
+        }
+      });
+      return;
+    }
+
+    // ── 그 외 모드(안전망): 아래로 폴백
   }
 
-  // 일반 경로(weekly/monthly 등)
+  // ── Fallback: 정규화 후 그대로 전송 (가능하면 거의 타지 않도록 위에서 분기)
   const unified = normalizeSchedulePayload(msg);
-
   if (isToday || unified.repeatMode === 'today') {
     unified.repeatMode = 'once';
     if (!unified.timestamp) {
@@ -311,7 +414,14 @@ export async function scheduleOnIOS(msg) {
     unified.timestamp = Math.floor(unified.timestamp / 1000);
   }
 
-  const finalPayload = ensureThreeLine(unified, { ...msg, ...unified });
+  // 시간 미존재 시는 스킵(9:00 강제 주입 금지)
+  if ((unified.repeatMode === 'daily' || unified.repeatMode?.startsWith('weekly') || unified.repeatMode?.startsWith('monthly'))
+      && (!Number.isFinite(unified.hour) || !Number.isFinite(unified.minute))) {
+    log('[iosNotify] scheduleOnIOS:SKIP(fallback, no time)');
+    return;
+  }
+
+  const finalPayload = ensureThreeLine(unified, unified);
   if (finalPayload.baseId) {
     await purgeThenSchedule(finalPayload.baseId, async () => {
       log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
@@ -322,6 +432,7 @@ export async function scheduleOnIOS(msg) {
     safePost(finalPayload);
   }
 }
+ 
 
 export async function cancelOnIOS(idOrBase) {
   if (!(await waitBridgeReady())) return;
@@ -348,7 +459,6 @@ export function purgeRoutineAll(rid) {
 export function scheduleDaily({ rid, hour, minute, title }) {
   if (!rid) return;
   const h = toInt(hour), m = toInt(minute);
-  // ★ 시간 없으면 스킵(더 이상 9:00 기본 주입 안 함)
   if (!Number.isFinite(h) || !Number.isFinite(m)) {
     log('[iosNotify] scheduleDaily:SKIP(no time)', { rid, hour, minute });
     return;
@@ -357,10 +467,10 @@ export function scheduleDaily({ rid, hour, minute, title }) {
     action: 'schedule',
     id: idDaily(rid),
     repeatMode: 'daily',
+    hour: h,               // ✅ 추가: top-level 시간
+    minute: m,             // ✅ 추가: top-level 시간
     alarm: { hour: h, minute: m },
     sound: DEFAULT_SOUND,
-    baseId: baseId(rid),
-    title,
   };
   const finalPayload = ensureThreeLine(payload, { title, hour: h, minute: m, repeatMode: 'daily' });
   log('[iosNotify] scheduleDaily', finalPayload);
