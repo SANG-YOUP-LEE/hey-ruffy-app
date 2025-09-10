@@ -6,18 +6,55 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
 
 // 12시간제 → 24시간제 변환
+// 문자열("HH:mm" / "HH.mm" / 오전/오후 / AM/PM) + 객체 + 낱개 hour/minute 모두 지원
 function resolveAlarmHM(r) {
-  const a = r?.alarmTime
-  if (a && a.hour != null && a.minute != null) {
-    let h = parseInt(a.hour, 10) % 12
-    const m = parseInt(a.minute, 10)
-    const ampm = String(a.ampm || '').toUpperCase()
-    if (ampm === '오후' || ampm === 'PM') h += 12
-    if ((ampm === '오전' || ampm === 'AM') && a.hour == 12) h = 0
-    if ((ampm === '오후' || ampm === 'PM') && a.hour == 12) h = 12
-    return { hour: h, minute: m }
+  const a = r?.alarmTime;
+
+  // 문자열 처리
+  if (typeof a === 'string') {
+    // 점(·)/가운뎃점/공백 → ":" 로 통일
+    const s0 = a.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':');
+
+    // (1) 오전/오후/AM/PM 포함 패턴 (앞/뒤 모두 허용)
+    let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i);
+    if (m && (m[1] || m[4])) {
+      let h = +m[2], mm = +m[3];
+      const tag = (m[1] || m[4] || '').toUpperCase();
+      if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12; }
+      if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0; }
+      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) };
+    }
+
+    // (2) 순수 24시간 "HH:mm"
+    m = s0.match(/^(\d{1,2}):(\d{2})$/);
+    if (m) {
+      const h = Math.max(0, Math.min(23, +m[1]));
+      const mm = Math.max(0, Math.min(59, +m[2]));
+      return { hour: h, minute: mm };
+    }
   }
-  return { hour: Number(r?.hour ?? r?.alarm?.hour), minute: Number(r?.minute ?? r?.alarm?.minute) }
+
+  // 객체 {ampm, hour, minute}
+  if (a && typeof a === 'object' && a.hour != null && a.minute != null) {
+    let h = parseInt(String(a.hour), 10);
+    const mm = parseInt(String(a.minute), 10);
+    const tag = String(a.ampm || '').toUpperCase();
+    if (tag === 'PM' || a.ampm === '오후') { if (h < 12) h += 12; }
+    if (tag === 'AM' || a.ampm === '오전') { if (h === 12) h = 0; }
+    if (Number.isFinite(h) && Number.isFinite(mm)) {
+      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) };
+    }
+  }
+
+  // 낱개 필드(r.hour/minute or r.alarm.hour/minute)
+  const h2 = Number(r?.hour ?? r?.alarm?.hour);
+  const m2 = Number(r?.minute ?? r?.alarm?.minute);
+  if (Number.isFinite(h2) && Number.isFinite(m2)) {
+    return { hour: h2, minute: m2 };
+  }
+
+  // 못 읽으면 null (스케줄러가 이 루틴은 skip해서 09:00 기본값 방지)
+  return null;
 }
 
 // 마지막 등록 상태 기억

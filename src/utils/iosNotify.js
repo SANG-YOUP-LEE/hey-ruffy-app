@@ -169,29 +169,59 @@ function ensureThreeLine(payload, src) {
               : (mode === 'once' || mode === 'today') ? 'Daily'
               : 'Daily';
 
-  // 1) 시간 안전하게 가져오기 (src 우선, 없으면 payload도 탐색)
+  // 시간 소스 캐치: src → payload → timestamp(once)
   const pick = (a,b,c,d) => a ?? b ?? c ?? d;
-  const rawH = pick(
+
+  let rawH = pick(
     Number(src?.hour), Number(src?.alarm?.hour),
     Number(payload?.hour), Number(payload?.alarm?.hour)
   );
-  const rawM = pick(
+  let rawM = pick(
     Number(src?.minute), Number(src?.alarm?.minute),
     Number(payload?.minute), Number(payload?.alarm?.minute)
   );
-  const hh = Number.isFinite(rawH) ? String(rawH).padStart(2,'0') : '00';
-  const mm = Number.isFinite(rawM) ? String(rawM).padStart(2,'0') : '00';
 
-  // 2) 다짐제목 (없으면 표시용 대체)
-  const routineTitle = (src?.title || src?.name || payload?.title || payload?.name || '').trim() || '(제목없음)';
+  // 문자열 alarmTime도 파싱 시도 (ex "17:00", "10.30", "오후 5:00")
+  if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
+    const str = src?.alarmTime || payload?.alarmTime;
+    if (typeof str === 'string') {
+      const s0 = str.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':');
+      let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i);
+      if (m && (m[1] || m[4])) {
+        let h = +m[2], mm = +m[3];
+        const tag = (m[1] || m[4] || '').toUpperCase();
+        if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12; }
+        if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0; }
+        rawH = h; rawM = mm;
+      } else {
+        m = s0.match(/^(\d{1,2}):(\d{2})$/);
+        if (m) { rawH = +m[1]; rawM = +m[2]; }
+      }
+    }
+  }
 
-  // 3) iOS가 subtitle을 숨기는 경우가 있으니, body에 2줄로 포함
-  //   1줄: 다짐제목
-  //   2줄: [HH:mm · Label] 달성현황을 체크해주세요
+  // 그래도 없으면 timestamp(초/밀리초)에서 추출 (once 대비)
+  if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
+    const ts = Number(src?.timestamp ?? payload?.timestamp);
+    if (Number.isFinite(ts) && ts > 0) {
+      const ms = ts > 1e12 ? ts : ts * 1000;
+      const d = new Date(ms);
+      rawH = d.getHours();
+      rawM = d.getMinutes();
+    }
+  }
+
+  const hh = Number.isFinite(rawH) ? String(rawH).padStart(2, '0') : '00';
+  const mm = Number.isFinite(rawM) ? String(rawM).padStart(2, '0') : '00';
+
+  const routineTitle =
+    (src?.title || src?.name || payload?.title || payload?.name || '').trim() || '(제목없음)';
+
+  // iOS가 subtitle을 가끔 숨기므로, body 첫 줄에 제목을 같이 넣어 항상 보이게
   return {
     ...payload,
-    title: 'Hey Ruffy',                    // 1줄(큰 글씨): 앱 이름 고정
-    subtitle: routineTitle,                // 보일 수도, 안 보일 수도 → 백업용
+    title: 'Hey Ruffy',
+    subtitle: routineTitle, // 보조(안 보일 수도 있음)
     body: `${routineTitle}\n[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
   };
 }
