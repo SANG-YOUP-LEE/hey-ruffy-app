@@ -47,6 +47,16 @@
    font-style: normal;
 }
 
+
+@font-face {
+  font-family: 'Paperlogy';
+  src: url('../fonts/Paperlogy-8ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 * {
   margin: 0;
   padding: 0;
@@ -128,7 +138,7 @@ body,
 }
 
 h1 {
-  font-family: 'ONE-Mobile-POP';
+  font-family: 'Paperlogy';
   font-size:3.8rem;
   line-height:4.3rem;
 }
