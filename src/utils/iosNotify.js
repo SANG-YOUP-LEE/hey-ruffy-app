@@ -276,26 +276,26 @@ export async function scheduleOnIOS(msg) {
     }
 
     if (isDaily) {
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-        log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
-        return; // 시간 없으면 예약 안 함
+        // ⬇️ 시간 값이 유효하지 않으면 스킵
+        if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+          log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
+          return;
+        }
+        await purgeThenSchedule(b, async () => {
+          const payload = {
+            action: 'schedule',
+            id: idDaily(rid),
+            repeatMode: 'daily',
+            alarm: { hour, minute },   // ✅ 기본값 9:00 제거
+            sound: DEFAULT_SOUND,
+          };
+          const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
+          log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
+          safePost(finalDaily);
+        });
+        return;
       }
-      await purgeThenSchedule(b, async () => {
-        const payload = {
-          action: 'schedule',
-          id: idDaily(rid),
-          repeatMode: 'daily',
-          alarm: { hour, minute }, // ✅ 9시 기본값 제거
-          sound: DEFAULT_SOUND,
-        };
-        const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
-        log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
-        safePost(finalDaily);
-      });
-      return;
-    }
   }
-
   const unified = normalizeSchedulePayload(msg);
   if (isToday || unified.repeatMode === 'today') {
     unified.repeatMode = 'once';
