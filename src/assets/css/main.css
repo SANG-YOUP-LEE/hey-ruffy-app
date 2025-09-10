@@ -61,17 +61,6 @@
   margin:0 auto;
   object-fit: contain;
 }
-/*
-#header .left .ruffys::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 0;
-  height: 0;
-  border-top: 0.8rem solid #ffef6e;
-  border-left: 0.8rem solid transparent;
-}*/
 
 #header .left .title {
   flex: 1;
@@ -81,14 +70,14 @@
 #header .left .title h1 {
   margin: 0;
   line-height:2.8rem;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   display: inline-block;
   color:#333;
 }
 
 #header .left .title p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   letter-spacing: -0.02rem;
   display: flex;
   align-items: center;
@@ -109,40 +98,12 @@
   height: 1.6rem;
 }
 
-/*
-#header .ruffys_item {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.8rem;
-  margin: 1rem 0 1rem 0;
-}
-
-#header .ruffys_item span[class^="ruffy"] {
-  width: 2.5rem;
-  height: 2.5rem;
-  background-size: 100% 100%;
-}
-
-#header.short {
-  padding: 0.5rem 1rem 0.5rem 1rem;
-}
-
-#header.short .title p,
-#header.short .ruffys_item {
-  display: none;
-}
-*/
-
 #footer {
   position: fixed;
   left: var(--sal);
   right: var(--sar);
   bottom: var(--sab);
   padding: 1.5rem;
-  border-top: 1px solid #e6e6e6;
-  background: #fff;
   z-index: 100;
 }
 
