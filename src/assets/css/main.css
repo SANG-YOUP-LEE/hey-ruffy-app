@@ -34,12 +34,12 @@
 
 
 #header .left {
-  left:1rem;
+  left:1.5rem;
   display: flex;
 }
 
 #header .right {
-  right:1rem;
+  right:1.5rem;
 }
 
 #header .left .ruffys {
