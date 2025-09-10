@@ -1,6 +1,27 @@
 <template>
-  <div class="routine_total" v-if="periodMode==='T'">
-    <p>
+  <div class="routine_total">
+    <div class="total_area">
+      <div class="date">
+        <span class="y_m">{{ selectedDate.getFullYear() }}.{{ selectedDate.getMonth() + 1 }}</span>
+        <p class="today">
+          <button class="prev" @click.prevent="$emit('requestPrev')"><span>{{ prevLabel }}</span></button>
+          <em>{{ selectedDate.getDate() }}</em>
+          <button class="next" @click.prevent="$emit('requestNext')"><span>{{ nextLabel }}</span></button>
+        </p>
+      </div>
+      <div class="term">
+        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>Today</span></button>
+        <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>Weekly</span></button>
+        <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
+      </div>
+      <div class="graph">
+        
+      </div>
+      <div class="r_state">
+        
+      </div>
+    </div>
+    <!--p>
       <span>
         <strong>{{ headerTitle }}</strong>
         <em class="t_on">{{ displayTotal }}</em>
@@ -24,25 +45,11 @@
           </a>
         </template>
       </span>
-    </p>
+    </p-->
   </div>
 
-  <div class="today_tools">
-    <div class="today">
-      <p>
-        <a href="#none" class="prev" @click.prevent="$emit('requestPrev')"><span>{{ prevLabel }}</span></a>
-        {{ centerText }}
-        <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>{{ nextLabel }}</span></a>
-      </p>
-    </div>
-
+  <!--div class="today_tools">
     <div class="tools">
-      <span class="term_wrap">
-        <a href="#none" :class="periodMode==='T' ? 'basic' : 'on_w'" @click.prevent="onChangePeriod('T')">일간</a>
-        <a href="#none" :class="periodMode==='W' ? 'basic' : 'on_w'" @click.prevent="onChangePeriod('W')">주간</a>
-        <a href="#none" :class="periodMode==='M' ? 'basic' : 'on_w'" @click.prevent="onChangePeriod('M')">월간</a>
-      </span>
-
       <span class="tools_wrap">
         <a href="#none" class="r_card"  :class="{ on: activeTool==='card' }"  @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
         <a href="#none" class="r_block" :class="{ on: activeTool==='block' }" @click.prevent="onChangeView('block')"><span>다짐블록보기</span></a>
@@ -54,8 +61,9 @@
         ><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
       </span>
     </div>
-  </div>
+  </div-->
 </template>
+
 
 <script setup>
 import { computed, ref, watch } from 'vue'

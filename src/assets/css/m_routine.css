@@ -1,3 +1,11 @@
+#main_body .date_scroll,
+#main_body .routine_total .total_area .date,
+#main_body .routine_total .total_area .term button,
+#main_body .routine_total .total_area .graph,
+#main_body .routine_total .total_area .r_state {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
 
 #main_body .date_scroll {
   width:100%;
@@ -8,16 +16,14 @@
     "ruffys ruffys"
     "today  group";
   align-items: center;
-  gap: 0.3rem 0.2rem;
   position: relative;
-  margin-top:1.5rem;
-  padding:0.5rem;
+  margin:0 0 1rem 0;
+  padding:0 0 0 0.5rem;
   z-index:3;  
   border-radius:1.5rem;
   overflow:hidden;
   background-color:#fff;
 }
-
 
 #main_body .date_scroll .date_fixed_today {
   grid-area: today;
@@ -25,21 +31,30 @@
   left: 0;
   z-index: 10;
   flex-shrink:0;
+  padding-right:0.5rem;
+  background:#fff;
 }
+
 
 #main_body .date_scroll .date_group {
   grid-area: group;
   display:flex;
   justify-content:flex-start;
-  gap:0.2rem;
   align-items:center;
   overflow-x:auto;                
   -webkit-overflow-scrolling:touch;
   white-space:nowrap;
   -ms-overflow-style:none;
   scrollbar-width:none;
-  padding:1rem 0 0.5rem 0;
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 0.8rem, black calc(100% - 0.8rem), transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-image: linear-gradient(to right, transparent 0, black 0.8rem, black calc(100% - 0.8rem), transparent 100%);
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
   margin-right:1rem;
+  z-index:6;
 }
 
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
@@ -61,10 +76,10 @@
   justify-content: center;
   align-items: center;
   line-height: 1.2rem;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #b3b3b3;
   box-sizing: border-box;
-  border-radius:1.5rem;
+  border-radius:1rem;
 }
 
 #main_body .date_scroll .date_group i,
@@ -79,7 +94,7 @@
   font-weight:bold!important;
   color:#333!important;
   background-color:#fff!important;
-  border:1px solid #333!important
+  border:1px solid #aaa!important
  }
 
 #main_body .date_fixed_today span.on,
@@ -90,104 +105,111 @@
   background-color:#3db4ff!important
 }
 
-#main_body .routine_total {
-  margin:0;
-  position:relative;
+#main_body .routine_total  {
 }
 
-#main_body .routine_total p:first-child {
-  font-size:0.9rem;
-  letter-spacing:-0.02rem;
+#main_body .routine_total .total_area {
+  height:6rem;
+  margin-bottom:1rem;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  position:relative; 
-  z-index:2;
-  padding:0rem 1rem 1rem 1rem;
-  border:1px solid #e6e6e6;
-  border-top:none;
-  border-bottom-right-radius: 1.5rem;
-  border-bottom-left-radius: 1.5rem;
-  background-color:#fff;
- }
+}
 
-#main_body .routine_total p:first-child span:first-child {
-  display:inline-block;
-  line-height:2.2rem;
+#main_body .routine_total .total_area .date {
+  width:26%;
+  height:100%;
+  border-radius:1.5rem;
+  background-color:#fff;
   color:#333;
+  font-family:Pretendard;
+  text-align:center;
+  padding:0.8rem 0rem 0.8rem 0rem;
+  white-space:nowrap;
+  line-height:1;
 }
 
-#main_body .routine_total p:first-child span:first-child strong {
-  margin-right:0.2rem
+#main_body .routine_total .total_area .date .y_m,
+#main_body .routine_total .total_area .date em,
+#main_body .routine_total .total_area .date button {
+  display:inline-block;
+  vertical-align:middle;
 }
 
-#main_body .routine_total p:first-child span em {
-  font-weight:bold!important
+#main_body .routine_total .total_area .date .y_m {
+  font-size:0.9rem;
+  font-weight:900;
 }
 
-#main_body .routine_total p span {
-  display: flex;
-  align-items: center;
+#main_body .routine_total .total_area .date em {
+  font-size:2rem;
+  font-weight:900;
+  margin:0.8rem .5rem
 }
 
-#main_body .routine_total p span a {
-  display: inline-flex;          
-  align-items: center;          
-  justify-content: center;
-  font-weight: bold;
-  box-sizing: border-box;
-  text-decoration:none;
-  color:#b3b3b3;
-  line-height:1.5rem;
-  margin-right:0.5rem;
+#main_body .routine_total .total_area .date button {
+  width:1rem;
+  height:1rem;
 }
 
-#main_body .routine_total p span a.uline {
-  background-color:none!important;
-  border-bottom-width: 2px!important;
-  color:#333!important
+#main_body .routine_total .total_area .date button.next {
+  background: url('../images/ico_b_next.png') no-repeat 50% 50% /100%;
 }
 
-#main_body .routine_total p span a em {
-  font-weight:bold
+#main_body .routine_total .total_area .date button.prev {
+  background: url('../images/ico_b_prev.png') no-repeat 50% 50% /100%;
+  
 }
 
-
-#main_body .routine_total p span a strong {
-  margin-right:0.2rem;
+#main_body .routine_total .total_area .date button span {
+  display:none;
 }
 
-#main_body .routine_total.top {
-  margin-top:1rem;
-  padding-top:1rem;
+#main_body .routine_total .total_area .term {
+  margin-top:0.5rem;
+  width:3rem;
+  margin-left:0.5rem;
+}
+
+#main_body .routine_total .total_area .term button {
+  color:#3db4ff;
+  font-family:Pretendard;
+  font-size:0.8rem;
+  line-height:1.7rem;
+  font-weight:900;
   background-color:#fff;
-  border:1px solid #e6e6e6;
-  border-radius: 1.5rem;
+  border-radius: 1rem;
+  width:4.5rem;
+  text-align:center;
+  margin-bottom:0.4rem;
 }
 
-#main_body .routine_total.top p:first-child {
-  border:none
+#main_body .routine_total .total_area .term button.on {
+  background-color:#3db4ff!important;
+  color:#fff;
+}
+
+#main_body .routine_total .total_area .term button span {
+  display: block;
+
+}
+#main_body .routine_total .total_area .graph {
+  width:30%;
+  height:100%;
+  margin-left:2rem;
+  background-color:#fff;
+  border-radius:1.5rem;
+  
+}
+
+#main_body .routine_total .total_area .r_state {
+  width:25%;
+  height:100%;
+  background-color:#fff;
+  border-radius:1.5rem;
+  margin-left: 0.5rem;
 }
 /*
-#main_body .date_wscroll {
-  padding:0;
-  margin:0;
-}
-
-#main_body .date_wscroll a {
-  width:1.5rem;
-  height:1rem;
-  display:inline-block;
-  background: url('../images/ico_wscroll.png') no-repeat 50% 50% /100%;
-  padding:0;
-  margin:0.5rem 0 0 0;
-}
-
-#main_body .date_wscroll a span {
-  display:none
-}
-*/
-
 #main_body .today_tools {
   margin:1rem 0 1rem 0;
   display: flex;
@@ -226,7 +248,7 @@
 }
 
 #main_body .today_tools .today .prev.hidden { visibility: hidden; }
-
+*/
 #main_body .tools {
   margin-left: auto;
 }

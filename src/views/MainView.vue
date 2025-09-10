@@ -7,15 +7,15 @@
 
     <div id="main_body">
       <div class="main_fixed" v-if="hasFetched && rStore.items?.length">
-        <MainDateScroll v-if="rStore.selectedPeriod==='T'" :selectedDate="selectedDate" @selectDate="nav.selectDate" />
-        <!--MainRoutineTotal
+        <MainDateScroll :selectedDate="selectedDate" @selectDate="nav.selectDate" />
+        <MainRoutineTotal
           :isFuture="isFutureDate" :selectedDate="selectedDate"
           v-model:modelValue="rStore.selectedFilter"
           :counts="mv.headerCounts" :totalCount="mv.headerTotal"
           :viewMode="selectedView" :periodMode="rStore.selectedPeriod" :deleteMode="rStore.deleteMode"
           @requestPrev="nav.navigate(-1)" @requestNext="nav.navigate(1)"
           @changeView="nav.changeView" @changePeriod="nav.changePeriod" @toggleDeleteMode="handleToggleDeleteMode"
-        /-->
+        ></MainRoutineTotal>
       </div>
 
       <div class="main_scroll">

@@ -14,7 +14,6 @@ import "./assets/css/select.css";
 import "./assets/css/ar_popup.css";
 import "./assets/css/m_routine.css";
 import "./assets/css/walk_status_pop.css";
-import "./assets/css/new_main.css";
 
 import VueScrollPicker from "vue-scroll-picker";
 import "vue-scroll-picker/style.css";

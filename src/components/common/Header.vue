@@ -7,7 +7,7 @@
         </span>
       </p>
       <div class="title">
-        <h1>hey, Ruffy!</h1>
+        <h1>hey,Ruffy!</h1>
         <p>하지말랑 하지말고 그냥 말랑말랑해~</p>
       </div>
     </div>

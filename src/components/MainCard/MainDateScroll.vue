@@ -1,11 +1,10 @@
 <template>
   <div class="date_scroll">
-    <div class="date_fixed_today">
+    <div class="date_fixed_today" ref="todayRef">
       <span class="on" @click="selectToday">
         <i>{{ getDayLabel(today) }}</i>{{ today.getDate() }}
       </span>
     </div>
-
     <div class="date_group" ref="scroller">
       <span
         v-for="(date, i) in scrollDates"
@@ -35,46 +34,64 @@ const isSameDay = (a,b)=> a.getFullYear()===b.getFullYear() && a.getMonth()===b.
 const getDayLabel = (d)=> ['일','월','화','수','목','금','토'][d.getDay()]
 const addDays = (base, n)=> { const d = new Date(base); d.setDate(base.getDate()+n); d.setHours(0,0,0,0); return d }
 
-const pastAsc = computed(() =>
-  Array.from({length: pastDays}, (_,i)=> addDays(today, -(pastDays - i)))
-)
-const tomorrow = computed(() => addDays(today, 1))
-const futureAsc = computed(() =>
-  Array.from({length: futureDays-1}, (_,i)=> addDays(today, i+2))
-)
-
-const scrollDates = computed(() => [...pastAsc.value, today, tomorrow.value, ...futureAsc.value])
+const scrollDates = computed(() => [
+  ...Array.from({length: pastDays}, (_,i)=> addDays(today, -(pastDays - i))),
+  today,
+  ...Array.from({length: futureDays}, (_,i)=> addDays(today, i+1))
+])
 
 const activeIndex = ref(null)
 const scroller = ref(null)
+const todayRef = ref(null)
 
 const emitSelection = (date) => {
   const isToday = isSameDay(date, today)
   emit('selectDate', date, date > today && !isToday, isToday)
 }
 
+const safeLeftPx = () => {
+  const wrap = scroller.value.getBoundingClientRect()
+  const t = todayRef.value.getBoundingClientRect()
+  return Math.round(t.right - wrap.left) + 2
+}
+
+const scrollToIndex = (idx, smooth = true) => {
+  if (!scroller.value) return
+  const el = scroller.value.children[idx]
+  if (!el) return
+  const snap = -60
+  const left = Math.max(0, el.offsetLeft - safeLeftPx() + snap)
+  scroller.value.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
+}
+
+const ensureVisible = (idx) => {
+  if (!scroller.value) return
+  const wrap = scroller.value.getBoundingClientRect()
+  const el = scroller.value.children[idx]
+  if (!el) return
+  const r = el.getBoundingClientRect()
+  const leftGuard = wrap.left + safeLeftPx()
+  const rightFade = 32
+  if (r.left < leftGuard || r.right > wrap.right - rightFade) scrollToIndex(idx)
+}
+
 const selectToday = () => {
   activeIndex.value = null
   emitSelection(today)
-  if (!scroller.value) return
-  const idx = pastAsc.value.length + 1
-  const el = scroller.value.children[idx]
-  if (!el) return
-  const rWrap = scroller.value.getBoundingClientRect()
-  const rEl = el.getBoundingClientRect()
-  scroller.value.scrollLeft += (rEl.left - rWrap.left)
+  ensureVisible(pastDays)
 }
-  
-const selectFromScroll = (date, i) => { activeIndex.value = i; emitSelection(date) }
+
+const selectFromScroll = (date, i) => {
+  activeIndex.value = i
+  emitSelection(date)
+  ensureVisible(i)
+}
 
 onMounted(async () => {
   await nextTick()
-  if (!scroller.value) return
-  const idx = pastAsc.value.length + 1
-  const el = scroller.value.children[idx]
-  if (!el) return
-  const rWrap = scroller.value.getBoundingClientRect()
-  const rEl   = el.getBoundingClientRect()
-  scroller.value.scrollLeft += (rEl.left - rWrap.left)
+  requestAnimationFrame(() => {
+    const tomorrowIdx = pastDays + 1
+    scrollToIndex(tomorrowIdx, false)
+  })
 })
 </script>
