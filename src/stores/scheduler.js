@@ -63,8 +63,9 @@ const lastIdsByBase = new Map()
 // 루틴 → 필요한 알람 id와 페이로드 계산
 function computeDesired(r) {
   const baseId = baseOf(r.id)
-  const { hour, minute } = resolveAlarmHM(r)
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return { baseId, items: [] }
+  const hm = resolveAlarmHM(r)
+  if (!hm) return { baseId, items: [] }
+  const { hour, minute } = hm
 
   const title = r.title || ''
   const mode = String(r.repeatType || 'daily').toLowerCase()
@@ -78,21 +79,18 @@ function computeDesired(r) {
       hour, minute, title,
     })
   } else if (mode.startsWith('week')) {
-    const days = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : r.repeatDays || []
-    if (days.length === 7) {
-      items.push({
-        id: `${baseId}-daily`,
-        rid: r.id,
-        repeatMode: 'daily',
-        hour, minute, title,
-      })
-    } else if (days.length) {
-      items.push({
-        id: `${baseId}-weekly`,
-        rid: r.id,
-        repeatMode: 'weekly',
-        hour, minute, title,
-        weekdays: days,
+    const rawDays = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : r.repeatDays || []
+    const days = Array.from(new Set(rawDays.map(n => Number(n)).filter(n => n >= 1 && n <= 7))).sort((a,b) => a - b)
+
+    if (days.length) {
+      days.forEach(d => {
+        items.push({
+          id: `${baseId}-w-${d}`,
+          rid: r.id,
+          repeatMode: 'weekly',
+          hour, minute, title,
+          weekdays: [d],
+        })
       })
     }
   } else if (mode.startsWith('month')) {

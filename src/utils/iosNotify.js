@@ -300,89 +300,48 @@ export async function scheduleOnIOS(msg) {
     }
 
     // ── WEEKLY
-    if (isWeekly) {
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-        log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
-        return;
-      }
-
-      // 요일 소스 우선순위: msg.repeatWeekDays → msg.weekdays → msg.weekday
-      let weekdays =
-        Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
-        Array.isArray(msg?.weekdays)      ? msg.weekdays      :
-        msg?.repeatWeekDays || msg?.weekday;
-
-      weekdays = normalizeWeekdays(weekdays) || [];
-
-      if (!weekdays.length) {
-        log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
-        return;
-      }
-
-      // ✅ 7일 전부여도 축약하지 않고 그대로 7개 등록
-      await purgeThenSchedule(b, async () => {
-        for (const d of weekdays) {
-          const payload = {
-            action: 'schedule',
-            id: `${b}-w-${d}`,
-            baseId: b,
-            repeatMode: 'weekly',
-            hour, minute,
-            weekdays: [d],     // 요일 하나씩 개별 등록
-            sound: DEFAULT_SOUND,
-          };
-          const finalWeekly = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [d] });
-          log('[iosNotify] scheduleOnIOS:REQ(weekly)', finalWeekly);
-          safePost(finalWeekly);
+      if (isWeekly) {
+        if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+          log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
+          return;
         }
-      });
-      return;
-    }
-    // ── MONTHLY (monthly-date 계열)
-    if (isMonthly) {
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-        log('[iosNotify] scheduleOnIOS:SKIP(monthly, no time)');
-        return;
-      }
-      let monthDays = Array.isArray(msg?.monthDays) ? msg.monthDays
-                    : Array.isArray(msg?.repeatMonthDays) ? msg.repeatMonthDays
-                    : null;
 
-      if (!monthDays || !monthDays.length) {
-        // 단일 day 필드 지원
-        const d = toInt(msg?.day);
-        monthDays = d ? [d] : [];
-      }
-      monthDays = (monthDays || [])
-        .map(toInt)
-        .filter(n => n >= 1 && n <= 31);
+        // 요일 소스: repeatWeekDays / weekdays / weekday → 숫자 1..7로 정규화
+        let weekdays =
+          Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
+          Array.isArray(msg?.weekdays)      ? msg.weekdays      :
+          (msg?.repeatWeekDays || msg?.weekday);
 
-      if (!monthDays.length) {
-        log('[iosNotify] scheduleOnIOS:SKIP(monthly, no monthDays)');
-        return;
-      }
-
-      await purgeThenSchedule(b, async () => {
-        // 여러 날짜면 각각 개별 id로 스케줄
-        for (const d of monthDays) {
-          const payload = {
-            action: 'schedule',
-            id: `${b}-m-${d}`,
-            baseId: b,
-            repeatMode: 'monthly-date',
-            day: d,
-            hour, minute,
-            sound: DEFAULT_SOUND,
-          };
-          const finalMonthly = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'monthly', day: d });
-          log('[iosNotify] scheduleOnIOS:REQ(monthly-date)', finalMonthly);
-          safePost(finalMonthly);
+        weekdays = normalizeWeekdays(weekdays) || [];
+        if (!weekdays.length) {
+          log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
+          return;
         }
-      });
-      return;
-    }
 
-    // ── 그 외 모드(안전망): 아래로 폴백
+        // ✅ 주간(weekly)일 때는 "매일(7일)"도 절대 daily로 축약하지 않음
+        //    → 요일별 7개의 알림으로 분리 등록 (ID: routine-<rid>-w-<day>)
+        await purgeThenSchedule(b, async () => {
+          for (const d of weekdays) {
+            const payload = {
+              action: 'schedule',
+              id: `${b}-w-${d}`,          // 요일별 개별 ID
+              baseId: b,
+              repeatMode: 'weekly',
+              weekdays: [d],              // 각 알림은 1개 요일만
+              hour, minute,
+              alarm: { hour, minute },    // 호환용
+              sound: DEFAULT_SOUND,
+            };
+            const finalWeekly = ensureThreeLine(
+              payload,
+              { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [d] }
+            );
+            log('[iosNotify] scheduleOnIOS:REQ(weekly-1day)', finalWeekly);
+            safePost(finalWeekly);
+          }
+        });
+        return;
+      }
   }
 
   // ── Fallback: 정규화 후 그대로 전송 (가능하면 거의 타지 않도록 위에서 분기)

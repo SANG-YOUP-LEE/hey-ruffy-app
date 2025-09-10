@@ -253,59 +253,61 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       return { freq: state.repeatType, interval: 1, anchor: anchorISO }
     },
-    payload(state) {
-      const hasStart = !!safeISOFromDateObj(state.startDate)
-      const hasEnd = !!safeISOFromDateObj(state.endDate)
-      const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+    // ✅ routineForm.js 안의 getters.payload 전체 교체
+      payload(state) {
+        const hasStart = !!safeISOFromDateObj(state.startDate)
+        const hasEnd = !!safeISOFromDateObj(state.endDate)
+        const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
-      const weeklyIsDaily =
-        state.repeatType === 'weekly' &&
-        (parseInterval(state.repeatWeeks) === 1) &&
-        (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))
+        // ✂️ weeklyIsDaily로 daily로 축약하던 로직 제거
+        const normalizedType = state.repeatType
 
-      const normalizedType = state.repeatType
-      const dailyInterval =
-        normalizedType === 'daily'
-          ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null))
-          : null
-
-      const endForTodayOnly =
-        normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
-
-      const weeklyDaysNum =
-        normalizedType === 'weekly'
-          ? (state.weeklyDaily ? [1,2,3,4,5,6,7] : daysKorToNum(state.repeatWeekDays))
-          : []
-
-      const cleaned = {
-        title: state.title,
-        repeatType: normalizedType,
-        repeatDays: [],
-        repeatEveryDays:
+        // 일간일 때만 repeatDaily를 그대로 사용 (0=오늘만, 1..6=N일마다)
+        const dailyInterval =
           normalizedType === 'daily'
-            ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
-            : null,
-        repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
-        repeatWeekDays: weeklyDaysNum,
-        repeatMonthDays:
-          normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
-        startDate: hasStart ? state.startDate : null,
-        endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
-        alarmTime: state.alarmTime,
-        ruffy: state.isWalkModeOff ? null : state.ruffy,
-        course: state.isWalkModeOff ? null : state.course,
-        goalCount: state.isWalkModeOff ? null : state.goalCount,
-        colorIndex: state.colorIndex,
-        cardSkin: normalizeCardSkinStrict(state.cardSkin),
-        comment: sanitizeComment(state.comment),
-        hasWalk: this.hasWalk,
-        tz: state.tz,
-        rule: this.icsRule,
-        start: anchorISO,
-        ...(endForTodayOnly ? { end: anchorISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
+            ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
+            : null
+
+        // 오늘만(once)일 때 end를 start와 동일하게 넣어주는 처리 유지
+        const endForTodayOnly =
+          normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+
+        // 주간일 때 요일 배열: weeklyDaily면 [1..7] 고정, 아니면 사용자가 고른 요일 변환
+        const weeklyDaysNum =
+          normalizedType === 'weekly'
+            ? (state.weeklyDaily ? [1,2,3,4,5,6,7] : daysKorToNum(state.repeatWeekDays))
+            : []
+
+        const cleaned = {
+          title: state.title,
+          repeatType: normalizedType,
+          repeatDays: [],
+          repeatEveryDays:
+            normalizedType === 'daily'
+              ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
+              : null,
+          repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
+          repeatWeekDays: weeklyDaysNum,
+          repeatMonthDays:
+            normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
+          startDate: hasStart ? state.startDate : null,
+          endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
+          alarmTime: state.alarmTime,
+          ruffy: state.isWalkModeOff ? null : state.ruffy,
+          course: state.isWalkModeOff ? null : state.course,
+          goalCount: state.isWalkModeOff ? null : state.goalCount,
+          colorIndex: state.colorIndex,
+          cardSkin: normalizeCardSkinStrict(state.cardSkin),
+          comment: sanitizeComment(state.comment),
+          hasWalk: this.hasWalk,
+          tz: state.tz,
+          rule: this.icsRule,
+          start: anchorISO,
+          ...(endForTodayOnly ? { end: anchorISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
+        }
+
+        return deepClean(cleaned)
       }
-      return deepClean(cleaned)
-    }
   },
 
   actions: {
