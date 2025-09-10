@@ -2,8 +2,8 @@
   <div id="header">
     <div class="left">
       <p class="ruffys">
-        <span v-if="profileImage">
-          <img :src="profileImage" alt="Ruffy" />
+        <span>
+          <img v-if="imgSrc" :src="imgSrc" alt="Ruffy" />
         </span>
       </p>
       <div class="title">
@@ -19,9 +19,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
 import { useAuthStore } from '@/stores/auth'
+import ruffy01 from '@/assets/images/ruffy01.png'
+import ruffy02 from '@/assets/images/ruffy02.png'
+import ruffy03 from '@/assets/images/ruffy03.png'
+import ruffy04 from '@/assets/images/ruffy04.png'
 
+const imgSrc = ref('')
 const auth = useAuthStore()
-const profileImage = ref(auth.user?.ruffyImage || '')
+
+onMounted(async () => {
+  await auth.ensureReady?.()
+  const uid = auth.user?.uid
+  if (!uid) return
+  const snap = await getDoc(doc(db, 'users', uid))
+  const id = snap.exists() ? (snap.data().selectedRuffy || '') : ''
+  const map = { ruffy01, ruffy02, ruffy03, ruffy04 }
+  imgSrc.value = map[id] || ''
+})
 </script>
