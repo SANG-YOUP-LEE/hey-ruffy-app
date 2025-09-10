@@ -319,43 +319,25 @@ export async function scheduleOnIOS(msg) {
         return;
       }
 
-      // 7일 전부면 daily로 축약
-      if (weekdays.length === 7) {
-        await purgeThenSchedule(b, async () => {
+      // ✅ 7일 전부여도 축약하지 않고 그대로 7개 등록
+      await purgeThenSchedule(b, async () => {
+        for (const d of weekdays) {
           const payload = {
             action: 'schedule',
-            id: idDaily(rid),
-            repeatMode: 'daily',
-            hour, minute,                  // ✅ top-level 시간 필수
-            alarm: { hour, minute },       // 호환용
+            id: `${b}-w-${d}`,
+            baseId: b,
+            repeatMode: 'weekly',
+            hour, minute,
+            weekdays: [d],     // 요일 하나씩 개별 등록
             sound: DEFAULT_SOUND,
           };
-          const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
-          log('[iosNotify] scheduleOnIOS:REQ(daily←weekly7)', finalDaily);
-          safePost(finalDaily);
-        });
-        return;
-      }
-
-      // 일반 weekly
-      await purgeThenSchedule(b, async () => {
-        const payload = {
-          action: 'schedule',
-          id: `${b}-weekly`,
-          baseId: b,
-          repeatMode: 'weekly',
-          hour, minute,                  // ✅ top-level 시간 필수
-          alarm: { hour, minute },       // 호환용
-          weekdays,
-          sound: DEFAULT_SOUND,
-        };
-        const finalWeekly = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays });
-        log('[iosNotify] scheduleOnIOS:REQ(weekly)', finalWeekly);
-        safePost(finalWeekly);
+          const finalWeekly = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [d] });
+          log('[iosNotify] scheduleOnIOS:REQ(weekly)', finalWeekly);
+          safePost(finalWeekly);
+        }
       });
       return;
     }
-
     // ── MONTHLY (monthly-date 계열)
     if (isMonthly) {
       if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
