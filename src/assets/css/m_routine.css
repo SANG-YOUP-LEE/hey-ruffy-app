@@ -25,11 +25,10 @@
   z-index: 10;
   flex-shrink:0;
   font-weight:bold;
-  padding:1rem 0.5rem 0.5rem 1rem;
-  border:1px solid red;
   border-right:none;
   border-bottom:none;
   border-top-left-radius: 1.5rem;
+  background-color:red;
 }
 
 #main_body .date_scroll .date_group {
