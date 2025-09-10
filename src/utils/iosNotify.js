@@ -305,13 +305,13 @@ export async function scheduleOnIOS(msg) {
         log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
         return;
       }
-      // 요일 소스(숫자 1..7 선호, 없으면 문자열을 normalize)
+
+      // 요일 소스 우선순위: msg.repeatWeekDays → msg.weekdays → msg.weekday
       let weekdays =
         Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
         Array.isArray(msg?.weekdays)      ? msg.weekdays      :
-        normalizeWeekdays(msg?.repeatWeekDays || msg?.weekday) || [];
+        msg?.repeatWeekDays || msg?.weekday;
 
-      // 문자열 요일이 섞여 들어올 수 있으니 최종 normalize
       weekdays = normalizeWeekdays(weekdays) || [];
 
       if (!weekdays.length) {
@@ -319,15 +319,15 @@ export async function scheduleOnIOS(msg) {
         return;
       }
 
-      // 7일 전부면 weekly 대신 daily 하나로 축약
+      // 7일 전부면 daily로 축약
       if (weekdays.length === 7) {
         await purgeThenSchedule(b, async () => {
           const payload = {
             action: 'schedule',
             id: idDaily(rid),
             repeatMode: 'daily',
-            hour, minute,
-            alarm: { hour, minute },
+            hour, minute,                  // ✅ top-level 시간 필수
+            alarm: { hour, minute },       // 호환용
             sound: DEFAULT_SOUND,
           };
           const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
@@ -337,13 +337,15 @@ export async function scheduleOnIOS(msg) {
         return;
       }
 
+      // 일반 weekly
       await purgeThenSchedule(b, async () => {
         const payload = {
           action: 'schedule',
           id: `${b}-weekly`,
           baseId: b,
           repeatMode: 'weekly',
-          hour, minute,
+          hour, minute,                  // ✅ top-level 시간 필수
+          alarm: { hour, minute },       // 호환용
           weekdays,
           sound: DEFAULT_SOUND,
         };
