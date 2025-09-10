@@ -28,7 +28,6 @@
 #header .left,
 #header .right {
   position: absolute;
-  top: 0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,8 +47,8 @@
 }
 
 #header .left .ruffys {
-  width:3rem;
-  height:3rem;
+  width:4rem;
+  height:4rem;
   background-color:#ffef6e;
   border-radius:1rem;
   flex-shrink: 0;
@@ -80,6 +79,7 @@
 #header .right button {
   width: 1.8rem;
   height: 1.8rem;
+  margin-left:0.5rem;
   display: inline-block;
 }
 
