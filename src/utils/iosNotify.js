@@ -299,14 +299,15 @@ export async function scheduleOnIOS(msg) {
       return;
     }
 
-    // ── WEEKLY
+  
+// ── WEEKLY
 if (isWeekly) {
   if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
     log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
     return;
   }
 
-  // 요일 소스: repeatWeekDays / weekdays / weekday → [1..7] 정규화
+  // 요일 소스: repeatWeekDays / weekdays / weekday → 숫자 1..7로 정규화
   let weekdays =
     Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
     Array.isArray(msg?.weekdays)      ? msg.weekdays      :
@@ -318,30 +319,31 @@ if (isWeekly) {
     return;
   }
 
-  // "매주 매일"이면 7개로 확장
-  const days = (weekdays.length === 7) ? [1,2,3,4,5,6,7] : weekdays;
-
-  // ❗️중요: 여기서는 base purge 금지
-  // 스케줄러가 요일마다 여러 번 호출하기 때문에 purge를 하면 앞에서 넣은 알람이 계속 지워짐.
-  for (const d of days) {
-    const payload = {
-      action: 'schedule',
-      id: `${b}-w-${d}__wd${d}`,   // 요일별 고유 id
-      baseId: b,
-      repeatMode: 'weekly',
-      hour, minute,                // top-level 시간
-      alarm: { hour, minute },     // 호환용
-      weekdays: [d],               // 네이티브가 단일 요일로 읽도록
-      sound: DEFAULT_SOUND,
-    };
-    const finalWeekly = ensureThreeLine(
-      payload,
-      { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [d] }
-    );
-    log('[iosNotify] scheduleOnIOS:REQ(weekly:day)', finalWeekly);
-    safePost(finalWeekly);
-    await sleep(10); // 네이티브 연속등록 버퍼
-  }
+  // ✅ 요일별 개별 등록 (purge는 단 한 번만)
+  await purgeThenSchedule(b, async () => {
+    for (const wd of weekdays) {
+      const payload = {
+        action: 'schedule',
+        id: `${b}-w-${wd}__wd${wd}`,   // 요일별 고유 id
+        baseId: b,
+        repeatMode: 'weekly',
+        hour, minute,
+        // 네이티브가 단일 요일을 읽도록 weekday로 보냄
+        weekday: wd,
+        // 호환을 위해 배열 필드도 같이 주고 싶으면 아래 라인 유지 가능
+        // weekdays: [wd],
+        sound: DEFAULT_SOUND,
+      };
+      const finalWeekly = ensureThreeLine(
+        payload,
+        { ...msg, hour, minute, repeatMode: 'weekly', weekday: wd }
+      );
+      log('[iosNotify] scheduleOnIOS:REQ(weekly one-day)', finalWeekly);
+      safePost(finalWeekly);
+      // 너무 빠른 연속 post에 민감하면 약간의 간격을 둘 수도 있음
+      // await sleep(10);
+    }
+  });
   return;
 }
   }
