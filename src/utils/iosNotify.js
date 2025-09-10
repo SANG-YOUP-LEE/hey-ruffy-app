@@ -160,31 +160,40 @@ const LABEL_MAP = (m) => {
 const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
 const _toInt = (v) => (Number.isFinite(+v) ? Math.floor(+v) : undefined);
 
+// ⬇️ src/utils/iosNotify.js 안의 ensureThreeLine 전체 교체
 function ensureThreeLine(payload, src) {
-  const mode = src?.repeatMode || src?.mode || 'daily'
-  const label = (() => {
-    const s = String(mode || '').toLowerCase()
-    if (s.startsWith('daily')) return 'Daily'
-    if (s.startsWith('weekly')) return 'Weekly'
-    if (s.startsWith('monthly')) return 'Monthly'
-    if (s === 'once' || s === 'today') return 'Daily'
-    return 'Daily'
-  })()
+  const modeSrc = src?.repeatMode || src?.mode || payload?.repeatMode || 'daily';
+  const mode = String(modeSrc).toLowerCase();
+  const label = mode.startsWith('weekly') ? 'Weekly'
+              : mode.startsWith('monthly') ? 'Monthly'
+              : (mode === 'once' || mode === 'today') ? 'Daily'
+              : 'Daily';
 
-  // 여러 경로에서 hour/minute 가져오기
-  const h = Number(src?.hour ?? src?.alarm?.hour)
-  const m = Number(src?.minute ?? src?.alarm?.minute)
-  const hh = Number.isFinite(h) ? String(h).padStart(2, '0') : '00'
-  const mm = Number.isFinite(m) ? String(m).padStart(2, '0') : '00'
+  // 1) 시간 안전하게 가져오기 (src 우선, 없으면 payload도 탐색)
+  const pick = (a,b,c,d) => a ?? b ?? c ?? d;
+  const rawH = pick(
+    Number(src?.hour), Number(src?.alarm?.hour),
+    Number(payload?.hour), Number(payload?.alarm?.hour)
+  );
+  const rawM = pick(
+    Number(src?.minute), Number(src?.alarm?.minute),
+    Number(payload?.minute), Number(payload?.alarm?.minute)
+  );
+  const hh = Number.isFinite(rawH) ? String(rawH).padStart(2,'0') : '00';
+  const mm = Number.isFinite(rawM) ? String(rawM).padStart(2,'0') : '00';
 
-  const routineTitle = src?.title || src?.name || '(제목없음)'
+  // 2) 다짐제목 (없으면 표시용 대체)
+  const routineTitle = (src?.title || src?.name || payload?.title || payload?.name || '').trim() || '(제목없음)';
 
+  // 3) iOS가 subtitle을 숨기는 경우가 있으니, body에 2줄로 포함
+  //   1줄: 다짐제목
+  //   2줄: [HH:mm · Label] 달성현황을 체크해주세요
   return {
     ...payload,
-    title: 'Hey Ruffy',                // 첫째줄: 앱이름
-    subtitle: routineTitle,            // 둘째줄: 다짐제목만
-    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`, // 셋째줄: 시간+라벨
-  }
+    title: 'Hey Ruffy',                    // 1줄(큰 글씨): 앱 이름 고정
+    subtitle: routineTitle,                // 보일 수도, 안 보일 수도 → 백업용
+    body: `${routineTitle}\n[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
+  };
 }
 
 // ─────────────── purge race 방지 ───────────────
