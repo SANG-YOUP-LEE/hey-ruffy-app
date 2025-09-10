@@ -51,7 +51,7 @@
   margin-right: 1rem;
   position: relative;
 }
-
+/*
 #header .left .ruffys::after {
   content: "";
   position: absolute;
@@ -61,7 +61,7 @@
   height: 0;
   border-top: 0.8rem solid #ffef6e;
   border-left: 0.8rem solid transparent;
-}
+}*/
 
 #header .left .title {
   flex: 1;
@@ -84,7 +84,7 @@
   align-items: center;
   justify-content: center;
   font-family: 'S-CoreDream-4Regular';
-  color:#aaa;
+  color:#666;
 }
 
 #header .right button {
