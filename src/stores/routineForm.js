@@ -462,20 +462,20 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       if (isOnce) {
         const hm = parseHM(this.alarmTime)
-        if (!hm) {
-          this.setError('alarm','알람 시간을 선택해주세요.')
-          return false
-        }
-        const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
-        const atISO = toAtISO(dateISO, hm)
-        const ms = atISOToEpochMs(atISO)
-        const now = Date.now()
-        const GRACE_MS = 5000
+        
+        if (hm) {
+          const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
+          const atISO = toAtISO(dateISO, hm)
+          const ms = atISOToEpochMs(atISO)
+          const now = Date.now()
+          const GRACE_MS = 5000
 
-        if (!ms || ms <= (now + GRACE_MS)) {
-          this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
-          return false
+          if (!ms || ms <= (now + GRACE_MS)) {
+            this.setError('alarm','이미 지난 시간이에요. 시간을 다시 선택해주세요.')
+            return false
+          }
         }
+        // ⚡️ 알람이 없어도 그냥 통과 (hm 없으면 체크 안 함)
       }
 
       return true

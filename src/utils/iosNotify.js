@@ -171,18 +171,19 @@ function ensureThreeLine(payload, src) {
     return 'Daily'
   })()
 
+  // 여러 경로에서 hour/minute 가져오기
   const h = Number(src?.hour ?? src?.alarm?.hour)
   const m = Number(src?.minute ?? src?.alarm?.minute)
   const hh = Number.isFinite(h) ? String(h).padStart(2, '0') : '00'
   const mm = Number.isFinite(m) ? String(m).padStart(2, '0') : '00'
 
-  const routineTitle = src?.title || src?.name || '(No title)'
+  const routineTitle = src?.title || src?.name || '(제목없음)'
 
   return {
     ...payload,
-    title: 'Hey Ruffy',
-    subtitle: `[${label}] ${routineTitle}`,
-    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
+    title: 'Hey Ruffy',                // 첫째줄: 앱이름
+    subtitle: routineTitle,            // 둘째줄: 다짐제목만
+    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`, // 셋째줄: 시간+라벨
   }
 }
 
