@@ -62,39 +62,15 @@ const lastIdsByBase = new Map()
 
 // 루틴 → 필요한 알람 id와 페이로드 계산
 function computeDesired(r) {
-  const baseId = baseOf(r.id)
+  const baseId = baseOf(r.id);
 
-  // 시간 파싱(없으면 스킵)
-  const hm = resolveAlarmHM(r)
-  if (!hm) return { baseId, items: [] }
-  const { hour, minute } = hm
+  const hm = resolveAlarmHM(r);
+  if (!hm) return { baseId, items: [] };
+  const { hour, minute } = hm;
 
-  const title = r.title || ''
-  const mode  = String(r.repeatType || 'daily').toLowerCase()
-  const items = []
-
-  // ── 요일 정규화: 숫자(1..7), 한글(월..일), ICS(SU..SA) 모두 지원
-  const KOR_DAY = { '일':7, '월':1, '화':2, '수':3, '목':4, '금':5, '토':6 }
-  const ICS_DAY = { SU:7, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 }
-
-  const mapOneDay = (d) => {
-    if (d == null) return undefined
-    if (typeof d === 'number' && d >= 1 && d <= 7) return d
-    const s = String(d).trim()
-    if (!s) return undefined
-    // 숫자로 들어온 문자열
-    if (/^\d+$/.test(s)) {
-      const n = +s
-      return (n >= 1 && n <= 7) ? n : undefined
-    }
-    // 한글 한 글자(월..일)
-    if (KOR_DAY[s]) return KOR_DAY[s]
-    // ICS 요일
-    if (ICS_DAY[s.toUpperCase()]) return ICS_DAY[s.toUpperCase()]
-    return undefined
-  }
-
-  const uniqSort = (arr) => Array.from(new Set(arr)).sort((a,b)=>a-b)
+  const title = r.title || '';
+  const mode = String(r.repeatType || 'daily').toLowerCase();
+  const items = [];
 
   if (mode.startsWith('daily')) {
     items.push({
@@ -102,45 +78,80 @@ function computeDesired(r) {
       rid: r.id,
       repeatMode: 'daily',
       hour, minute, title,
-    })
+    });
   } else if (mode.startsWith('week')) {
-    // 원천: repeatWeekDays 우선, 없으면 repeatDays
-    const rawDays = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays
-                  : Array.isArray(r.repeatDays)     ? r.repeatDays
-                  : []
+    // 1) 원본 요일 소스
+    let rawDays = Array.isArray(r.repeatWeekDays)
+      ? r.repeatWeekDays.slice()
+      : (Array.isArray(r.repeatDays) ? r.repeatDays.slice() : []);
 
-    // 주간 “매일” 토글이 있는 데이터가 숫자 1..7로 저장되어 있을 수도, 한글/ICS로 저장되었을 수도 있으니 전부 정규화
-    const days = uniqSort(rawDays.map(mapOneDay).filter(Boolean))
+    // 2) 주간-매일 토글 보정: weeklyDaily === true 이고 배열이 비었으면 1..7로 채움
+    if (r.weeklyDaily === true && rawDays.length === 0) {
+      rawDays = [1,2,3,4,5,6,7];
+    }
 
-    if (days.length) {
-      // 요일별로 **각각 1개씩** 등록 (매일이면 7개 생성)
-      days.forEach(d => {
+    // 3) 문자열/숫자 섞여도 정규화
+    const toNum = (d) => {
+      if (d == null) return null;
+      if (typeof d === 'number' && Number.isFinite(d)) return d;
+      const s = String(d).replace(/['"]/g,'').trim();
+      if (!s) return null;
+      // 한글 요일 한 글자 → 숫자(월:1 … 일:7)
+      const korMap = { '월':1, '화':2, '수':3, '목':4, '금':5, '토':6, '일':7 };
+      if (korMap[s[0]]) return korMap[s[0]];
+      const n = parseInt(s, 10);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const days = Array.from(
+      new Set(
+        rawDays.map(toNum).filter(n => n >= 1 && n <= 7)
+      )
+    ).sort((a,b)=>a-b);
+
+    if (days.length === 0) {
+      // 요일이 아예 없으면 스킵 (기본 9:00 주입 방지)
+      return { baseId, items: [] };
+    }
+
+    // 4) 7일 전부면 daily 하나로 축약
+    if (days.length === 7) {
+      items.push({
+        id: `${baseId}-daily`,
+        rid: r.id,
+        repeatMode: 'daily',
+        hour, minute, title,
+      });
+    } else {
+      // 5) 요일별 개별 알림(주간 64개 제한 내에서 안정적)
+      days.forEach((wd) => {
         items.push({
-          id: `${baseId}-w-${d}`,     // 요일별 유니크 id
+          id: `${baseId}-w-${wd}__wd${wd}`, // 식별 확실히
           rid: r.id,
           repeatMode: 'weekly',
           hour, minute, title,
-          weekdays: [d],              // iOS 쪽엔 숫자 1..7로 전달
-        })
-      })
+          weekday: wd,       // 단일 요일
+          weekdays: [wd],    // 호환 필드
+        });
+      });
     }
   } else if (mode.startsWith('month')) {
-    const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
+    const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [];
     md.forEach(d => {
-      const day = Number(d)
-      if (Number.isFinite(day) && day >= 1 && day <= 31) {
+      const dayNum = Number(d);
+      if (Number.isFinite(dayNum) && dayNum >= 1 && dayNum <= 31) {
         items.push({
-          id: `${baseId}-m-${day}`,
+          id: `${baseId}-m-${dayNum}`,
           rid: r.id,
           repeatMode: 'monthly-date',
           hour, minute, title,
-          day,
-        })
+          day: dayNum,
+        });
       }
-    })
+    });
   }
 
-  return { baseId, items }
+  return { baseId, items };
 }
 
 
