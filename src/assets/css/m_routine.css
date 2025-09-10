@@ -44,6 +44,7 @@
   border-bottom:none;
   border-top-right-radius: 1.5rem;
   margin-right:1rem;
+  background-color:Red;
 }
 
 #main_body .date_scroll .date_group::-webkit-scrollbar { 
