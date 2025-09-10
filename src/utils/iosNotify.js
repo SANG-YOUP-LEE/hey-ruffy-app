@@ -319,29 +319,52 @@ if (isWeekly) {
     return;
   }
 
-  // ✅ 요일별 개별 등록 (purge는 단 한 번만)
+  // 1) 단일 요일만 있을 때: 들어온 id 그대로 사용 (purge 금지)
+  if (weekdays.length === 1) {
+    const wd = weekdays[0];
+    const payload = {
+      action: 'schedule',
+      id: (msg?.id && String(msg.id).trim().length > 0)
+            ? String(msg.id)
+            : `${b}-w-${wd}__wd${wd}`,  // 안전망 id
+      baseId: b,
+      repeatMode: 'weekly',
+      hour, minute,
+      alarm: { hour, minute },   // 호환용
+      weekday: wd,               // 단일 요일
+      weekdays: [wd],            // 네이티브 호환
+      sound: DEFAULT_SOUND,
+      title: msg.title || msg.name,
+      name: msg.name || msg.title,
+    };
+    const finalWeekly1 = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [wd] });
+    log('[iosNotify] scheduleOnIOS:REQ(weekly-1day)', finalWeekly1);
+    safePost(finalWeekly1);
+    return;
+  }
+
+  // 2) 여러 요일: purge 한 번만 하고 요일별 서로 다른 id로 여러 건 등록
   await purgeThenSchedule(b, async () => {
     for (const wd of weekdays) {
+      const id = (msg?.id && String(msg.id).includes(`__wd${wd}`))
+        ? msg.id
+        : `${b}-w-${wd}__wd${wd}`;
       const payload = {
         action: 'schedule',
-        id: `${b}-w-${wd}__wd${wd}`,   // 요일별 고유 id
+        id,
         baseId: b,
         repeatMode: 'weekly',
         hour, minute,
-        // 네이티브가 단일 요일을 읽도록 weekday로 보냄
+        alarm: { hour, minute },
         weekday: wd,
-        // 호환을 위해 배열 필드도 같이 주고 싶으면 아래 라인 유지 가능
-        // weekdays: [wd],
+        weekdays: [wd],
         sound: DEFAULT_SOUND,
+        title: msg.title || msg.name,
+        name: msg.name || msg.title,
       };
-      const finalWeekly = ensureThreeLine(
-        payload,
-        { ...msg, hour, minute, repeatMode: 'weekly', weekday: wd }
-      );
-      log('[iosNotify] scheduleOnIOS:REQ(weekly one-day)', finalWeekly);
-      safePost(finalWeekly);
-      // 너무 빠른 연속 post에 민감하면 약간의 간격을 둘 수도 있음
-      // await sleep(10);
+      const finalW = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [wd] });
+      log('[iosNotify] scheduleOnIOS:REQ(weekly* per-day)', finalW);
+      safePost(finalW);
     }
   });
   return;
