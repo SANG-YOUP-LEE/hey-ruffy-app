@@ -50,6 +50,15 @@
   flex-shrink: 0;
   margin-right: 1rem;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#header .left .ruffys img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
 }
 /*
 #header .left .ruffys::after {
