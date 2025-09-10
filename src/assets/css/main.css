@@ -34,13 +34,11 @@
 
 #header .left {
   left:1rem;
-  background-color:red;
   display: flex;
 }
 
 #header .right {
   right:1rem;
-  background-color:blue;
 }
 
 #header .left .ruffys {
@@ -49,6 +47,7 @@
   background-color:#ffef6e;
   border-radius:1rem;
   flex-shrink: 0;
+  margin-right:0.5rem;
 }
 
 #header .left .title {
@@ -58,6 +57,7 @@
 
 #header .left .title h1 {
   margin: 0;
+  line-height:3rem;
   font-size: 1.8rem;
   display: inline-block;
 }
@@ -73,8 +73,8 @@
 }
 
 #header .right button {
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 2rem;
+  height: 2rem;
   margin-left:1rem;
   display: inline-block;
 }
