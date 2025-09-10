@@ -226,12 +226,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
       // 주간인데 interval=1이고 7일 전부면 -> daily로 축약
-      if (state.repeatType === 'weekly') {
-        const intervalW = parseInterval(state.repeatWeeks)
-        if (intervalW === 1 && (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))) {
-          return { freq: 'daily', interval: 1, anchor: anchorISO }
-        }
-      }
+      // if (state.repeatType === 'weekly') {
+      //   const intervalW = parseInterval(state.repeatWeeks)
+      //    if (intervalW === 1 && (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))) {
+      //    return { freq: 'daily', interval: 1, anchor: anchorISO }
+      //  }
+      // }
 
       if (state.repeatType === 'daily') {
         if (!Number.isInteger(state.repeatDaily)) return null
@@ -263,7 +263,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
         (parseInterval(state.repeatWeeks) === 1) &&
         (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))
 
-      const normalizedType = weeklyIsDaily ? 'daily' : state.repeatType
+      const normalizedType = state.repeatType
       const dailyInterval =
         normalizedType === 'daily'
           ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null))
