@@ -26,7 +26,8 @@
         </div>
         <template v-else>
           <MainCard
-            v-for="rt in (mv.displayedRoutines||[])" :key="rt.id"
+            v-for="rt in (mv.displayedRoutines||[])"
+            :key="String(rt.id||'').split('-')[0]"
             :selected="rt?.status || 'notdone'" :routine="rt"
             :isToday="rStore.selectedPeriod==='T' && mv.startOfDay(rt?.assignedDate?new Date(rt.assignedDate):new Date()).getTime()===mv.startOfDay(new Date()).getTime()"
             :assigned-date="new Date(rt?.assignedDate || mv.periodStartRaw)"
@@ -65,7 +66,6 @@ import MainCard from '@/components/MainCard/MainCard.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 import SlidePanel from '@/components/common/SlidePanel.vue'
 
-import { normalize as normalizeRecurrence } from '@/utils/recurrence'
 import { useRoutinesStore } from '@/stores/routines'
 import { useMainViewStore } from '@/stores/mainView'
 import { useMainScroll } from '@/composables/useMainScroll'
@@ -97,10 +97,12 @@ const { initBinding, disposeBinding, refreshBinding } = useRoutineBinding(rStore
 const { toggle: handleToggleDeleteMode } = useBulkDelete(rStore, mv)
 const nav = useMainNavigation(rStore, mv, { scrolledRef, headerShortRef, update })
 
-function onSaved(rt){
-  const n=normalizeRecurrence(rt), i=(rStore.items||[]).findIndex(r=>r.id===n.id)
-  rStore.items = i<0 ? [n,...(rStore.items||[])] : [...rStore.items.slice(0,i),{...rStore.items[i],...n},...rStore.items.slice(i+1)]
-  isAddRoutineOpen.value=false; editingRoutine.value=null; rStore.setFilter('notdone'); update()
+async function onSaved(rt){
+  isAddRoutineOpen.value = false
+  editingRoutine.value = null
+  rStore.setFilter('notdone')
+  await refreshBinding()
+  update()
 }
 
 async function onChangeStatus({ id, status }){ rStore.changeStatus({ id: String((typeof id==='string'?id:id?.id)).split('-')[0], status, date: mv.dateKey(selectedDate.value) }); rStore.setFilter(status); update() }
