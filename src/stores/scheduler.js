@@ -1,290 +1,223 @@
 // src/stores/scheduler.js
 import { defineStore } from 'pinia'
 
-
-const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+const mh = () => window.webkit?.messageHandlers?.notify
+const post = (p) => { try { mh()?.postMessage(p) } catch (_) {} }
 const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
+const q = new Map() // debounce per base
 
-// ── "HH:mm" / "HH.mm" / 오전/오후 / AM/PM / 객체({hour,minute,ampm}) / 낱개(hour,minute)
+// 12시간제(오전/오후) → 24시간제
 function resolveAlarmHM(r) {
   const a = r?.alarmTime
-
-  // 문자열
-  if (typeof a === 'string') {
-    const s0 = a.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':')
-    // 오전/오후/AM/PM
-    let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i)
-    if (m && (m[1] || m[4])) {
-      let h = +m[2], mm = +m[3]
-      const tag = (m[1] || m[4] || '').toUpperCase()
-      if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12 }
-      if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0 }
-      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
-    }
-    // 24시간
-    m = s0.match(/^(\d{1,2}):(\d{2})$/)
-    if (m) {
-      const h = Math.max(0, Math.min(23, +m[1]))
-      const mm = Math.max(0, Math.min(59, +m[2]))
-      return { hour: h, minute: mm }
+  if (a && a.hour != null && a.minute != null) {
+    const h12 = parseInt(String(a.hour), 10)
+    const m = parseInt(String(a.minute), 10)
+    if (Number.isFinite(h12) && Number.isFinite(m)) {
+      let h = h12 % 12
+      const ampm = String(a.ampm || '').toUpperCase()
+      if (ampm === '오후' || ampm === 'PM') h += 12
+      if ((ampm === '오전' || ampm === 'AM') && h12 === 12) h = 0
+      if ((ampm === '오후' || ampm === 'PM') && h12 === 12) h = 12
+      return { hour: h, minute: m }
     }
   }
-
-  // 객체
-  if (a && typeof a === 'object' && a.hour != null && a.minute != null) {
-    let h = parseInt(String(a.hour), 10)
-    const mm = parseInt(String(a.minute), 10)
-    const tag = String(a.ampm || '').toUpperCase()
-    if (tag === 'PM' || a.ampm === '오후') { if (h < 12) h += 12 }
-    if (tag === 'AM' || a.ampm === '오전') { if (h === 12) h = 0 }
-    if (Number.isFinite(h) && Number.isFinite(mm)) {
-      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
-    }
-  }
-
-  // 낱개
-  const h2 = Number(r?.hour ?? r?.alarm?.hour)
-  const m2 = Number(r?.minute ?? r?.alarm?.minute)
-  if (Number.isFinite(h2) && Number.isFinite(m2)) return { hour: h2, minute: m2 }
-
-  return null
+  const h = Number(r?.hour ?? r?.alarm?.hour)
+  const m = Number(r?.minute ?? r?.alarm?.minute)
+  return { hour: h, minute: m }
 }
-
-// ── 요일 정규화: 숫자(1~7) 우선, '월'~'일'도 허용
-const KOR2NUM = { '월':1,'화':2,'수':3,'목':4,'금':5,'토':6,'일':7 }
-function normalizeWeekdays(raw) {
-  if (!raw) return []
-  const arr = Array.isArray(raw) ? raw : [raw]
-  const toNum = (v) => {
-    if (v == null) return null
-    if (typeof v === 'number' && Number.isFinite(v)) return v
-    const s = String(v).replace(/['"]/g,'').trim()
-    if (!s) return null
-    if (KOR2NUM[s[0]]) return KOR2NUM[s[0]]
-    const n = parseInt(s, 10)
-    return Number.isFinite(n) ? n : null
-  }
-  return Array.from(new Set(arr.map(toNum).filter(n => n >= 1 && n <= 7))).sort((a,b)=>a-b)
-}
-
-// ── 일/주/월 루틴 → 단 한 번의 scheduleOnIOS 호출로 끝내는 payload 생성
-function computeDesiredFromRoutine(r) {
-  const baseId = baseOf(r.id)
-  const hm = resolveAlarmHM(r)
-  if (!hm) return { baseId, items: [] }
-  const { hour, minute } = hm
-
-  const title = r.title || ''
-  const mode = String(r.repeatType || 'daily').toLowerCase()
-
-  // DAILY
-  if (mode.startsWith('daily')) {
-    return {
-      baseId,
-      items: [{
-        id: `${baseId}-daily`,
-        rid: r.id,
-        repeatMode: 'daily',
-        hour, minute, title,
-      }]
-    }
-  }
-
-  // WEEKLY (요일 배열 1회 전송)
-  if (mode.startsWith('week')) {
-    let days = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays
-             : Array.isArray(r.repeatDays)     ? r.repeatDays
-             : []
-    // weeklyDaily 토글 보정
-    if (r.weeklyDaily === true && (!days || days.length === 0)) {
-      days = [1,2,3,4,5,6,7]
-    }
-    const weekdays = normalizeWeekdays(days)
-    if (weekdays.length === 0) return { baseId, items: [] }
-
-    // 전부 선택 → daily 1개로 축약
-    if (weekdays.length === 7) {
-      return {
-        baseId,
-        items: [{
-          id: `${baseId}-daily`,
-          rid: r.id,
-          repeatMode: 'daily',
-          hour, minute, title,
-        }]
-      }
-    }
-    return {
-      baseId,
-      items: [{
-        id: `${baseId}-weekly`,
-        rid: r.id,
-        repeatMode: 'weekly',
-        hour, minute, title,
-        weekdays,                // 한 번에 전달
-      }]
-    }
-  }
-
-  // MONTHLY (여러 날짜 → 한 번에 배열로 전달)
-  if (mode.startsWith('month')) {
-    const md = (Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [])
-      .map(n => parseInt(n,10))
-      .filter(n => n>=1 && n<=31)
-      .sort((a,b)=>a-b)
-    if (!md.length) return { baseId, items: [] }
-    return {
-      baseId,
-      items: [{
-        id: `${baseId}-monthly`,      // 가상 id (iOS에서 내부로 -m-# 여러개 발행)
-        rid: r.id,
-        repeatMode: 'monthly-date',
-        hour, minute, title,
-        repeatMonthDays: md,          // 배열로 한 번에
-      }]
-    }
-  }
-
-  return { baseId, items: [] }
-}
-
-// ── routineForm.save() 가 두 번째 인자 repeat {mode, days} 를 줄 때 대응
-function computeDesiredFromRepeat(routine, repeat) {
-  const baseId = baseOf(routine.id)
-  const hm = resolveAlarmHM(routine)
-  if (!hm) return { baseId, items: [] }
-  const { hour, minute } = hm
-  const title = routine.title || ''
-
-  const mode = String(repeat?.mode || '').toUpperCase()
-
-  // DAILY
-  if (mode === 'DAILY' || mode === 'DAILY_EVERY_1') {
-    return {
-      baseId,
-      items: [{
-        id: `${baseId}-daily`,
-        rid: routine.id,
-        repeatMode: 'daily',
-        hour, minute, title,
-      }]
-    }
-  }
-
-  // WEEKLY
-  if (mode === 'WEEKLY') {
-    const weekdays = normalizeWeekdays(repeat?.days || [])
-    if (weekdays.length === 0) return { baseId, items: [] }
-    if (weekdays.length === 7) {
-      return {
-        baseId,
-        items: [{
-          id: `${baseId}-daily`,
-          rid: routine.id,
-          repeatMode: 'daily',
-          hour, minute, title,
-        }]
-      }
-    }
-    return {
-      baseId,
-      items: [{
-        id: `${baseId}-weekly`,
-        rid: routine.id,
-        repeatMode: 'weekly',
-        hour, minute, title,
-        weekdays,
-      }]
-    }
-  }
-
-  // MONTHLY
-  if (mode === 'MONTHLY') {
-    const md = (Array.isArray(repeat?.days) ? repeat.days : [])
-      .map(n => parseInt(n,10))
-      .filter(n => n>=1 && n<=31)
-      .sort((a,b)=>a-b)
-    if (!md.length) return { baseId, items: [] }
-    return {
-      baseId,
-      items: [{
-        id: `${baseId}-monthly`,
-        rid: routine.id,
-        repeatMode: 'monthly-date',
-        hour, minute, title,
-        repeatMonthDays: md,
-      }]
-    }
-  }
-
-  // 그 외는 스킵
-  return { baseId, items: [] }
-}
-
-// 마지막 등록 상태(논리 id) 추적 — 필요시 UI내 중복 호출 억제용
-const lastIdsByBase = new Map()
 
 export const useSchedulerStore = defineStore('scheduler', {
   actions: {
-    // 루틴들 한번에 재하이드레이트
-    async rehydrateFromRoutines(list = []) {
+    purge(base) {
+      if (!base) return
+      post({ action: 'purgeBase', baseId: base })
+    },
+
+    scheduleOnce(base, atISO, title, body = '') {
+      if (!base || !atISO) return
+      const t = Date.parse(atISO)
+      if (!Number.isFinite(t) || t <= Date.now()) return
+      const id = `${base}-once-${t}`
+      post({
+        action: 'schedule',
+        id,
+        baseId: base,
+        repeatMode: 'once',
+        timestamp: Math.floor(t / 1000),
+        title,
+        body,
+      })
+    },
+
+    scheduleDaily(base, hour, minute, title, body = '') {
+      if (!base || !Number.isFinite(hour) || !Number.isFinite(minute)) return
+      post({
+        action: 'schedule',
+        id: `${base}-daily`,
+        baseId: base,
+        repeatMode: 'daily',
+        hour: Number(hour),
+        minute: Number(minute),
+        title,
+        body,
+      })
+    },
+
+   scheduleWeekly(base, hour, minute, days, title, body = '') {
+  if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
+  const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
+    .filter(d => d >= 1 && d <= 7)
+    .sort((a,b) => a - b)
+  if (!weekdays.length) return
+
+  // ✅ 모든 요일이 들어온 경우 → daily 1개만 예약
+  if (weekdays.length === 7) {
+    post({
+      action: 'schedule',
+      id: `${base}-daily`,
+      baseId: base,
+      repeatMode: 'daily',
+      hour: Number(hour),
+      minute: Number(minute),
+      title,
+      body,
+    })
+    return
+  }
+
+  // ✅ 일부 요일만 선택한 경우만 weekly 예약
+  post({
+    action: 'schedule',
+    repeatMode: 'weekly',
+    id: `${base}-weekly`,
+    baseId: base,
+    hour: Number(hour),
+    minute: Number(minute),
+    weekdays,
+    title,
+    body,
+  })
+},
+
+    scheduleMonthly(base, hour, minute, monthDays, title, body = '') {
+      if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(monthDays) || !monthDays.length) return
+      const uniq = Array.from(new Set(monthDays.map(d => parseInt(d,10)))).filter(d => d >= 1 && d <= 31).sort((a,b)=>a-b)
+      uniq.forEach(d => {
+        post({
+          action: 'schedule',
+          id: `${base}-m-${d}`,
+          baseId: base,
+          repeatMode: 'monthly-date',
+          day: d,
+          hour: Number(hour),
+          minute: Number(minute),
+          title,
+          body,
+        })
+      })
+    },
+
+    cancel(base) {
+      if (!base) return
+      post({ action: 'purgeBase', baseId: base })
+    },
+
+    reschedule(routine, repeat) {
+      if (!routine || !repeat) return
+      const base = baseOf(routine.id)
+      const title = routine.title || '알림'
+      const body = routine.body || ''
+      const { hour, minute } = resolveAlarmHM(routine)
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
+
+      if (q.has(base)) clearTimeout(q.get(base))
+
+      // 🔧 여기서는 의도적으로 purge → schedule 순서를 유지(명시적 재설정 시)
+      this.purge(base)
+      const t = setTimeout(() => {
+        if (repeat.mode === 'ONCE') {
+          this.scheduleOnce(base, repeat.at, title, body)
+          return
+        }
+        if (repeat.mode === 'DAILY' || repeat.mode === 'DAILY_EVERY_1') {
+          this.scheduleDaily(base, hour, minute, title, body)
+          return
+        }
+        if (repeat.mode === 'WEEKLY') {
+          this.scheduleWeekly(base, hour, minute, repeat.days || [], title, body)
+          return
+        }
+        if (repeat.mode === 'MONTHLY') {
+          this.scheduleMonthly(base, hour, minute, repeat.days || [], title, body)
+          return
+        }
+        if (repeat.mode === 'DAILY_EVERY_N') {
+          const n = Math.max(2, parseInt(repeat.n ?? 2, 10))
+          post({
+            action: 'schedule',
+            id: `${base}-d${n}`,
+            baseId: base,
+            repeatMode: 'daily',
+            interval: n,
+            hour,
+            minute,
+            title,
+            body,
+          })
+        }
+      }, 300)
+      q.set(base, t)
+    },
+
+    // 파이어스토어에서 불러온 루틴들로 재하이드레이트
+    // ✅ ONCE(오늘만)으로 저장된 루틴은 "건드리지 않도록" purge 위치를 변경
+    rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
-      await waitBridgeReady()
+      list.forEach((r) => {
+        if (!r || r.isPaused) return
+        const base = baseOf(r.id)
+        const title = r.title || '알림'
+        const body = r.comment || r.body || ''
+        const { hour, minute } = resolveAlarmHM(r)
+        if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
 
-      for (const r of list) {
-        if (!r || r.isPaused) continue
+        const rt = String(r.repeatType || 'daily').toLowerCase()
 
-        const { baseId, items } = computeDesiredFromRoutine(r)
-
-        // 베이스 단위로 항상 먼저 purge (다중 호출 레이스 방지)
-        await cancelOnIOS(baseId)
-        await sleep(20)
-
-        if (!items.length) {
-          lastIdsByBase.set(baseId, new Set())
-          continue
+        // 1) daily인데 오늘만(once)이면 건드리지 않음 (purge 금지)
+        if (rt === 'daily') {
+          if (Number(r.repeatDaily) === 0 || r.rule?.freq === 'once') {
+            return
+          }
+          // 실제로 daily를 재등록할 때만 purge
+          this.purge(base)
+          this.scheduleDaily(base, hour, minute, title, body)
+          return
         }
 
-        // 한 베이스당 단 한번 scheduleOnIOS
-        await scheduleOnIOS(items[0])
-        await sleep(20)
+        // 2) weekly
+        if (rt.includes('week')) {
+          const days = Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length
+            ? r.repeatWeekDays
+            : (Array.isArray(r.repeatDays) ? r.repeatDays : [])
+          if (Array.isArray(days) && days.length) {
+            this.purge(base)
+            this.scheduleWeekly(base, hour, minute, days, title, body)
+            return
+          }
+        }
 
-        lastIdsByBase.set(baseId, new Set([items[0].id]))
-      }
-    },
+        // 3) monthly
+        if (rt.includes('month')) {
+          const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
+          if (md.length) {
+            this.purge(base)
+            this.scheduleMonthly(base, hour, minute, md, title, body)
+            return
+          }
+        }
 
-    // routineForm.save()에서 호출: (routine, repeat) 모두 허용
-    async reschedule(routine, repeat) {
-      if (!routine) return
-      await waitBridgeReady()
-
-      const src = repeat
-        ? computeDesiredFromRepeat(routine, repeat)
-        : computeDesiredFromRoutine(routine)
-
-      const { baseId, items } = src
-
-      // 항상 베이스 purge 후, 단 한번 schedule
-      await cancelOnIOS(baseId)
-      await sleep(20)
-
-      if (!items.length) {
-        lastIdsByBase.set(baseId, new Set())
-        return
-      }
-
-      await scheduleOnIOS(items[0])
-      await sleep(20)
-
-      lastIdsByBase.set(baseId, new Set([items[0].id]))
-    },
-
-    // 특정 루틴 전체 제거
-    async cancelRoutine(routineId) {
-      const baseId = baseOf(routineId)
-      await cancelOnIOS(baseId) // 베이스 통째 purge
-      await sleep(20)
-      lastIdsByBase.delete(baseId)
-    },
+        // 그 외 타입은 조용히 스킵 (기본 DAILY 강제 설치 없음)
+      })
+    }
   }
 })
