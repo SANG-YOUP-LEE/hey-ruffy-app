@@ -1,20 +1,10 @@
 // src/stores/scheduler.js
 import { defineStore } from 'pinia'
 
-// ─────────────────────────────────────────────
-// iOS bridge helpers
-// ─────────────────────────────────────────────
 const mh = () => window.webkit?.messageHandlers?.notify
 const post = (p) => { try { mh()?.postMessage(p) } catch (_) {} }
 const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
-
-// ─────────────────────────────────────────────
-// 내부 상태: 중복 초기화/디바운스 가드
-// ─────────────────────────────────────────────
-let __installed = false                     // HMR/중복 import 방지
-const q = new Map()                         // debounce per base (타이머)
-const lastPurgeAt = new Map()               // base별 마지막 purge 시각
-const COOLDOWN_MS = 1200                    // purge→schedule 과도한 연쇄 방지 (1.2s)
+const q = new Map() // debounce per base
 
 // ─────────────────────────────────────────────
 // 작은 도우미
@@ -22,7 +12,10 @@ const COOLDOWN_MS = 1200                    // purge→schedule 과도한 연쇄
 const pad2 = (n) => String(n).padStart(2, '0')
 const todayYMD = () => {
   const d = new Date()
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+  const y = d.getFullYear()
+  const m = pad2(d.getMonth() + 1)
+  const day = pad2(d.getDate())
+  return `${y}-${m}-${day}`
 }
 const toAtISO = (dateISO, { hour, minute }) => {
   if (!dateISO || !Number.isFinite(hour) || !Number.isFinite(minute)) return null
@@ -60,31 +53,14 @@ function resolveAlarmHM(r) {
   return { hour: h, minute: m }
 }
 
-// ─────────────────────────────────────────────
-// Pinia Store
-// ─────────────────────────────────────────────
 export const useSchedulerStore = defineStore('scheduler', {
-  state: () => ({
-    ready: false,     // initOnce 완료 여부
-  }),
-
   actions: {
-    // 앱 부팅 때 단 한 번만 호출 (main.js 등)
-    initOnce() {
-      if (__installed) return
-      __installed = true
-      this.ready = true
-      // 필요한 사전 작업이 있으면 여기서만 수행
-      // console.debug('🍍 "scheduler" store installed 🆕')
-    },
-
     // ─────────────────────────────────────────
     // Low-level 브리지 래퍼
     // ─────────────────────────────────────────
     purge(base) {
       if (!base) return
       post({ action: 'purgeBase', baseId: base })
-      lastPurgeAt.set(base, Date.now())
     },
 
     scheduleOnce(base, atISO, title, body = '') {
@@ -103,7 +79,7 @@ export const useSchedulerStore = defineStore('scheduler', {
       })
     },
 
-    // intervalDays 지원(기본 1)
+    // interval(>1)도 지원 가능하게 확장
     scheduleDaily(base, hour, minute, title, body = '', interval = 1) {
       if (!base || !Number.isFinite(hour) || !Number.isFinite(minute)) return
       const payload = {
@@ -120,7 +96,7 @@ export const useSchedulerStore = defineStore('scheduler', {
       post(payload)
     },
 
-    // intervalWeeks 지원(기본 1)
+    // ✅ baseId 오탈자 수정 + intervalWeeks 지원
     scheduleWeekly(base, hour, minute, days, title, body = '', intervalWeeks = 1) {
       if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
       const weekdays = normalizeWeekDays(days)
@@ -130,7 +106,7 @@ export const useSchedulerStore = defineStore('scheduler', {
         action: 'schedule',
         repeatMode: 'weekly',
         id: `${base}-weekly`,
-        baseId: base,
+        baseId: base,                // ← fix: base → baseId
         hour: Number(hour),
         minute: Number(minute),
         weekdays,
@@ -163,7 +139,6 @@ export const useSchedulerStore = defineStore('scheduler', {
     cancel(base) {
       if (!base) return
       post({ action: 'purgeBase', baseId: base })
-      lastPurgeAt.set(base, Date.now())
     },
 
     // ─────────────────────────────────────────
@@ -177,14 +152,10 @@ export const useSchedulerStore = defineStore('scheduler', {
       const { hour, minute } = resolveAlarmHM(routine)
       if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
 
-      // 같은 베이스 연쇄 purge→schedule 스파이크 방지
-      const now = Date.now()
-      const last = lastPurgeAt.get(base) || 0
-      const delay = Math.max(300, COOLDOWN_MS - (now - last))
-
       if (q.has(base)) clearTimeout(q.get(base))
-      this.purge(base)
 
+      // 명시적 재설정일 때만 purge → schedule
+      this.purge(base)
       const t = setTimeout(() => {
         if (repeat.mode === 'ONCE') {
           this.scheduleOnce(base, repeat.at, title, body)
@@ -195,7 +166,9 @@ export const useSchedulerStore = defineStore('scheduler', {
           return
         }
         if (repeat.mode === 'WEEKLY') {
-          this.scheduleWeekly(base, hour, minute, repeat.days || [], title, body, 1)
+          const days = Array.isArray(repeat.days) ? repeat.days : []
+          const iw = Math.max(1, parseInt(repeat.intervalWeeks ?? 1, 10) || 1)
+          this.scheduleWeekly(base, hour, minute, days, title, body, iw)
           return
         }
         if (repeat.mode === 'MONTHLY') {
@@ -206,82 +179,13 @@ export const useSchedulerStore = defineStore('scheduler', {
           const n = Math.max(2, parseInt(repeat.n ?? 2, 10))
           this.scheduleDaily(base, hour, minute, title, body, n)
         }
-      }, delay)
+      }, 300)
       q.set(base, t)
     },
 
     // ─────────────────────────────────────────
-    // ✅ 단일 진입점: Firestore 문서로 스케줄 설치
-    //    - routineForm.save() 이후 여기만 호출
-    // ─────────────────────────────────────────
-    applyScheduleFromDoc(r = {}) {
-      if (!r || !r.id) return
-      const base = baseOf(r.id)
-      const title = r.title || '알림'
-      const body = r.comment || r.body || ''
-      const { hour, minute } = resolveAlarmHM(r)
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
-
-      const rt = String(r.repeatType || 'daily').toLowerCase()
-
-      // 1) 오늘만(once)
-      const isOnce =
-        (rt === 'daily' && (Number(r.repeatDaily) === 0 || Number(r.repeatEveryDays) === 0)) ||
-        (r.rule?.freq === 'once')
-
-      if (isOnce) {
-        const dateISO = r.start || todayYMD()
-        const atISO = toAtISO(dateISO, { hour, minute }) || toAtISO(todayYMD(), { hour, minute })
-        this.purge(base)
-        this.scheduleOnce(base, atISO, title, body)
-        return
-      }
-
-      // 2) 일간 (N일마다 포함)
-      if (rt === 'daily') {
-        const n = Math.max(1, parseInt(r.repeatEveryDays ?? r.repeatDaily ?? 1, 10) || 1)
-        this.purge(base)
-        this.scheduleDaily(base, hour, minute, title, body, n)
-        return
-      }
-
-      // 3) 주간 (N주마다 지원)
-      if (rt.includes('week')) {
-        const days = normalizeWeekDays(
-          Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length
-            ? r.repeatWeekDays
-            : (Array.isArray(r.repeatDays) ? r.repeatDays : [])
-        )
-        if (days.length) {
-          const iw = parseWeeksInterval(r.repeatWeeks)
-          // 매주 + 7요일 전부 → daily로 축약(안정성)
-          this.purge(base)
-          if (iw === 1 && days.length === 7) {
-            this.scheduleDaily(base, hour, minute, title, body, 1)
-          } else {
-            this.scheduleWeekly(base, hour, minute, days, title, body, iw)
-          }
-        }
-        return
-      }
-
-      // 4) 월간
-      if (rt.includes('month')) {
-        const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
-        if (md.length) {
-          this.purge(base)
-          this.scheduleMonthly(base, hour, minute, md, title, body)
-        }
-        return
-      }
-
-      // 그 외 타입은 스킵
-    },
-
-    // ─────────────────────────────────────────
-    // 파이어스토어 재하이드레이트
-    //  - 기본 DAILY 강제 설치 없음
-    //  - ONCE는 건드리지 않음
+    // 파이어스토어에서 불러온 루틴들로 재하이드레이트
+    // ✅ ONCE는 건드리지 않음
     // ─────────────────────────────────────────
     rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
@@ -291,21 +195,23 @@ export const useSchedulerStore = defineStore('scheduler', {
         const { hour, minute } = resolveAlarmHM(r)
         if (!Number.isFinite(hour) || !Number.isFinite(minute)) return
 
+        const base = baseOf(r.id)
+        const title = r.title || '알림'
+        const body = r.comment || r.body || ''
         const rt = String(r.repeatType || 'daily').toLowerCase()
 
-        // daily인데 오늘만(once)인 것은 건드리지 않음
+        // 1) daily인데 오늘만(once)이면 건드리지 않음
         if (rt === 'daily') {
           if (Number(r.repeatDaily) === 0 || Number(r.repeatEveryDays) === 0 || r.rule?.freq === 'once') {
             return
           }
-          const base = baseOf(r.id)
           this.purge(base)
           const n = Math.max(1, parseInt(r.repeatEveryDays ?? r.repeatDaily ?? 1, 10) || 1)
-          this.scheduleDaily(base, hour, minute, r.title || '알림', r.comment || r.body || '', n)
+          this.scheduleDaily(base, hour, minute, title, body, n)
           return
         }
 
-        // weekly
+        // 2) weekly
         if (rt.includes('week')) {
           const days = normalizeWeekDays(
             Array.isArray(r.repeatWeekDays) && r.repeatWeekDays.length
@@ -313,30 +219,24 @@ export const useSchedulerStore = defineStore('scheduler', {
               : (Array.isArray(r.repeatDays) ? r.repeatDays : [])
           )
           if (days.length) {
-            const base = baseOf(r.id)
-            const iw = parseWeeksInterval(r.repeatWeeks)
             this.purge(base)
-            if (iw === 1 && days.length === 7) {
-              this.scheduleDaily(base, hour, minute, r.title || '알림', r.comment || r.body || '', 1)
-            } else {
-              this.scheduleWeekly(base, hour, minute, days, r.title || '알림', r.comment || r.body || '', iw)
-            }
+            const iw = parseWeeksInterval(r.repeatWeeks)
+            this.scheduleWeekly(base, hour, minute, days, title, body, iw)
           }
           return
         }
 
-        // monthly
+        // 3) monthly
         if (rt.includes('month')) {
           const md = Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []
           if (md.length) {
-            const base = baseOf(r.id)
             this.purge(base)
-            this.scheduleMonthly(base, hour, minute, md, r.title || '알림', r.comment || r.body || '')
+            this.scheduleMonthly(base, hour, minute, md, title, body)
           }
           return
         }
 
-        // 그 외 타입은 스킵
+        // 그 외 타입은 스킵 (기본 DAILY 강제설치 없음)
       })
     }
   }

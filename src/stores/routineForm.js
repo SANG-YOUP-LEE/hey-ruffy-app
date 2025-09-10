@@ -1,4 +1,3 @@
-// src/stores/routineForm.js
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
@@ -225,14 +224,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
-      // 주간인데 interval=1이고 7일 전부면 -> daily로 축약
-      if (state.repeatType === 'weekly') {
-        const intervalW = parseInterval(state.repeatWeeks)
-        if (intervalW === 1 && (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))) {
-          return { freq: 'daily', interval: 1, anchor: anchorISO }
-        }
-      }
-
+      // ✅ 자동 축약 제거: weekly는 항상 weekly로 보낸다
       if (state.repeatType === 'daily') {
         if (!Number.isInteger(state.repeatDaily)) return null
         const n = state.repeatDaily
@@ -258,15 +250,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasEnd = !!safeISOFromDateObj(state.endDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
-      const weeklyIsDaily =
-        state.repeatType === 'weekly' &&
-        (parseInterval(state.repeatWeeks) === 1) &&
-        (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))
-
-      const normalizedType = weeklyIsDaily ? 'daily' : state.repeatType
+      // ✅ 자동 축약 제거: normalizedType = 저장한 선택 그대로
+      const normalizedType = state.repeatType
       const dailyInterval =
         normalizedType === 'daily'
-          ? (weeklyIsDaily ? 1 : (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null))
+          ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
           : null
 
       const endForTodayOnly =
@@ -613,10 +601,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
                 )
               } else if (payload?.repeatType === 'weekly') {
                 const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
+                const intervalWeeks = parseInterval(payload?.repeatWeeks || '')
                 if (days.length) {
                   sch.reschedule(
                     { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'WEEKLY', days }
+                    { mode: 'WEEKLY', days, intervalWeeks }
                   )
                 }
               } else if (payload?.repeatType === 'monthly') {
