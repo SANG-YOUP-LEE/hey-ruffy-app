@@ -63,24 +63,41 @@ export const useSchedulerStore = defineStore('scheduler', {
       })
     },
 
-    scheduleWeekly(base, hour, minute, days, title, body = '') {
-      if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
-      const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
-        .filter(d => d >= 1 && d <= 7)
-        .sort((a,b) => a - b)
-      if (!weekdays.length) return
-      post({
-        action: 'schedule',
-        repeatMode: 'weekly',
-        id: `${base}-weekly`,
-        base,
-        hour: Number(hour),
-        minute: Number(minute),
-        weekdays,
-        title,
-        body,
-      })
-    },
+   scheduleWeekly(base, hour, minute, days, title, body = '') {
+  if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(days) || !days.length) return
+  const weekdays = Array.from(new Set(days.map(d => parseInt(d, 10))))
+    .filter(d => d >= 1 && d <= 7)
+    .sort((a,b) => a - b)
+  if (!weekdays.length) return
+
+  // ✅ 모든 요일이 들어온 경우 → daily 1개만 예약
+  if (weekdays.length === 7) {
+    post({
+      action: 'schedule',
+      id: `${base}-daily`,
+      baseId: base,
+      repeatMode: 'daily',
+      hour: Number(hour),
+      minute: Number(minute),
+      title,
+      body,
+    })
+    return
+  }
+
+  // ✅ 일부 요일만 선택한 경우만 weekly 예약
+  post({
+    action: 'schedule',
+    repeatMode: 'weekly',
+    id: `${base}-weekly`,
+    baseId: base,
+    hour: Number(hour),
+    minute: Number(minute),
+    weekdays,
+    title,
+    body,
+  })
+},
 
     scheduleMonthly(base, hour, minute, monthDays, title, body = '') {
       if (!base || !Number.isFinite(hour) || !Number.isFinite(minute) || !Array.isArray(monthDays) || !monthDays.length) return
