@@ -19,9 +19,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height:5rem;
   padding: 0.5rem 1rem 0.5rem 1rem;
   box-sizing: border-box;
-  border-bottom: 1px solid #e6e6e6;
+  background-color:yellow
 }
 
 #header .left,
@@ -33,27 +34,40 @@
   justify-content: center;
 }
 
+
 #header .left {
   left: 1rem;
+  background-color:red;
+  display: flex;
+  gap: 1rem;
 }
 
 #header .right {
   right: 1rem;
+  background-color:blue;
 }
 
-#header .title {
+#header .left .ruffys {
+  width:3rem;
+  height:3rem;
+  background-color:#ffef6e;
+  border-radius:1rem;
+  flex-shrink: 0;
+}
+
+#header .left .title {
   flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
-#header .title h1 {
+#header .left .title h1 {
   margin: 0;
   font-size: 1.8rem;
   line-height: 3.4rem;
   display: inline-block;
 }
 
-#header .title p {
+#header .left .title p {
   margin: 0;
   font-size: 1rem;
   letter-spacing: -0.02rem;
