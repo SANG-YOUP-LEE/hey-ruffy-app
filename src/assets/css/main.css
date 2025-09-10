@@ -59,14 +59,15 @@
 
 #header .left .title h1 {
   margin: 0;
-  line-height:3rem;
+  line-height:2.8rem;
   font-size: 1.8rem;
   display: inline-block;
+  color:#333;
 }
 
 #header .left .title p {
   margin: 0;
-  font-size: 1rem;
+  font-size: -0.9rem;
   letter-spacing: -0.02rem;
   display: flex;
   align-items: center;
@@ -75,10 +76,15 @@
 }
 
 #header .right button {
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 2rem;
+  height: 2rem;
   margin-left:0.8rem;
   display: inline-block;
+}
+
+#header .right button:last-child {
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 /*
