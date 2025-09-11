@@ -1,13 +1,13 @@
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }">
-    <HeaderView @toggle-lnb="showLnb = !showLnb" :class="{ short: headerShort }" />
+    <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <SlidePanel :show="panelOpen" @close="closePanel">
       <LnbView @close="closePanel" />
     </SlidePanel>
 
     <div id="main_body">
       <div class="main_fixed" v-if="hasFetched && rStore.items?.length">
-        <MainDateScroll :selectedDate="selectedDate" @selectDate="nav.selectDate" />
+        <MainDateScroll v-if="!scrolledRef" :selectedDate="selectedDate" @selectDate="nav.selectDate" />
         <MainRoutineTotal
           :isFuture="isFutureDate" :selectedDate="selectedDate"
           v-model:modelValue="rStore.selectedFilter"
@@ -81,7 +81,7 @@ const router = useRouter()
 const rStore = useRoutinesStore()
 const mv = useMainViewStore()
 const modal = useModalStore()
-const { isLoading, hasFetched, isAddRoutineOpen, showLnb, selectedDate, isFutureDate, selectedView, editingRoutine, headerShort } = storeToRefs(mv)
+const { isLoading, hasFetched, isAddRoutineOpen, showLnb, selectedDate, isFutureDate, selectedView, editingRoutine } = storeToRefs(mv)
 
 const panelOpen = computed(() => showLnb.value || route.path === '/lnb')
 
