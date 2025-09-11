@@ -274,10 +274,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
         // 주간일 때 요일 배열: weeklyDaily면 [1..7] 고정, 아니면 사용자가 고른 요일 변환
         const weeklyDaysNum =
-          normalizedType === 'weekly'
-            ? (state.weeklyDaily ? [1,2,3,4,5,6,7] : daysKorToNum(state.repeatWeekDays))
-            : []
-
+        normalizedType === 'weekly'
+          ? (state.weeklyDaily
+              ? [1,2,3,4,5,6,7]
+              : daysKorToNum(state.repeatWeekDays).sort((a,b)=>a-b))
+          : []
         const cleaned = {
           title: state.title,
           repeatType: normalizedType,
@@ -409,17 +410,27 @@ export const useRoutineFormStore = defineStore('routineForm', {
       }
 
       // 반복 주기별 체크
-      if (this.repeatType === 'daily') {
-        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
-          this.setError('repeat','반복 주기를 선택해주세요.')
-          return false
+        if (this.repeatType === 'daily') {
+          if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+            this.setError('repeat', '반복 주기를 선택해주세요.')
+            return false
+          }
+        } else {
+          // ✅ daily가 아닐 때는 항상 비워서 영향 제거
+          this.repeatDaily = null
         }
-      }
 
       if (this.repeatType === 'weekly') {
-        const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
-        if (!valid) {
-          this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
+        const hasDays = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
+        const hasWeeks = typeof this.repeatWeeks === 'string'
+          && (this.repeatWeeks === '매주' || /\d+\s*주마다/.test(this.repeatWeeks))
+
+        if (!hasWeeks) {
+          this.setError('repeat', '“매주/몇 주마다”를 선택해 주세요.')
+          return false
+        }
+        if (!hasDays) {
+          this.setError('repeat', '요일을 선택하거나 “매일”을 선택해 주세요.')
           return false
         }
       }
@@ -588,7 +599,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
               })
             } else {
               // 2) 그 외(오늘만/매일/매주/매월)
-              if (this.icsRule?.freq === 'once') {
+              if (payload?.repeatType === 'daily' && this.icsRule?.freq === 'once') {
                 // ---- ONCE(오늘만): daily 확실히 제거 + 네이티브로 1회만 등록 ----
                 try {
                   await waitBridgeReady()
