@@ -147,7 +147,12 @@ const prevLabel = computed(() => { if (props.periodMode === 'W') return '이전�
 const nextLabel = computed(() => { if (props.periodMode === 'W') return '다음주'; if (props.periodMode === 'M') return '다음달'; return '다음날' })
 
 const auth = useAuthStore()
-const userCharacter = computed(() => (auth.profile?.character || 'ruffy01').toLowerCase())
+const selectedRuffy = computed(() => (auth.profile?.selectedRuffy || 'option1').toString().toLowerCase())
+const userCharacter = computed(() => {
+  const m = selectedRuffy.value.match(/option(\d)/)
+  const n = m && m[1] ? m[1] : '1'
+  return `ruffy0${n}`
+})
 
 const images = import.meta.glob('../../assets/images/*.png', { eager: true, import: 'default' })
 function getImgPath(face) {
