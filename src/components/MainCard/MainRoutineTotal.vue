@@ -14,9 +14,24 @@
         <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>Weekly</span></button>
         <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
       </div>
-      <div class="graph"></div>
+      <div class="graph">
+        <div class="circle-wrap">
+          <svg viewBox="0 0 36 36">
+            <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <template v-for="(seg,i) in graphData" :key="i">
+              <path
+                :class="['seg', seg.cls]"
+                :stroke-dasharray="`${seg.pct} 100`"
+                :stroke-dashoffset="`-${seg.offset}`"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+            </template>
+          </svg>
+          <div class="center-text">{{ centerText }}</div>
+        </div>
+      </div>
       <div class="r_state">
-        <a href="#none" v-for="s in states" :key="s.key">
+        <a href="#none" v-for="s in states" :key="s.key" :class="{ on: selectedRadio===s.key }" @click.prevent="selectedRadio = s.key">
           <span><img :src="getImgPath(s.face)" /></span>
           <em>{{ s.count }}</em>
         </a>
@@ -166,4 +181,44 @@ const states = computed(() => [
   { key: 'faildone', face: 'face03', count: displayCounts.value.faildone },
   { key: 'ignored', face: 'face04', count: displayCounts.value.ignored }
 ])
+
+const graphData = computed(() => {
+  const total = Math.max(0, Number(displayTotal.value) || 0)
+  const done = Math.max(0, Number(displayCounts.value.done) || 0)
+  const fail = Math.max(0, Number(displayCounts.value.faildone) || 0)
+  const ign  = Math.max(0, Number(displayCounts.value.ignored) || 0)
+  if (total <= 0) return []
+  if (selectedRadio.value === 'notdone') {
+    const pDone = Math.min(100, +(done / total * 100).toFixed(2))
+    const pFail = Math.min(100, +(fail / total * 100).toFixed(2))
+    const pIgn  = Math.min(100, +(ign  / total * 100).toFixed(2))
+    const segs = []
+    let acc = 0
+    if (pDone > 0) { segs.push({ pct: pDone, offset: acc, cls: 'seg-done' }); acc += pDone }
+    if (pFail > 0) { segs.push({ pct: pFail, offset: acc, cls: 'seg-fail' }); acc += pFail }
+    if (pIgn  > 0) { segs.push({ pct: pIgn,  offset: acc, cls: 'seg-ign'  }); acc += pIgn  }
+    return segs
+  } else {
+    let pct = 0, cls = 'seg-done'
+    if (selectedRadio.value === 'done')      { pct = +(done / total * 100).toFixed(2); cls = 'seg-done' }
+    if (selectedRadio.value === 'faildone')  { pct = +(fail / total * 100).toFixed(2); cls = 'seg-fail' }
+    if (selectedRadio.value === 'ignored')   { pct = +(ign  / total * 100).toFixed(2); cls = 'seg-ign'  }
+    pct = Math.min(100, Math.max(0, pct))
+    return pct > 0 ? [{ pct, offset: 0, cls }] : []
+  }
+})
 </script>
+
+<style scoped>
+.graph { display:flex; align-items:center; justify-content:center; }
+.circle-wrap { position: relative; width: 120px; height: 120px; }
+svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.bg { fill: none; stroke: #eee; stroke-width: 2.8; }
+.seg { fill: none; stroke-width: 2.8; stroke-linecap: round; }
+.seg-done { stroke: #00c896; }
+.seg-fail { stroke: #ff6b7a; }
+.seg-ign  { stroke: #b8b8c4; }
+.center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 700; font-size: 14px; line-height: 1; text-align: center; }
+.r_state a { display:inline-flex; align-items:center; gap:6px; }
+.r_state a.on em { font-weight:700; }
+</style>
