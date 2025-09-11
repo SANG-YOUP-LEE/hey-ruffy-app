@@ -82,18 +82,6 @@ const parseHM = (t) => {
   return null
 }
 
-const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
-  if (!dateISO || !hm) return null
-  if (!Number.isFinite(hm.hour) || !Number.isFinite(hm.minute)) return null
-  return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00`
-}
-const atISOToEpochMs = (atISO) => {
-  if (!atISO) return null
-  const d = new Date(atISO)
-  const ms = d.getTime()
-  return Number.isFinite(ms) ? ms : null
-}
-
 const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
 
 function deriveRepeatDailyFromRoutine(r) {
@@ -399,7 +387,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         if (hm) {
           const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
           const atISO = toAtISO(dateISO, hm)
-          const ms = atISOToEpochMs(atISO)
+          const sec = atISOToEpochSec(atISO)
+          const ms = Number.isFinite(sec) ? sec * 1000 : null
           const now = Date.now()
           const GRACE_MS = 5000
 
