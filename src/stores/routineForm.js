@@ -1,23 +1,27 @@
 // src/stores/routineForm.js
 // 전체 지우고 통으로 붙여넣기
+//
+// 변경 핵심
+// 1) 네이티브 반복 스케줄(schedulerStore.reschedule, repeatMode 등) 모두 제거
+// 2) schedulePlanner.planSchedule(payload, hm) 결과로 iOS에 ONCE(epochs)만 등록
+// 3) 시작/종료 윈도우를 철저히 준수 — 윈도우 바깥 알람 미생성, pastAll이면 purge
+// 4) 저장/수정 시 기존 베이스 전량 purge 후 재등록
 
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
-import { useSchedulerStore } from '@/stores/scheduler'
 
-// ✅ iOS 네이티브 알림 (네이티브 반복/에포크 등록)
+// ✅ iOS 네이티브 브리지 (ONCE 전용 등록)
 import { scheduleOnIOS, cancelOnIOS, postIOS, waitBridgeReady } from '@/utils/iosNotify'
 
-// ✅ 기간(시작/종료) + 과거필터 최적화 플래너
-import { planSchedule } from '@/utils/schedulePlanner'
+// ✅ 윈도우 기반 epochs 플래너
+import { planSchedule, toAtISO, atISOToEpochSec } from '@/utils/schedulePlanner'
 
-// 중복 생성 방지용(동일 틱/연속 탭 가드)
 let __pendingCreateId = null
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
-const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }     // 월=1 … 일=7
+const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
 
 const p = n => String(n).padStart(2,'0')
@@ -83,7 +87,6 @@ const toAtISO = (dateISO, hm, tz = 'Asia/Seoul') => {
   if (!Number.isFinite(hm.hour) || !Number.isFinite(hm.minute)) return null
   return `${dateISO}T${p(hm.hour)}:${p(hm.minute)}:00+09:00`
 }
-
 const atISOToEpochMs = (atISO) => {
   if (!atISO) return null
   const d = new Date(atISO)
@@ -177,7 +180,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       return { freq: state.repeatType, interval: 1, anchor: anchorISO }
     },
-    // ✅ Firestore 저장 payload
+    // Firestore 저장용 페이로드
     payload(state) {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const hasEnd = !!safeISOFromDateObj(state.endDate)
@@ -185,17 +188,14 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       const normalizedType = state.repeatType
 
-      // 일간일 때만 repeatDaily를 그대로 사용 (0=오늘만, 1..6=N일마다)
       const dailyInterval =
         normalizedType === 'daily'
           ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
           : null
 
-      // 오늘만(once)일 때 end를 start와 동일하게 넣어주는 처리 유지
       const endForTodayOnly =
         normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
 
-      // 주간 요일 배열 정규화(숫자 오름차순)
       const weeklyDaysNum =
         normalizedType === 'weekly'
           ? (state.weeklyDaily
@@ -388,9 +388,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
         if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
 
-      // 코멘트 정리
-      if (sc === null) this.comment = ''
-
       // ✅ “오늘만(once)”일 때 과거시간 방지
       const isOnce =
         this.repeatType === 'daily' &&
@@ -399,7 +396,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       if (isOnce) {
         const hm = parseHM(this.alarmTime)
-        
         if (hm) {
           const dateISO = safeISOFromDateObj(this.startDate) || todayISO()
           const atISO = toAtISO(dateISO, hm)
@@ -435,7 +431,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
         const payload = { ...basePayload, alarmTime: normalizedAlarm }
 
         let res
-
         if (this.mode === 'edit' && this.routineId) {
           const rid = getBaseId(this.routineId)
           await setDoc(
@@ -451,130 +446,64 @@ export const useRoutineFormStore = defineStore('routineForm', {
           res = { ok:true, id: docRef.id, data: payload }
         }
 
-        // ── 예약 처리 ─────────────────────────────────────
+        // ── iOS 알림(ONCE만) 등록 ────────────────────────
         try {
-          const sch = useSchedulerStore()
-          const hm = parseHM(this.alarmTime || payload.alarmTime)
           const routineId = res?.id
-          const title = this.title || payload.title || '알림'
-          const baseId = routineId ? `routine-${routineId}` : null
+          const hm = parseHM(this.alarmTime || payload.alarmTime)
+          if (!routineId || !hm) return res
 
-          if (routineId && hm) {
-            // ✅ 과거 daily 잔재 제거
-            try {
-              await waitBridgeReady()
-              postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
-            } catch (e) {
-              console.warn('[routineForm] daily cancel failed', e)
-            }
+          const baseId = `routine-${routineId}`
+          await waitBridgeReady()
 
-            // ✅ 기간/과거필터 반영한 스케줄 플랜
-            const plan = planSchedule(
-              {
-                repeatType: payload.repeatType,
-                repeatEveryDays: payload.repeatEveryDays,
-                repeatWeeks: payload.repeatWeeks,
-                repeatWeekDays: payload.repeatWeekDays,
-                repeatMonthDays: payload.repeatMonthDays,
-                start: payload.start,
-                end: payload.end,
-                title: payload.title
-              },
-              hm // {hour, minute} (24h)
-            )
+          // 0) 기존 잔여 알림 전량 purge
+          try {
+            await cancelOnIOS(baseId) // 베이스 전체 purge 동작
+          } catch (e) {
+            // 일부 환경에선 cancelOnIOS가 베이스 전체 취소를 래핑하므로 실패 무시
+          }
+          // 과거 daily 잔재 방지용(이중 울림 방지)
+          try { postIOS({ action: 'cancel', id: `${baseId}-daily` }) } catch (_) {}
 
-            // ✅ 베이스 purge/취소는 상황에 맞게
-            if (plan?.kind === 'pastAll') {
-              // 윈도우가 이미 모두 과거 → 전체 purge
-              if (baseId) await cancelOnIOS(baseId)
-              return res
-            }
+          // 1) 윈도우 기반 플랜 생성
+          const plan = planSchedule(payload, hm)
 
-            if (plan?.kind === 'once') {
-              // 하루짜리 윈도우 → 1회성 등록
-              if (baseId) await cancelOnIOS(baseId)
-              const atISO = `${payload.start}T${normalizedAlarm || '09:00'}:00+09:00`
-              const atMs = atISOToEpochMs(atISO)
-              if (Number.isFinite(atMs)) {
-                await scheduleOnIOS({
-                  routineId,
-                  title,
-                  repeatMode: 'once',
-                  fireTimesEpoch: [Math.floor(atMs / 1000)],
-                  sound: 'ruffysound001.wav'
-                })
-              }
-              return res
-            }
+          if (plan.kind === 'pastAll') {
+            // 종료일이 과거 → 모두 정리 후 끝
+            try { await cancelOnIOS(baseId) } catch (_) {}
+            return res
+          }
 
-            if (plan?.kind === 'epochs' && Array.isArray(plan.epochs) && plan.epochs.length) {
-              // 윈도우 안 + 미래 시점만 에포크로 등록
-              if (baseId) await cancelOnIOS(baseId)
+          if (plan.kind === 'once' && plan.atISO) {
+            const sec = atISOToEpochSec(plan.atISO)
+            if (sec) {
               await scheduleOnIOS({
                 routineId,
-                title,
+                title: this.title || payload.title || '알림',
                 repeatMode: 'once',
-                fireTimesEpoch: plan.epochs,
+                fireTimesEpoch: [sec],
                 sound: 'ruffysound001.wav'
               })
-              return res
             }
-
-            if (plan?.kind === 'epochs-from-window') {
-              // 2주이상 weekly처럼 네이티브 반복이 애매 → 윈도우로 재계산하여 에포크
-              // (이미 planSchedule이 윈도우 모드일 때 epochs를 만들어주니,
-              //  여기는 기간 미지정 케이스에서만 도달. 안전하게 DAILY_EVERY_N과 유사 처리 가능)
-              if (baseId) await cancelOnIOS(baseId)
-              // 그냥 안전망으로 스케줄러 주간 등록 대신 JS 스케줄러로 등록
-              const days = (payload?.repeatWeekDays || []).slice().sort((a,b)=>a-b)
-              if (days.length) {
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'WEEKLY', days }
-                )
-              }
-              return res
-            }
-
-            // 기간이 없거나(무한), 단순 네이티브 반복 유지 케이스
-            if (plan?.kind === 'scheduler') {
-              if (plan.mode === 'DAILY') {
-                const n = Number(payload?.repeatEveryDays || 1)
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: n > 1 ? 'DAILY_EVERY_N' : 'DAILY', n: n > 1 ? n : 1 }
-                )
-              } else if (plan.mode === 'WEEKLY') {
-                const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
-                if (days.length) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'WEEKLY', days }
-                  )
-                }
-              } else if (plan.mode === 'MONTHLY') {
-                const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
-                if (days.length) {
-                  sch.reschedule(
-                    { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                    { mode: 'MONTHLY', days }
-                  )
-                }
-              } else {
-                // 안전망
-                sch.reschedule(
-                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                  { mode: 'DAILY' }
-                )
-              }
-            }
+            return res
           }
+
+          if (plan.kind === 'epochs' && Array.isArray(plan.epochs) && plan.epochs.length) {
+            await scheduleOnIOS({
+              routineId,
+              title: this.title || payload.title || '알림',
+              repeatMode: 'once',
+              fireTimesEpoch: plan.epochs,
+              sound: 'ruffysound001.wav'
+            })
+            return res
+          }
+
+          // kind === 'none' → 등록할 알림 없음 (요일/월일 미선택 등)
+          return res
         } catch (e) {
           console.warn('[routineForm] schedule error', e)
+          return res
         }
-        // ────────────────────────────────────────────────
-
-        return res
       } catch (e) {
         return { ok:false, error: String(e && e.message ? e.message : e) }
       } finally {
