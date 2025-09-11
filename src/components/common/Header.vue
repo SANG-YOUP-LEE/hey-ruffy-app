@@ -1,18 +1,17 @@
 <template>
   <div id="header">
     <div class="left">
-      <p class="ruffys">
-        <span>
-          <img :src="ruffySrc" alt="Ruffy" />
-        </span>
-      </p>
+      <button class="lnb" @click.prevent="$emit('toggle-lnb')"><span>메뉴열기</span></button>
+    </div>
+    <div class="center">
       <div class="title">
+        <span><img :src="ruffySrc" alt="Ruffy" /></span>
         <h1>hey,Ruffy!</h1>
-        <p>하지말랑 하지말고 그냥 말랑말랑해~</p>
       </div>
+      <p>하지말랑 하지말고 그냥 말랑말랑해~</p>
     </div>
     <div class="right">
-      <button class="lnb" @click.prevent="$emit('toggle-lnb')"><span>메뉴열기</span></button>
+      <button class="calendar"><span>달력보기</span></button>
     </div>
   </div>
 </template>
