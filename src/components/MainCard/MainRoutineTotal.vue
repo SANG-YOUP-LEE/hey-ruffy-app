@@ -14,8 +14,7 @@
         <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>Weekly</span></button>
         <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
       </div>
-      <div class="graph">
-      </div>
+      <div class="graph"></div>
       <div class="r_state">
         <a href="#none" v-for="s in states" :key="s.key">
           <span><img :src="getImgPath(s.face)" /></span>
@@ -49,19 +48,14 @@ const props = defineProps({
 const localView   = ref(props.viewMode || 'card')
 const localDelete = ref(!!props.deleteMode)
 
-watch(() => props.viewMode, (v) => {
-  if (!localDelete.value && v) localView.value = v
-})
-watch(() => props.deleteMode, (v) => {
-  localDelete.value = !!v
-})
+watch(() => props.viewMode, (v) => { if (!localDelete.value && v) localView.value = v })
+watch(() => props.deleteMode, (v) => { localDelete.value = !!v })
 
 function toggleDeleteMode() {
   const next = !localDelete.value
   localDelete.value = next
   emit('toggleDeleteMode', next)
 }
-
 function onChangePeriod(mode){
   if (localDelete.value) {
     localDelete.value = false
@@ -73,7 +67,6 @@ function onChangePeriod(mode){
   }
   emit('changePeriod', mode)
 }
-
 function onChangeView(view){
   if (localView.value !== view) {
     localView.value = view
@@ -86,7 +79,6 @@ function onChangeView(view){
 }
 
 const activeTool = computed(() => (localDelete.value ? 'delete' : localView.value))
-
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal  = computed(() => props.totalCount ?? 15)
 
@@ -100,19 +92,16 @@ const isToday = computed(() => {
   const b = new Date();                    b.setHours(0,0,0,0)
   return a.getTime() === b.getTime()
 })
-
 const headerTitle = computed(() => {
   if (props.periodMode === 'W') return '이번 주 다짐'
   if (props.periodMode === 'M') return '이번 달 다짐'
   return isToday.value ? '오늘의 다짐' : '이날의 다짐'
 })
-
 const formattedDate = computed(() => {
   const d = props.selectedDate
   const dayNames = ['일','월','화','수','목','금','토']
   return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}.${dayNames[d.getDay()]}`
 })
-
 function startOfWeekSun(d){ const nd=new Date(d); nd.setHours(0,0,0,0); nd.setDate(nd.getDate()-nd.getDay()); return nd }
 function endOfWeekSun(d){ const s=startOfWeekSun(d); const nd=new Date(s); nd.setDate(s.getDate()+6); nd.setHours(23,59,59,999); return nd }
 function dateInRange(target, s, e){ return target.getTime()>=s.getTime() && target.getTime()<=e.getTime() }
@@ -149,32 +138,22 @@ function weekLabelFor(date){
   return { month: displayMonth, year: displayYear, idx }
 }
 function weekKorean(n){ return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,n-1))] }
-
 const centerText = computed(() => {
-  if (props.periodMode === 'W') {
-    const info = weekLabelFor(props.selectedDate)
-    return `${info.month+1}월 ${weekKorean(info.idx)}`
-  }
-  if (props.periodMode === 'M') {
-    const d = props.selectedDate
-    return `${d.getMonth()+1}월`
-  }
+  if (props.periodMode === 'W') { const info = weekLabelFor(props.selectedDate); return `${info.month+1}월 ${weekKorean(info.idx)}` }
+  if (props.periodMode === 'M') { const d = props.selectedDate; return `${d.getMonth()+1}월` }
   return formattedDate.value
 })
-
-const prevLabel = computed(() => {
-  if (props.periodMode === 'W') return '이전주'
-  if (props.periodMode === 'M') return '이전달'
-  return '전날'
-})
-const nextLabel = computed(() => {
-  if (props.periodMode === 'W') return '다음주'
-  if (props.periodMode === 'M') return '다음달'
-  return '다음날'
-})
+const prevLabel = computed(() => { if (props.periodMode === 'W') return '이전주'; if (props.periodMode === 'M') return '이전달'; return '전날' })
+const nextLabel = computed(() => { if (props.periodMode === 'W') return '다음주'; if (props.periodMode === 'M') return '다음달'; return '다음날' })
 
 const auth = useAuthStore()
-const userCharacter = computed(() => auth.profile?.character || 'ruffy01')
+const userCharacter = computed(() => (auth.profile?.character || 'ruffy01').toLowerCase())
+
+const images = import.meta.glob('../../assets/images/*.png', { eager: true, import: 'default' })
+function getImgPath(face) {
+  const key = `../../assets/images/${userCharacter.value}_${face}.png`
+  return images[key] || images['../../assets/images/ruffy01_face01.png']
+}
 
 const states = computed(() => [
   { key: 'notdone', face: 'face01', count: displayCounts.value.notdone },
@@ -182,8 +161,4 @@ const states = computed(() => [
   { key: 'faildone', face: 'face03', count: displayCounts.value.faildone },
   { key: 'ignored', face: 'face04', count: displayCounts.value.ignored }
 ])
-
-function getImgPath(face) {
-  return new URL(`../assets/images/${userCharacter.value}_${face}.png`, import.meta.url).href
-}
 </script>
