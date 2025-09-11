@@ -245,11 +245,12 @@ const repeatDetail = computed(() => {
     return ''
   }
   if (r.repeatType === 'weekly') {
-    const main = r.repeatWeeks || '매주'
-    const raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []
-    const days = mapWeekdaysForUI(raw).join(',')
-    return days ? `${main} ${days}` : main
-  }
+  const main = r.repeatWeeks || '매주'
+  const raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []
+  const sorted = [...raw].map(n => +n).sort((a,b)=>a-b)  // 요일 번호 정렬
+  const days = mapWeekdaysForUI(sorted).join(',')
+  return days ? `${main} ${days}` : main
+  } 
   if (r.repeatType === 'monthly') {
     const days = Array.isArray(r.repeatMonthDays) && r.repeatMonthDays.length ? r.repeatMonthDays.join(', ') : ''
     return days ? `${days}일` : ''
