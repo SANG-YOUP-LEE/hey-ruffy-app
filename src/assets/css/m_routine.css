@@ -210,14 +210,16 @@
   margin-left: 0.5rem;
 }
 
-#main_body .routine_total .total_area .r_state p {
-  width:40%
+#main_body .routine_total .total_area .r_state a {
+  width:40%;
+  display:inline-block;
 }
 
-#main_body .routine_total .total_area .r_state p span img {
+#main_body .routine_total .total_area .r_state a span img {
   width:2rem;
   height:2rem;
 }
+
 #main_body .tools {
   margin-left: auto;
 }
