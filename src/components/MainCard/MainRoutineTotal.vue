@@ -18,7 +18,10 @@
         
       </div>
       <div class="r_state">
-        
+        <p><span><img src="../assets/images/ruffy01_face01.png"></span><em>1</em></p>
+        <p><span><img src="../assets/images/ruffy01_face01.png"></span><em>1</em></p>
+        <p><span><img src="../assets/images/ruffy01_face01.png"></span><em>1</em></p>
+        <p><span><img src="../assets/images/ruffy01_face01.png"></span><em>1</em></p>
       </div>
     </div>
     <!--p>
