@@ -109,6 +109,7 @@
   bottom: var(--sab);
   padding: 1.5rem;
   z-index: 100;
+  background-color:#f9f9f9;
 }
 
 #footer .button {
@@ -244,6 +245,7 @@ button.control {
   box-shadow:0 0 0 rgba(0,0,0,0);
   z-index:2;
 }
+
 .sp.open .sp_panel{
   transform:translate3d(0,0,0);
 }

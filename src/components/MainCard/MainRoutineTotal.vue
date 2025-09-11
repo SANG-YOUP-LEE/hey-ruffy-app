@@ -15,58 +15,34 @@
         <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
       </div>
       <div class="graph">
-        
+        <div class="circle-wrap">
+          <svg viewBox="0 0 36 36">
+            <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <template v-for="(seg,i) in graphData" :key="i">
+              <path
+                :class="['seg', seg.cls]"
+                :stroke-dasharray="`${seg.pct} 100`"
+                :stroke-dashoffset="`-${seg.offset}`"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+            </template>
+          </svg>
+          <div class="center-text">{{ centerText }}</div>
+        </div>
       </div>
       <div class="r_state">
-        
+        <a href="#none" v-for="s in states" :key="s.key" :class="{ on: selectedRadio===s.key }" @click.prevent="selectedRadio = s.key">
+          <span><img :src="getImgPath(s.face)" /></span>
+          <em>{{ s.count }}</em>
+        </a>
       </div>
     </div>
-    <!--p>
-      <span>
-        <strong>{{ headerTitle }}</strong>
-        <em class="t_on">{{ displayTotal }}</em>
-      </span>
-      <span>
-        <template v-if="isFuture">
-          미래에도 다짐 부자시네요!
-        </template>
-        <template v-else>
-          <a href="#none" class="not_done" :class="{ uline: selectedRadio === 'notdone' }" @click.prevent="selectedRadio = 'notdone'">
-            <strong>미달성</strong> <em class="t_on">{{ displayCounts.notdone }}</em>
-          </a>
-          <a href="#none" class="done" :class="{ uline: selectedRadio === 'done' }" @click.prevent="selectedRadio = 'done'">
-            <strong>달성완료</strong> <em class="t_on">{{ displayCounts.done }}</em>
-          </a>
-          <a href="#none" class="fail_done" :class="{ uline: selectedRadio === 'faildone' }" @click.prevent="selectedRadio = 'faildone'">
-            <strong>달성실패</strong> <em class="t_on">{{ displayCounts.faildone }}</em>
-          </a>
-          <a href="#none" class="ignored" :class="{ uline: selectedRadio === 'ignored' }" @click.prevent="selectedRadio = 'ignored'">
-            <strong>흐린눈</strong> <em class="t_on">{{ displayCounts.ignored }}</em>
-          </a>
-        </template>
-      </span>
-    </p-->
   </div>
-
-  <!--div class="today_tools">
-    <div class="tools">
-      <span class="tools_wrap">
-        <a href="#none" class="r_card"  :class="{ on: activeTool==='card' }"  @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
-        <a href="#none" class="r_block" :class="{ on: activeTool==='block' }" @click.prevent="onChangeView('block')"><span>다짐블록보기</span></a>
-        <a href="#none" class="r_list"  :class="{ on: activeTool==='list' }"  @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
-        <a
-          href="#none"
-          :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool==='delete' } ]"
-          @click.prevent="toggleDeleteMode"
-        ><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
-      </span>
-    </div>
-  </div-->
 </template>
-
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const emit = defineEmits([
   'update:modelValue','changeFilter','requestPrev','requestNext',
@@ -87,19 +63,14 @@ const props = defineProps({
 const localView   = ref(props.viewMode || 'card')
 const localDelete = ref(!!props.deleteMode)
 
-watch(() => props.viewMode, (v) => {
-  if (!localDelete.value && v) localView.value = v
-})
-watch(() => props.deleteMode, (v) => {
-  localDelete.value = !!v
-})
+watch(() => props.viewMode, (v) => { if (!localDelete.value && v) localView.value = v })
+watch(() => props.deleteMode, (v) => { localDelete.value = !!v })
 
 function toggleDeleteMode() {
   const next = !localDelete.value
   localDelete.value = next
   emit('toggleDeleteMode', next)
 }
-
 function onChangePeriod(mode){
   if (localDelete.value) {
     localDelete.value = false
@@ -111,7 +82,6 @@ function onChangePeriod(mode){
   }
   emit('changePeriod', mode)
 }
-
 function onChangeView(view){
   if (localView.value !== view) {
     localView.value = view
@@ -124,7 +94,6 @@ function onChangeView(view){
 }
 
 const activeTool = computed(() => (localDelete.value ? 'delete' : localView.value))
-
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal  = computed(() => props.totalCount ?? 15)
 
@@ -138,19 +107,16 @@ const isToday = computed(() => {
   const b = new Date();                    b.setHours(0,0,0,0)
   return a.getTime() === b.getTime()
 })
-
 const headerTitle = computed(() => {
   if (props.periodMode === 'W') return '이번 주 다짐'
   if (props.periodMode === 'M') return '이번 달 다짐'
   return isToday.value ? '오늘의 다짐' : '이날의 다짐'
 })
-
 const formattedDate = computed(() => {
   const d = props.selectedDate
   const dayNames = ['일','월','화','수','목','금','토']
   return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}.${dayNames[d.getDay()]}`
 })
-
 function startOfWeekSun(d){ const nd=new Date(d); nd.setHours(0,0,0,0); nd.setDate(nd.getDate()-nd.getDay()); return nd }
 function endOfWeekSun(d){ const s=startOfWeekSun(d); const nd=new Date(s); nd.setDate(s.getDate()+6); nd.setHours(23,59,59,999); return nd }
 function dateInRange(target, s, e){ return target.getTime()>=s.getTime() && target.getTime()<=e.getTime() }
@@ -187,27 +153,72 @@ function weekLabelFor(date){
   return { month: displayMonth, year: displayYear, idx }
 }
 function weekKorean(n){ return ['첫째주','둘째주','셋째주','넷째주','다섯째주'][Math.max(0,Math.min(4,n-1))] }
-
 const centerText = computed(() => {
-  if (props.periodMode === 'W') {
-    const info = weekLabelFor(props.selectedDate)
-    return `${info.month+1}월 ${weekKorean(info.idx)}`
-  }
-  if (props.periodMode === 'M') {
-    const d = props.selectedDate
-    return `${d.getMonth()+1}월`
-  }
+  if (props.periodMode === 'W') { const info = weekLabelFor(props.selectedDate); return `${info.month+1}월 ${weekKorean(info.idx)}` }
+  if (props.periodMode === 'M') { const d = props.selectedDate; return `${d.getMonth()+1}월` }
   return formattedDate.value
 })
+const prevLabel = computed(() => { if (props.periodMode === 'W') return '이전주'; if (props.periodMode === 'M') return '이전달'; return '전날' })
+const nextLabel = computed(() => { if (props.periodMode === 'W') return '다음주'; if (props.periodMode === 'M') return '다음달'; return '다음날' })
 
-const prevLabel = computed(() => {
-  if (props.periodMode === 'W') return '이전주'
-  if (props.periodMode === 'M') return '이전달'
-  return '전날'
+const auth = useAuthStore()
+const selectedRuffy = computed(() => (auth.profile?.selectedRuffy || 'option1').toString().toLowerCase())
+const userCharacter = computed(() => {
+  const m = selectedRuffy.value.match(/option(\d)/)
+  const n = m && m[1] ? m[1] : '1'
+  return `ruffy0${n}`
 })
-const nextLabel = computed(() => {
-  if (props.periodMode === 'W') return '다음주'
-  if (props.periodMode === 'M') return '다음달'
-  return '다음날'
+
+const images = import.meta.glob('../../assets/images/*.png', { eager: true, import: 'default' })
+function getImgPath(face) {
+  const key = `../../assets/images/${userCharacter.value}_${face}.png`
+  return images[key] || images['../../assets/images/ruffy01_face01.png']
+}
+
+const states = computed(() => [
+  { key: 'notdone', face: 'face01', count: displayCounts.value.notdone },
+  { key: 'done', face: 'face02', count: displayCounts.value.done },
+  { key: 'faildone', face: 'face03', count: displayCounts.value.faildone },
+  { key: 'ignored', face: 'face04', count: displayCounts.value.ignored }
+])
+
+const graphData = computed(() => {
+  const total = Math.max(0, Number(displayTotal.value) || 0)
+  const done = Math.max(0, Number(displayCounts.value.done) || 0)
+  const fail = Math.max(0, Number(displayCounts.value.faildone) || 0)
+  const ign  = Math.max(0, Number(displayCounts.value.ignored) || 0)
+  if (total <= 0) return []
+  if (selectedRadio.value === 'notdone') {
+    const pDone = Math.min(100, +(done / total * 100).toFixed(2))
+    const pFail = Math.min(100, +(fail / total * 100).toFixed(2))
+    const pIgn  = Math.min(100, +(ign  / total * 100).toFixed(2))
+    const segs = []
+    let acc = 0
+    if (pDone > 0) { segs.push({ pct: pDone, offset: acc, cls: 'seg-done' }); acc += pDone }
+    if (pFail > 0) { segs.push({ pct: pFail, offset: acc, cls: 'seg-fail' }); acc += pFail }
+    if (pIgn  > 0) { segs.push({ pct: pIgn,  offset: acc, cls: 'seg-ign'  }); acc += pIgn  }
+    return segs
+  } else {
+    let pct = 0, cls = 'seg-done'
+    if (selectedRadio.value === 'done')      { pct = +(done / total * 100).toFixed(2); cls = 'seg-done' }
+    if (selectedRadio.value === 'faildone')  { pct = +(fail / total * 100).toFixed(2); cls = 'seg-fail' }
+    if (selectedRadio.value === 'ignored')   { pct = +(ign  / total * 100).toFixed(2); cls = 'seg-ign'  }
+    pct = Math.min(100, Math.max(0, pct))
+    return pct > 0 ? [{ pct, offset: 0, cls }] : []
+  }
 })
 </script>
+
+<style scoped>
+.graph { display:flex; align-items:center; justify-content:center; }
+.circle-wrap { position: relative; width: 120px; height: 120px; }
+svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.bg { fill: none; stroke: #eee; stroke-width: 2.8; }
+.seg { fill: none; stroke-width: 2.8; stroke-linecap: round; }
+.seg-done { stroke: #00c896; }
+.seg-fail { stroke: #ff6b7a; }
+.seg-ign  { stroke: #b8b8c4; }
+.center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 700; font-size: 14px; line-height: 1; text-align: center; }
+.r_state a { display:inline-flex; align-items:center; gap:6px; }
+.r_state a.on em { font-weight:700; }
+</style>
