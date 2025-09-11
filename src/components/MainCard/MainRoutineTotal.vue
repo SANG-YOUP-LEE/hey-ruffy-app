@@ -17,10 +17,10 @@
       <div class="graph">
       </div>
       <div class="r_state">
-        <p v-for="s in states" :key="s.key">
+        <a href="#none" v-for="s in states" :key="s.key">
           <span><img :src="getImgPath(s.face)" /></span>
           <em>{{ s.count }}</em>
-        </p>
+        </a>
       </div>
     </div>
   </div>
