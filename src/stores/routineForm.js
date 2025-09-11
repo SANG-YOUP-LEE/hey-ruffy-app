@@ -1,4 +1,6 @@
 // src/stores/routineForm.js
+// 전체 지우고 통으로 붙여넣기
+
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
@@ -6,8 +8,11 @@ import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/fires
 import { useAuthStore } from '@/stores/auth'
 import { useSchedulerStore } from '@/stores/scheduler'
 
-// ✅ iOS 네이티브 알림 (N>1 간격은 epoch 배열로 직접 등록)
+// ✅ iOS 네이티브 알림 (네이티브 반복/에포크 등록)
 import { scheduleOnIOS, cancelOnIOS, postIOS, waitBridgeReady } from '@/utils/iosNotify'
+
+// ✅ 기간(시작/종료) + 과거필터 최적화 플래너
+import { planSchedule } from '@/utils/schedulePlanner'
 
 // 중복 생성 방지용(동일 틱/연속 탭 가드)
 let __pendingCreateId = null
@@ -108,79 +113,6 @@ function deriveRepeatDailyFromRoutine(r) {
   return null
 }
 
-// ── Epoch 생성 유틸 (N>1 간격용) ─────────────────────────
-const toEpochSec = (d) => Math.floor(d.getTime() / 1000)
-const MAX_OCC = 30 // iOS 64개 제한 감안(여유)
-
-function addDays(date, n) {
-  const d = new Date(date)
-  d.setDate(d.getDate() + n)
-  return d
-}
-function addWeeks(date, n) {
-  return addDays(date, n * 7)
-}
-// our weekday: 월=1..일=7 → JS getDay(): 일=0..토=6
-function korNumToJsWeekday(n) {
-  return (n % 7) // 1→1, 2→2, …, 6→6, 7→0(=일)
-}
-function startDateWithHM(iso, {hour, minute}) {
-  const d = iso ? new Date(`${iso}T00:00:00+09:00`) : new Date()
-  d.setHours(hour, minute, 0, 0)
-  return d
-}
-
-function buildDailyEpochs({ startISO, endISO, hour, minute, intervalDays }) {
-  const out = []
-  let cur = startDateWithHM(startISO, {hour, minute})
-  const end = endISO ? new Date(`${endISO}T23:59:59+09:00`) : null
-
-  // 과거면 다음 유효 시점을 향해 끌어올림
-  while (cur.getTime() <= Date.now()) {
-    cur = addDays(cur, Math.max(1, intervalDays))
-  }
-
-  while (out.length < MAX_OCC) {
-    if (end && cur > end) break
-    if (cur.getTime() > Date.now()) out.push(toEpochSec(cur))
-    cur = addDays(cur, Math.max(1, intervalDays))
-  }
-  return out
-}
-
-function buildWeeklyEpochs({ startISO, endISO, hour, minute, intervalWeeks, weekdays /*[1..7: 월=1..일=7]*/ }) {
-  const out = []
-  const end = endISO ? new Date(`${endISO}T23:59:59+09:00`) : null
-
-  // 앵커 주의 시작 기준은 startISO의 날짜
-  let anchor = startDateWithHM(startISO, {hour, minute})
-
-  // 앵커가 과거면 intervalWeeks 단위로 앞으로 이동
-  while (anchor.getTime() <= Date.now()) {
-    anchor = addWeeks(anchor, Math.max(1, intervalWeeks))
-  }
-
-  while (out.length < MAX_OCC) {
-    if (end && anchor > end) break
-
-    for (const w of weekdays) {
-      const jsW = korNumToJsWeekday(w)
-      const base = new Date(anchor)
-      const diff = (jsW - base.getDay() + 7) % 7
-      const when = addDays(base, diff)
-      when.setHours(hour, minute, 0, 0)
-
-      if ((!end || when <= end) && when.getTime() > Date.now() && out.length < MAX_OCC) {
-        out.push(toEpochSec(when))
-      }
-    }
-
-    anchor = addWeeks(anchor, Math.max(1, intervalWeeks))
-  }
-
-  return Array.from(new Set(out)).sort((a,b)=>a-b)
-}
-
 // ── Pinia Store ─────────────────────────────────────────
 export const useRoutineFormStore = defineStore('routineForm', {
   state: () => ({
@@ -225,14 +157,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hasStart = !!safeISOFromDateObj(state.startDate)
       const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
-      // 주간인데 interval=1이고 7일 전부면 -> daily로 축약
-      // if (state.repeatType === 'weekly') {
-      //   const intervalW = parseInterval(state.repeatWeeks)
-      //    if (intervalW === 1 && (state.weeklyDaily || isAllKoreanWeekdays(state.repeatWeekDays))) {
-      //    return { freq: 'daily', interval: 1, anchor: anchorISO }
-      //  }
-      // }
-
       if (state.repeatType === 'daily') {
         if (!Number.isInteger(state.repeatDaily)) return null
         const n = state.repeatDaily
@@ -253,62 +177,62 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
       return { freq: state.repeatType, interval: 1, anchor: anchorISO }
     },
-    // ✅ routineForm.js 안의 getters.payload 전체 교체
-      payload(state) {
-        const hasStart = !!safeISOFromDateObj(state.startDate)
-        const hasEnd = !!safeISOFromDateObj(state.endDate)
-        const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+    // ✅ Firestore 저장 payload
+    payload(state) {
+      const hasStart = !!safeISOFromDateObj(state.startDate)
+      const hasEnd = !!safeISOFromDateObj(state.endDate)
+      const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
 
-        // ✂️ weeklyIsDaily로 daily로 축약하던 로직 제거
-        const normalizedType = state.repeatType
+      const normalizedType = state.repeatType
 
-        // 일간일 때만 repeatDaily를 그대로 사용 (0=오늘만, 1..6=N일마다)
-        const dailyInterval =
-          normalizedType === 'daily'
-            ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
-            : null
+      // 일간일 때만 repeatDaily를 그대로 사용 (0=오늘만, 1..6=N일마다)
+      const dailyInterval =
+        normalizedType === 'daily'
+          ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
+          : null
 
-        // 오늘만(once)일 때 end를 start와 동일하게 넣어주는 처리 유지
-        const endForTodayOnly =
-          normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+      // 오늘만(once)일 때 end를 start와 동일하게 넣어주는 처리 유지
+      const endForTodayOnly =
+        normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
 
-        // 주간일 때 요일 배열: weeklyDaily면 [1..7] 고정, 아니면 사용자가 고른 요일 변환
-        const weeklyDaysNum =
+      // 주간 요일 배열 정규화(숫자 오름차순)
+      const weeklyDaysNum =
         normalizedType === 'weekly'
           ? (state.weeklyDaily
               ? [1,2,3,4,5,6,7]
               : daysKorToNum(state.repeatWeekDays).sort((a,b)=>a-b))
           : []
-        const cleaned = {
-          title: state.title,
-          repeatType: normalizedType,
-          repeatDays: [],
-          repeatEveryDays:
-            normalizedType === 'daily'
-              ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
-              : null,
-          repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
-          repeatWeekDays: weeklyDaysNum,
-          repeatMonthDays:
-            normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
-          startDate: hasStart ? state.startDate : null,
-          endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
-          alarmTime: state.alarmTime,
-          ruffy: state.isWalkModeOff ? null : state.ruffy,
-          course: state.isWalkModeOff ? null : state.course,
-          goalCount: state.isWalkModeOff ? null : state.goalCount,
-          colorIndex: state.colorIndex,
-          cardSkin: normalizeCardSkinStrict(state.cardSkin),
-          comment: sanitizeComment(state.comment),
-          hasWalk: this.hasWalk,
-          tz: state.tz,
-          rule: this.icsRule,
-          start: anchorISO,
-          ...(endForTodayOnly ? { end: anchorISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
-        }
 
-        return deepClean(cleaned)
+      const cleaned = {
+        title: state.title,
+        repeatType: normalizedType,
+        repeatDays: [],
+        repeatEveryDays:
+          normalizedType === 'daily'
+            ? (Number.isInteger(dailyInterval) && dailyInterval > 0 ? dailyInterval : null)
+            : null,
+        repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
+        repeatWeekDays: weeklyDaysNum,
+        repeatMonthDays:
+          normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
+        startDate: hasStart ? state.startDate : null,
+        endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
+        alarmTime: state.alarmTime,
+        ruffy: state.isWalkModeOff ? null : state.ruffy,
+        course: state.isWalkModeOff ? null : state.course,
+        goalCount: state.isWalkModeOff ? null : state.goalCount,
+        colorIndex: state.colorIndex,
+        cardSkin: normalizeCardSkinStrict(state.cardSkin),
+        comment: sanitizeComment(state.comment),
+        hasWalk: this.hasWalk,
+        tz: state.tz,
+        rule: this.icsRule,
+        start: anchorISO,
+        ...(endForTodayOnly ? { end: anchorISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
       }
+
+      return deepClean(cleaned)
+    }
   },
 
   actions: {
@@ -410,15 +334,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
       }
 
       // 반복 주기별 체크
-        if (this.repeatType === 'daily') {
-          if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
-            this.setError('repeat', '반복 주기를 선택해주세요.')
-            return false
-          }
-        } else {
-          // ✅ daily가 아닐 때는 항상 비워서 영향 제거
-          this.repeatDaily = null
+      if (this.repeatType === 'daily') {
+        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+          this.setError('repeat', '반복 주기를 선택해주세요.')
+          return false
         }
+      } else {
+        // ✅ daily가 아닐 때는 항상 비워서 영향 제거
+        this.repeatDaily = null
+      }
 
       if (this.repeatType === 'weekly') {
         const hasDays = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
@@ -488,7 +412,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
             return false
           }
         }
-        // ⚡️ 알람이 없어도 그냥 통과 (hm 없으면 체크 안 함)
       }
 
       return true
@@ -537,10 +460,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
           const baseId = routineId ? `routine-${routineId}` : null
 
           if (routineId && hm) {
-            const startISO = payload.start
-            const endISO   = payload.end
-
-            // ✅ 어떤 모드로 재등록하든 과거에 남아 있을 수 있는 daily 알람 먼저 제거
+            // ✅ 과거 daily 잔재 제거
             try {
               await waitBridgeReady()
               postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
@@ -548,96 +468,83 @@ export const useRoutineFormStore = defineStore('routineForm', {
               console.warn('[routineForm] daily cancel failed', e)
             }
 
-            // 1) N>1일/주 → JS에서 epoch 배열 생성 후 iOS에 직접 등록
-            let usedEpochs = null
-            if (payload?.repeatType === 'daily') {
-              const n = Number(payload?.repeatEveryDays || 0)
-              if (n >= 2) {
-                usedEpochs = buildDailyEpochs({
-                  startISO, endISO,
-                  hour: hm.hour, minute: hm.minute,
-                  intervalDays: n
-                })
-              }
-            } else if (payload?.repeatType === 'weekly') {
-              const m = String(payload.repeatWeeks || '').match(/(\d+)/)
-              const intervalW = m ? Math.max(1, parseInt(m[1],10)) : 1
-              const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays : []
-              if (intervalW >= 2 && days.length) {
-                usedEpochs = buildWeeklyEpochs({
-                  startISO, endISO,
-                  hour: hm.hour, minute: hm.minute,
-                  intervalWeeks: intervalW,
-                  weekdays: days   // [1..7] (월=1 … 일=7)
-                })
-              }
+            // ✅ 기간/과거필터 반영한 스케줄 플랜
+            const plan = planSchedule(
+              {
+                repeatType: payload.repeatType,
+                repeatEveryDays: payload.repeatEveryDays,
+                repeatWeeks: payload.repeatWeeks,
+                repeatWeekDays: payload.repeatWeekDays,
+                repeatMonthDays: payload.repeatMonthDays,
+                start: payload.start,
+                end: payload.end,
+                title: payload.title
+              },
+              hm // {hour, minute} (24h)
+            )
+
+            // ✅ 베이스 purge/취소는 상황에 맞게
+            if (plan?.kind === 'pastAll') {
+              // 윈도우가 이미 모두 과거 → 전체 purge
+              if (baseId) await cancelOnIOS(baseId)
+              return res
             }
 
-            if (Array.isArray(usedEpochs) && usedEpochs.length) {
+            if (plan?.kind === 'once') {
+              // 하루짜리 윈도우 → 1회성 등록
+              if (baseId) await cancelOnIOS(baseId)
+              const atISO = `${payload.start}T${normalizedAlarm || '09:00'}:00+09:00`
+              const atMs = atISOToEpochMs(atISO)
+              if (Number.isFinite(atMs)) {
+                await scheduleOnIOS({
+                  routineId,
+                  title,
+                  repeatMode: 'once',
+                  fireTimesEpoch: [Math.floor(atMs / 1000)],
+                  sound: 'ruffysound001.wav'
+                })
+              }
+              return res
+            }
+
+            if (plan?.kind === 'epochs' && Array.isArray(plan.epochs) && plan.epochs.length) {
+              // 윈도우 안 + 미래 시점만 에포크로 등록
               if (baseId) await cancelOnIOS(baseId)
               await scheduleOnIOS({
                 routineId,
                 title,
                 repeatMode: 'once',
-                fireTimesEpoch: usedEpochs,
+                fireTimesEpoch: plan.epochs,
                 sound: 'ruffysound001.wav'
               })
-              return res   // ✅ 여기서 바로 끝내줘야 fallback 안 감
+              return res
             }
 
-
-            if (Array.isArray(usedEpochs) && usedEpochs.length) {
-              // 중복 방지: 기존 베이스 purge
+            if (plan?.kind === 'epochs-from-window') {
+              // 2주이상 weekly처럼 네이티브 반복이 애매 → 윈도우로 재계산하여 에포크
+              // (이미 planSchedule이 윈도우 모드일 때 epochs를 만들어주니,
+              //  여기는 기간 미지정 케이스에서만 도달. 안전하게 DAILY_EVERY_N과 유사 처리 가능)
               if (baseId) await cancelOnIOS(baseId)
-              // iOS에 1회성 트리거들 대량 등록
-              await scheduleOnIOS({
-                routineId,                // setScheduleForRoutine 경로로 전달
-                title,
-                repeatMode: 'once',
-                fireTimesEpoch: usedEpochs,
-                sound: 'ruffysound001.wav'
-              })
-            } else {
-              // 2) 그 외(오늘만/매일/매주/매월)
-              if (payload?.repeatType === 'daily' && this.icsRule?.freq === 'once') {
-                // ---- ONCE(오늘만): daily 확실히 제거 + 네이티브로 1회만 등록 ----
-                try {
-                  await waitBridgeReady()
-                  postIOS({ action: 'cancel', id: `routine-${routineId}-daily` })
+              // 그냥 안전망으로 스케줄러 주간 등록 대신 JS 스케줄러로 등록
+              const days = (payload?.repeatWeekDays || []).slice().sort((a,b)=>a-b)
+              if (days.length) {
+                sch.reschedule(
+                  { id: routineId, title, hour: hm.hour, minute: hm.minute },
+                  { mode: 'WEEKLY', days }
+                )
+              }
+              return res
+            }
 
-                  const dateISO = todayISO()
-                  const atISO = toAtISO(dateISO, hm)
-                  if (atISO) {
-                    const atMs = atISOToEpochMs(atISO)
-                    if (Number.isFinite(atMs)) {
-                      await scheduleOnIOS({
-                        routineId,
-                        title,
-                        repeatMode: 'once',
-                        fireTimesEpoch: [Math.floor(atMs / 1000)],
-                        sound: 'ruffysound001.wav'
-                      })
-                    }
-                  }
-                  // ONCE는 여기서 종료 (아래 분기로 안 내려감)
-                } catch (e) {
-                  console.warn('[routineForm] native once failed, fallback to scheduler ONCE', e)
-                  const dateISO = todayISO()
-                  const atISO = toAtISO(dateISO, hm)
-                  if (atISO) {
-                    sch.reschedule(
-                      { id: routineId, title, hour: hm.hour, minute: hm.minute },
-                      { mode: 'ONCE', at: atISO }
-                    )
-                  }
-                }
-              } else if (payload?.repeatType === 'daily') {
-                const n = Number(payload?.repeatEveryDays || 0)
+            // 기간이 없거나(무한), 단순 네이티브 반복 유지 케이스
+            if (plan?.kind === 'scheduler') {
+              if (plan.mode === 'DAILY') {
+                const n = Number(payload?.repeatEveryDays || 1)
                 sch.reschedule(
                   { id: routineId, title, hour: hm.hour, minute: hm.minute },
                   { mode: n > 1 ? 'DAILY_EVERY_N' : 'DAILY', n: n > 1 ? n : 1 }
                 )
-              } else if (payload?.repeatType === 'weekly') {
+              } else if (plan.mode === 'WEEKLY') {
                 const days = Array.isArray(payload?.repeatWeekDays) ? payload.repeatWeekDays.slice().sort((a,b)=>a-b) : []
                 if (days.length) {
                   sch.reschedule(
@@ -645,7 +552,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
                     { mode: 'WEEKLY', days }
                   )
                 }
-              } else if (payload?.repeatType === 'monthly') {
+              } else if (plan.mode === 'MONTHLY') {
                 const days = Array.isArray(payload?.repeatMonthDays) ? payload.repeatMonthDays.slice().sort((a,b)=>a-b) : []
                 if (days.length) {
                   sch.reschedule(
@@ -654,7 +561,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
                   )
                 }
               } else {
-                // 안전망: 매일
+                // 안전망
                 sch.reschedule(
                   { id: routineId, title, hour: hm.hour, minute: hm.minute },
                   { mode: 'DAILY' }
