@@ -9,7 +9,6 @@ const p2 = (n) => String(n).padStart(2, '0')
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const toEpochSec = (ms) => Math.floor(ms / 1000)
 
-// 12/24시간 문자열/객체 → {hour, minute}
 function resolveAlarmHM(r) {
   const a = r?.alarmTime
   if (typeof a === 'string') {
@@ -45,14 +44,12 @@ function resolveAlarmHM(r) {
   return null
 }
 
-// 문자열 날짜객체 → YYYY-MM-DD
 const toISO = d => (d ? `${d.year}-${p2(d.month)}-${p2(d.day)}` : null)
 const safeISOFromDateObj = (obj) => {
   const s = toISO(obj)
   return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
 }
 
-// plan.days / routine.repeatWeekDays → [1..7]
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 function dayTokenToNum(d) {
   if (d == null) return null
@@ -65,7 +62,6 @@ function dayTokenToNum(d) {
 }
 const uniqSorted = (arr) => Array.from(new Set(arr)).sort((a,b)=>a-b)
 
-// interval number from "2주마다" / "매주" / "3일마다" etc.
 function parseIntervalNum(s, fallback = 1) {
   const m = String(s || '').match(/(\d+)/)
   if (!m) return fallback
@@ -73,7 +69,6 @@ function parseIntervalNum(s, fallback = 1) {
   return Number.isFinite(n) && n >= 1 ? n : fallback
 }
 
-// projection 기반 일괄(one-shot) 설치
 async function installFromProjection({ baseId, routineId, title, tz, projDef }) {
   const epochsMs = projectInstances(projDef, Date.now(), tz, 14)
   if (Array.isArray(epochsMs) && epochsMs.length) {
@@ -94,9 +89,6 @@ export const useSchedulerStore = defineStore('scheduler', {
   }),
 
   actions: {
-    // 루틴 리스트를 받아 iOS 예약 재구성 (브리지 일원화 정책 반영)
-    // weekly interval=1 → scheduleWeekly(요일 개별)
-    // 그 외(daily N>1, weekly N>1, monthly, once) → projection → one-shot 다건
     async rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
       await waitBridgeReady()
@@ -113,7 +105,6 @@ export const useSchedulerStore = defineStore('scheduler', {
         const hour = hm.hour
         const minute = hm.minute
 
-        // 깨끗이 비우고
         await cancelOnIOS(baseId)
         await sleep(50)
 
@@ -133,6 +124,9 @@ export const useSchedulerStore = defineStore('scheduler', {
           repeatMode: type,
           mode: type,
           hour, minute,
+          intervalDays: (type === 'daily' && Number(r.repeatEveryDays) > 1)
+            ? Number(r.repeatEveryDays)
+            : undefined,
           intervalWeeks: (() => {
             if (type !== 'weekly') return undefined
             return parseIntervalNum(r.repeatWeeks, 1)
@@ -153,13 +147,6 @@ export const useSchedulerStore = defineStore('scheduler', {
       }
     },
 
-    // 예전 인터페이스 호환: reschedule(routine, plan?)
-    // plan 예시:
-    //  { mode:'DAILY' }
-    //  { mode:'DAILY_EVERY_N', n: 3 }
-    //  { mode:'WEEKLY', days:[1,3,5] }  // 1..7(월=1…일=7) 또는 '월','수','금'
-    //  { mode:'MONTHLY', days:[1,15,31] }
-    //  { mode:'ONCE', at:'2025-09-12T09:00:00+09:00' }
     async reschedule(routine, plan = null) {
       if (!routine) return
       await waitBridgeReady()
@@ -181,7 +168,6 @@ export const useSchedulerStore = defineStore('scheduler', {
         if (mode === 'WEEKLY') {
           const days = uniqSorted((Array.isArray(plan.days) ? plan.days : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
           if (days.length) {
-            // interval 정보가 없다면 1로 간주
             await scheduleWeekly(baseId, hour, minute, days, title)
             await sleep(20)
             return
@@ -206,11 +192,7 @@ export const useSchedulerStore = defineStore('scheduler', {
           const projDef = {
             repeatMode: 'daily', mode: 'daily',
             hour, minute,
-            // projectInstances는 daily interval을 내부에서 now~14일 기준으로 해석
-            // intervalDays는 projection.js가 repeatEveryDays를 보지 않으므로
-            // weekly와 다르게 daily는 단순 시간을 바탕으로 14일 내 매일 생성한다.
-            // N>1의 경우에도 projection.js는 now~14일간의 실제 발생을 반환하므로 OK.
-            // (여기서는 별도 필드 없이 반복 주기만 바뀌었다고 가정해 one-shot으로 충분)
+            intervalDays: n,
             startDate: safeISOFromDateObj(routine.startDate) || routine.start || todayISO(),
             endDate: safeISOFromDateObj(routine.endDate) || routine.end || undefined,
             alarm: { hour, minute }
@@ -251,7 +233,6 @@ export const useSchedulerStore = defineStore('scheduler', {
         }
       }
 
-      // plan이 없거나 인식 불가한 경우: routine 정의를 해석
       const type = String(routine.repeatType || 'daily').toLowerCase()
       if (type === 'weekly') {
         const intervalW = parseIntervalNum(routine.repeatWeeks, 1)
@@ -265,6 +246,9 @@ export const useSchedulerStore = defineStore('scheduler', {
       const projDef = {
         repeatMode: type, mode: type,
         hour, minute,
+        intervalDays: (type === 'daily' && Number(routine.repeatEveryDays) > 1)
+          ? Number(routine.repeatEveryDays)
+          : undefined,
         intervalWeeks: (() => {
           if (type !== 'weekly') return undefined
           return parseIntervalNum(routine.repeatWeeks, 1)

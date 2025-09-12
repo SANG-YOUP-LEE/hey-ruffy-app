@@ -1,499 +1,281 @@
-// src/utils/iosNotify.js
-const mh = () => window?.webkit?.messageHandlers?.notify;
-
-export function isBridgeAvailable() {
-  const handler = mh();
-  return !!(handler && typeof handler.postMessage === 'function');
-}
-
-export async function waitBridgeReady(maxTries = 25, delayMs = 120) {
-  if (isBridgeAvailable()) return true;
-  for (let i = 0; i < maxTries; i++) {
-    await new Promise(r => setTimeout(r, delayMs));
-    if (isBridgeAvailable()) return true;
-  }
-  return false;
-}
-
-const safePost = (payload) => {
-  try {
-    const handler = mh();
-    if (!handler || typeof handler.postMessage !== 'function') {
-      console.warn('[iosNotify][NO_BRIDGE]', payload);
-      return;
-    }
-    console.log('[iosNotify][TX]', JSON.stringify(payload));
-    handler.postMessage(payload);
-  } catch (e) {
-    console.warn('[iosNotify][ERR]', e);
-  }
-};
-
-const log = (...args) => console.debug('[iosNotify]', ...args);
-
-const baseId = (rid) => `routine-${rid}`;
-const idDaily = (rid) => `${baseId(rid)}-daily`;
-const idOnce  = (rid, tsMs) => `${baseId(rid)}-once-${tsMs}`;
-
-const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+// src/utils/projection.js
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const toInt = (v) => {
-  if (typeof v === 'number' && Number.isFinite(v)) return Math.floor(v);
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.trunc(v);
   if (typeof v === 'string' && v.trim() !== '') {
     const n = Number(v);
-    if (Number.isFinite(n)) return Math.floor(n);
+    if (Number.isFinite(n)) return Math.trunc(n);
   }
   return undefined;
 };
 
-const KOR_DAY = { '일':1,'월':2,'화':3,'수':4,'목':5,'금':6,'토':7 };
-const ENG_DAY = { su:1, sun:1, mo:2, mon:2, tu:3, tue:3, we:4, wed:4, th:5, thu:5, fr:6, fri:6, sa:7, sat:7 };
-const ICS_DAY = { SU:1, MO:2, TU:3, WE:4, TH:5, FR:6, SA:7 };
+const KOR_DAY = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
+const ENG_DAY = { su:0,sun:0, mo:1,mon:1, tu:2,tue:2, we:3,wed:3, th:4,thu:4, fr:5,fri:5, sa:6,sat:6 };
+const ICS_DAY = { SU:0, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 };
 
-function mapOneDayToken(d) {
+function mapOneDOWToken(d) {
   if (d == null) return undefined;
   if (typeof d === 'number') {
-    if (d >= 1 && d <= 7) return d;
-    if (d >= 0 && d <= 6) return d + 1;
+    if (d >= 0 && d <= 6) return d;
+    if (d >= 1 && d <= 7) return d - 1;
     return undefined;
   }
   const s = String(d).trim();
   if (!s) return undefined;
   const head = s.slice(0, 1);
-  if (KOR_DAY[head]) return KOR_DAY[head];
-  if (ENG_DAY[s.toLowerCase()]) return ENG_DAY[s.toLowerCase()];
-  if (ICS_DAY[s.toUpperCase()]) return ICS_DAY[s.toUpperCase()];
+  if (KOR_DAY[head] != null) return KOR_DAY[head];
+  if (ENG_DAY[s.toLowerCase()] != null) return ENG_DAY[s.toLowerCase()];
+  if (ICS_DAY[s.toUpperCase()] != null) return ICS_DAY[s.toUpperCase()];
   const n = toInt(s);
-  if (n && n >= 1 && n <= 7) return n;
+  if (n != null) {
+    if (n >= 0 && n <= 6) return n;
+    if (n >= 1 && n <= 7) return n - 1;
+  }
   return undefined;
 }
 
 function normalizeWeekdays(raw) {
-  if (!raw) return undefined;
+  if (!raw) return [];
   let arr = [];
   if (Array.isArray(raw)) {
-    arr = raw.map(mapOneDayToken).filter(Boolean);
+    arr = raw.map(mapOneDOWToken).filter((v) => v != null);
   } else if (typeof raw === 'object') {
     arr = Object.entries(raw)
       .filter(([, v]) => !!v)
-      .map(([k]) => mapOneDayToken(k))
-      .filter(Boolean);
+      .map(([k]) => mapOneDOWToken(k))
+      .filter((v) => v != null);
   } else {
-    const one = mapOneDayToken(raw);
-    if (one) arr = [one];
+    const one = mapOneDOWToken(raw);
+    if (one != null) arr = [one];
   }
-  if (!arr.length) return undefined;
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
-function toICSList(nums) {
-  const map = {1:'SU',2:'MO',3:'TU',4:'WE',5:'TH',6:'FR',7:'SA'};
-  return Array.isArray(nums) ? nums.map(n => map[n]).filter(Boolean) : undefined;
-}
-
-function normalizeEpochs(raw) {
-  const list = Array.isArray(raw) ? raw : (raw == null ? [] : [raw]);
-  const now = Date.now();
-  const toMs = (v) => {
-    const n = Number(v);
-    if (!Number.isFinite(n)) return null;
-    return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000);
-  };
-  const uniq = new Set();
-  for (const v of list) {
-    const ms = toMs(v);
-    if (ms && ms > now) uniq.add(ms);
+const fmtCache = new Map();
+function getFormatter(tz) {
+  const key = tz || 'local';
+  if (!fmtCache.has(key)) {
+    fmtCache.set(
+      key,
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    );
   }
-  return Array.from(uniq).sort((a, b) => a - b);
+  return fmtCache.get(key);
 }
 
-function buildTodayTimestamp(hour, minute) {
-  const h = toInt(hour), m = toInt(minute);
-  if (h == null || m == null) return null;
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  const t = d.getTime();
-  return t > Date.now() ? t : null;
+function getPartsInTZ(utcDate, tz) {
+  const s = getFormatter(tz).format(utcDate);
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4}),?\s+(\d{2}):(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  const [, MM, DD, YYYY, hh, mm, ss] = m;
+  return { y: +YYYY, m: +MM, d: +DD, H: +hh, M: +mm, S: +ss };
 }
 
-const DEFAULT_SOUND = 'ruffysound001.wav';
-
-function stripLinks(obj) {
-  if (!obj) return;
-  delete obj.link;
-  delete obj.url;
-  delete obj.deepLink;
+function tzOffsetAt(utcDate, tz) {
+  const p = getPartsInTZ(utcDate, tz);
+  if (!p) return 0;
+  const asUTC = Date.UTC(p.y, p.m - 1, p.d, p.H, p.M, p.S);
+  return asUTC - utcDate.getTime();
 }
 
-// ───────────────────────────────────────────
-// Payload normalization
-// ───────────────────────────────────────────
-function normalizeSchedulePayload(msg = {}) {
-  if (msg && msg.action === 'schedule') {
-    const out = { ...msg };
-    if (out.hour != null) out.hour = toInt(out.hour);
-    if (out.minute != null) out.minute = toInt(out.minute);
-    if (out.interval != null) out.interval = Math.max(1, toInt(out.interval) ?? 1);
-    if (out.intervalWeeks != null) out.intervalWeeks = Math.max(1, toInt(out.intervalWeeks) ?? 1);
-    if (!out.weekdays) out.weekdays = normalizeWeekdays(out.repeatWeekDays || out.weekday);
-    if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
-    if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
-    stripLinks(out);
-    out.sound = DEFAULT_SOUND;
-    return out;
+function wallTimeToUtcMs(y, m, d, H, M, tz) {
+  const guess = Date.UTC(y, m - 1, d, H, M, 0);
+  const offset1 = tzOffsetAt(new Date(guess), tz);
+  const ms1 = guess - offset1;
+  const offset2 = tzOffsetAt(new Date(ms1), tz);
+  if (offset1 !== offset2) return guess - offset2;
+  return ms1;
+}
+
+function ymdOf(ms, tz) {
+  const p = getPartsInTZ(new Date(ms), tz);
+  return { y: p.y, m: p.m, d: p.d };
+}
+
+function startOfDayMs(ms, tz) {
+  const { y, m, d } = ymdOf(ms, tz);
+  return wallTimeToUtcMs(y, m, d, 0, 0, tz);
+}
+
+function addDays(ms, days, tz) {
+  const { y, m, d } = ymdOf(ms, tz);
+  const date = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
+  const p = getPartsInTZ(date, tz);
+  return wallTimeToUtcMs(p.y, p.m, p.d, 0, 0, tz);
+}
+
+function dayOfWeek(ms, tz) {
+  const p = getPartsInTZ(new Date(ms), tz);
+  const asLocal = new Date(p.y, p.m - 1, p.d);
+  return asLocal.getDay();
+}
+
+function parseYMD(s) {
+  if (typeof s !== 'string') return null;
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return { y: +m[1], m: +m[2], d: +m[3] };
+}
+
+function clampByDateRange(ms, def, tz) {
+  const a = parseYMD(def?.startDate);
+  const z = parseYMD(def?.endDate);
+  if (a) {
+    const min = wallTimeToUtcMs(a.y, a.m, a.d, 0, 0, tz);
+    if (ms < min) return false;
   }
+  if (z) {
+    const max = wallTimeToUtcMs(z.y, z.m, z.d, 23, 59, tz);
+    if (ms > max) return false;
+  }
+  return true;
+}
 
-  const out = { action: 'schedule' };
-  out.id = msg.id || msg.baseId || 'inline';
-  out.repeatMode = msg.repeatMode || msg.repeatType || 'once';
-  out.hour = toInt(msg.hour ?? msg?.alarm?.hour);
-  out.minute = toInt(msg.minute ?? msg?.alarm?.minute);
-  out.baseId = msg.baseId || (msg.routineId ? baseId(msg.routineId) : undefined);
-  out.title  = msg.title || msg.name || out.title;
-  out.name   = msg.name  || msg.title || out.name;
-
-  stripLinks(out);
-  out.sound = DEFAULT_SOUND;
+function buildDaily(def, nowMs, untilMs, tz) {
+  const hour = toInt(def?.hour ?? def?.alarm?.hour);
+  const minute = toInt(def?.minute ?? def?.alarm?.minute);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return [];
+  const stepDays = Math.max(
+    1,
+    toInt(def?.intervalDays ?? def?.repeatEveryDays ?? def?.interval) ?? 1
+  );
+  let cursor = startOfDayMs(nowMs, tz);
+  const end = untilMs;
+  const out = [];
+  while (cursor <= end) {
+    const cand = wallTimeToUtcMs(...Object.values(ymdOf(cursor, tz)), hour, minute, tz);
+    if (cand >= nowMs && cand <= end && clampByDateRange(cand, def, tz)) out.push(cand);
+    cursor = addDays(cursor, stepDays, tz);
+  }
   return out;
 }
 
-// ─────────────── 3줄 알림: 제목=다짐제목 ───────────────
-const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
+function buildWeekly(def, nowMs, untilMs, tz) {
+  const hour = toInt(def?.hour ?? def?.alarm?.hour);
+  const minute = toInt(def?.minute ?? def?.alarm?.minute);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return [];
+  const days = normalizeWeekdays(def?.repeatWeekDays ?? def?.weekdays ?? def?.weekday);
+  if (!days.length) return [];
+  const intervalW = Math.max(1, toInt(def?.intervalWeeks) ?? 1);
 
-function ensureThreeLine(payload, src) {
-  const modeSrc = src?.repeatMode || src?.mode || payload?.repeatMode || 'daily';
-  const mode = String(modeSrc).toLowerCase();
-  const label = mode.startsWith('weekly') ? 'Weekly'
-              : mode.startsWith('monthly') ? 'Monthly'
-              : (mode === 'once' || mode === 'today') ? 'One-time'
-              : 'Daily';
+  let cursor = startOfDayMs(nowMs, tz);
+  const end = untilMs;
 
-  const pick = (a,b,c,d) => a ?? b ?? c ?? d;
-
-  let rawH = pick(
-    Number(src?.hour), Number(src?.alarm?.hour),
-    Number(payload?.hour), Number(payload?.alarm?.hour)
-  );
-  let rawM = pick(
-    Number(src?.minute), Number(src?.alarm?.minute),
-    Number(payload?.minute), Number(payload?.alarm?.minute)
-  );
-
-  if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
-    const str = src?.alarmTime || payload?.alarmTime;
-    if (typeof str === 'string') {
-      const s0 = str.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':');
-      let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i);
-      if (m && (m[1] || m[4])) {
-        let h = +m[2], mm = +m[3];
-        const tag = (m[1] || m[4] || '').toUpperCase();
-        if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12; }
-        if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0; }
-        rawH = h; rawM = mm;
-      } else {
-        m = s0.match(/^(\d{1,2}):(\d{2})$/);
-        if (m) { rawH = +m[1]; rawM = +m[2]; }
-      }
-    }
+  let anchor = def?.anchorDate || def?.startDate;
+  let anchorYMD = parseYMD(anchor);
+  if (!anchorYMD) {
+    const { y, m, d } = ymdOf(nowMs, tz);
+    anchorYMD = { y, m, d };
   }
+  const anchorMs = wallTimeToUtcMs(anchorYMD.y, anchorYMD.m, anchorYMD.d, 0, 0, tz);
 
-  if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
-    const ts = Number(src?.timestamp ?? payload?.timestamp);
-    if (Number.isFinite(ts) && ts > 0) {
-      const ms = ts > 1e12 ? ts : ts * 1000;
-      const d = new Date(ms);
-      rawH = d.getHours();
-      rawM = d.getMinutes();
-    }
-  }
-
-  const hh = Number.isFinite(rawH) ? _pad2(rawH) : '00';
-  const mm = Number.isFinite(rawM) ? _pad2(rawM) : '00';
-
-  const routineTitle =
-    (src?.title || src?.name || payload?.title || payload?.name || '').trim() || '(제목없음)';
-
-  return {
-    ...payload,
-    title: routineTitle,
-    subtitle: 'Hey Ruffy',
-    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
+  const weekStart = (ms) => {
+    const dow = dayOfWeek(ms, tz);
+    return addDays(startOfDayMs(ms, tz), -dow, tz);
   };
+  const weeksBetween = (a, b) => Math.round((weekStart(b) - weekStart(a)) / DAY_MS / 7);
+
+  const out = [];
+  while (cursor <= end) {
+    const dow = dayOfWeek(cursor, tz);
+    if (days.includes(dow)) {
+      const wdiff = weeksBetween(anchorMs, cursor);
+      if (wdiff % intervalW === 0) {
+        const cand = wallTimeToUtcMs(...Object.values(ymdOf(cursor, tz)), hour, minute, tz);
+        if (cand >= nowMs && cand <= end && clampByDateRange(cand, def, tz)) out.push(cand);
+      }
+    }
+    cursor = addDays(cursor, 1, tz);
+  }
+  return out.sort((a, b) => a - b);
 }
 
-// ─────────────── purge race 방지 ───────────────
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-async function purgeThenSchedule(base, scheduleFn, delayMs = 200) {
-  safePost({ action: 'purgeBase', baseId: base });
-  await sleep(delayMs);
-  await scheduleFn();
-}
+function buildMonthly(def, nowMs, untilMs, tz) {
+  const hour = toInt(def?.hour ?? def?.alarm?.hour);
+  const minute = toInt(def?.minute ?? def?.alarm?.minute);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return [];
 
-// ─────────────── Public APIs ───────────────
-export async function scheduleOnIOS(msg) {
-  if (!(await waitBridgeReady())) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
+  const rawDays =
+    def?.daysOfMonth ?? def?.monthDays ?? def?.monthlyDays ?? def?.dom ?? def?.byMonthDay;
+  let days = Array.isArray(rawDays) ? rawDays.slice() : (rawDays != null ? [rawDays] : []);
+  days = days
+    .map(toInt)
+    .filter((d) => Number.isFinite(d) && d >= 1 && d <= 31)
+    .sort((a, b) => a - b);
+  if (!days.length) return [];
 
-  const modeRaw = msg?.mode || msg?.repeatMode;
-  const mode = typeof modeRaw === 'string' ? modeRaw.toLowerCase() : '';
-  const isToday   = mode === 'today';
-  const isOnce    = mode === 'once';
-  const isDaily   = mode === 'daily';
-  const isWeekly  = mode.startsWith('weekly');
-  const isMonthly = mode.startsWith('monthly');
-  const rid = msg?.routineId || msg?.routineID || msg?.rid;
+  const start = startOfDayMs(nowMs, tz);
+  const end = untilMs;
 
-  if (rid) {
-    const hour   = toInt(msg?.hour ?? msg?.alarm?.hour);
-    const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
-    const b = baseId(rid);
+  const startPart = ymdOf(start, tz);
+  const endPart = ymdOf(end, tz);
 
-    // ONCE / TODAY
-    if (isToday || isOnce) {
-      let tsMs;
-      const epochs = normalizeEpochs(msg?.fireTimesEpoch);
-      if (epochs && epochs.length) tsMs = epochs[0];
-      if (!tsMs) {
-        const t = buildTodayTimestamp(hour, minute);
-        if (t) tsMs = t;
-      }
-      if (!tsMs) return;
-
-      await purgeThenSchedule(b, async () => {
-        const payload = {
-          action: 'schedule',
-          id: idOnce(rid, tsMs),
-          baseId: b,
-          repeatMode: 'once',
-          timestamp: Math.floor(tsMs / 1000),
-          sound: DEFAULT_SOUND,
-          title: msg.title || msg.name,
-          name: msg.name || msg.title,
-        };
-        const finalOnce = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'once' });
-        log('[iosNotify] scheduleOnIOS:REQ(once)', finalOnce);
-        safePost(finalOnce);
-      });
-      return;
-    }
-
-    // DAILY
-    if (isDaily) {
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-        log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
-        return;
-      }
-      await purgeThenSchedule(b, async () => {
-        const payload = {
-          action: 'schedule',
-          id: idDaily(rid),
-          baseId: b,
-          repeatMode: 'daily',
-          hour, minute,
-          alarm: { hour, minute },
-          sound: DEFAULT_SOUND,
-          title: msg.title || msg.name,
-          name: msg.name || msg.title,
-        };
-        const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
-        log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
-        safePost(finalDaily);
-      });
-      return;
-    }
-
-    // WEEKLY
-    if (isWeekly) {
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-        log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
-        return;
-      }
-
-      let weekdays =
-        Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
-        Array.isArray(msg?.weekdays)      ? msg.weekdays      :
-        (msg?.repeatWeekDays || msg?.weekday);
-
-      weekdays = normalizeWeekdays(weekdays) || [];
-      if (!weekdays.length) {
-        log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
-        return;
-      }
-
-      // 1) 단일 요일: purge 없이 그대로 (id 보존)
-      if (weekdays.length === 1) {
-        const wd = weekdays[0];
-        const payload = {
-          action: 'schedule',
-          id: (msg?.id && String(msg.id).trim().length > 0)
-                ? String(msg.id)
-                : `${b}-w-${wd}__wd${wd}`,
-          baseId: b,
-          repeatMode: 'weekly',
-          hour, minute,
-          alarm: { hour, minute },
-          weekday: wd,
-          weekdays: [wd],
-          sound: DEFAULT_SOUND,
-          title: msg.title || msg.name,
-          name: msg.name || msg.title,
-        };
-        const finalWeekly1 = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [wd] });
-        log('[iosNotify] scheduleOnIOS:REQ(weekly-1day)', finalWeekly1);
-        safePost(finalWeekly1);
-        return;
-      }
-
-      // 2) 여러 요일: purge 후 요일별 개별 id로 등록
-      await purgeThenSchedule(b, async () => {
-        for (const wd of weekdays) {
-          const id = (msg?.id && String(msg.id).includes(`__wd${wd}`))
-            ? msg.id
-            : `${b}-w-${wd}__wd${wd}`;
-          const payload = {
-            action: 'schedule',
-            id,
-            baseId: b,
-            repeatMode: 'weekly',
-            hour, minute,
-            alarm: { hour, minute },
-            weekday: wd,
-            weekdays: [wd],
-            sound: DEFAULT_SOUND,
-            title: msg.title || msg.name,
-            name: msg.name || msg.title,
-          };
-          const finalW = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [wd] });
-          log('[iosNotify] scheduleOnIOS:REQ(weekly* per-day)', finalW);
-          safePost(finalW);
-        }
-      });
-      return;
+  const months = [];
+  let y = startPart.y;
+  let m = startPart.m;
+  while (y < endPart.y || (y === endPart.y && m <= endPart.m)) {
+    months.push({ y, m });
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
     }
   }
 
-  // Fallback
-  const unified = normalizeSchedulePayload(msg);
-  if (unified.repeatMode === 'today') {
-    unified.repeatMode = 'once';
-    if (!unified.timestamp) {
-      const ts = buildTodayTimestamp(unified.hour, unified.minute);
-      if (ts) unified.timestamp = Math.floor(ts / 1000);
+  const inMonthMaxDay = (Y, M) => new Date(Date.UTC(Y, M, 0)).getUTCDate();
+
+  const out = [];
+  for (const { y: Y, m: M } of months) {
+    const maxDay = inMonthMaxDay(Y, M);
+    for (const d of days) {
+      if (d > maxDay) continue;
+      const cand = wallTimeToUtcMs(Y, M, d, hour, minute, tz);
+      if (cand >= start && cand <= end && cand >= nowMs && clampByDateRange(cand, def, tz)) {
+        out.push(cand);
+      }
     }
   }
-  if (unified.repeatMode === 'once' && unified.timestamp && unified.timestamp > 1e12) {
-    unified.timestamp = Math.floor(unified.timestamp / 1000);
+  return out.sort((a, b) => a - b);
+}
+
+export function projectInstances(def, now = Date.now(), tz = 'Asia/Seoul', horizonDays = 14) {
+  const modeRaw = def?.repeatMode || def?.mode || '';
+  const mode = String(modeRaw).toLowerCase();
+  const until = startOfDayMs(now, tz) + horizonDays * DAY_MS - 1;
+
+  if (mode === 'daily') return buildDaily(def, now, until, tz);
+  if (mode.startsWith('weekly')) return buildWeekly(def, now, until, tz);
+  if (mode.startsWith('monthly')) return buildMonthly(def, now, until, tz);
+
+  const onceTs =
+    def?.atMs ??
+    def?.timestamp ??
+    (def?.fireTimesEpoch && Array.isArray(def.fireTimesEpoch) && def.fireTimesEpoch[0]);
+  if (onceTs != null) {
+    const n = Number(onceTs);
+    const ms = n >= 1e12 ? Math.trunc(n) : Math.trunc(n * 1000);
+    return ms >= now && ms <= until && clampByDateRange(ms, def, tz) ? [ms] : [];
   }
 
-  if ((unified.repeatMode === 'daily' || unified.repeatMode?.startsWith('weekly') || unified.repeatMode?.startsWith('monthly'))
-      && (!Number.isFinite(unified.hour) || !Number.isFinite(unified.minute))) {
-    log('[iosNotify] scheduleOnIOS:SKIP(fallback, no time)');
-    return;
+  const hour = toInt(def?.hour ?? def?.alarm?.hour);
+  const minute = toInt(def?.minute ?? def?.alarm?.minute);
+  if (Number.isFinite(hour) && Number.isFinite(minute)) {
+    const today = startOfDayMs(now, tz);
+    const ms = wallTimeToUtcMs(...Object.values(ymdOf(today, tz)), hour, minute, tz);
+    return ms >= now && ms <= until && clampByDateRange(ms, def, tz) ? [ms] : [];
   }
 
-  const finalPayload = ensureThreeLine(unified, unified);
-  if (finalPayload.baseId) {
-    await purgeThenSchedule(finalPayload.baseId, async () => {
-      log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
-      safePost(finalPayload);
-    });
-  } else {
-    log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
-    safePost(finalPayload);
-  }
+  return [];
 }
 
-export async function cancelOnIOS(idOrBase) {
-  if (!(await waitBridgeReady())) return;
-  if (!idOrBase) return;
-  const raw = String(idOrBase);
-  if (raw.startsWith('routine-')) safePost({ action: 'purgeBase', baseId: raw });
-  else safePost({ action: 'cancel', id: raw });
-}
-
-export function purgeBase(baseIdStr) {
-  if (!baseIdStr) return;
-  safePost({ action: 'purgeBase', baseId: baseIdStr });
-}
-
-export function purgeBases(baseIds = []) {
-  for (const b of baseIds) purgeBase(b);
-}
-
-export function purgeRoutineAll(rid) {
-  if (!rid) return;
-  safePost({ action: 'purgeBase', baseId: baseId(rid) });
-}
-
-export function scheduleDaily({ rid, hour, minute, title }) {
-  if (!rid) return;
-  const h = toInt(hour), m = toInt(minute);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) {
-    log('[iosNotify] scheduleDaily:SKIP(no time)', { rid, hour, minute });
-    return;
-  }
-  const payload = {
-    action: 'schedule',
-    id: idDaily(rid),
-    baseId: baseId(rid),
-    repeatMode: 'daily',
-    hour: h,
-    minute: m,
-    alarm: { hour: h, minute: m },
-    sound: DEFAULT_SOUND,
-    title,
-    name: title,
-  };
-  const finalPayload = ensureThreeLine(payload, { title, hour: h, minute: m, repeatMode: 'daily' });
-  log('[iosNotify] scheduleDaily', finalPayload);
-  safePost(finalPayload);
-}
-
-export function scheduleOnce({ rid, atMs, title }) {
-  if (!rid || !atMs) return;
-  const tsMs = Number(atMs);
-  const payload = {
-    action: 'schedule',
-    id: idOnce(rid, tsMs),
-    baseId: baseId(rid),
-    repeatMode: 'once',
-    timestamp: Math.floor(tsMs / 1000),
-    sound: DEFAULT_SOUND,
-    title,
-    name: title,
-  };
-  const finalPayload = ensureThreeLine(payload, { title, repeatMode: 'once' });
-  log('[iosNotify] scheduleOnce', finalPayload);
-  safePost(finalPayload);
-}
-
-export async function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
-  if (!(await waitBridgeReady())) return;
-  safePost({ action: 'debugPing', baseId: tag, seconds: toInt(sec) ?? 20 });
-}
-
-export async function dumpPendingOnIOS(tag = 'manual') {
-  if (!(await waitBridgeReady())) return;
-  safePost({ action: 'dumpPending', tag });
-}
-
-export function postIOS(payload) { safePost(payload); }
-
-export const scheduleRoutineAlerts = scheduleOnIOS;
-export const cancelRoutineAlerts   = cancelOnIOS;
-
-export default {
-  isBridgeAvailable,
-  waitBridgeReady,
-  scheduleOnIOS,
-  cancelOnIOS,
-  purgeBase,
-  purgeBases,
-  purgeRoutineAll,
-  scheduleDaily,
-  scheduleOnce,
-  debugPingOnIOS,
-  dumpPendingOnIOS,
-  postIOS,
-  scheduleRoutineAlerts,
-  cancelRoutineAlerts,
-};
+export default { projectInstances };
