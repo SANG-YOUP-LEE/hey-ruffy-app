@@ -1,8 +1,9 @@
 // src/stores/scheduler.js
 import { defineStore } from 'pinia'
-import { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly } from '@/utils/iosNotify'
 import { projectInstances } from '@/utils/projection'
+import iosBridge from '@/utils/iosNotify'
 
+const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly } = iosBridge
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
 const p2 = (n) => String(n).padStart(2, '0')
