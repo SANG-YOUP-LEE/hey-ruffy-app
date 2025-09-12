@@ -4,10 +4,12 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
-import { scheduleWeekly, scheduleOnIOS, cancelOnIOS, waitBridgeReady } from '@/utils/iosNotify'
+import iosBridge from '@/utils/iosNotify'
 import { projectInstances } from '@/utils/projection'
 
+const { scheduleWeekly, scheduleOnIOS, cancelOnIOS, waitBridgeReady } = iosBridge
 let __pendingCreateId = null
+
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
@@ -287,6 +289,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
 
     validate() {
       this.clearErrors()
+
+      // 공통 필드 체크
       if (!this.title || String(this.title).trim() === '') {
         this.setError('title','다짐 제목을 입력해주세요.')
         return false
@@ -295,12 +299,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
         this.setError('repeat','반복 주기를 선택해주세요.')
         return false
       }
+
+      // 반복 주기별 체크
       if (this.repeatType === 'daily') {
         if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
           this.setError('repeat','반복 주기를 선택해주세요.')
           return false
         }
       }
+
       if (this.repeatType === 'weekly') {
         const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
         if (!valid) {
@@ -308,6 +315,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
           return false
         }
       }
+
       if (this.repeatType === 'monthly') {
         if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
           this.setError('repeat','반복 주기를 선택해주세요.')
@@ -318,25 +326,34 @@ export const useRoutineFormStore = defineStore('routineForm', {
           return false
         }
       }
+
       if (!Number.isInteger(this.colorIndex)) {
         this.setError('priority','다짐 색상을 선택해주세요.')
         return false
       }
+
       const sc = sanitizeComment(this.comment)
       if (this.comment && this.comment.trim().length > 200) {
         this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
         return false
       }
+
+      // 걷기 모드 켜져 있을 때만 체크
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
         if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
+
+      // 코멘트 정리
       if (sc === null) this.comment = ''
+
+      // ✅ “오늘만(once)”일 때 과거시간 방지
       const isOnce =
         this.repeatType === 'daily' &&
         Number.isInteger(this.repeatDaily) &&
         this.repeatDaily === 0
+
       if (isOnce) {
         const hm = parseHM(this.alarmTime)
         if (hm) {
@@ -351,6 +368,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
           }
         }
       }
+
       return true
     },
 
@@ -359,14 +377,18 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.isSaving = true
       try {
         if (!this.validate()) return { ok:false }
+
         const auth = useAuthStore()
         await auth.ensureReady()
         const uid = auth.user?.uid
         if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
+
+        // ⬇️ alarmTime 정규화(HH:mm) — Firestore엔 항상 "HH:mm"으로 저장
         const basePayload = this.payload
         const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
         const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
         const payload = { ...basePayload, alarmTime: normalizedAlarm }
+
         let res
         if (this.mode === 'edit' && this.routineId) {
           const rid = getBaseId(this.routineId)
@@ -383,59 +405,142 @@ export const useRoutineFormStore = defineStore('routineForm', {
           res = { ok:true, id: docRef.id, data: payload }
         }
 
+        // ── 예약 처리 ─────────────────────────────────────
         try {
           const hm = parseHM(this.alarmTime || payload.alarmTime)
           const routineId = res?.id
           const title = this.title || payload.title || '알림'
           const baseId = routineId ? `routine-${routineId}` : null
+
           if (!routineId || !hm) return res
+
           await waitBridgeReady()
+          // 먼저 이전 것 전체 purge
           await cancelOnIOS(baseId)
+
           const type = payload.repeatType
           const tz = this.tz || 'Asia/Seoul'
           const hour = hm.hour
           const minute = hm.minute
 
-          if (type === 'weekly') {
-            const m = String(payload.repeatWeeks || '').match(/(\d+)/)
-            const intervalW = m ? Math.max(1, parseInt(m[1], 10)) : 1
-            const days = Array.isArray(payload.repeatWeekDays) ? payload.repeatWeekDays.slice() : []
-            if (intervalW === 1 && days.length) {
-              await scheduleWeekly(baseId, hour, minute, days, title)
+          // ── DAILY 모드 처리
+          if (type === 'daily') {
+            const n = Number(payload.repeatEveryDays || 0)
+
+            // 오늘만(once)
+            if (n === 0) {
+              const dateISO = safeISOFromDateObj(payload.startDate) || payload.start || todayISO()
+              const atISO = toAtISO(dateISO, hm)
+              const atMs = atISOToEpochMs(atISO)
+              if (atMs && atMs > Date.now()) {
+                await scheduleOnIOS({
+                  routineId,
+                  title,
+                  repeatMode: 'once',
+                  fireTimesEpoch: [Math.floor(atMs / 1000)],
+                  sound: 'ruffysound001.wav'
+                })
+              }
+              return res
+            }
+
+            // 매일(=1)은 없음 → 주간 월~일 7개로 대체 (종료일 없을 때만 네이티브)
+            if (n === 1) {
+              const endISO = safeISOFromDateObj(payload.endDate) || payload.end || undefined
+              if (!endISO) {
+                await scheduleWeekly(baseId, hour, minute, [1,2,3,4,5,6,7], title)
+                return res
+              }
+              // 종료일 있으면 projection으로 14일치
+              const projDef = {
+                repeatMode: 'weekly',
+                mode: 'weekly',
+                hour, minute,
+                intervalWeeks: 1,
+                weekdays: [1,2,3,4,5,6,7],
+                startDate: safeISOFromDateObj(payload.startDate) || payload.start || todayISO(),
+                endDate: endISO,
+                alarm: { hour, minute }
+              }
+              const epochsMs = projectInstances(projDef, Date.now(), tz)
+              if (Array.isArray(epochsMs) && epochsMs.length) {
+                const fireTimesEpoch = epochsMs.map(ms => Math.floor(ms / 1000))
+                await scheduleOnIOS({ routineId, title, repeatMode: 'once', fireTimesEpoch, sound: 'ruffysound001.wav' })
+              }
+              return res
+            }
+
+            // N일마다(≥2) → projection 14일치
+            if (n >= 2) {
+              const projDef = {
+                repeatMode: 'daily',
+                mode: 'daily',
+                hour, minute,
+                intervalDays: n,
+                startDate: safeISOFromDateObj(payload.startDate) || payload.start || todayISO(),
+                endDate: safeISOFromDateObj(payload.endDate) || payload.end || undefined,
+                alarm: { hour, minute }
+              }
+              const epochsMs = projectInstances(projDef, Date.now(), tz)
+              if (Array.isArray(epochsMs) && epochsMs.length) {
+                const fireTimesEpoch = epochsMs.map(ms => Math.floor(ms / 1000))
+                await scheduleOnIOS({ routineId, title, repeatMode: 'once', fireTimesEpoch, sound: 'ruffysound001.wav' })
+              }
               return res
             }
           }
 
-          const projDef = {
-            repeatMode: type,
-            mode: type,
-            hour, minute,
-            intervalDays: (type === 'daily' && Number(payload.repeatEveryDays) > 1)
-              ? Number(payload.repeatEveryDays)
-              : undefined,
-            intervalWeeks: (() => {
-              if (type !== 'weekly') return undefined
-              const m = String(payload.repeatWeeks || '').match(/(\d+)/)
-              return m ? Math.max(1, parseInt(m[1], 10)) : 1
-            })(),
-            weekdays: type === 'weekly' ? (payload.repeatWeekDays || []) : undefined,
-            byMonthDay: type === 'monthly' ? (payload.repeatMonthDays || []) : undefined,
-            startDate: safeISOFromDateObj(payload.startDate) || payload.start || todayISO(),
-            endDate: safeISOFromDateObj(payload.endDate) || payload.end || undefined,
-            alarm: { hour, minute }
+          // ── WEEKLY
+          if (type === 'weekly') {
+            const m = String(payload.repeatWeeks || '').match(/(\d+)/)
+            const intervalW = m ? Math.max(1, parseInt(m[1], 10)) : 1
+            const days = Array.isArray(payload.repeatWeekDays) ? payload.repeatWeekDays.slice() : []
+
+            // interval=1 & 종료일 없음 → 네이티브 요일 반복
+            const endISO = safeISOFromDateObj(payload.endDate) || payload.end || undefined
+            if (intervalW === 1 && !endISO && days.length) {
+              await scheduleWeekly(baseId, hour, minute, days, title)
+              return res
+            }
+
+            // 그 외는 projection 14일치
+            const projDef = {
+              repeatMode: 'weekly',
+              mode: 'weekly',
+              hour, minute,
+              intervalWeeks: intervalW,
+              weekdays: days,
+              startDate: safeISOFromDateObj(payload.startDate) || payload.start || todayISO(),
+              endDate: endISO,
+              alarm: { hour, minute }
+            }
+            const epochsMs = projectInstances(projDef, Date.now(), tz)
+            if (Array.isArray(epochsMs) && epochsMs.length) {
+              const fireTimesEpoch = epochsMs.map(ms => Math.floor(ms / 1000))
+              await scheduleOnIOS({ routineId, title, repeatMode: 'once', fireTimesEpoch, sound: 'ruffysound001.wav' })
+            }
+            return res
           }
 
-          const epochsMs = projectInstances(projDef, Date.now(), tz, 14)
-          if (Array.isArray(epochsMs) && epochsMs.length) {
-            const fireTimesEpoch = epochsMs.map(ms => Math.floor(ms / 1000))
-            await scheduleOnIOS({
-              routineId,
-              title,
-              repeatMode: 'once',
-              fireTimesEpoch,
-              sound: 'ruffysound001.wav'
-            })
+          // ── MONTHLY → projection 14일치
+          if (type === 'monthly') {
+            const projDef = {
+              repeatMode: 'monthly',
+              mode: 'monthly',
+              hour, minute,
+              byMonthDay: Array.isArray(payload.repeatMonthDays) ? payload.repeatMonthDays : [],
+              startDate: safeISOFromDateObj(payload.startDate) || payload.start || todayISO(),
+              endDate: safeISOFromDateObj(payload.endDate) || payload.end || undefined,
+              alarm: { hour, minute }
+            }
+            const epochsMs = projectInstances(projDef, Date.now(), tz)
+            if (Array.isArray(epochsMs) && epochsMs.length) {
+              const fireTimesEpoch = epochsMs.map(ms => Math.floor(ms / 1000))
+              await scheduleOnIOS({ routineId, title, repeatMode: 'once', fireTimesEpoch, sound: 'ruffysound001.wav' })
+            }
+            return res
           }
+
         } catch (e) {
           console.warn('[routineForm] schedule error', e)
         }

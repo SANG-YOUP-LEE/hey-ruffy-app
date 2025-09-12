@@ -138,8 +138,8 @@ function ensureThreeLine(payload, src) {
 
   return {
     ...payload,
-    title: routineTitle,
-    subtitle: 'Hey Ruffy',
+    title: 'Hey Ruffy',
+    subtitle: routineTitle,
     body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
   };
 }
@@ -486,6 +486,7 @@ export default {
   purgeAllForBase,
   cancelOnIOS,
   dumpPending,
+  dumpPendingOnIOS,
   debugPingOnIOS,
   purgeBase,
   purgeBases,

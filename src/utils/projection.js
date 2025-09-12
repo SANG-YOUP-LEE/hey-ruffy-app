@@ -10,6 +10,7 @@ const toInt = (v) => {
   return undefined;
 };
 
+// JS getDay(): 일=0..토=6
 const KOR_DAY = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
 const ENG_DAY = { su:0,sun:0, mo:1,mon:1, tu:2,tue:2, we:3,wed:3, th:4,thu:4, fr:5,fri:5, sa:6,sat:6 };
 const ICS_DAY = { SU:0, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 };
@@ -17,8 +18,8 @@ const ICS_DAY = { SU:0, MO:1, TU:2, WE:3, TH:4, FR:5, SA:6 };
 function mapOneDOWToken(d) {
   if (d == null) return undefined;
   if (typeof d === 'number') {
-    if (d >= 0 && d <= 6) return d;
-    if (d >= 1 && d <= 7) return d - 1;
+    if (d >= 0 && d <= 6) return d;         // 0..6 그대로
+    if (d >= 1 && d <= 7) return d - 1;     // 1..7 → 0..6
     return undefined;
   }
   const s = String(d).trim();
@@ -52,6 +53,7 @@ function normalizeWeekdays(raw) {
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
+// ── TZ-safe helpers ──────────────────────────────────────────
 const fmtCache = new Map();
 function getFormatter(tz) {
   const key = tz || 'local';
@@ -88,12 +90,13 @@ function tzOffsetAt(utcDate, tz) {
   return asUTC - utcDate.getTime();
 }
 
+// tz의 벽시각(y,m,d,H,M)을 UTC ms로
 function wallTimeToUtcMs(y, m, d, H, M, tz) {
   const guess = Date.UTC(y, m - 1, d, H, M, 0);
   const offset1 = tzOffsetAt(new Date(guess), tz);
   const ms1 = guess - offset1;
   const offset2 = tzOffsetAt(new Date(ms1), tz);
-  if (offset1 !== offset2) return guess - offset2;
+  if (offset1 !== offset2) return guess - offset2; // DST 경계 보정
   return ms1;
 }
 
@@ -117,7 +120,7 @@ function addDays(ms, days, tz) {
 function dayOfWeek(ms, tz) {
   const p = getPartsInTZ(new Date(ms), tz);
   const asLocal = new Date(p.y, p.m - 1, p.d);
-  return asLocal.getDay();
+  return asLocal.getDay(); // 0..6
 }
 
 function parseYMD(s) {
@@ -127,6 +130,7 @@ function parseYMD(s) {
   return { y: +m[1], m: +m[2], d: +m[3] };
 }
 
+// 시작/종료일 필터 (종료일은 23:59:59 취급)
 function clampByDateRange(ms, def, tz) {
   const a = parseYMD(def?.startDate);
   const z = parseYMD(def?.endDate);
@@ -135,31 +139,52 @@ function clampByDateRange(ms, def, tz) {
     if (ms < min) return false;
   }
   if (z) {
-    const max = wallTimeToUtcMs(z.y, z.m, z.d, 23, 59, tz);
+    const max = wallTimeToUtcMs(z.y, z.m, z.d, 23, 59, tz) + 59 * 1000;
     if (ms > max) return false;
   }
   return true;
 }
 
+// ── DAILY: 시작일(없으면 오늘)을 anchor로 N일 간격 정렬 ───────────────
 function buildDaily(def, nowMs, untilMs, tz) {
   const hour = toInt(def?.hour ?? def?.alarm?.hour);
   const minute = toInt(def?.minute ?? def?.alarm?.minute);
   if (!Number.isFinite(hour) || !Number.isFinite(minute)) return [];
+
   const stepDays = Math.max(
     1,
     toInt(def?.intervalDays ?? def?.repeatEveryDays ?? def?.interval) ?? 1
   );
-  let cursor = startOfDayMs(nowMs, tz);
-  const end = untilMs;
+
+  // anchor = startDate(있으면) 아니면 오늘 날짜 00:00
+  const anchorYMD = parseYMD(def?.startDate);
+  const anchorStartMs = anchorYMD
+    ? wallTimeToUtcMs(anchorYMD.y, anchorYMD.m, anchorYMD.d, 0, 0, tz)
+    : startOfDayMs(nowMs, tz);
+
+  // 오늘 00:00
+  const today0 = startOfDayMs(nowMs, tz);
+
+  // anchor에서 stepDays 간격으로 진행할 때, 오늘 이후 첫번째 주기를 구함
+  const deltaDaysFromAnchor = Math.floor((today0 - anchorStartMs) / DAY_MS);
+  const k = deltaDaysFromAnchor <= 0
+    ? 0
+    : Math.ceil(deltaDaysFromAnchor / stepDays); // 오늘에 가장 근접한 배수
+  let cursorDay0 = addDays(anchorStartMs, k * stepDays, tz);
+
   const out = [];
-  while (cursor <= end) {
-    const cand = wallTimeToUtcMs(...Object.values(ymdOf(cursor, tz)), hour, minute, tz);
-    if (cand >= nowMs && cand <= end && clampByDateRange(cand, def, tz)) out.push(cand);
-    cursor = addDays(cursor, stepDays, tz);
+  while (cursorDay0 <= untilMs) {
+    const { y, m, d } = ymdOf(cursorDay0, tz);
+    const cand = wallTimeToUtcMs(y, m, d, hour, minute, tz);
+    if (cand >= nowMs && cand <= untilMs && clampByDateRange(cand, def, tz)) {
+      out.push(cand);
+    }
+    cursorDay0 = addDays(cursorDay0, stepDays, tz);
   }
   return out;
 }
 
+// ── WEEKLY: anchor(없으면 오늘)를 기준으로 intervalWeeks 적용 ────────
 function buildWeekly(def, nowMs, untilMs, tz) {
   const hour = toInt(def?.hour ?? def?.alarm?.hour);
   const minute = toInt(def?.minute ?? def?.alarm?.minute);
@@ -191,7 +216,8 @@ function buildWeekly(def, nowMs, untilMs, tz) {
     if (days.includes(dow)) {
       const wdiff = weeksBetween(anchorMs, cursor);
       if (wdiff % intervalW === 0) {
-        const cand = wallTimeToUtcMs(...Object.values(ymdOf(cursor, tz)), hour, minute, tz);
+        const { y, m, d } = ymdOf(cursor, tz);
+        const cand = wallTimeToUtcMs(y, m, d, hour, minute, tz);
         if (cand >= nowMs && cand <= end && clampByDateRange(cand, def, tz)) out.push(cand);
       }
     }
@@ -200,6 +226,7 @@ function buildWeekly(def, nowMs, untilMs, tz) {
   return out.sort((a, b) => a - b);
 }
 
+// ── MONTHLY: byMonthDay 목록 기반 ───────────────────────────────
 function buildMonthly(def, nowMs, untilMs, tz) {
   const hour = toInt(def?.hour ?? def?.alarm?.hour);
   const minute = toInt(def?.minute ?? def?.alarm?.minute);
@@ -232,13 +259,13 @@ function buildMonthly(def, nowMs, untilMs, tz) {
     }
   }
 
-  const inMonthMaxDay = (Y, M) => new Date(Date.UTC(Y, M, 0)).getUTCDate();
+  const inMonthMaxDay = (Y, M) => new Date(Date.UTC(Y, M, 0)).getUTCDate(); // M: 1..12
 
   const out = [];
   for (const { y: Y, m: M } of months) {
     const maxDay = inMonthMaxDay(Y, M);
     for (const d of days) {
-      if (d > maxDay) continue;
+      if (d > maxDay) continue; // 존재하지 않는 날짜 스킵
       const cand = wallTimeToUtcMs(Y, M, d, hour, minute, tz);
       if (cand >= start && cand <= end && cand >= nowMs && clampByDateRange(cand, def, tz)) {
         out.push(cand);
@@ -248,6 +275,7 @@ function buildMonthly(def, nowMs, untilMs, tz) {
   return out.sort((a, b) => a - b);
 }
 
+// ── Public: 14일 projection (시작/종료일 포함) ─────────────────────
 export function projectInstances(def, now = Date.now(), tz = 'Asia/Seoul', horizonDays = 14) {
   const modeRaw = def?.repeatMode || def?.mode || '';
   const mode = String(modeRaw).toLowerCase();
@@ -257,6 +285,7 @@ export function projectInstances(def, now = Date.now(), tz = 'Asia/Seoul', horiz
   if (mode.startsWith('weekly')) return buildWeekly(def, now, until, tz);
   if (mode.startsWith('monthly')) return buildMonthly(def, now, until, tz);
 
+  // once 계열(안전망)
   const onceTs =
     def?.atMs ??
     def?.timestamp ??
@@ -267,11 +296,13 @@ export function projectInstances(def, now = Date.now(), tz = 'Asia/Seoul', horiz
     return ms >= now && ms <= until && clampByDateRange(ms, def, tz) ? [ms] : [];
   }
 
+  // hour/minute만 있을 때 오늘 한 번
   const hour = toInt(def?.hour ?? def?.alarm?.hour);
   const minute = toInt(def?.minute ?? def?.alarm?.minute);
   if (Number.isFinite(hour) && Number.isFinite(minute)) {
     const today = startOfDayMs(now, tz);
-    const ms = wallTimeToUtcMs(...Object.values(ymdOf(today, tz)), hour, minute, tz);
+    const { y, m, d } = ymdOf(today, tz);
+    const ms = wallTimeToUtcMs(y, m, d, hour, minute, tz);
     return ms >= now && ms <= until && clampByDateRange(ms, def, tz) ? [ms] : [];
   }
 
