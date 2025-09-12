@@ -6,9 +6,10 @@ import {
   togglePause as repoTogglePause,
   deleteMany as repoDeleteMany,
 } from '@/stores/routinesRepo'
-import { purgeBases, postIOS, waitBridgeReady } from '@/utils/iosNotify'
 import { useSchedulerStore } from '@/stores/scheduler'
+import iosBridge from '@/utils/iosNotify'
 
+const { purgeBases, postIOS, waitBridgeReady } = iosBridge
 const nowTs = () => Date.now()
 
 const toMs = (v) => {
