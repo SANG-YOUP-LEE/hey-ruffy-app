@@ -1,6 +1,5 @@
 #main_body .date_scroll,
 #main_body .routine_total,
-#main_body .routine_total .total_area .date,
 #main_body .routine_total .total_area .term button,
 #main_body .routine_total .total_area .r_state a {
   border-radius: 0.5rem;
@@ -118,16 +117,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom:1.5rem;
 }
 
 #main_body .routine_total .total_area .date {
   width:26%;
   height:100%;
-  /*
-  border-radius:1.5rem;
-  background-color:#fff;
-  color:#333;*/
   font-family:Pretendard;
   text-align:center;
   padding:0.8rem 0rem 0.8rem 0rem;
