@@ -1,3 +1,4 @@
+<!-- updated LNB component -->
 <template>
   <div class="lnb">
     <div class="lnb_header">
@@ -35,7 +36,7 @@
       <div class="lnb_panel lnb_detail">
         <div v-show="section === 'account'">
           <h2>계정 관리</h2>
-          <a href="#none">캐릭터변경</a>
+          <a href="#none" @click.prevent="goCharacter">캐릭터변경</a>
           <a href="#none">메뉴2</a>
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
@@ -132,7 +133,7 @@ async function deleteAllRoutines() {
     title: '다짐 모두 삭제',
     message: '정말 삭제할까요? 다짐 삭제는 되돌릴 수 없어요.',
     okText: '확인',
-    cancelText: '취소',
+    cancelText: '',
   })
   if (!ok) return
   rStore.deleteRoutines((rStore.items || []).map(r => r.id))
@@ -140,7 +141,7 @@ async function deleteAllRoutines() {
     title: '완료',
     message: '다짐이 모두 삭제되었습니다.',
     okText: '확인',
-    cancelText: '', // 숨김
+    cancelText: '',
   })
 }
 
@@ -155,5 +156,10 @@ function handleClose() {
 
 function goSection(name) {
   router.replace({ path: '/lnb', query: { section: name } })
+}
+
+function goCharacter(){
+  emit('close')
+  router.push({ name: 'LnbRuffyPick' })
 }
 </script>
