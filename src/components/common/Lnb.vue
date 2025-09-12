@@ -35,7 +35,7 @@
       <div class="lnb_panel lnb_detail">
         <div v-show="section === 'account'">
           <h2>계정 관리</h2>
-          <a href="#none">메뉴1</a>
+          <a href="#none">캐릭터변경</a>
           <a href="#none">메뉴2</a>
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
