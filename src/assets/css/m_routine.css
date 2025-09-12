@@ -163,7 +163,7 @@
 }
 
 #main_body .routine_total .total_area .term {
-  width:4.5rem;
+  width:5rem;
   padding-left:0.5rem;
 }
 
@@ -212,7 +212,7 @@
 #main_body .routine_total .total_area .circle-wrap svg {
   display: block;
   width: 100%;
-  height: 75%;
+  height: 80%;
   margin-top:1rem;
   transform: rotate(-90deg);
 }
