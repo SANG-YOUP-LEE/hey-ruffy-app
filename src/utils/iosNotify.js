@@ -136,6 +136,7 @@ function ensureThreeLine(payload, src) {
   const routineTitle =
     (src?.title || src?.name || payload?.title || payload?.name || '').trim() || '(제목없음)';
 
+  // 제목은 앱 이름, 서브타이틀에 루틴명, 본문은 3줄 구성을 유지
   return {
     ...payload,
     title: 'Hey Ruffy',
@@ -317,40 +318,46 @@ export async function scheduleOnIOS(msg) {
     const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
     const b = baseId(rid);
 
+    // ─────────────────────────────────────────
+    // once/today: fireTimesEpoch[] 전체를 배치로 예약
+    // ─────────────────────────────────────────
     if (isToday || isOnce) {
-      let tsMs;
-      const epochs = Array.isArray(msg?.fireTimesEpoch) ? msg.fireTimesEpoch : [];
       const now = Date.now();
       const toMs = (v) => {
         const n = Number(v);
         if (!Number.isFinite(n)) return null;
         return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000);
       };
-      for (const v of epochs) {
-        const m = toMs(v);
-        if (m && m >= now) { tsMs = m; break; }
-      }
-      if (!tsMs && Number.isFinite(hour) && Number.isFinite(minute)) {
+
+      let list = Array.isArray(msg?.fireTimesEpoch) ? msg.fireTimesEpoch.map(toMs).filter(Boolean) : [];
+
+      // 배열이 없다면 "오늘 같은 시각" 한 번 예약 (기존 동작 유지)
+      if (!list.length && Number.isFinite(hour) && Number.isFinite(minute)) {
         const d = new Date();
+        d.setSeconds(0, 0);
         d.setHours(hour, minute, 0, 0);
         const t = d.getTime();
-        if (t > now) tsMs = t;
+        if (t > now) list = [t];
       }
-      if (!tsMs) return;
 
-      const payload = [{
+      // 과거/임박(약간의 지연 감안) 제거 & 정렬
+      const GRACE_MS = 500; // 밀리초 유예
+      const future = list.filter(ms => ms >= now + GRACE_MS).sort((a,b)=>a-b);
+      if (!future.length) return;
+
+      const batch = future.map(ms => ({
         action: 'schedule',
-        id: idOnce(rid, tsMs),
+        id: idOnce(rid, ms),
         baseId: b,
         repeatMode: 'once',
-        timestamp: Math.floor(tsMs / 1000),
+        timestamp: Math.floor(ms / 1000),
         sound: DEFAULT_SOUND,
         title: msg.title || msg.name,
         name: msg.name || msg.title,
-      }];
+      }));
 
       await purgeThenSchedule(b, async () => {
-        await commitSchedules(payload);
+        await commitSchedules(batch);
       });
       return;
     }
@@ -431,6 +438,7 @@ export async function scheduleOnIOS(msg) {
     }
   }
 
+  // fallback 단일 예약
   const out = [];
   const unified = (() => {
     const o = { action: 'schedule' };
