@@ -169,9 +169,17 @@ export const useRoutineFormStore = defineStore('routineForm', {
           : null
       const endForTodayOnly =
         normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+      // 주간일 때 요일 배열: 사용자가 고른 요일이 하나라도 있으면 그것을 우선.
+      // 비어있을 때만 weeklyDaily 토글(매일)을 적용.
       const weeklyDaysNum =
         normalizedType === 'weekly'
-          ? (state.weeklyDaily ? [1,2,3,4,5,6,7] : daysKorToNum(state.repeatWeekDays))
+          ? (() => {
+              const selectedKor = Array.isArray(state.repeatWeekDays) ? state.repeatWeekDays : []
+              const selectedHasAny = selectedKor.length > 0
+              const selectedIsAll = isAllKoreanWeekdays(selectedKor)
+              const useAll = state.weeklyDaily && (!selectedHasAny || selectedIsAll)
+              return useAll ? [1,2,3,4,5,6,7] : daysKorToNum(selectedKor)
+            })()
           : []
       const cleaned = {
         title: state.title,
@@ -263,6 +271,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.clearErrors()
     },
 
+    
+    
     toggleWalk(off) {
       this.isWalkModeOff = !!off
       if (this.isWalkModeOff) {
@@ -272,6 +282,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         const fe = { ...this.fieldErrors }; delete fe.ruffy; delete fe.course; delete fe.goal; this.fieldErrors = fe
       }
     },
+    
+    
     setRuffy(val) {
       this.ruffy = val || null
       const fe = { ...this.fieldErrors }; delete fe.ruffy; this.fieldErrors = fe
@@ -286,6 +298,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.goalCount = Number.isInteger(n) && n > 0 ? n : null
       const fe = { ...this.fieldErrors }; delete fe.goal; this.fieldErrors = fe
     },
+   
+    setRepeatWeekDays(daysKor) {
+    const a = Array.isArray(daysKor) ? daysKor : []
+    this.repeatWeekDays = a
+    // 사용자가 일부 요일만 고르면 "매일" 토글은 자동 해제
+    this.weeklyDaily = isAllKoreanWeekdays(a)
+     },
 
     validate() {
       this.clearErrors()

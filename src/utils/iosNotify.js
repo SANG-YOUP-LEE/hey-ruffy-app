@@ -140,7 +140,7 @@ function ensureThreeLine(payload, src) {
     ...payload,
     title: 'Hey Ruffy',
     subtitle: routineTitle,
-    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
+    body: `${routineTitle}\n[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
   };
 }
 
