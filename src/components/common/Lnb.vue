@@ -1,4 +1,4 @@
-<!-- updated LNB component -->
+<!-- src/components/common/Lnb.vue -->
 <template>
   <div class="lnb">
     <div class="lnb_header">
@@ -159,67 +159,6 @@ function goSection(name) {
 }
 
 function goCharacter(){
-  emit('close')
   router.push({ name: 'LnbRuffyPick' })
 }
 </script>
-
-<!-- src/views/pages/RuffyPick.vue -->
-<template>
-  <div class="page ruffy-pick">
-    <header class="page_hd">
-      <button class="back" @click="$router.back()"><span>뒤로</span></button>
-      <h1>캐릭터 변경</h1>
-    </header>
-    <main class="page_bd">
-      <p>캐릭터를 선택해주세요.</p>
-      <div class="ruffy_list">
-        <button @click="pick('option1')">러피 01</button>
-        <button @click="pick('option2')">러피 02</button>
-        <button @click="pick('option3')">러피 03</button>
-        <button @click="pick('option4')">러피 04</button>
-      </div>
-    </main>
-  </div>
-</template>
-
-<script setup>
-import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
-const a = useAuthStore()
-const router = useRouter()
-function pick(opt){
-  a.$patch({ profile: { ...(a.profile||{}), selectedRuffy: opt } })
-  router.back()
-}
-</script>
-
-// src/router/index.js
-import { createRouter, createWebHistory, createWebHashHistory } from "vue-router"
-import { Capacitor } from "@capacitor/core"
-
-import IntroView from "../views/IntroView.vue"
-import SignupView from "../views/SignupView.vue"
-import LoginView from "../views/LoginView.vue"
-import MainView from "../views/MainView.vue"
-import AddRoutineSelector from "../views/AddRoutineSelector.vue"
-import Lnb from "../components/common/Lnb.vue"
-
-const routes = [
-  { path: "/", name: "intro", component: IntroView },
-  { path: "/signup", name: "signup", component: SignupView },
-  { path: "/login", name: "login", component: LoginView },
-  { path: "/main", name: "main", component: MainView },
-  { path: "/add-routine", name: "addRoutine", component: AddRoutineSelector },
-  { path: "/lnb", name: "lnbMain", component: Lnb }
-]
-
-const isNative = Capacitor?.isNativePlatform?.() || !!window.Capacitor
-
-const router = createRouter({
-  history: isNative ? createWebHashHistory() : createWebHistory(import.meta.env.BASE_URL),
-  routes,
-  scrollBehavior() { return { top: 0 } },
-})
-
-export default router
