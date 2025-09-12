@@ -1,4 +1,4 @@
-<!-- src/views/pages/RuffyPick.vue -->
+<!-- src/views/pages/LnbRuffyPick.vue -->
 <template>
   <div class="page ruffy-pick">
     <header class="page_hd">
