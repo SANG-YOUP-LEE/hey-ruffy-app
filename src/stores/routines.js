@@ -6,13 +6,11 @@ import {
   togglePause as repoTogglePause,
   deleteMany as repoDeleteMany,
 } from '@/stores/routinesRepo'
-import { purgeBases, cancelOnIOS, postIOS, waitBridgeReady } from '@/utils/iosNotify'
-import { useSchedulerStore } from '@/stores/scheduler' // ✅ 추가
+import { purgeBases, postIOS, waitBridgeReady } from '@/utils/iosNotify'
+import { useSchedulerStore } from '@/stores/scheduler'
 
-/* ───────── helpers ───────── */
 const nowTs = () => Date.now()
 
-/** Firestore Timestamp | number | Date | undefined → ms(number) */
 const toMs = (v) => {
   if (v == null) return 0
   if (typeof v === 'number') return v
@@ -23,7 +21,6 @@ const toMs = (v) => {
   return 0
 }
 
-/** alarmTime은 문자열("HH:mm") 또는 객체({ampm,hour,minute}) 모두 허용 */
 const normalizeAlarm = (a) => {
   if (!a) return null
   if (typeof a === 'string') {
@@ -47,24 +44,17 @@ const normalizeAlarm = (a) => {
   return { ampm, hour, minute }
 }
 
-/** 단일 루틴 정규화 (id는 원본 유지!!) */
 function normalizeRoutine(r) {
   const id = String(r.id || '').trim() || ('rt-' + Math.random().toString(36).slice(2, 10))
   return {
-    id, // Firestore 문서 id 그대로
-
-    // 기본 정보
+    id,
     title: r.title || '',
     comment: r.comment || '',
     colorIndex: Number(r.colorIndex ?? 0),
     cardSkin: r.cardSkin || '',
-
-    // 산책 관련
     course: r.course || '',
     ruffy: r.ruffy || '',
     goalCount: Number(r.goalCount ?? 0),
-
-    // 반복 규칙 (뷰/필터가 참조함)
     repeatType: r.repeatType || 'daily',
     repeatEveryDays: r.repeatEveryDays ?? null,
     repeatDays: Array.isArray(r.repeatDays) ? r.repeatDays : [],
@@ -72,22 +62,14 @@ function normalizeRoutine(r) {
     repeatWeekDays: Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [],
     repeatMonthDays: Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : [],
     rule: r.rule || null,
-    start: r.start || null, // YYYY-MM-DD 가능
+    start: r.start || null,
     end: r.end || null,
-
-    // 기간
     startDate: r.startDate || null,
     endDate: r.endDate || null,
-
-    // 알람
     alarmTime: normalizeAlarm(r.alarmTime),
-
-    // 상태
     isPaused: !!r.isPaused,
     walkDoneCount: Number(r.walkDoneCount ?? 0),
     statuses: r.statuses || r.progress || {},
-
-    // 시간 스탬프 정규화
     createdAt: toMs(r.createdAt) || nowTs(),
     updatedAt: toMs(r.updatedAt) || nowTs(),
     createdAtMs: toMs(r.createdAtMs) || toMs(r.createdAt) || nowTs(),
@@ -95,7 +77,6 @@ function normalizeRoutine(r) {
   }
 }
 
-/** 스냅샷 배열 → 정규화 + 동일 id 기준 중복 제거(최신 updatedAt 우선) */
 function normalizeAndDedupe(list) {
   const map = new Map()
   for (const raw of list || []) {
@@ -109,7 +90,6 @@ function normalizeAndDedupe(list) {
   return Array.from(map.values()).sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt))
 }
 
-/* ───────── store ───────── */
 export const useRoutinesStore = defineStore('routines', {
   state: () => ({
     items: [],
@@ -129,7 +109,6 @@ export const useRoutinesStore = defineStore('routines', {
       const i = this.items.findIndex((v) => v.id === n.id)
       if (i === -1) this.items.unshift(n)
       else this.items.splice(i, 1, { ...this.items[i], ...n, updatedAt: nowTs(), updatedAtMs: nowTs() })
-      // ✅ 추가/수정된 루틴 즉시 스케줄
       try { useSchedulerStore().rehydrateFromRoutines([n]) } catch (_) {}
     },
 
@@ -141,54 +120,41 @@ export const useRoutinesStore = defineStore('routines', {
       next.updatedAt = nowTs()
       next.updatedAtMs = nowTs()
       this.items.splice(i, 1, next)
-      // ✅ 업데이트된 루틴도 즉시 리스케줄
       try { useSchedulerStore().rehydrateFromRoutines([next]) } catch (_) {}
     },
 
-      async deleteRoutines(ids) {
-        const uid = this._boundUid
-        const ridList = []
-        for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))
+    async deleteRoutines(ids) {
+      const uid = this._boundUid
+      const ridList = []
+      for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))
 
-        // ✅ iOS 알람 먼저 정리: daily 개별 취소 → 베이스 purge
-        if (ridList.length) {
-          try {
-            // 브리지 준비
-            await waitBridgeReady()
-
-            // 1) 각 루틴의 daily 잔재 제거 (이중 울림 방지)
-            for (const id of ridList) {
-              const baseId = `routine-${id}`
-              postIOS({ action: 'cancel', id: `${baseId}-daily` })
-            }
-
-            // 2) 베이스 전량 purge (daily/once/… 모두)
-            const baseIds = ridList.map(id => `routine-${id}`)
-            purgeBases(baseIds)
-
-            // 🔁 필요시 순차 보장 버전(위 한 줄 대신):
-            // for (const id of ridList) { await cancelOnIOS(`routine-${id}`) }
-          } catch (e) {
-            console.warn('[routines.deleteRoutines] ios purge failed', e)
+      if (ridList.length) {
+        try {
+          await waitBridgeReady()
+          for (const id of ridList) {
+            const baseId = `routine-${id}`
+            postIOS({ action: 'cancel', id: `${baseId}-daily` })
           }
+          const baseIds = ridList.map(id => `routine-${id}`)
+          purgeBases(baseIds)
+        } catch (e) {
+          console.warn('[routines.deleteRoutines] ios purge failed', e)
         }
+      }
 
-        // 🔥 Firestore 삭제
-        if (uid && ridList.length) {
-          try {
-            await repoDeleteMany(uid, ridList)
-          } catch (e) {
-            console.warn('[routines.deleteRoutines] repo delete failed', e)
-          }
+      if (uid && ridList.length) {
+        try {
+          await repoDeleteMany(uid, ridList)
+        } catch (e) {
+          console.warn('[routines.deleteRoutines] repo delete failed', e)
         }
+      }
 
-        // 로컬 스토어 정리
-        const set = new Set(ridList)
-        this.items = this.items.filter((v) => !set.has(v.id))
-        this.deleteTargets = []
-        this.deleteMode = false
-      },
-
+      const set = new Set(ridList)
+      this.items = this.items.filter((v) => !set.has(v.id))
+      this.deleteTargets = []
+      this.deleteMode = false
+    },
 
     async togglePause({ id, isPaused }) {
       const uid = this._boundUid
@@ -200,7 +166,6 @@ export const useRoutinesStore = defineStore('routines', {
       if (uid && rid) {
         try { await repoTogglePause(uid, rid, !!isPaused) } catch (_) {}
       }
-      // ✅ 일시정지/재개 시 스케줄 반영
       try { useSchedulerStore().rehydrateFromRoutines([it]) } catch (_) {}
     },
 
@@ -275,7 +240,6 @@ export const useRoutinesStore = defineStore('routines', {
           this.items = normalizeAndDedupe(list)
           this.isLoading = false
           this.hasFetched = true
-          // ✅ 파베에서 받아온 전체 루틴을 즉시 리스케줄
           try { useSchedulerStore().rehydrateFromRoutines(this.items) } catch (_) {}
         },
         () => {
@@ -292,4 +256,3 @@ export const useRoutinesStore = defineStore('routines', {
     },
   },
 })
-// 추후에...
