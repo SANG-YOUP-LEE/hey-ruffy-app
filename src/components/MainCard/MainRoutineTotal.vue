@@ -95,7 +95,7 @@ const emit = defineEmits([
 
 const props = defineProps({
   isFuture: { type: Boolean, default: false },
-  modelValue: { type: [String, null], default: 'notdone' },
+  modelValue: { type: [String, null], default: null },
   counts: { type: Object, default: null },
   totalCount: { type: Number, default: null },
   selectedDate: { type: Date, required: true },
@@ -141,14 +141,15 @@ const activeTool = computed(() => (localDelete.value ? 'delete' : localView.valu
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
 const displayTotal  = computed(() => props.totalCount ?? 15)
 
-const selectedRadio = ref('notdone')
+const selectedRadio = ref(null)
 
 function selectState(key){
-  selectedRadio.value = key
+  selectedRadio.value = (selectedRadio.value === key) ? null : key
 }
 
 const centerText = computed(() => {
-  if (selectedRadio.value === 'notdone') return '체크완료'
+  if (!selectedRadio.value) return '오늘현황'
+  if (selectedRadio.value === 'notdone') return '미체크'
   if (selectedRadio.value === 'done') return '달성성공'
   if (selectedRadio.value === 'faildone') return '달성실패'
   if (selectedRadio.value === 'ignored') return '흐린눈'
@@ -163,40 +164,54 @@ const percentText = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
   if (total <= 0) return '0%'
   const c = displayCounts.value || {}
-  let v = 0
-  if (selectedRadio.value === 'notdone') v = (c.done || 0) + (c.faildone || 0) + (c.ignored || 0)
-  if (selectedRadio.value === 'done') v = (c.done || 0)
-  if (selectedRadio.value === 'faildone') v = (c.faildone || 0)
-  if (selectedRadio.value === 'ignored') v = (c.ignored || 0)
-  let pct = Math.round((v / total) * 100)
-  pct = Math.min(100, Math.max(0, Number.isFinite(pct) ? pct : 0))
-  return `${pct}%`
+  if (!selectedRadio.value) {
+    const pct = Math.round(((c.done || 0) / total) * 100)
+    return `${Math.min(100, Math.max(0, pct))}%`
+  }
+  if (selectedRadio.value === 'notdone') {
+    const pct = Math.round(((c.notdone || 0) / total) * 100)
+    return `${Math.min(100, Math.max(0, pct))}%`
+  }
+  if (selectedRadio.value === 'done') {
+    const pct = Math.round(((c.done || 0) / total) * 100)
+    return `${Math.min(100, Math.max(0, pct))}%`
+  }
+  if (selectedRadio.value === 'faildone') {
+    const pct = Math.round(((c.faildone || 0) / total) * 100)
+    return `${Math.min(100, Math.max(0, pct))}%`
+  }
+  if (selectedRadio.value === 'ignored') {
+    const pct = Math.round(((c.ignored || 0) / total) * 100)
+    return `${Math.min(100, Math.max(0, pct))}%`
+  }
+  return '0%'
 })
 
 const graphData = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
-  const done = Math.max(0, Number(displayCounts.value.done) || 0)
-  const fail = Math.max(0, Number(displayCounts.value.faildone) || 0)
-  const ign  = Math.max(0, Number(displayCounts.value.ignored) || 0)
   if (total <= 0) return []
-  if (selectedRadio.value === 'notdone') {
-    const pDone = Math.min(100, +(done / total * 100).toFixed(2))
-    const pFail = Math.min(100, +(fail / total * 100).toFixed(2))
-    const pIgn  = Math.min(100, +(ign  / total * 100).toFixed(2))
-    const segs = []
-    let acc = 0
-    if (pDone > 0) { segs.push({ pct: pDone, offset: acc, cls: 'seg-done' }); acc += pDone }
-    if (pFail > 0) { segs.push({ pct: pFail, offset: acc, cls: 'seg-fail' }); acc += pFail }
-    if (pIgn  > 0) { segs.push({ pct: pIgn,  offset: acc, cls: 'seg-ign'  }); acc += pIgn  }
-    return segs
-  } else {
-    let pct = 0, cls = 'seg-done'
-    if (selectedRadio.value === 'done')      { pct = +(done / total * 100).toFixed(2); cls = 'seg-done' }
-    if (selectedRadio.value === 'faildone')  { pct = +(fail / total * 100).toFixed(2); cls = 'seg-fail' }
-    if (selectedRadio.value === 'ignored')   { pct = +(ign  / total * 100).toFixed(2); cls = 'seg-ign'  }
-    pct = Math.min(100, Math.max(0, pct))
-    return pct > 0 ? [{ pct, offset: 0, cls }] : []
+  const c = displayCounts.value || {}
+  if (!selectedRadio.value) {
+    const pct = Math.min(100, +(((c.done || 0) / total) * 100).toFixed(2))
+    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-done' }] : []
   }
+  if (selectedRadio.value === 'notdone') {
+    const pct = Math.min(100, +(((c.notdone || 0) / total) * 100).toFixed(2))
+    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-not' }] : []
+  }
+  if (selectedRadio.value === 'done') {
+    const pct = Math.min(100, +(((c.done || 0) / total) * 100).toFixed(2))
+    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-done' }] : []
+  }
+  if (selectedRadio.value === 'faildone') {
+    const pct = Math.min(100, +(((c.faildone || 0) / total) * 100).toFixed(2))
+    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-fail' }] : []
+  }
+  if (selectedRadio.value === 'ignored') {
+    const pct = Math.min(100, +(((c.ignored || 0) / total) * 100).toFixed(2))
+    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-ign' }] : []
+  }
+  return []
 })
 
 const auth = useAuthStore()
