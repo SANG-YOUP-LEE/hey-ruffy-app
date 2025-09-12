@@ -89,8 +89,8 @@ body,
   -webkit-tap-highlight-color: transparent;
   text-align: center;
   overscroll-behavior: none;
-  overflow: hidden;
-  touch-action: none;
+  overflow: auto;
+  touch-action: pan-y;
   background-color:#f9f9f9
 }
 
