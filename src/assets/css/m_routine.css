@@ -1,4 +1,5 @@
 #main_body .date_scroll,
+#main_body .routine_total,
 #main_body .routine_total .total_area .date,
 #main_body .routine_total .total_area .term button,
 #main_body .routine_total .total_area .r_state a {
@@ -102,6 +103,11 @@
   font-weight:bold!important;
   border:none!important;
   background-color:#3db4ff!important
+}
+
+
+#main_body .routine_total {
+  background-color:#fff
 }
 
 #main_body .routine_total .total_area {
