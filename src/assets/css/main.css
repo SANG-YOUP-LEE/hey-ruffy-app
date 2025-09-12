@@ -172,6 +172,8 @@
   -webkit-overflow-scrolling: touch!important;
   touch-action: pan-y !important;
   min-height: 0;
+  transform: translateZ(0); 
+  will-change: transform;
 }
 
 @supports (-webkit-touch-callout: none) {
