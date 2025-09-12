@@ -145,44 +145,54 @@ function clampByDateRange(ms, def, tz) {
   return true;
 }
 
-// ── DAILY: 시작일(없으면 오늘)을 anchor로 N일 간격 정렬 ───────────────
+// ── DAILY: 시작일(없으면 오늘)을 anchor로 N일 간격 정렬 + 오늘 미래면 포함 ─────────
 function buildDaily(def, nowMs, untilMs, tz) {
-  const hour = toInt(def?.hour ?? def?.alarm?.hour);
+  const hour   = toInt(def?.hour ?? def?.alarm?.hour);
   const minute = toInt(def?.minute ?? def?.alarm?.minute);
   if (!Number.isFinite(hour) || !Number.isFinite(minute)) return [];
 
-  const stepDays = Math.max(
-    1,
-    toInt(def?.intervalDays ?? def?.repeatEveryDays ?? def?.interval) ?? 1
-  );
+  // N일 간격 (최소 1일)
+  const stepDaysRaw =
+    toInt(def?.intervalDays ?? def?.repeatEveryDays ?? def?.interval) ?? 1;
+  const stepDays = Math.max(1, stepDaysRaw);
 
-  // anchor = startDate(있으면) 아니면 오늘 날짜 00:00
-  const anchorYMD = parseYMD(def?.startDate);
-  const anchorStartMs = anchorYMD
+  // anchor = startDate(있으면)의 00:00, 없으면 오늘 00:00
+  const today0      = startOfDayMs(nowMs, tz);
+  const anchorYMD   = parseYMD(def?.startDate);
+  const anchorStart = anchorYMD
     ? wallTimeToUtcMs(anchorYMD.y, anchorYMD.m, anchorYMD.d, 0, 0, tz)
-    : startOfDayMs(nowMs, tz);
+    : today0;
 
-  // 오늘 00:00
-  const today0 = startOfDayMs(nowMs, tz);
+  // anchor에서 오늘까지 지난 "일수"
+  const deltaDaysFromAnchor = Math.floor((today0 - anchorStart) / DAY_MS);
 
-  // anchor에서 stepDays 간격으로 진행할 때, 오늘 이후 첫번째 주기를 구함
-  const deltaDaysFromAnchor = Math.floor((today0 - anchorStartMs) / DAY_MS);
-  const k = deltaDaysFromAnchor <= 0
-    ? 0
-    : Math.ceil(deltaDaysFromAnchor / stepDays); // 오늘에 가장 근접한 배수
-  let cursorDay0 = addDays(anchorStartMs, k * stepDays, tz);
+  // 오늘 이후 첫 번째 사이클 index k 계산
+  //  - 오늘이 정확히 사이클 위면(today0가 배수면) k가 오늘을 가리킴
+  //  - 오늘이 사이클 사이면 "다음" 배수로 올림
+  const k =
+    deltaDaysFromAnchor <= 0
+      ? 0
+      : Math.ceil(deltaDaysFromAnchor / stepDays);
+
+  // 첫 후보일(00:00)
+  let cursorDay0 = addDays(anchorStart, k * stepDays, tz);
 
   const out = [];
   while (cursorDay0 <= untilMs) {
     const { y, m, d } = ymdOf(cursorDay0, tz);
     const cand = wallTimeToUtcMs(y, m, d, hour, minute, tz);
+
+    // cand가 "현재(now) 이후 ~ horizon 이내"이고, 시작/종료일 범위(clamp)에 들면 채택
     if (cand >= nowMs && cand <= untilMs && clampByDateRange(cand, def, tz)) {
       out.push(cand);
     }
+
+    // 다음 주기
     cursorDay0 = addDays(cursorDay0, stepDays, tz);
   }
   return out;
 }
+
 
 // ── WEEKLY: anchor(없으면 오늘)를 기준으로 intervalWeeks 적용 ────────
 function buildWeekly(def, nowMs, untilMs, tz) {
