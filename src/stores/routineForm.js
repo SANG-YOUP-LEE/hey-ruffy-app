@@ -1,15 +1,10 @@
 // src/stores/routineForm.js
-// go
+// src/stores/routineForm.js
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
-
-// ⬇️ 추가: iOS 브리지 & 투사 유틸
-import iosBridge from '@/utils/iosNotify'
-import { projectInstances } from '@/utils/projection'
-const { waitBridgeReady, cancelOnIOS, scheduleOnIOS, scheduleWeekly } = iosBridge
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
@@ -20,7 +15,7 @@ const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
 const weeklyDaysToICS = arr => (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean)
 const parseInterval = s => { const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
 const safeISOFromDateObj = obj => { const s = toISO(obj); return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null }
-const getBaseId = (id) => `routine-${String(id || '').split('-')[0]}`
+const getBaseId = (id) => String(id || '').split('-')[0]
 const normalizeCardSkinStrict = (v) => { const m = String(v || '').match(/(\d{1,2})/); const n = m && m[1] ? m[1].padStart(2,'0') : '01'; return `option${n}` }
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const deepClean = (v) => { if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean); if (v && typeof v === 'object') { const r = {}; Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) }); return r } return v }
@@ -55,17 +50,6 @@ function deriveRepeatDailyFromRoutine(r) {
     if (Number.isFinite(n)) return clampDaily(n)
   }
   return null
-}
-
-// 오늘 날짜(Asia/Seoul)의 HH:mm을 epoch(ms)로 계산
-function todayMsAt(hh, mm) {
-  const now = new Date()
-  // KST 고정: 로컬이 다른 타임존이어도 의도한 KST 벽시각으로 맞춤
-  const pad = (n)=>String(n).padStart(2,'0')
-  const ymdKst = todayISO() // 'YYYY-MM-DD' in KST
-  const ts = `${ymdKst}T${pad(hh)}:${pad(mm)}:00+09:00`
-  const ms = new Date(ts).getTime()
-  return Number.isFinite(ms) ? ms : null
 }
 
 export const useRoutineFormStore = defineStore('routineForm', {
@@ -245,7 +229,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatWeekDays = a
       this.weeklyDaily = isAllKoreanWeekdays(a)
     },
-
+      
     validate() {
       this.clearErrors()
       if (!this.title || String(this.title).trim() === '') {
@@ -300,22 +284,17 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.isSaving = true
       try {
         if (!this.validate()) return { ok:false }
-
         const auth = useAuthStore()
         await auth.ensureReady()
         const uid = auth.user?.uid
         if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
-
-        // Firestore 저장용 alarmTime 정규화
         const basePayload = this.payload
-        const hm = parseHM(this.alarmTime || basePayload.alarmTime)
-        const normalizedAlarm = hm ? `${p(hm.hour)}:${p(hm.minute)}` : null
+        const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
+        const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
         const payload = { ...basePayload, alarmTime: normalizedAlarm }
-
-        // 저장
         let res
         if (this.mode === 'edit' && this.routineId) {
-          const rid = String(this.routineId).split('-')[0]
+          const rid = getBaseId(this.routineId)
           await setDoc(
             doc(db, 'users', uid, 'routines', rid),
             { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
@@ -328,192 +307,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
           const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
           res = { ok:true, id: docRef.id, data: payload }
         }
-
-        // =============== 스케줄 등록 ===============
-        try {
-          if (!hm || !res?.id) return res
-          await waitBridgeReady()
-
-          const routineId = res.id
-          const baseId = getBaseId(res.id)
-          const title = this.title || payload.title || '알림'
-          const tz = this.tz || 'Asia/Seoul'
-          const hour = hm.hour
-          const minute = hm.minute
-
-          // 기존 모두 purge
-          await cancelOnIOS(baseId)
-
-          const type = payload.repeatType
-          const startISO = safeISOFromDateObj(payload.startDate) || payload.start || todayISO()
-          const endISO   = safeISOFromDateObj(payload.endDate)   || payload.end   || undefined
-          const now = Date.now()
-          const GRACE_MS = 5000
-
-          if (type === 'daily') {
-            const n = Number(payload.repeatEveryDays || 0)
-
-            // 오늘만(once)
-            if (n === 0) {
-              const atMs = todayMsAt(hour, minute) // startISO와 무관하게 '오늘' 기준
-              if (atMs && atMs > (now + GRACE_MS)) {
-                await scheduleOnIOS({
-                  routineId,
-                  title,
-                  repeatMode: 'once',
-                  fireTimesEpoch: [Math.floor(atMs / 1000)],
-                  sound: 'ruffysound001.wav'
-                })
-              }
-              return res
-            }
-
-            // 매일(=1)
-            if (n === 1) {
-              if (!endISO) {
-                // 종료일 없으면 네이티브 주간 반복(월~일)
-                await scheduleWeekly(baseId, hour, minute, [1,2,3,4,5,6,7], title)
-                return res
-              }
-              // 종료일 있으면 14일치 one-shot
-              const projDef = {
-                repeatMode: 'weekly',
-                mode: 'weekly',
-                hour, minute,
-                intervalWeeks: 1,
-                weekdays: [1,2,3,4,5,6,7],
-                startDate: startISO,
-                endDate: endISO,
-                alarm: { hour, minute }
-              }
-              let epochsMs = projectInstances(projDef, now, tz, 14) || []
-              // 오늘 시간이 미래면 오늘 one-shot 보강
-              const todayMs = todayMsAt(hour, minute)
-              if (todayMs && todayMs > (now + GRACE_MS)) {
-                if (!epochsMs.some(ms => Math.abs(ms - todayMs) < 1000)) {
-                  epochsMs = [todayMs, ...epochsMs].sort((a,b)=>a-b)
-                }
-              }
-              if (epochsMs.length) {
-                await scheduleOnIOS({
-                  routineId, title, repeatMode: 'once',
-                  fireTimesEpoch: epochsMs.map(ms => Math.floor(ms/1000)),
-                  sound: 'ruffysound001.wav'
-                })
-              }
-              return res
-            }
-
-            // N일마다(≥2) → 14일치 one-shot + (오늘 시각이 미래면 오늘 보강)
-            if (n >= 2) {
-              const projDef = {
-                repeatMode: 'daily',
-                mode: 'daily',
-                hour, minute,
-                intervalDays: n,
-                startDate: startISO,
-                endDate: endISO,
-                alarm: { hour, minute }
-              }
-              let epochsMs = projectInstances(projDef, now, tz, 14) || []
-
-              // 오늘 시각이 미래면 오늘 보강 (투사 누락 대비)
-              const todayMs = todayMsAt(hour, minute)
-              if (todayMs && todayMs > (now + GRACE_MS)) {
-                if (!epochsMs.some(ms => Math.abs(ms - todayMs) < 1000)) {
-                  epochsMs = [todayMs, ...epochsMs].sort((a,b)=>a-b)
-                }
-              }
-
-              if (epochsMs.length) {
-                await scheduleOnIOS({
-                  routineId, title, repeatMode: 'once',
-                  fireTimesEpoch: epochsMs.map(ms => Math.floor(ms/1000)),
-                  sound: 'ruffysound001.wav'
-                })
-              }
-              return res
-            }
-          }
-
-          if (type === 'weekly') {
-            const m = String(payload.repeatWeeks || '').match(/(\d+)/)
-            const intervalW = m ? Math.max(1, parseInt(m[1],10)) : 1
-            const days = Array.isArray(payload.repeatWeekDays) ? payload.repeatWeekDays.slice() : []
-
-            if (intervalW === 1 && !endISO && days.length) {
-              await scheduleWeekly(baseId, hour, minute, days, title)
-              return res
-            }
-
-            const projDef = {
-              repeatMode: 'weekly',
-              mode: 'weekly',
-              hour, minute,
-              intervalWeeks: intervalW,
-              weekdays: days,
-              startDate: startISO,
-              endDate: endISO,
-              alarm: { hour, minute }
-            }
-            let epochsMs = projectInstances(projDef, now, tz, 14) || []
-
-            // 오늘 보강
-            const todayMs = todayMsAt(hour, minute)
-            const dow = (() => new Date().getDay() || 7)() // 1~7
-            if (todayMs && todayMs > (now + GRACE_MS) && days.includes(dow)) {
-              if (!epochsMs.some(ms => Math.abs(ms - todayMs) < 1000)) {
-                epochsMs = [todayMs, ...epochsMs].sort((a,b)=>a-b)
-              }
-            }
-
-            if (epochsMs.length) {
-              await scheduleOnIOS({
-                routineId, title, repeatMode: 'once',
-                fireTimesEpoch: epochsMs.map(ms => Math.floor(ms/1000)),
-                sound: 'ruffysound001.wav'
-              })
-            }
-            return res
-          }
-
-          if (type === 'monthly') {
-            const projDef = {
-              repeatMode: 'monthly',
-              mode: 'monthly',
-              hour, minute,
-              byMonthDay: Array.isArray(payload.repeatMonthDays) ? payload.repeatMonthDays : [],
-              startDate: startISO,
-              endDate: endISO,
-              alarm: { hour, minute }
-            }
-            let epochsMs = projectInstances(projDef, now, tz, 14) || []
-
-            // 오늘 보강 (오늘 날짜가 byMonthDay에 있고 시각이 미래면)
-            const todayMs = todayMsAt(hour, minute)
-            const today = new Date()
-            const dom = today.getDate()
-            const doms = Array.isArray(payload.repeatMonthDays) ? payload.repeatMonthDays : []
-            if (todayMs && todayMs > (now + GRACE_MS) && doms.includes(dom)) {
-              if (!epochsMs.some(ms => Math.abs(ms - todayMs) < 1000)) {
-                epochsMs = [todayMs, ...epochsMs].sort((a,b)=>a-b)
-              }
-            }
-
-            if (epochsMs.length) {
-              await scheduleOnIOS({
-                routineId, title, repeatMode: 'once',
-                fireTimesEpoch: epochsMs.map(ms => Math.floor(ms/1000)),
-                sound: 'ruffysound001.wav'
-              })
-            }
-            return res
-          }
-        } catch (e) {
-          console.warn('[routineForm.save] schedule error', e)
-        }
-        // ===========================================
-
         return res
       } catch (e) {
         return { ok:false, error: String(e && e.message ? e.message : e) }
