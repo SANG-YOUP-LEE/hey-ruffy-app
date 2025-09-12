@@ -83,7 +83,6 @@
   margin-left: 0.5rem;
 }
 
-
 #header .center p {
   width:100%;
   margin-top:0.5rem;
@@ -155,6 +154,7 @@
   display: flex;
   flex-direction: column;
   overflow:hidden;
+  min-height: 0;
 }
 
 .main_fixed {
@@ -166,6 +166,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch!important;
   touch-action: pan-y !important;
+  min-height: 0;
 }
 
 @supports (-webkit-touch-callout: none) {
@@ -222,7 +223,6 @@ button.graph {
 button.control {
   background: url('../images/ico_shop.png') no-repeat 0 0/100%;
 }
-
 
 .sp_overlay {
   position:fixed;
