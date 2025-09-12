@@ -486,7 +486,6 @@ export default {
   purgeAllForBase,
   cancelOnIOS,
   dumpPending,
-  dumpPendingOnIOS,
   debugPingOnIOS,
   purgeBase,
   purgeBases,

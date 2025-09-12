@@ -23,8 +23,7 @@ import { db } from "@/firebase";
 import { useAuthStore } from "@/stores/auth";
 import { App as CapApp } from "@capacitor/app";
 
-import iosBridge from "@/utils/iosNotify";
-const { dumpPending: dumpPendingOnIOS } = iosBridge;
+import { dumpPending as dumpPendingOnIOS } from "@/utils/iosNotify";
 
 // --- 부팅 에러 훅(필수 아님, 안정성 위해 최소만 유지) ---
 window.addEventListener("error", e => {
