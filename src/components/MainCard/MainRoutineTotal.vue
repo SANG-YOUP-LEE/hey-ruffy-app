@@ -39,7 +39,7 @@
     </div>
   </div>
 
-    <div class="today_tools">
+  <div class="today_tools">
     <div class="today">
       <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
       <em>{{ periodTitle }}</em>
@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const emit = defineEmits(['update:modelValue','requestPrev','requestNext','changeView','changePeriod','toggleDeleteMode'])
@@ -122,16 +122,20 @@ function selectState(key){
   emit('update:modelValue', key)
 }
 function resetToDefault(){
-  currentFilter.value = DEFAULT_FILTER
-  emit('update:modelValue', DEFAULT_FILTER)
+  if (currentFilter.value !== DEFAULT_FILTER) {
+    currentFilter.value = DEFAULT_FILTER
+    emit('update:modelValue', DEFAULT_FILTER)
+  }
 }
 
+onMounted(() => { resetToDefault() })
 watch(() => props.selectedDate && props.selectedDate.getTime(), () => { resetToDefault() })
+watch(() => props.periodMode, () => { resetToDefault() })
 
 const centerText = computed(() => {
   if (currentFilter.value === 'checked') return '체크완료'
   if (currentFilter.value === 'notdone') return '체크전'
-  if (currentFilter.value === 'done') return '달성성공'
+  if (currentFilter.value === 'done') return '달성완료'
   if (currentFilter.value === 'faildone') return '달성실패'
   if (currentFilter.value === 'ignored') return '흐린눈'
   return ''
@@ -145,7 +149,11 @@ const percentText = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
   if (total <= 0) return '0%'
   const c = displayCounts.value || {}
-  if (currentFilter.value === 'checked') return ''
+  if (currentFilter.value === 'checked') {
+    const checked = (c.done || 0) + (c.faildone || 0) + (c.ignored || 0)
+    const pct = Math.min(100, Math.max(0, Math.round((checked / total) * 100)))
+    return `${pct}%`
+  }
   const map = {
     notdone: Math.round(((c.notdone || 0) / total) * 100),
     done: Math.round(((c.done || 0) / total) * 100),
@@ -204,4 +212,5 @@ function getFace(n){
   return images[`/src/assets/images/${ruffyBase.value}_face${n}.png`]
 }
 </script>
+
 
