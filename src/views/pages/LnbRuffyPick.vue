@@ -1,4 +1,3 @@
-<!-- src/views/pages/LnbRuffyPick.vue -->
 <template>
   <div class="page ruffy-pick">
     <header class="page_hd">
@@ -20,10 +19,21 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { db } from '@/firebase'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+
 const a = useAuthStore()
 const router = useRouter()
-function pick(opt){
-  a.$patch({ profile: { ...(a.profile||{}), selectedRuffy: opt } })
+
+async function pick(opt){
+  const uid = a.user?.uid
+  if (uid) {
+    await setDoc(doc(db, 'users', uid), {
+      selectedRuffy: opt,
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+    await a.refreshProfile()
+  }
   router.back()
 }
 </script>
