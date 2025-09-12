@@ -141,6 +141,11 @@
   flex: 0 0 1.8rem;
 }
 
+#main_wrap, 
+#main_body { 
+  touch-action: pan-y !important; 
+}
+
 @supports (-webkit-touch-callout: none) {
   .main_scroll { overflow-y: scroll!important }
 }
