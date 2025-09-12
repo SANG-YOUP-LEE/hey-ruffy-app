@@ -16,7 +16,7 @@ const routes = [
   { path: "/main", name: "main", component: MainView },
   { path: "/add-routine", name: "addRoutine", component: AddRoutineSelector },
   { path: "/lnb", name: "lnbMain", component: Lnb },
-  { path: "/pages", name: "RuffyPick", component: () => import("@/views/pages/LnbRuffyPick.vue") }
+  { path: "/pages/ruffy-pick", name: "LnbRuffyPick", component: () => import("@/views/pages/LnbRuffyPick.vue") }
 ]
 
 const isNative = Capacitor?.isNativePlatform?.() || !!window.Capacitor
