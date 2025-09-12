@@ -164,6 +164,7 @@
 
 #main_body .routine_total .total_area .term {
   width:4rem;
+  background-color:red;
 }
 
 #main_body .routine_total .total_area .term button {
@@ -174,7 +175,7 @@
   font-weight:900;
   background-color:#fff;
   border-radius: 1rem;
-  width:2rem;
+  width:4rem;
   text-align:center;
   margin-bottom:0.3rem;
 }
