@@ -148,9 +148,9 @@ function selectState(key){
 }
 
 const centerText = computed(() => {
-  if (selectedRadio.value === 'notdone') return '오늘의 다짐'
-  if (selectedRadio.value === 'done') return '달성 성공'
-  if (selectedRadio.value === 'faildone') return '달성 실패'
+  if (selectedRadio.value === 'notdone') return '체크완료'
+  if (selectedRadio.value === 'done') return '달성성공'
+  if (selectedRadio.value === 'faildone') return '달성실패'
   if (selectedRadio.value === 'ignored') return '흐린눈'
   return ''
 })
