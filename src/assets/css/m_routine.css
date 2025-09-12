@@ -107,6 +107,8 @@
 
 
 #main_body .routine_total {
+  border-radius:1.5rem;
+  padding:1rem 0.5rem 1rem 0.5rem;
   background-color:#fff
 }
 
@@ -122,9 +124,10 @@
 #main_body .routine_total .total_area .date {
   width:26%;
   height:100%;
+  /*
   border-radius:1.5rem;
   background-color:#fff;
-  color:#333;
+  color:#333;*/
   font-family:Pretendard;
   text-align:center;
   padding:0.8rem 0rem 0.8rem 0rem;
