@@ -21,7 +21,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 
-const emit = defineEmits(['selectDate'])
+const emit = defineEmits(['selectDate', 'reset-graph'])
 defineProps({ selectedDate: { type: Date, required: true } })
 
 const pastDays = 30
@@ -76,12 +76,14 @@ const ensureVisible = (idx) => {
 }
 
 const selectToday = () => {
+  emit('reset-graph')
   activeIndex.value = null
   emitSelection(today)
   ensureVisible(pastDays)
 }
 
 const selectFromScroll = (date, i) => {
+  emit('reset-graph')
   activeIndex.value = i
   emitSelection(date)
   ensureVisible(i)
