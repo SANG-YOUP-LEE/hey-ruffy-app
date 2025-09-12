@@ -39,7 +39,7 @@
     </div>
   </div>
 
-  <div class="today_tools">
+    <div class="today_tools">
     <div class="today">
       <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
       <em>{{ periodTitle }}</em>
@@ -71,7 +71,7 @@ const props = defineProps({
   deleteMode: { type: Boolean, default: false }
 })
 
-const DEFAULT_FILTER = 'notdone'
+const DEFAULT_FILTER = 'checked'
 
 const localView = ref(props.viewMode || 'card')
 const localDelete = ref(!!props.deleteMode)
@@ -129,6 +129,7 @@ function resetToDefault(){
 watch(() => props.selectedDate && props.selectedDate.getTime(), () => { resetToDefault() })
 
 const centerText = computed(() => {
+  if (currentFilter.value === 'checked') return '체크완료'
   if (currentFilter.value === 'notdone') return '체크전'
   if (currentFilter.value === 'done') return '달성성공'
   if (currentFilter.value === 'faildone') return '달성실패'
@@ -144,6 +145,7 @@ const percentText = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
   if (total <= 0) return '0%'
   const c = displayCounts.value || {}
+  if (currentFilter.value === 'checked') return ''
   const map = {
     notdone: Math.round(((c.notdone || 0) / total) * 100),
     done: Math.round(((c.done || 0) / total) * 100),
@@ -161,6 +163,17 @@ const graphData = computed(() => {
   const done = Math.max(0, Number(c.done) || 0)
   const fail = Math.max(0, Number(c.faildone) || 0)
   const ign  = Math.max(0, Number(c.ignored) || 0)
+  if (currentFilter.value === 'checked') {
+    const pDone = Math.min(100, +((done / total) * 100).toFixed(2))
+    const pFail = Math.min(100, +((fail / total) * 100).toFixed(2))
+    const pIgn  = Math.min(100, +((ign  / total) * 100).toFixed(2))
+    let offset = 0
+    const segs = []
+    if (pDone > 0) { segs.push({ pct: pDone, offset, cls: 'seg-done' }); offset += pDone }
+    if (pFail > 0) { segs.push({ pct: pFail, offset, cls: 'seg-fail' }); offset += pFail }
+    if (pIgn  > 0) { segs.push({ pct: pIgn,  offset, cls: 'seg-ign'  }); offset += pIgn  }
+    return segs
+  }
   if (currentFilter.value === 'notdone') {
     const pct = Math.min(100, +(((c.notdone || 0) / total) * 100).toFixed(2))
     return pct > 0 ? [{ pct, offset: 0, cls: 'seg-not' }] : []
@@ -191,3 +204,4 @@ function getFace(n){
   return images[`/src/assets/images/${ruffyBase.value}_face${n}.png`]
 }
 </script>
+
