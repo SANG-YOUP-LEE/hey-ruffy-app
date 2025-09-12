@@ -150,7 +150,7 @@
   flex-grow: 1;
   -webkit-overflow-scrolling: touch;
   padding: 0.5rem 1.5rem 0.5rem 1.5rem;
-  padding-bottom: calc(1.5rem + 5rem + var(--sab));
+  padding-bottom: calc(1.5rem + 10rem + var(--sab));
   flex: 1;
   display: flex;
   flex-direction: column;
