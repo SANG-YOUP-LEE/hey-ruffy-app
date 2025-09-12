@@ -7,15 +7,16 @@
 
     <div id="main_body">
       <div class="main_fixed" v-if="hasFetched && rStore.items?.length">
-        <MainDateScroll v-if="!scrolledRef" :selectedDate="selectedDate" @selectDate="nav.selectDate" />
+        <MainDateScroll v-if="!scrolledRef" :selectedDate="selectedDate" @selectDate="onSelectDate" />
         <MainRoutineTotal
+          :key="rtResetKey"
           :isFuture="isFutureDate" :selectedDate="selectedDate"
           v-model:modelValue="rStore.selectedFilter"
           :counts="mv.headerCounts" :totalCount="mv.headerTotal"
           :viewMode="selectedView" :periodMode="rStore.selectedPeriod" :deleteMode="rStore.deleteMode"
-          @requestPrev="nav.navigate(-1)" @requestNext="nav.navigate(1)"
-          @changeView="nav.changeView" @changePeriod="nav.changePeriod" @toggleDeleteMode="handleToggleDeleteMode"
-        ></MainRoutineTotal>
+          @requestPrev="onRequestPrev" @requestNext="onRequestNext"
+          @changeView="nav.changeView" @changePeriod="onChangePeriod" @toggleDeleteMode="handleToggleDeleteMode"
+        />
       </div>
 
       <div class="main_scroll">
@@ -52,7 +53,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, nextTick, watchEffect, computed } from 'vue'
+import { onMounted, onBeforeUnmount, nextTick, watchEffect, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
@@ -96,6 +97,14 @@ const update = () => nextTick(updateScrollState)
 const { initBinding, disposeBinding, refreshBinding } = useRoutineBinding(rStore, mv, update)
 const { toggle: handleToggleDeleteMode } = useBulkDelete(rStore, mv)
 const nav = useMainNavigation(rStore, mv, { scrolledRef, headerShortRef, update })
+
+const rtResetKey = ref(0)
+const resetGraph = () => { rtResetKey.value++ }
+
+const onSelectDate = (date, isFuture, isToday) => { resetGraph(); nav.selectDate(date, isFuture, isToday) }
+const onRequestPrev = () => { resetGraph(); nav.navigate(-1) }
+const onRequestNext = () => { resetGraph(); nav.navigate(1) }
+const onChangePeriod = (mode) => { resetGraph(); nav.changePeriod(mode) }
 
 async function onSaved(rt){
   isAddRoutineOpen.value = false
