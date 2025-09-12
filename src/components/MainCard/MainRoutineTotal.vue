@@ -4,9 +4,9 @@
       <div class="date">
         <span class="y_m">{{ selectedDate.getFullYear() }}.{{ selectedDate.getMonth() + 1 }}</span>
         <p class="today">
-          <button class="prev" @click.prevent="$emit('requestPrev')"><span>{{ prevLabel }}</span></button>
+          <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
           <em>{{ selectedDate.getDate() }}</em>
-          <button class="next" @click.prevent="$emit('requestNext')"><span>{{ nextLabel }}</span></button>
+          <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
         </p>
       </div>
       <div class="term">
@@ -41,9 +41,9 @@
 
   <div class="today_tools">
     <div class="today">
-      <a href="#none" class="prev" @click.prevent="$emit('requestPrev')"><span>{{ prevLabel }}</span></a>
+      <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
       <em>{{ periodTitle }}</em>
-      <a href="#none" class="next" @click.prevent="$emit('requestNext')"><span>{{ nextLabel }}</span></a>
+      <a href="#none" class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></a>
     </div>
     <div class="tools">
       <a
@@ -116,6 +116,7 @@ function toggleDeleteMode() {
   emit('toggleDeleteMode', next)
 }
 function onChangePeriod(mode){
+  resetToDefault()
   if (localDelete.value) {
     localDelete.value = false
     emit('toggleDeleteMode', false)
@@ -136,6 +137,9 @@ function onChangeView(view){
     emit('toggleDeleteMode', false)
   }
 }
+
+const onClickPrev = () => { resetToDefault(); emit('requestPrev') }
+const onClickNext = () => { resetToDefault(); emit('requestNext') }
 
 const activeTool = computed(() => (localDelete.value ? 'delete' : localView.value))
 const displayCounts = computed(() => props.counts ?? { notdone:5, done:8, faildone:8, ignored:2 })
