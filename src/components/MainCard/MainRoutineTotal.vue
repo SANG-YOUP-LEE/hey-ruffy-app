@@ -154,6 +154,10 @@ function resetToDefault(){
   selectedRadio.value = null
 }
 
+watch(() => props.selectedDate && props.selectedDate.getTime(), () => {
+  resetToDefault()
+})
+
 const centerText = computed(() => {
   if (!selectedRadio.value) return '체크완료'
   if (selectedRadio.value === 'notdone') return '체크전'
