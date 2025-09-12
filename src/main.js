@@ -23,12 +23,8 @@ import { db } from "@/firebase";
 import { useAuthStore } from "@/stores/auth";
 import { App as CapApp } from "@capacitor/app";
 
-// ✅ iOS 네이티브 알림 브리지 (디버그만 사용: 예약은 scheduler.js 전담)
-import {
-  // scheduleOnIOS,   // 제거
-  // cancelOnIOS,     // 제거
-  dumpPendingOnIOS,
-} from "@/utils/iosNotify";
+import iosBridge from "@/utils/iosNotify";
+const { dumpPending: dumpPendingOnIOS } = iosBridge;
 
 // --- 부팅 에러 훅(필수 아님, 안정성 위해 최소만 유지) ---
 window.addEventListener("error", e => {
