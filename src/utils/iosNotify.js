@@ -1,6 +1,8 @@
 // src/utils/iosNotify.js
 const mh = () => window?.webkit?.messageHandlers?.notify;
 
+const log = (...args) => console.debug('[iosNotify]', ...args);
+
 export function isBridgeAvailable() {
   const handler = mh();
   return !!(handler && typeof handler.postMessage === 'function');
@@ -15,33 +17,27 @@ export async function waitBridgeReady(maxTries = 25, delayMs = 120) {
   return false;
 }
 
-const safePost = (payload) => {
+function safePost(payload) {
   try {
     const handler = mh();
-    if (!handler || typeof handler.postMessage !== 'function') {
-      console.warn('[iosNotify][NO_BRIDGE]', payload);
-      return;
-    }
-    console.log('[iosNotify][TX]', JSON.stringify(payload));
+    if (!handler || typeof handler.postMessage !== 'function') return;
     handler.postMessage(payload);
-  } catch (e) {
-    console.warn('[iosNotify][ERR]', e);
-  }
-};
+  } catch {}
+}
 
-const log = (...args) => console.debug('[iosNotify]', ...args);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+const DEFAULT_SOUND = 'ruffysound001.wav';
 
 const baseId = (rid) => `routine-${rid}`;
 const idDaily = (rid) => `${baseId(rid)}-daily`;
 const idOnce  = (rid, tsMs) => `${baseId(rid)}-once-${tsMs}`;
 
-const isYMD = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
-
 const toInt = (v) => {
-  if (typeof v === 'number' && Number.isFinite(v)) return Math.floor(v);
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.trunc(v);
   if (typeof v === 'string' && v.trim() !== '') {
     const n = Number(v);
-    if (Number.isFinite(n)) return Math.floor(n);
+    if (Number.isFinite(n)) return Math.trunc(n);
   }
   return undefined;
 };
@@ -69,7 +65,7 @@ function mapOneDayToken(d) {
 }
 
 function normalizeWeekdays(raw) {
-  if (!raw) return undefined;
+  if (!raw) return [];
   let arr = [];
   if (Array.isArray(raw)) {
     arr = raw.map(mapOneDayToken).filter(Boolean);
@@ -82,84 +78,9 @@ function normalizeWeekdays(raw) {
     const one = mapOneDayToken(raw);
     if (one) arr = [one];
   }
-  if (!arr.length) return undefined;
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
-function toICSList(nums) {
-  const map = {1:'SU',2:'MO',3:'TU',4:'WE',5:'TH',6:'FR',7:'SA'};
-  return Array.isArray(nums) ? nums.map(n => map[n]).filter(Boolean) : undefined;
-}
-
-function normalizeEpochs(raw) {
-  const list = Array.isArray(raw) ? raw : (raw == null ? [] : [raw]);
-  const now = Date.now();
-  const toMs = (v) => {
-    const n = Number(v);
-    if (!Number.isFinite(n)) return null;
-    return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000);
-  };
-  const uniq = new Set();
-  for (const v of list) {
-    const ms = toMs(v);
-    if (ms && ms > now) uniq.add(ms);
-  }
-  return Array.from(uniq).sort((a, b) => a - b);
-}
-
-function buildTodayTimestamp(hour, minute) {
-  const h = toInt(hour), m = toInt(minute);
-  if (h == null || m == null) return null;
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  const t = d.getTime();
-  return t > Date.now() ? t : null;
-}
-
-const DEFAULT_SOUND = 'ruffysound001.wav';
-
-function stripLinks(obj) {
-  if (!obj) return;
-  delete obj.link;
-  delete obj.url;
-  delete obj.deepLink;
-}
-
-// ───────────────────────────────────────────
-// Payload normalization (★ baseId/title 보존 추가)
-// ───────────────────────────────────────────
-function normalizeSchedulePayload(msg = {}) {
-  if (msg && msg.action === 'schedule') {
-    const out = { ...msg };
-    if (out.hour != null) out.hour = toInt(out.hour);
-    if (out.minute != null) out.minute = toInt(out.minute);
-    if (out.interval != null) out.interval = Math.max(1, toInt(out.interval) ?? 1);
-    if (out.intervalWeeks != null) out.intervalWeeks = Math.max(1, toInt(out.intervalWeeks) ?? 1);
-    if (!out.weekdays) out.weekdays = normalizeWeekdays(out.repeatWeekDays || out.weekday);
-    if (out.startDate && !isYMD(out.startDate)) delete out.startDate;
-    if (out.endDate && !isYMD(out.endDate)) delete out.endDate;
-    stripLinks(out);
-    out.sound = DEFAULT_SOUND;
-    return out;
-  }
-
-  const out = { action: 'schedule' };
-  out.id = msg.id || msg.baseId || 'inline';
-  out.repeatMode = msg.repeatMode || msg.repeatType || 'once';
-  out.hour = toInt(msg.hour ?? msg?.alarm?.hour);
-  out.minute = toInt(msg.minute ?? msg?.alarm?.minute);
-
-  // ★ 여기 추가: purge 및 제목 유지에 필요
-  out.baseId = msg.baseId || (msg.routineId ? baseId(msg.routineId) : undefined);
-  out.title  = msg.title || msg.name || out.title;
-  out.name   = msg.name  || msg.title || out.name;
-
-  stripLinks(out);
-  out.sound = DEFAULT_SOUND;
-  return out;
-}
-
-// ─────────────── 3줄 알림 강제 포맷 ───────────────
 const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
 
 function ensureThreeLine(payload, src) {
@@ -167,7 +88,7 @@ function ensureThreeLine(payload, src) {
   const mode = String(modeSrc).toLowerCase();
   const label = mode.startsWith('weekly') ? 'Weekly'
               : mode.startsWith('monthly') ? 'Monthly'
-              : (mode === 'once' || mode === 'today') ? 'Daily'
+              : (mode === 'once' || mode === 'today') ? 'One-time'
               : 'Daily';
 
   const pick = (a,b,c,d) => a ?? b ?? c ?? d;
@@ -181,7 +102,6 @@ function ensureThreeLine(payload, src) {
     Number(payload?.minute), Number(payload?.alarm?.minute)
   );
 
-  // 문자열 alarmTime까지 파싱
   if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
     const str = src?.alarmTime || payload?.alarmTime;
     if (typeof str === 'string') {
@@ -200,7 +120,6 @@ function ensureThreeLine(payload, src) {
     }
   }
 
-  // timestamp(once)에서 추출
   if (!Number.isFinite(rawH) || !Number.isFinite(rawM)) {
     const ts = Number(src?.timestamp ?? payload?.timestamp);
     if (Number.isFinite(ts) && ts > 0) {
@@ -219,190 +138,93 @@ function ensureThreeLine(payload, src) {
 
   return {
     ...payload,
-    title: 'Hey Ruffy',
-    subtitle: routineTitle, // iOS가 가릴 수도 있으니 body에도 1줄 포함
-    body: `${routineTitle}\n[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
+    title: routineTitle,
+    subtitle: 'Hey Ruffy',
+    body: `[${hh}:${mm} · ${label}] 달성현황을 체크해주세요`,
   };
 }
 
-// ─────────────── purge race 방지 ───────────────
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 async function purgeThenSchedule(base, scheduleFn, delayMs = 200) {
-  safePost({ action: 'purgeBase', baseId: base });
-  await sleep(delayMs);
+  if (base) safePost({ action: 'purgeBase', baseId: base });
+  if (delayMs > 0) await sleep(delayMs);
   await scheduleFn();
 }
 
-// ─────────────── Public APIs ───────────────
-export async function scheduleOnIOS(msg) {
-  if (!(await waitBridgeReady())) { log('[iosNotify] scheduleOnIOS:NO_BRIDGE'); return; }
+const MAX_GLOBAL = 64;
+const MAX_PER_ROUTINE = 16;
 
-  const modeRaw = msg?.mode || msg?.repeatMode;
-  const mode = typeof modeRaw === 'string' ? modeRaw.toLowerCase() : '';
-  const isToday   = mode === 'today';
-  const isOnce    = mode === 'once';
-  const isDaily   = mode === 'daily';
-  const isWeekly  = mode.startsWith('weekly');
-  const isMonthly = mode.startsWith('monthly');
-  const rid = msg?.routineId || msg?.routineID || msg?.rid;
-
-  if (rid) {
-    const hour   = toInt(msg?.hour ?? msg?.alarm?.hour);
-    const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
-    const b = baseId(rid);
-
-    // ── ONCE / TODAY
-    if (isToday || isOnce) {
-      let tsMs;
-      const epochs = normalizeEpochs(msg?.fireTimesEpoch);
-      if (epochs && epochs.length) tsMs = epochs[0];
-      if (!tsMs) {
-        const t = buildTodayTimestamp(hour, minute);
-        if (t) tsMs = t;
-      }
-      if (!tsMs) return;
-
-      await purgeThenSchedule(b, async () => {
-        const payload = {
-          action: 'schedule',
-          id: idOnce(rid, tsMs),
-          repeatMode: 'once',
-          timestamp: Math.floor(tsMs / 1000),
-          sound: DEFAULT_SOUND,
-        };
-        const finalOnce = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'once' });
-        log('[iosNotify] scheduleOnIOS:REQ(once)', finalOnce);
-        safePost(finalOnce);
-      });
-      return;
-    }
-
-    // ── DAILY
-    if (isDaily) {
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-        log('[iosNotify] scheduleOnIOS:SKIP(daily, no time)');
-        return;
-      }
-      await purgeThenSchedule(b, async () => {
-        const payload = {
-          action: 'schedule',
-          id: idDaily(rid),
-          repeatMode: 'daily',
-          hour, minute,                   // top-level도 같이
-          alarm: { hour, minute },        // 호환용
-          sound: DEFAULT_SOUND,
-        };
-        const finalDaily = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'daily' });
-        log('[iosNotify] scheduleOnIOS:REQ(daily)', finalDaily);
-        safePost(finalDaily);
-      });
-      return;
-    }
-
-  
-// ── WEEKLY
-if (isWeekly) {
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
-    log('[iosNotify] scheduleOnIOS:SKIP(weekly, no time)');
-    return;
+function applyCaps(payloads, maxGlobal = MAX_GLOBAL, maxPerRoutine = MAX_PER_ROUTINE) {
+  const byBase = new Map();
+  const out = [];
+  for (const p of payloads) {
+    const b = p.baseId || '';
+    const cnt = byBase.get(b) || 0;
+    if (cnt >= maxPerRoutine) continue;
+    if (out.length >= maxGlobal) break;
+    out.push(p);
+    byBase.set(b, cnt + 1);
   }
+  return out;
+}
 
-  // 요일 소스: repeatWeekDays / weekdays / weekday → 숫자 1..7로 정규화
-  let weekdays =
-    Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
-    Array.isArray(msg?.weekdays)      ? msg.weekdays      :
-    (msg?.repeatWeekDays || msg?.weekday);
+async function commitSchedules(payloads) {
+  if (!(await waitBridgeReady())) return;
+  const sliced = applyCaps(payloads);
+  for (const p of sliced) safePost(ensureThreeLine(p, p));
+}
 
-  weekdays = normalizeWeekdays(weekdays) || [];
-  if (!weekdays.length) {
-    log('[iosNotify] scheduleOnIOS:SKIP(weekly, no weekdays)');
-    return;
-  }
+export async function scheduleWeekly(baseIdStr, hour, minute, days, title, body) {
+  const h = toInt(hour), m = toInt(minute);
+  if (!baseIdStr || !Number.isFinite(h) || !Number.isFinite(m)) return;
+  const weekdays = normalizeWeekdays(days);
+  if (!weekdays.length) return;
 
-  // 1) 단일 요일만 있을 때: 들어온 id 그대로 사용 (purge 금지)
-  if (weekdays.length === 1) {
-    const wd = weekdays[0];
-    const payload = {
-      action: 'schedule',
-      id: (msg?.id && String(msg.id).trim().length > 0)
-            ? String(msg.id)
-            : `${b}-w-${wd}__wd${wd}`,  // 안전망 id
-      baseId: b,
-      repeatMode: 'weekly',
-      hour, minute,
-      alarm: { hour, minute },   // 호환용
-      weekday: wd,               // 단일 요일
-      weekdays: [wd],            // 네이티브 호환
-      sound: DEFAULT_SOUND,
-      title: msg.title || msg.name,
-      name: msg.name || msg.title,
-    };
-    const finalWeekly1 = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [wd] });
-    log('[iosNotify] scheduleOnIOS:REQ(weekly-1day)', finalWeekly1);
-    safePost(finalWeekly1);
-    return;
-  }
+  const batch = weekdays.map(wd => ({
+    action: 'schedule',
+    id: `${baseIdStr}-w-${wd}__wd${wd}`,
+    baseId: baseIdStr,
+    repeatMode: 'weekly',
+    hour: h,
+    minute: m,
+    alarm: { hour: h, minute: m },
+    weekday: wd,
+    weekdays: [wd],
+    sound: DEFAULT_SOUND,
+    title,
+    name: title,
+    body
+  }));
 
-  // 2) 여러 요일: purge 한 번만 하고 요일별 서로 다른 id로 여러 건 등록
-  await purgeThenSchedule(b, async () => {
-    for (const wd of weekdays) {
-      const id = (msg?.id && String(msg.id).includes(`__wd${wd}`))
-        ? msg.id
-        : `${b}-w-${wd}__wd${wd}`;
-      const payload = {
-        action: 'schedule',
-        id,
-        baseId: b,
-        repeatMode: 'weekly',
-        hour, minute,
-        alarm: { hour, minute },
-        weekday: wd,
-        weekdays: [wd],
-        sound: DEFAULT_SOUND,
-        title: msg.title || msg.name,
-        name: msg.name || msg.title,
-      };
-      const finalW = ensureThreeLine(payload, { ...msg, hour, minute, repeatMode: 'weekly', weekdays: [wd] });
-      log('[iosNotify] scheduleOnIOS:REQ(weekly* per-day)', finalW);
-      safePost(finalW);
-    }
+  await purgeThenSchedule(baseIdStr, async () => {
+    await commitSchedules(batch);
   });
-  return;
 }
-  }
 
-  // ── Fallback: 정규화 후 그대로 전송 (가능하면 거의 타지 않도록 위에서 분기)
-  const unified = normalizeSchedulePayload(msg);
-  if (isToday || unified.repeatMode === 'today') {
-    unified.repeatMode = 'once';
-    if (!unified.timestamp) {
-      const ts = buildTodayTimestamp(unified.hour, unified.minute);
-      if (ts) unified.timestamp = Math.floor(ts / 1000);
-    }
-  }
-  if (unified.repeatMode === 'once' && unified.timestamp && unified.timestamp > 1e12) {
-    unified.timestamp = Math.floor(unified.timestamp / 1000);
-  }
-
-  // 시간 미존재 시는 스킵(9:00 강제 주입 금지)
-  if ((unified.repeatMode === 'daily' || unified.repeatMode?.startsWith('weekly') || unified.repeatMode?.startsWith('monthly'))
-      && (!Number.isFinite(unified.hour) || !Number.isFinite(unified.minute))) {
-    log('[iosNotify] scheduleOnIOS:SKIP(fallback, no time)');
-    return;
-  }
-
-  const finalPayload = ensureThreeLine(unified, unified);
-  if (finalPayload.baseId) {
-    await purgeThenSchedule(finalPayload.baseId, async () => {
-      log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
-      safePost(finalPayload);
-    });
-  } else {
-    log('[iosNotify] scheduleOnIOS:REQ(schedule)', finalPayload);
-    safePost(finalPayload);
-  }
+export async function scheduleOneShot(baseIdStr, tsMs, title, body) {
+  if (!baseIdStr || !tsMs) return;
+  const ms = Number(tsMs);
+  const id = `${baseIdStr}-once-${ms}`;
+  const payload = [{
+    action: 'schedule',
+    id,
+    baseId: baseIdStr,
+    repeatMode: 'once',
+    timestamp: Math.floor((ms >= 1e12 ? ms : ms * 1000) / 1000),
+    sound: DEFAULT_SOUND,
+    title,
+    name: title,
+    body
+  }];
+  await purgeThenSchedule(baseIdStr, async () => {
+    await commitSchedules(payload);
+  });
 }
- 
+
+export async function purgeAllForBase(baseIdStr) {
+  if (!(await waitBridgeReady())) return;
+  if (!baseIdStr) return;
+  safePost({ action: 'purgeBase', baseId: baseIdStr });
+}
 
 export async function cancelOnIOS(idOrBase) {
   if (!(await waitBridgeReady())) return;
@@ -410,6 +232,17 @@ export async function cancelOnIOS(idOrBase) {
   const raw = String(idOrBase);
   if (raw.startsWith('routine-')) safePost({ action: 'purgeBase', baseId: raw });
   else safePost({ action: 'cancel', id: raw });
+}
+
+export async function dumpPending(tag = 'manual', limit = 10) {
+  if (!(await waitBridgeReady())) return;
+  safePost({ action: 'dumpPending', tag, limit });
+}
+
+export async function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
+  if (!(await waitBridgeReady())) return;
+  const s = toInt(sec) ?? 20;
+  safePost({ action: 'debugPing', baseId: tag, seconds: s });
 }
 
 export function purgeBase(baseIdStr) {
@@ -426,52 +259,218 @@ export function purgeRoutineAll(rid) {
   safePost({ action: 'purgeBase', baseId: baseId(rid) });
 }
 
-export function scheduleDaily({ rid, hour, minute, title }) {
+export async function scheduleDaily({ rid, hour, minute, title }) {
   if (!rid) return;
   const h = toInt(hour), m = toInt(minute);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) {
-    log('[iosNotify] scheduleDaily:SKIP(no time)', { rid, hour, minute });
-    return;
-  }
-  const payload = {
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return;
+  const b = baseId(rid);
+  const payload = [{
     action: 'schedule',
     id: idDaily(rid),
+    baseId: b,
     repeatMode: 'daily',
-    hour: h,               // ✅ 추가: top-level 시간
-    minute: m,             // ✅ 추가: top-level 시간
+    hour: h,
+    minute: m,
     alarm: { hour: h, minute: m },
     sound: DEFAULT_SOUND,
-  };
-  const finalPayload = ensureThreeLine(payload, { title, hour: h, minute: m, repeatMode: 'daily' });
-  log('[iosNotify] scheduleDaily', finalPayload);
-  safePost(finalPayload);
+    title,
+    name: title,
+  }];
+  await purgeThenSchedule(b, async () => {
+    await commitSchedules(payload);
+  });
 }
 
-export function scheduleOnce({ rid, atMs, title }) {
+export async function scheduleOnce({ rid, atMs, title }) {
   if (!rid || !atMs) return;
+  const b = baseId(rid);
   const tsMs = Number(atMs);
-  const payload = {
+  const payload = [{
     action: 'schedule',
     id: idOnce(rid, tsMs),
+    baseId: b,
     repeatMode: 'once',
     timestamp: Math.floor(tsMs / 1000),
     sound: DEFAULT_SOUND,
-    baseId: baseId(rid),
     title,
-  };
-  const finalPayload = ensureThreeLine(payload, { title, repeatMode: 'once' });
-  log('[iosNotify] scheduleOnce', finalPayload);
-  safePost(finalPayload);
+    name: title,
+  }];
+  await purgeThenSchedule(b, async () => {
+    await commitSchedules(payload);
+  });
 }
 
-export async function debugPingOnIOS(sec = 20, tag = 'rt_ping') {
+export async function scheduleOnIOS(msg) {
   if (!(await waitBridgeReady())) return;
-  safePost({ action: 'debugPing', baseId: tag, seconds: toInt(sec) ?? 20 });
-}
 
-export async function dumpPendingOnIOS(tag = 'manual') {
-  if (!(await waitBridgeReady())) return;
-  safePost({ action: 'dumpPending', tag });
+  const modeRaw = msg?.mode || msg?.repeatMode;
+  const mode = typeof modeRaw === 'string' ? modeRaw.toLowerCase() : '';
+  const isToday   = mode === 'today';
+  const isOnce    = mode === 'once';
+  const isDaily   = mode === 'daily';
+  const isWeekly  = mode.startsWith('weekly');
+  const isMonthly = mode.startsWith('monthly');
+  const rid = msg?.routineId || msg?.routineID || msg?.rid;
+
+  if (rid) {
+    const hour   = toInt(msg?.hour ?? msg?.alarm?.hour);
+    const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
+    const b = baseId(rid);
+
+    if (isToday || isOnce) {
+      let tsMs;
+      const epochs = Array.isArray(msg?.fireTimesEpoch) ? msg.fireTimesEpoch : [];
+      const now = Date.now();
+      const toMs = (v) => {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return null;
+        return n >= 1e12 ? Math.floor(n) : Math.floor(n * 1000);
+      };
+      for (const v of epochs) {
+        const m = toMs(v);
+        if (m && m >= now) { tsMs = m; break; }
+      }
+      if (!tsMs && Number.isFinite(hour) && Number.isFinite(minute)) {
+        const d = new Date();
+        d.setHours(hour, minute, 0, 0);
+        const t = d.getTime();
+        if (t > now) tsMs = t;
+      }
+      if (!tsMs) return;
+
+      const payload = [{
+        action: 'schedule',
+        id: idOnce(rid, tsMs),
+        baseId: b,
+        repeatMode: 'once',
+        timestamp: Math.floor(tsMs / 1000),
+        sound: DEFAULT_SOUND,
+        title: msg.title || msg.name,
+        name: msg.name || msg.title,
+      }];
+
+      await purgeThenSchedule(b, async () => {
+        await commitSchedules(payload);
+      });
+      return;
+    }
+
+    if (isDaily) {
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return;
+      const payload = [{
+        action: 'schedule',
+        id: idDaily(rid),
+        baseId: b,
+        repeatMode: 'daily',
+        hour, minute,
+        alarm: { hour, minute },
+        sound: DEFAULT_SOUND,
+        title: msg.title || msg.name,
+        name: msg.name || msg.title,
+      }];
+      await purgeThenSchedule(b, async () => {
+        await commitSchedules(payload);
+      });
+      return;
+    }
+
+    if (isWeekly) {
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return;
+
+      let weekdays =
+        Array.isArray(msg?.repeatWeekDays) ? msg.repeatWeekDays :
+        Array.isArray(msg?.weekdays)      ? msg.weekdays      :
+        (msg?.repeatWeekDays || msg?.weekday);
+
+      weekdays = normalizeWeekdays(weekdays) || [];
+      if (!weekdays.length) return;
+
+      const batch = weekdays.map(wd => ({
+        action: 'schedule',
+        id: `${b}-w-${wd}__wd${wd}`,
+        baseId: b,
+        repeatMode: 'weekly',
+        hour, minute,
+        alarm: { hour, minute },
+        weekday: wd,
+        weekdays: [wd],
+        sound: DEFAULT_SOUND,
+        title: msg.title || msg.name,
+        name: msg.name || msg.title,
+      }));
+
+      await purgeThenSchedule(b, async () => {
+        await commitSchedules(batch);
+      });
+      return;
+    }
+
+    if (isMonthly) {
+      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return;
+      const days = Array.isArray(msg?.daysOfMonth) ? msg.daysOfMonth : (msg?.dayOfMonth != null ? [msg.dayOfMonth] : []);
+      const doms = days.map(toInt).filter(d => Number.isFinite(d) && d >= 1 && d <= 31);
+      if (!doms.length) return;
+
+      const batch = doms.map(dn => ({
+        action: 'schedule',
+        id: `${b}-m-${dn}`,
+        baseId: b,
+        repeatMode: 'monthly',
+        hour, minute,
+        alarm: { hour, minute },
+        monthDay: dn,
+        sound: DEFAULT_SOUND,
+        title: msg.title || msg.name,
+        name: msg.name || msg.title,
+      }));
+
+      await purgeThenSchedule(b, async () => {
+        await commitSchedules(batch);
+      });
+      return;
+    }
+  }
+
+  const out = [];
+  const unified = (() => {
+    const o = { action: 'schedule' };
+    o.id = msg.id || msg.baseId || 'inline';
+    o.repeatMode = msg.repeatMode || msg.repeatType || 'once';
+    o.hour = toInt(msg.hour ?? msg?.alarm?.hour);
+    o.minute = toInt(msg.minute ?? msg?.alarm?.minute);
+    o.baseId = msg.baseId || (msg.routineId ? baseId(msg.routineId) : undefined);
+    o.title  = msg.title || msg.name || o.title;
+    o.name   = msg.name  || msg.title || o.name;
+    o.sound = DEFAULT_SOUND;
+    return o;
+  })();
+
+  if (unified.repeatMode === 'today') {
+    unified.repeatMode = 'once';
+    if (!unified.timestamp) {
+      if (Number.isFinite(unified.hour) && Number.isFinite(unified.minute)) {
+        const d = new Date();
+        d.setHours(unified.hour, unified.minute, 0, 0);
+        const t = d.getTime();
+        if (t > Date.now()) unified.timestamp = Math.floor(t / 1000);
+      }
+    }
+  }
+  if (unified.repeatMode === 'once' && unified.timestamp && unified.timestamp > 1e12) {
+    unified.timestamp = Math.floor(unified.timestamp / 1000);
+  }
+  if ((unified.repeatMode === 'daily' || unified.repeatMode?.startsWith('weekly') || unified.repeatMode?.startsWith('monthly'))
+      && (!Number.isFinite(unified.hour) || !Number.isFinite(unified.minute))) {
+    return;
+  }
+  if (unified.baseId) {
+    out.push(unified);
+    await purgeThenSchedule(unified.baseId, async () => {
+      await commitSchedules(out);
+    });
+  } else {
+    await commitSchedules([unified]);
+  }
 }
 
 export function postIOS(payload) { safePost(payload); }
@@ -482,15 +481,18 @@ export const cancelRoutineAlerts   = cancelOnIOS;
 export default {
   isBridgeAvailable,
   waitBridgeReady,
-  scheduleOnIOS,
+  scheduleWeekly,
+  scheduleOneShot,
+  purgeAllForBase,
   cancelOnIOS,
+  dumpPending,
+  debugPingOnIOS,
   purgeBase,
   purgeBases,
   purgeRoutineAll,
   scheduleDaily,
   scheduleOnce,
-  debugPingOnIOS,
-  dumpPendingOnIOS,
+  scheduleOnIOS,
   postIOS,
   scheduleRoutineAlerts,
   cancelRoutineAlerts,
