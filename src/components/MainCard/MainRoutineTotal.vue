@@ -15,7 +15,7 @@
         <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
       </div>
       <div class="graph">
-        <div class="circle-wrap">
+        <div class="circle-wrap" @click="resetToDefault">
           <svg viewBox="0 0 36 36">
             <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
             <template v-for="(seg,i) in graphData" :key="i">
@@ -146,6 +146,9 @@ const selectedRadio = ref(null)
 function selectState(key){
   selectedRadio.value = (selectedRadio.value === key) ? null : key
 }
+function resetToDefault(){
+  selectedRadio.value = null
+}
 
 const centerText = computed(() => {
   if (!selectedRadio.value) return '체크완료'
@@ -191,24 +194,34 @@ const graphData = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
   if (total <= 0) return []
   const c = displayCounts.value || {}
+  const done = Math.max(0, Number(c.done) || 0)
+  const fail = Math.max(0, Number(c.faildone) || 0)
+  const ign  = Math.max(0, Number(c.ignored) || 0)
   if (!selectedRadio.value) {
-    const pct = Math.min(100, +(((c.done || 0) / total) * 100).toFixed(2))
-    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-done' }] : []
+    const pDone = Math.min(100, +(done / total * 100).toFixed(2))
+    const pFail = Math.min(100, +(fail / total * 100).toFixed(2))
+    const pIgn  = Math.min(100, +(ign  / total * 100).toFixed(2))
+    const segs = []
+    let acc = 0
+    if (pDone > 0) { segs.push({ pct: pDone, offset: acc, cls: 'seg-done' }); acc += pDone }
+    if (pFail > 0) { segs.push({ pct: pFail, offset: acc, cls: 'seg-fail' }); acc += pFail }
+    if (pIgn  > 0) { segs.push({ pct: pIgn,  offset: acc, cls: 'seg-ign'  }); acc += pIgn  }
+    return segs
   }
   if (selectedRadio.value === 'notdone') {
     const pct = Math.min(100, +(((c.notdone || 0) / total) * 100).toFixed(2))
     return pct > 0 ? [{ pct, offset: 0, cls: 'seg-not' }] : []
   }
   if (selectedRadio.value === 'done') {
-    const pct = Math.min(100, +(((c.done || 0) / total) * 100).toFixed(2))
+    const pct = Math.min(100, +((done / total) * 100).toFixed(2))
     return pct > 0 ? [{ pct, offset: 0, cls: 'seg-done' }] : []
   }
   if (selectedRadio.value === 'faildone') {
-    const pct = Math.min(100, +(((c.faildone || 0) / total) * 100).toFixed(2))
+    const pct = Math.min(100, +((fail / total) * 100).toFixed(2))
     return pct > 0 ? [{ pct, offset: 0, cls: 'seg-fail' }] : []
   }
   if (selectedRadio.value === 'ignored') {
-    const pct = Math.min(100, +(((c.ignored || 0) / total) * 100).toFixed(2))
+    const pct = Math.min(100, +((ign / total) * 100).toFixed(2))
     return pct > 0 ? [{ pct, offset: 0, cls: 'seg-ign' }] : []
   }
   return []
