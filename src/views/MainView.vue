@@ -18,16 +18,16 @@
           @changeView="nav.changeView" @changePeriod="onChangePeriod" @toggleDeleteMode="handleToggleDeleteMode"
         />
       </div>
-
+    
       <div class="main_scroll">
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
-        <div v-else-if="hasFetched && !mv.displayedRoutines?.length" class="no_data">
+        <div v-else-if="hasFetched && !filteredRoutines.length" class="no_data">
           <span v-if="!rStore.items?.length">아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?</span>
           <span v-else>해당 조건에 맞는 다짐이 없어요.</span>
         </div>
         <template v-else>
           <MainCard
-            v-for="rt in (mv.displayedRoutines||[])"
+            v-for="rt in filteredRoutines"
             :key="String(rt.id||'').split('-')[0]"
             :selected="rt?.status || 'notdone'" :routine="rt"
             :isToday="rStore.selectedPeriod==='T' && mv.startOfDay(rt?.assignedDate?new Date(rt.assignedDate):new Date()).getTime()===mv.startOfDay(new Date()).getTime()"
@@ -40,7 +40,7 @@
         </template>
       </div>
     </div>
-
+    
     <FooterView @refresh-main="refreshBinding" />
     <button @click="openRoutine()" class="add"><span>다짐 추가하기</span></button>
     <AddRoutineSelector
@@ -85,7 +85,6 @@ const modal = useModalStore()
 const { isLoading, hasFetched, isAddRoutineOpen, showLnb, selectedDate, isFutureDate, selectedView, editingRoutine } = storeToRefs(mv)
 
 const panelOpen = computed(() => showLnb.value || route.path === '/lnb')
-
 function closePanel(){
   showLnb.value = false
   if (route.path === '/lnb') router.replace('/main')
@@ -100,6 +99,11 @@ const nav = useMainNavigation(rStore, mv, { scrolledRef, headerShortRef, update 
 
 const rtResetKey = ref(0)
 const resetGraph = () => { rtResetKey.value++ }
+
+const filteredRoutines = computed(() => {
+  const f = rStore.selectedFilter || 'notdone'
+  return (mv.displayedRoutines || []).filter(rt => (rt?.status || 'notdone') === f)
+})
 
 const onSelectDate = (date, isFuture, isToday) => { resetGraph(); nav.selectDate(date, isFuture, isToday) }
 const onRequestPrev = () => { resetGraph(); nav.navigate(-1) }
@@ -150,3 +154,4 @@ watchEffect(async () => {
   }
 })
 </script>
+
