@@ -10,9 +10,9 @@
         </p>
       </div>
       <div class="term">
-        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>D</span></button>
-        <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>W</span></button>
-        <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>M</span></button>
+        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>Today</span></button>
+        <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>Weekly</span></button>
+        <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
       </div>
       <div class="graph">
         <div class="circle-wrap">
