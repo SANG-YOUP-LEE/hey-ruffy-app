@@ -128,7 +128,7 @@ async function logout() {
   }
 }
 
-// ✅ 여기만 변경: rStore.deleteAllRoutines() 호출
+// ✅ 모두 삭제: 스토어의 deleteAllRoutines()만 호출
 async function deleteAllRoutines() {
   const ok = await modal.confirm({
     title: '다짐 모두 삭제',
@@ -147,7 +147,6 @@ async function deleteAllRoutines() {
     cancelText: '',
   })
 
-  // LNB 닫고 메인으로
   emit('close')
   router.replace('/main')
 }
