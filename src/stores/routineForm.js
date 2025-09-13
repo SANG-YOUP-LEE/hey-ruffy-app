@@ -1,5 +1,4 @@
 // src/stores/routineForm.js
-// src/stores/routineForm.js
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
@@ -10,41 +9,112 @@ const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA',
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
 
-const p = n => String(n).padStart(2,'0')
-const toISO = d => (d ? `${d.year}-${p(d.month)}-${p(d.day)}` : null)
-const weeklyDaysToICS = arr => (arr||[]).map(k=>KOR_TO_ICS[String(k).replace(/['"]/g,'')]).filter(Boolean)
-const parseInterval = s => { const m=String(s||'').match(/(\d+)/); return m?+m[1]:1 }
-const safeISOFromDateObj = obj => { const s = toISO(obj); return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null }
+// ── 시간/날짜 유틸 ──────────────────────────────────────────
+const p2 = n => String(n).padStart(2,'0')
+const toISO = d => (d ? `${d.year}-${p2(d.month)}-${p2(d.day)}` : null)
+const todayParts = (tz='Asia/Seoul') => {
+  const now = new Date()
+  // 한국 기준 오늘(연-월-일) 추출
+  const fmt = new Intl.DateTimeFormat('en-CA',{ timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit'})
+  const [y,m,d] = fmt.format(now).split('-').map(v=>+v)
+  return { year:y, month:m, day:d }
+}
+const todayISO = (tz='Asia/Seoul') => {
+  const {year,month,day} = todayParts(tz)
+  return `${p2(year)}-${p2(month)}-${p2(day)}`
+}
+const safeISOFromDateObj = obj => {
+  const s = toISO(obj)
+  return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
+}
+const deepClean = (v) => {
+  if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean)
+  if (v && typeof v === 'object') {
+    const r = {}
+    Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) })
+    return r
+  }
+  return v
+}
+const sanitizeComment = (v) => {
+  if (v == null) return null
+  let s = String(v).replace(/[\u200B-\u200D\uFEFF]/g,'')
+  s = s.replace(/\r\n?/g,'\n').trim()
+  if (s.length === 0) return null
+  if (s.length > 200) s = s.slice(0,200)
+  return s
+}
+const normalizeCardSkinStrict = (v) => {
+  const m = String(v || '').match(/(\d{1,2})/)
+  const n = m && m[1] ? m[1].padStart(2,'0') : '01'
+  return `option${n}`
+}
 const getBaseId = (id) => String(id || '').split('-')[0]
-const normalizeCardSkinStrict = (v) => { const m = String(v || '').match(/(\d{1,2})/); const n = m && m[1] ? m[1].padStart(2,'0') : '01'; return `option${n}` }
-const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
-const deepClean = (v) => { if (Array.isArray(v)) return v.filter(x => x !== undefined).map(deepClean); if (v && typeof v === 'object') { const r = {}; Object.entries(v).forEach(([k,val]) => { if (val !== undefined) r[k] = deepClean(val) }); return r } return v }
-const sanitizeComment = (v) => { if (v == null) return null; let s = String(v).replace(/[\u200B-\u200D\uFEFF]/g,''); s = s.replace(/\r\n?/g,'\n').trim(); if (s.length === 0) return null; if (s.length > 200) s = s.slice(0,200); return s }
-const isAllKoreanWeekdays = (arr=[]) => { const need = ['월','화','수','목','금','토','일']; if (!Array.isArray(arr) || arr.length !== 7) return false; const set = new Set(arr.map(String)); return need.every(d => set.has(d)) }
-const daysKorToNum = (arr=[]) => (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
-const daysNumToKor = (arr=[]) => (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
+const isAllKoreanWeekdays = (arr=[]) => {
+  const need = ['월','화','수','목','금','토','일']
+  if (!Array.isArray(arr) || arr.length !== 7) return false
+  const set = new Set(arr.map(String))
+  return need.every(d => set.has(d))
+}
+const daysKorToNum = (arr=[]) =>
+  (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
+const daysNumToKor = (arr=[]) =>
+  (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
 
+// ── 시간 파서 (오전/오후, AM/PM, 다양한 구분자 지원) ─────────────────────
 const parseHM = (t) => {
   if (!t) return null
-  if (typeof t === 'string') {
-    const s = t.trim()
-    let m = s.match(/^(\d{1,2}):(\d{2})$/)
-    if (m) {
-      const h = Math.max(0, Math.min(23, +m[1]))
-      const mm = Math.max(0, Math.min(59, +m[2]))
-      return { hour: h, minute: mm }
+  // 객체형 {hour, minute, ampm?}
+  if (t && typeof t === 'object') {
+    let h = Number(t.hour), m = Number(t.minute)
+    const tag = String(t.ampm || '').trim()
+    if (Number.isFinite(h) && Number.isFinite(m)) {
+      if (/^오후$/i.test(tag) || /^PM$/i.test(tag)) { if (h < 12) h += 12 }
+      if (/^오전$/i.test(tag) || /^AM$/i.test(tag)) { if (h === 12) h = 0 }
+      h = Math.max(0, Math.min(23, h))
+      m = Math.max(0, Math.min(59, m))
+      return { hour:h, minute:m }
     }
-  } else if (typeof t === 'object') {
-    let h = +t.hour; const mm = +t.minute
-    if (Number.isFinite(h) && Number.isFinite(mm)) return { hour: h, minute: mm }
   }
+
+  // 문자열형
+  const s0 = String(t).trim()
+  if (!s0) return null
+
+  // 구분자 통일: 공백/점/가운뎃점 → 콜론
+  const s1 = s0
+    .replace(/[.\u00B7\s]+/g, ':')
+    .replace(/:+/g, ':')
+
+  // 양쪽에 오전/오후/AM/PM 붙는 형태 캡처
+  let m = s1.match(/^(?:\s*(오전|오후|AM|PM)\s*)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i)
+  if (m) {
+    let h = +m[2], mm = +m[3]
+    const tag = (m[1] || m[4] || '').toUpperCase()
+    if (tag === 'PM' || tag === '오후'.toUpperCase()) { if (h < 12) h += 12 }
+    if (tag === 'AM' || tag === '오전'.toUpperCase()) { if (h === 12) h = 0 }
+    h = Math.max(0, Math.min(23, h))
+    mm = Math.max(0, Math.min(59, mm))
+    return { hour:h, minute:mm }
+  }
+
+  // 순수 HH:mm
+  m = s1.match(/^(\d{1,2}):(\d{2})$/)
+  if (m) {
+    const h = Math.max(0, Math.min(23, +m[1]))
+    const mm = Math.max(0, Math.min(59, +m[2]))
+    return { hour:h, minute:mm }
+  }
+
   return null
 }
 
 const clampDaily = (n) => Math.max(0, Math.min(6, parseInt(n, 10) || 0))
 
 function deriveRepeatDailyFromRoutine(r) {
+  // 기존 값 우선
   if (Number.isInteger(r?.repeatDaily)) return clampDaily(r.repeatDaily)
+  // 혹시 저장이 repeatEveryDays만 되어 있는 경우 동기화
   if (r?.repeatEveryDays !== undefined && r.repeatEveryDays !== '') {
     const n = Number(r.repeatEveryDays)
     if (Number.isFinite(n)) return clampDaily(n)
@@ -57,15 +127,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
     mode: 'create',
     routineId: null,
     title: '',
-    repeatType: 'daily',
-    repeatDaily: null,
-    repeatWeeks: '',
-    repeatWeekDays: [],
-    weeklyDaily: false,
-    repeatMonthDays: [],
-    startDate: null,
-    endDate: null,
-    alarmTime: null,
+    repeatType: 'daily',       // 'daily' | 'weekly' | 'monthly'
+    repeatDaily: null,         // daily일 때: 0=오늘만, 1=매일, 2~6=N일마다
+    repeatWeeks: '',           // weekly 간격 문자열(예: '매주', '2주마다')
+    repeatWeekDays: [],        // ['월','수'] 등
+    weeklyDaily: false,        // 주간에서 "매일" 토글
+    repeatMonthDays: [],       // [29,30,31] 등
+    startDate: null,           // {year, month, day}
+    endDate: null,             // {year, month, day} | null
+    alarmTime: null,           // 'HH:mm' (저장 시 강제 표준화)
     isWalkModeOff: false,
     ruffy: null,
     course: null,
@@ -91,17 +161,32 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const validSkin  = !!normalizeCardSkinStrict(state.cardSkin)
       return validColor && validSkin
     },
+
+    // Firestore에 저장할 payload (표준형)
     payload(state) {
+      const tz = state.tz || 'Asia/Seoul'
+
+      // 시작/종료일 정규화
+      // 시작일이 비어있으면 "오늘" 채워 넣음(투데이 포함 로직을 위한 앵커)
       const hasStart = !!safeISOFromDateObj(state.startDate)
+      const startObj = hasStart ? state.startDate : todayParts(tz)
+      const startISO = safeISOFromDateObj(startObj) || todayISO(tz)
+
       const hasEnd = !!safeISOFromDateObj(state.endDate)
-      const anchorISO = hasStart ? safeISOFromDateObj(state.startDate) : todayISO()
+
       const normalizedType = state.repeatType
+
+      // daily: UI의 repeatDaily를 저장스키마 repeatEveryDays로 동기화
       const dailyInterval =
         normalizedType === 'daily'
           ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
           : null
+
+      // “오늘만(0)”이면 start=end로 강제
       const endForTodayOnly =
-        normalizedType === 'daily' && dailyInterval === 0 ? anchorISO : null
+        normalizedType === 'daily' && dailyInterval === 0 ? startISO : null
+
+      // 주간 요일 배열(사용자 선택 우선, 비었을 때만 weeklyDaily로 전체)
       const weeklyDaysNum =
         normalizedType === 'weekly'
           ? (() => {
@@ -112,31 +197,50 @@ export const useRoutineFormStore = defineStore('routineForm', {
               return useAll ? [1,2,3,4,5,6,7] : daysKorToNum(selectedKor)
             })()
           : []
+
+      // alarmTime은 저장 시점에 HH:mm으로 강제 정규화하지만,
+      // 여기서도 가능하면 한번 더 정규화 시도(파서 실패 시, 원문 유지; 최종 저장 시 한 번 더 강제)
+      const hmParsed = parseHM(state.alarmTime)
+      const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : (state.alarmTime || null)
+
       const cleaned = {
         title: state.title,
         repeatType: normalizedType,
         repeatDays: [],
+
+        // daily일 때의 간격 저장: 0=오늘만, 1=매일, 2~6=N일마다
         repeatEveryDays:
           normalizedType === 'daily'
             ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
             : null,
+
         repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
         repeatWeekDays: weeklyDaysNum,
         repeatMonthDays:
           normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
-        startDate: hasStart ? state.startDate : null,
-        endDate: endForTodayOnly ? { ...state.startDate } : (hasEnd ? state.endDate : null),
-        alarmTime: state.alarmTime,
+
+        // 시작일은 반드시 존재하도록(없으면 오늘)
+        startDate: startObj,
+        // 오늘만(0)이면 end=start, 아니면 사용자가 지정한 end만 저장
+        endDate: endForTodayOnly ? { ...startObj } : (hasEnd ? state.endDate : null),
+
+        alarmTime: normalizedAlarm,
+
+        // 걷기 부가 필드
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
         goalCount: state.isWalkModeOff ? null : state.goalCount,
+
         colorIndex: state.colorIndex,
         cardSkin: normalizeCardSkinStrict(state.cardSkin),
         comment: sanitizeComment(state.comment),
+
         hasWalk: this.hasWalk,
-        tz: state.tz,
-        start: anchorISO,
-        ...(endForTodayOnly ? { end: anchorISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
+        tz,
+
+        // 백엔드/스케줄러 호환용 앵커 문자열
+        start: startISO,
+        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
       }
       return deepClean(cleaned)
     }
@@ -201,6 +305,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.clearErrors()
     },
 
+    // 주간 요일 선택 시 "매일" 토글 자동 관리
+    setRepeatWeekDays(daysKor) {
+      const a = Array.isArray(daysKor) ? daysKor : []
+      this.repeatWeekDays = a
+      this.weeklyDaily = isAllKoreanWeekdays(a)
+    },
+
     toggleWalk(off) {
       this.isWalkModeOff = !!off
       if (this.isWalkModeOff) {
@@ -224,28 +335,35 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.goalCount = Number.isInteger(n) && n > 0 ? n : null
       const fe = { ...this.fieldErrors }; delete fe.goal; this.fieldErrors = fe
     },
-    setRepeatWeekDays(daysKor) {
-      const a = Array.isArray(daysKor) ? daysKor : []
-      this.repeatWeekDays = a
-      this.weeklyDaily = isAllKoreanWeekdays(a)
-    },
-      
+
+    // ── 입력 검증 ──────────────────────────────────────────
     validate() {
       this.clearErrors()
+
+      // 제목
       if (!this.title || String(this.title).trim() === '') {
         this.setError('title','다짐 제목을 입력해주세요.')
         return false
       }
+      // 반복 타입
       if (!this.repeatType) {
         this.setError('repeat','반복 주기를 선택해주세요.')
         return false
       }
+      // 알람시간 파싱 체크 (저장 시 강제 정규화되지만, UX 차원에서 미리 경고)
+      const hm = parseHM(this.alarmTime)
+      if (!hm) {
+        this.setError('alarm','알림 시간을 HH:mm 형식으로 입력해주세요.')
+        return false
+      }
+
       if (this.repeatType === 'daily') {
         if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
           this.setError('repeat','반복 주기를 선택해주세요.')
           return false
         }
       }
+
       if (this.repeatType === 'weekly') {
         const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
         if (!valid) {
@@ -253,6 +371,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
           return false
         }
       }
+
       if (this.repeatType === 'monthly') {
         if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
           this.setError('repeat','반복 주기를 선택해주세요.')
@@ -263,35 +382,57 @@ export const useRoutineFormStore = defineStore('routineForm', {
           return false
         }
       }
+
       if (!Number.isInteger(this.colorIndex)) {
         this.setError('priority','다짐 색상을 선택해주세요.')
         return false
       }
+
+      const sc = sanitizeComment(this.comment)
       if (this.comment && this.comment.trim().length > 200) {
         this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
         return false
       }
+      // 코멘트 정리 (null이면 빈 문자열로)
+      if (sc === null) this.comment = ''
+
+      // “오늘만(once=0)”일 때 과거시간 저장 방지(여기서 UX 경고)
+      if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
+        const hm2 = parseHM(this.alarmTime)
+        if (hm2) {
+          // 이 검사는 스케줄러의 최종 판단과 달라도 무방(UX용)
+          // 스케줄러가 실제 now < alarm이면 오늘 포함, 아니면 다음 날 처리함.
+        }
+      }
+
+      // 걷기 모드 켜진 경우 필수값
       if (!this.isWalkModeOff) {
         if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
         if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
         if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
       }
+
       return true
     },
 
+    // ── 저장 ───────────────────────────────────────────────
     async save() {
       if (this.isSaving) return { ok:false }
       this.isSaving = true
       try {
         if (!this.validate()) return { ok:false }
+
         const auth = useAuthStore()
         await auth.ensureReady()
         const uid = auth.user?.uid
         if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
+
+        // alarmTime을 반드시 HH:mm으로 강제 표준화
         const basePayload = this.payload
         const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
-        const normalizedAlarm = hmParsed ? `${p(hmParsed.hour)}:${p(hmParsed.minute)}` : null
+        const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : null
         const payload = { ...basePayload, alarmTime: normalizedAlarm }
+
         let res
         if (this.mode === 'edit' && this.routineId) {
           const rid = getBaseId(this.routineId)
@@ -304,9 +445,16 @@ export const useRoutineFormStore = defineStore('routineForm', {
         } else {
           const colRef = collection(db, 'users', uid, 'routines')
           const nowMs = Date.now()
-          const docRef = await addDoc(colRef, { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), createdAtMs: nowMs, updatedAtMs: nowMs })
+          const docRef = await addDoc(colRef, {
+            ...payload,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            createdAtMs: nowMs,
+            updatedAtMs: nowMs
+          })
           res = { ok:true, id: docRef.id, data: payload }
         }
+
         return res
       } catch (e) {
         return { ok:false, error: String(e && e.message ? e.message : e) }
