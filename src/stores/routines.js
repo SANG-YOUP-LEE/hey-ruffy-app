@@ -124,7 +124,7 @@ export const useRoutinesStore = defineStore('routines', {
       try { useSchedulerStore().rehydrateFromRoutines([next]) } catch (_) {}
     },
 
-    async deleteRoutines(ids) {
+   async deleteRoutines(ids) {
       const uid = this._boundUid
       const ridList = []
       for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))
@@ -132,10 +132,7 @@ export const useRoutinesStore = defineStore('routines', {
       if (ridList.length) {
         try {
           await waitBridgeReady()
-          for (const id of ridList) {
-            const baseId = `routine-${id}`
-            postIOS({ action: 'cancel', id: `${baseId}-daily` })
-          }
+          // baseId 접두사 전체 purge
           const baseIds = ridList.map(id => `routine-${id}`)
           purgeBases(baseIds)
         } catch (e) {

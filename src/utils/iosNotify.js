@@ -81,6 +81,11 @@ function normalizeWeekdays(raw) {
   return Array.from(new Set(arr)).sort((a, b) => a - b);
 }
 
+// 내부: 월=1 … 일=7  -> iOS: 일=1 … 토=7 로 변환
+function toIOSWeekdays(arr = []) {
+  return arr.map(n => (n === 7 ? 1 : n + 1));
+}
+
 const _pad2 = (n) => String(n ?? 0).padStart(2, '0');
 
 function ensureThreeLine(payload, src) {
@@ -177,10 +182,13 @@ async function commitSchedules(payloads) {
 export async function scheduleWeekly(baseIdStr, hour, minute, days, title, body) {
   const h = toInt(hour), m = toInt(minute);
   if (!baseIdStr || !Number.isFinite(h) || !Number.isFinite(m)) return;
-  const weekdays = normalizeWeekdays(days);
-  if (!weekdays.length) return;
+  const internalWeekdays = normalizeWeekdays(days);
+  if (!internalWeekdays.length) return;
 
-  const batch = weekdays.map(wd => ({
+  // 내부(월=1…일=7) -> iOS(일=1…토=7) 변환
+  const iosWeekdays = toIOSWeekdays(internalWeekdays);
+
+  const batch = iosWeekdays.map(wd => ({
     action: 'schedule',
     id: `${baseIdStr}-w-${wd}__wd${wd}`,
     baseId: baseIdStr,
@@ -318,9 +326,7 @@ export async function scheduleOnIOS(msg) {
     const minute = toInt(msg?.minute ?? msg?.alarm?.minute);
     const b = baseId(rid);
 
-    // ─────────────────────────────────────────
     // once/today: fireTimesEpoch[] 전체를 배치로 예약
-    // ─────────────────────────────────────────
     if (isToday || isOnce) {
       const now = Date.now();
       const toMs = (v) => {
@@ -340,8 +346,8 @@ export async function scheduleOnIOS(msg) {
         if (t > now) list = [t];
       }
 
-      // 과거/임박(약간의 지연 감안) 제거 & 정렬
-      const GRACE_MS = 500; // 밀리초 유예
+      // 과거/임박 제거 & 정렬
+      const GRACE_MS = 500;
       const future = list.filter(ms => ms >= now + GRACE_MS).sort((a,b)=>a-b);
       if (!future.length) return;
 
@@ -389,7 +395,8 @@ export async function scheduleOnIOS(msg) {
         Array.isArray(msg?.weekdays)      ? msg.weekdays      :
         (msg?.repeatWeekDays || msg?.weekday);
 
-      weekdays = normalizeWeekdays(weekdays) || [];
+      // 입력 정규화(내부 월=1…일=7 허용) 후 iOS 매핑으로 변환
+      weekdays = toIOSWeekdays(normalizeWeekdays(weekdays)) || [];
       if (!weekdays.length) return;
 
       const batch = weekdays.map(wd => ({
