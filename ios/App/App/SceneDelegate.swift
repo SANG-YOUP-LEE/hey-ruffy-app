@@ -72,6 +72,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 // MARK: - JS Bridge Handler
 extension SceneDelegate: WKScriptMessageHandler {
+
+    // 항상 "routine-<rid>" 프리픽스 사용
+    private func baseOf(_ rid: String) -> String {
+        return rid.hasPrefix("routine-") ? rid : "routine-\(rid)"
+    }
+
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
         guard message.name == "notify",
@@ -88,11 +94,15 @@ extension SceneDelegate: WKScriptMessageHandler {
             scheduleRoutineByEpochs(data)
         case "cancel":
             if let id = data["id"] as? String {
-                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+                let center = UNUserNotificationCenter.current()
+                center.removePendingNotificationRequests(withIdentifiers: [id])
+                center.removeDeliveredNotifications(withIdentifiers: [id])
                 print("[iOS] cancel id=\(id)")
             }
         case "purge", "purgebase":
             if let baseId = data["baseId"] as? String { purgeBase(baseId) }
+        case "purgeall":
+            purgeAll()
         case "dumppending":
             dumpPending(tag: data["tag"] as? String ?? "manual")
         default:
@@ -113,11 +123,31 @@ extension SceneDelegate: WKScriptMessageHandler {
     }
 
     private func purgeBase(_ base: String) {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { reqs in
+        let center = UNUserNotificationCenter.current()
+        // pending 제거
+        center.getPendingNotificationRequests { reqs in
             let ids = reqs.filter { $0.identifier.hasPrefix(base) }.map { $0.identifier }
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
-            print("[iOS] purged base=\(base) removed=\(ids.count)")
+            center.removePendingNotificationRequests(withIdentifiers: ids)
+            print("[iOS] purged base=\(base) removed pending=\(ids.count)")
+
+            // delivered(알림센터에 남아있는 것)도 같이 제거
+            center.getDeliveredNotifications { delivered in
+                let dids = delivered
+                    .filter { $0.request.identifier.hasPrefix(base) }
+                    .map { $0.request.identifier }
+                if !dids.isEmpty {
+                    center.removeDeliveredNotifications(withIdentifiers: dids)
+                }
+                print("[iOS] purged base=\(base) removed delivered=\(dids.count)")
+            }
         }
+    }
+
+    private func purgeAll() {
+        let center = UNUserNotificationCenter.current()
+        center.removeAllPendingNotificationRequests()
+        center.removeAllDeliveredNotifications()
+        print("[iOS] purgeAll: removed ALL pending & delivered")
     }
 
     private func dumpPending(tag: String) {
@@ -194,14 +224,11 @@ extension SceneDelegate: WKScriptMessageHandler {
                 }
             }
         case "once", "today":
-            // ✅ timestamp(sec/ms) 우선 사용, 없으면 시간만으로 1회 예약
+            // timestamp(sec/ms) 우선 사용, 없으면 시간만으로 1회 예약
             if let tsAny = p["timestamp"] {
                 var sec: TimeInterval?
-                if let n = tsAny as? NSNumber {
-                    sec = n.doubleValue > 1e11 ? n.doubleValue / 1000 : n.doubleValue
-                } else if let s = tsAny as? String, let d = Double(s) {
-                    sec = d > 1e11 ? d / 1000 : d
-                }
+                if let n = tsAny as? NSNumber { sec = n.doubleValue > 1e11 ? n.doubleValue / 1000 : n.doubleValue }
+                else if let s = tsAny as? String, let d = Double(s) { sec = d > 1e11 ? d / 1000 : d }
                 if let s = sec, s > Date().timeIntervalSince1970 {
                     let date = Date(timeIntervalSince1970: s)
                     let comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
@@ -223,9 +250,11 @@ extension SceneDelegate: WKScriptMessageHandler {
         print("[iOS] scheduleFromPayload done id=\(id) mode=\(mode)")
     }
 
+    // 배치(one-shot들) 예약: JS와 동일한 식별자 규칙(...-once-<ms>)
     private func scheduleRoutineByEpochs(_ p: [String: Any]) {
         let center = UNUserNotificationCenter.current()
-        let rid = (p["routineId"] as? String) ?? "routine-\(UUID().uuidString)"
+        let ridRaw = (p["routineId"] as? String) ?? "routine-\(UUID().uuidString)"
+        let base = baseOf(ridRaw) // 항상 "routine-<rid>"
         let title = (p["title"] as? String) ?? "알람"
         let body  = (p["body"] as? String) ?? ""
 
@@ -243,11 +272,14 @@ extension SceneDelegate: WKScriptMessageHandler {
             guard let s = sec, s > now else { continue }
             let date = Date(timeIntervalSince1970: s)
             let comps = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second], from: date)
-            let nid = "\(rid)__t\(Int(s))"
+
+            let ms = Int(s * 1000.0)
+            let nid = "\(base)-once-\(ms)"
+
             let trig = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
             center.add(UNNotificationRequest(identifier: nid, content: content, trigger: trig))
         }
-        print("[iOS] scheduleRoutineByEpochs rid=\(rid)")
+        print("[iOS] scheduleRoutineByEpochs base=\(base)")
     }
 }
 

@@ -9,7 +9,7 @@ import {
 import { useSchedulerStore } from '@/stores/scheduler'
 import iosBridge from '@/utils/iosNotify'
 
-const { purgeBases, postIOS, waitBridgeReady } = iosBridge
+const { purgeBases, postIOS, waitBridgeReady, purgeAll } = iosBridge
 const nowTs = () => Date.now()
 
 const toMs = (v) => {
@@ -124,7 +124,48 @@ export const useRoutinesStore = defineStore('routines', {
       try { useSchedulerStore().rehydrateFromRoutines([next]) } catch (_) {}
     },
 
-   async deleteRoutines(ids) {
+    async deleteAllRoutines() {
+      const uid = this._boundUid
+      const allIds = this.items.map(r => String(r.id || '')).filter(Boolean)
+      const baseIds = allIds.map(id => `routine-${id}`)
+
+      // ① iOS 알림 전부 제거 (신버전)
+      let didPurgeAll = false
+      try {
+        await waitBridgeReady()
+        await purgeAll()
+        didPurgeAll = true
+      } catch (e) {
+        console.warn('[routines.deleteAllRoutines] purgeAll failed or unavailable', e)
+      }
+
+      // ①-보강) 구버전/실패 대비: 개별 base purge fallback
+      if (!didPurgeAll && baseIds.length) {
+        try {
+          // 개별 베이스 전부 제거
+          purgeBases(baseIds)
+        } catch (e) {
+          console.warn('[routines.deleteAllRoutines] purgeBases fallback failed', e)
+        }
+      }
+
+      // ② Firestore 전부 삭제
+      if (uid && allIds.length) {
+        try {
+          await repoDeleteMany(uid, allIds)
+        } catch (e) {
+          console.warn('[routines.deleteAllRoutines] repo deleteMany failed', e)
+        }
+      }
+
+      // ③ 로컬 상태 정리
+      this.items = []
+      this.deleteTargets = []
+      this.deleteMode = false
+    },
+          
+   
+    async deleteRoutines(ids) {
       const uid = this._boundUid
       const ridList = []
       for (const v of [].concat(ids || [])) if (v) ridList.push(String(v))

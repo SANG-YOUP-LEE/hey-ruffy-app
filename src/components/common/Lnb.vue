@@ -128,21 +128,28 @@ async function logout() {
   }
 }
 
+// ✅ 여기만 변경: rStore.deleteAllRoutines() 호출
 async function deleteAllRoutines() {
   const ok = await modal.confirm({
     title: '다짐 모두 삭제',
-    message: '정말 삭제할까요? 다짐 삭제는 되돌릴 수 없어요.',
+    message: '정말 삭제할까요? 다짐과 알림이 모두 삭제됩니다. 되돌릴 수 없어요.',
     okText: '확인',
-    cancelText: '',
+    cancelText: '취소',
   })
   if (!ok) return
-  rStore.deleteRoutines((rStore.items || []).map(r => r.id))
+
+  await rStore.deleteAllRoutines()
+
   await modal.confirm({
     title: '완료',
-    message: '다짐이 모두 삭제되었습니다.',
+    message: '다짐과 알림이 모두 삭제되었습니다.',
     okText: '확인',
     cancelText: '',
   })
+
+  // LNB 닫고 메인으로
+  emit('close')
+  router.replace('/main')
 }
 
 function handleClose() {

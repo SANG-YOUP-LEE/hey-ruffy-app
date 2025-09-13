@@ -243,6 +243,11 @@ export async function cancelOnIOS(idOrBase) {
   else safePost({ action: 'cancel', id: raw });
 }
 
+export async function purgeAll() {
+  if (!(await waitBridgeReady())) return;
+  safePost({ action: 'purgeAll' });
+}
+
 export async function dumpPending(tag = 'manual', limit = 10) {
   if (!(await waitBridgeReady())) return;
   safePost({ action: 'dumpPending', tag, limit });
@@ -508,7 +513,10 @@ export default {
   scheduleDaily,
   scheduleOnce,
   scheduleOnIOS,
-  postIOS,
   scheduleRoutineAlerts,
   cancelRoutineAlerts,
+  purgeAll,
+  postIOS,
 };
+
+
