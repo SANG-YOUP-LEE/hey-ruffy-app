@@ -166,7 +166,7 @@
 }
 
 #main_body .routine_total .total_area .term {
-  width:5rem;
+  width:2.5rem;
   padding-left:0.5rem;
 }
 
@@ -244,6 +244,10 @@
   stroke: #dfdfdf;
 }
 
+.seg-not { 
+  stroke: #d5dadd; 
+}
+
 #main_body .routine_total .total_area .center-text {
   position: absolute;
   top: 50%;
@@ -284,13 +288,13 @@
   font-size:1rem;
   color:#333;
   text-decoration: none;
-  padding:0 0.5rem 0 0.5rem;
+  padding:0;
   background-color:#fff!important;
 }
 
 #main_body .routine_total .total_area .r_state a img {
   width:2rem;
-  margin-right:0.2rem;
+  margin:0 0.2rem 0 0.5rem;
 }
 
 #main_body .routine_total .total_area .r_state a.on {
@@ -300,25 +304,9 @@
 
 #main_body .routine_total .total_area .r_state a em {
   display:inline-block;
-  margin-left: auto;
+  margin-right:0.5rem;
+  margin-left:auto;
 }
-/*
-#main_body .routine_total .total_area .r_state a.not_done {
-  background: url('../images/ico_notdone2.png') no-repeat 0.8rem 50%/1.5rem;
-}
-
-#main_body .routine_total .total_area .r_state a.done {
-  background: url('../images/ico_done2.png') no-repeat 0.8rem 50%/1.5rem;
-}
-
-#main_body .routine_total .total_area .r_state a.fail {
-  background: url('../images/ico_fail2.png') no-repeat 0.8rem 60%/1.5rem;
-}
-
-#main_body .routine_total .total_area .r_state a.ignore {
-  background: url('../images/ico_ignore2.png') no-repeat 0.8rem 50%/1.5rem;
-}
-*/
 
 #main_body .routine_total .total_area .r_state a span {
   display:none
@@ -377,6 +365,20 @@
 
 #main_body .today_tools .today a span {
   display:none
+}
+
+#main_body .today_tools .today span.term {
+  display: inline-flex;
+  align-items: center;
+  font-family: Pretendard;
+  font-weight: 700;
+  margin-right: 0.5rem;
+  color: #3db4ff;
+}
+
+#main_body .today_tools .today span.term img {
+  width: 2.5rem;
+  margin-right: 0.3rem; 
 }
 
 #main_body .today_tools .tools {

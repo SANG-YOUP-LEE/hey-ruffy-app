@@ -154,7 +154,7 @@
   flex-grow: 1;
   -webkit-overflow-scrolling: touch;
   padding: 0.5rem 1.5rem 0.5rem 1.5rem;
-  padding-bottom: calc(1.5rem + 10rem + var(--sab));
+  padding-bottom: calc(1.5rem + 3rem + var(--sab));
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -195,7 +195,7 @@ button.add {
   height: 3rem;
   position: fixed;
   right: 1rem;
-  bottom: 9rem;
+  bottom: 6rem;
   border-radius: 50%;
   background: url('../images/ico_add.png') no-repeat 0 0/100%;
   background-color: #fff;

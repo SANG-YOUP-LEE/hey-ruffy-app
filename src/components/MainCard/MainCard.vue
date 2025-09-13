@@ -245,11 +245,11 @@ const repeatDetail = computed(() => {
     return ''
   }
   if (r.repeatType === 'weekly') {
-  const main = r.repeatWeeks || '매주'
-  const raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []
-  const sorted = [...raw].map(n => +n).sort((a,b)=>a-b)  // 요일 번호 정렬
-  const days = mapWeekdaysForUI(sorted).join(',')
-  return days ? `${main} ${days}` : main
+    const main = r.repeatWeeks || '매주'
+    const raw = Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []
+    const sorted = [...raw].map(n => +n).sort((a,b)=>a-b)
+    const days = mapWeekdaysForUI(sorted).join(',')
+    return days ? `${main} ${days}` : main
   } 
   if (r.repeatType === 'monthly') {
     const days = Array.isArray(r.repeatMonthDays) && r.repeatMonthDays.length ? r.repeatMonthDays.join(', ') : ''
@@ -272,8 +272,6 @@ const periodText = computed(() => {
 const alarmText = computed(() => {
   const a = props.routine?.alarmTime
   if (!a) return ''
-
-  // 1) 새 포맷: "HH:mm" (24시간제 문자열)
   if (typeof a === 'string') {
     const m = a.match(/^(\d{2}):(\d{2})$/)
     if (!m) return ''
@@ -283,19 +281,30 @@ const alarmText = computed(() => {
     const hh12 = hh24 % 12 === 0 ? 12 : (hh24 % 12)
     return `${ampm} ${String(hh12).padStart(2, '0')}시 ${mm}분`
   }
-
-  // 2) 구 포맷: { ampm: '오전'|'오후'|('AM'|'PM'), hour: '01'..'12', minute: '00'..'59' }
   const hh = a.hour
   const mm = a.minute
   if (hh == null || mm == null) return ''
-
   const koAmpm = a.ampm === 'AM' ? '오전' : a.ampm === 'PM' ? '오후' : (a.ampm || '')
   if (!koAmpm) return `${String(hh).padStart(2,'0')}시 ${String(mm).padStart(2,'0')}분`
   return `${koAmpm} ${String(hh).padStart(2,'0')}시 ${String(mm).padStart(2,'0')}분`
 })
 
+const startOfDay = (d) => { const x = new Date(d); x.setHours(0,0,0,0); return x }
+const assignedDateObj = computed(() => {
+  const v = props.assignedDate
+  if (v instanceof Date) return v
+  if (typeof v === 'string' || typeof v === 'number') { const d = new Date(v); return isNaN(d.getTime()) ? null : d }
+  return null
+})
+const isPastOrToday = computed(() => {
+  const today = startOfDay(new Date())
+  const ad = assignedDateObj.value ? startOfDay(assignedDateObj.value) : null
+  if (!ad) return !!props.isToday
+  return ad.getTime() <= today.getTime()
+})
+
 const canShowStatusButton = computed(() => {
-  return props.periodMode === 'T' && props.isToday && props.selected === 'notdone'
+  return props.periodMode === 'T' && isPastOrToday.value && props.selected === 'notdone'
 })
 
 const wrapperClass = computed(() => {
@@ -420,6 +429,7 @@ function confirmShare() {
 }
 
 function handleChildStatus() {
+  if (!isPastOrToday.value) return
   window.dispatchEvent(new Event('close-other-popups'))
   openedCardId.value = null
   showStatusPopup.value = true
