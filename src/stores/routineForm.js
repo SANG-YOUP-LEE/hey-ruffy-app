@@ -166,8 +166,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
     payload(state) {
       const tz = state.tz || 'Asia/Seoul'
 
-      // 시작/종료일: 사용자가 지정한 경우만 저장 (토글 오인 방지)
+      // 시작/종료일 정규화
+      // ❗️중요: 시작일을 사용자가 "안 건드렸다면" 저장하지 않음 (토글이 자동으로 켜져 보이는 문제 방지)
       const hasStart = !!safeISOFromDateObj(state.startDate)
+      const startObj = hasStart ? state.startDate : null
+      const startISO = hasStart ? safeISOFromDateObj(startObj) : null
+
       const hasEnd = !!safeISOFromDateObj(state.endDate)
 
       const normalizedType = state.repeatType
@@ -178,11 +182,9 @@ export const useRoutineFormStore = defineStore('routineForm', {
           ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
           : null
 
-      // “오늘만(0)”이면 end를 하루로 고정(시작일 미지정 시 오늘)
+      // “오늘만(0)”이면 start=end로 강제 (단, 시작일이 있을 때만)
       const endForTodayOnly =
-        normalizedType === 'daily' && dailyInterval === 0
-          ? (safeISOFromDateObj(state.startDate) || todayISO(tz))
-          : null
+        (normalizedType === 'daily' && dailyInterval === 0 && hasStart) ? startISO : null
 
       // 주간 요일 배열(사용자 선택 우선, 비었을 때만 weeklyDaily로 전체)
       const weeklyDaysNum =
@@ -196,7 +198,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
             })()
           : []
 
-      // alarmTime 정규화
+      // alarmTime은 저장 시점에 HH:mm으로 강제 정규화하지만,
+      // 여기서도 가능하면 한번 더 정규화 시도(파서 실패 시, 원문 유지; 최종 저장 시 한 번 더 강제)
       const hmParsed = parseHM(state.alarmTime)
       const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : (state.alarmTime || null)
 
@@ -216,9 +219,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
         repeatMonthDays:
           normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
 
-        // 시작/종료일: 사용자가 지정했을 때만 저장
-        startDate: hasStart ? state.startDate : null,
-        endDate: endForTodayOnly ? (hasStart ? { ...state.startDate } : todayParts(tz)) : (hasEnd ? state.endDate : null),
+        // 시작일은 사용자가 선택한 경우에만 저장
+        startDate: hasStart ? startObj : null,
+        // 오늘만(0) && 시작일 있을 때 end=start, 아니면 사용자가 지정한 end만 저장
+        endDate: endForTodayOnly ? startObj : (hasEnd ? state.endDate : null),
 
         alarmTime: normalizedAlarm,
 
@@ -234,9 +238,10 @@ export const useRoutineFormStore = defineStore('routineForm', {
         hasWalk: this.hasWalk,
         tz,
 
-        // 백엔드/스케줄러 호환용 앵커 문자열 (start/end도 hasStart/hasEnd/오늘만에 한해)
-        ...(hasStart ? { start: safeISOFromDateObj(state.startDate) } : {}),
-        ...(endForTodayOnly ? { end: endForTodayOnly } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
+        // 백엔드/스케줄러 호환용 앵커 문자열
+        // 시작일을 안 건드렸으면 start/end 앵커도 저장하지 않음
+        ...(hasStart ? { start: startISO } : {}),
+        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
       }
       return deepClean(cleaned)
     }
@@ -346,7 +351,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
         this.setError('repeat','반복 주기를 선택해주세요.')
         return false
       }
-      // 알람시간 파싱 체크
+      // 알람시간 파싱 체크 (저장 시 강제 정규화되지만, UX 차원에서 미리 경고)
       const hm = parseHM(this.alarmTime)
       if (!hm) {
         this.setError('alarm','알림 시간을 HH:mm 형식으로 입력해주세요.')
@@ -391,6 +396,21 @@ export const useRoutineFormStore = defineStore('routineForm', {
       }
       // 코멘트 정리 (null이면 빈 문자열로)
       if (sc === null) this.comment = ''
+
+      // “오늘만(once=0)”일 때 과거시간 저장 방지(여기서 UX 경고)
+      if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
+        const hm2 = parseHM(this.alarmTime)
+        if (hm2) {
+          // UX-only check 자리: 필요시 과거시간 경고 등을 추가 가능
+        }
+      }
+
+      // 걷기 모드 켜진 경우 필수값
+      if (!this.isWalkModeOff) {
+        if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
+        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
+        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+      }
 
       return true
     },
