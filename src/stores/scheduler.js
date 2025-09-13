@@ -111,14 +111,56 @@ export const useSchedulerStore = defineStore('scheduler', {
 
         const type = String(r.repeatType || 'daily').toLowerCase()
 
+        // 오늘만(once) 가드: repeatType=daily && repeatEveryDays=0 → 단일 예약만
+        if (type === 'daily' && Number(r.repeatEveryDays) === 0) {
+          const startISO = safeISOFromDateObj(r.startDate) || r.start || todayISO()
+          const [Y, M, D] = startISO.split('-').map(n => parseInt(n, 10))
+          const atMs = new Date(Y, M - 1, D, hour, minute, 0, 0).getTime()
+          if (Number.isFinite(atMs) && atMs > Date.now()) {
+            await scheduleOnIOS({
+              routineId: r.id,
+              title,
+              repeatMode: 'once',
+              fireTimesEpoch: [toEpochSec(atMs)],
+              sound: 'ruffysound001.wav'
+            })
+            await sleep(20)
+          }
+          continue
+        }
+
+        // 기존 weekly 분기 전체를 이것으로 교체
         if (type === 'weekly') {
+          const startISO = safeISOFromDateObj(r.startDate) || r.start || undefined
+          const endISO   = safeISOFromDateObj(r.endDate)   || r.end   || undefined
           const intervalW = parseIntervalNum(r.repeatWeeks, 1)
-          const days = uniqSorted((Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
-          if (intervalW === 1 && days.length) {
+          const days = uniqSorted(
+            (Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [])
+              .map(dayTokenToNum).filter(n => n>=1 && n<=7)
+          )
+
+          const today = todayISO()
+          const startInFuture = !!(startISO && startISO > today)
+
+          if (intervalW === 1 && !endISO && days.length && !startInFuture) {
             await scheduleWeekly(baseId, hour, minute, days, title)
             await sleep(20)
             continue
           }
+
+          const projDef = {
+            repeatMode: 'weekly',
+            mode: 'weekly',
+            hour, minute,
+            intervalWeeks: intervalW,
+            weekdays: days,
+            startDate: startISO || today,
+            endDate: endISO,
+            alarm: { hour, minute }
+          }
+          await installFromProjection({ baseId, routineId: r.id, title, tz, projDef })
+          await sleep(20)
+          continue
         }
 
         const projDef = {
@@ -235,6 +277,25 @@ export const useSchedulerStore = defineStore('scheduler', {
       }
 
       const type = String(routine.repeatType || 'daily').toLowerCase()
+
+      // 오늘만(once) 가드: repeatType=daily && repeatEveryDays=0 → 단일 예약만
+      if (type === 'daily' && Number(routine.repeatEveryDays) === 0) {
+        const startISO = safeISOFromDateObj(routine.startDate) || routine.start || todayISO()
+        const [Y, M, D] = startISO.split('-').map(n => parseInt(n, 10))
+        const atMs = new Date(Y, M - 1, D, hour, minute, 0, 0).getTime()
+        if (Number.isFinite(atMs) && atMs > Date.now()) {
+          await scheduleOnIOS({
+            routineId: routine.id,
+            title,
+            repeatMode: 'once',
+            fireTimesEpoch: [toEpochSec(atMs)],
+            sound: 'ruffysound001.wav'
+          })
+          await sleep(20)
+        }
+        return
+      }
+
       if (type === 'weekly') {
         const intervalW = parseIntervalNum(routine.repeatWeeks, 1)
         const days = uniqSorted((Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
@@ -244,6 +305,7 @@ export const useSchedulerStore = defineStore('scheduler', {
           return
         }
       }
+
       const projDef = {
         repeatMode: type, mode: type,
         hour, minute,
