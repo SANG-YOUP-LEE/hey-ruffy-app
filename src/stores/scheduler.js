@@ -73,6 +73,24 @@ function parseIntervalNum(s, fallback = 1) {
   return Number.isFinite(n) && n >= 1 ? n : fallback
 }
 
+// ── 앵커(가장 가까운 요일) 계산 유틸 추가 ─────────────────────────
+function jsWeekdayTo1to7(date) {
+  // JS: 0=Sun..6=Sat  → 우리: 1=Mon..7=Sun
+  const w = date.getDay()
+  return w === 0 ? 7 : w
+}
+function addDays(date, n) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  d.setDate(d.getDate() + n)
+  return d
+}
+function toISODate(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const da = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${da}`
+}
+
 // 루틴 → 후보 인스턴스(루틴별 상한 적용)
 function projectRoutineCandidates(r, tz, hour, minute) {
   const type = String(r.repeatType || 'daily').toLowerCase()
@@ -106,6 +124,24 @@ function projectRoutineCandidates(r, tz, hour, minute) {
     startDate: safeISOFromDateObj(r.startDate) || r.start || today,
     endDate: safeISOFromDateObj(r.endDate) || r.end || undefined,
     alarm: { hour, minute }
+  }
+
+  // ✅ “매 N주”이며 시작일 미지정 시 → 가장 가까운 해당 요일을 앵커(startDate)로 보정
+  if (
+    type === 'weekly' &&
+    projDef.intervalWeeks && projDef.intervalWeeks > 1 &&
+    (!r.startDate && !r.start) &&
+    Array.isArray(projDef.weekdays) && projDef.weekdays.length > 0
+  ) {
+    const now = new Date()
+    const todayW = jsWeekdayTo1to7(now)
+    let minDelta = 999
+    for (const wd of projDef.weekdays) {
+      const delta = (wd - todayW + 7) % 7
+      if (delta < minDelta) minDelta = delta
+    }
+    const anchor = addDays(now, minDelta) // 오늘 포함 가장 가까운 목표 요일
+    projDef.startDate = toISODate(anchor)
   }
 
   const epochsMs = projectInstances(projDef, Date.now(), tz, PROJECTION_DAYS) || []
