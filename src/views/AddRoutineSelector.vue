@@ -137,6 +137,7 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
+import { useSchedulerStore } from '@/stores/scheduler' // ✅ 추가
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
@@ -150,6 +151,7 @@ import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
 
 const form = useRoutineFormStore()
+const scheduler = useSchedulerStore() // ✅ 추가
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
@@ -202,7 +204,13 @@ async function saveRoutine() {
   const MAX_LEN = 20
   if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
 
-  //알림
+  // ✅ 저장 성공 직후: 스케줄 재구성(현재 단계: 방금 저장/수정한 이 한 개만 전달)
+  try {
+    await scheduler.rehydrateFromRoutines([{ id: routineId, ...r.data }])
+  } catch (e) {
+    // 조용히 실패 무시(UX 방해 X). 추후 전역 컷팅 도입 시 전체목록 기반으로 재호출 예정.
+    console.warn('rehydrateFromRoutines failed:', e)
+  }
 
   gotoFinish(r.data)
 }

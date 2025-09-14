@@ -1,4 +1,3 @@
-// src/stores/scheduler.js
 import { defineStore } from 'pinia'
 import { projectInstances } from '@/utils/projection'
 import iosBridge from '@/utils/iosNotify'
@@ -39,22 +38,19 @@ function resolveAlarmHM(r) {
       return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
     }
   }
-  const h2 = Number(r?.hour ?? r?.alarm?.hour)
-  const m2 = Number(r?.minute ?? r?.alarm?.minute)
-  if (Number.isFinite(h2) && Number.isFinite(m2)) return { hour: h2, minute: m2 }
   return null
 }
 
 const toISO = d => (d ? `${d.year}-${p2(d.month)}-${p2(d.day)}` : null)
 const safeISOFromDateObj = (obj) => {
   const s = toISO(obj)
-  return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s !== '0000-00-00' && s !== '0-00-00') ? s : null
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null
 }
 
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 function dayTokenToNum(d) {
   if (d == null) return null
-  if (typeof d === 'number' && Number.isFinite(d)) return d
+  if (typeof d === 'number') return d
   const s = String(d).replace(/['"]/g,'').trim()
   if (!s) return null
   if (KOR_TO_NUM[s[0]]) return KOR_TO_NUM[s[0]]
@@ -85,9 +81,7 @@ async function installFromProjection({ baseId, routineId, title, tz, projDef }) 
 }
 
 export const useSchedulerStore = defineStore('scheduler', {
-  state: () => ({
-    tz: 'Asia/Seoul'
-  }),
+  state: () => ({ tz: 'Asia/Seoul' }),
 
   actions: {
     async rehydrateFromRoutines(list = []) {
@@ -96,7 +90,6 @@ export const useSchedulerStore = defineStore('scheduler', {
 
       for (const r of list) {
         if (!r || r.isPaused) continue
-
         const baseId = baseOf(r.id)
         const hm = resolveAlarmHM(r)
         if (!hm) continue
@@ -107,227 +100,61 @@ export const useSchedulerStore = defineStore('scheduler', {
         const minute = hm.minute
 
         await cancelOnIOS(baseId)
-        await sleep(50)
+        await sleep(30)
 
         const type = String(r.repeatType || 'daily').toLowerCase()
 
-        // 오늘만(once) 가드: repeatType=daily && repeatEveryDays=0 → 단일 예약만
         if (type === 'daily' && Number(r.repeatEveryDays) === 0) {
-          const startISO = safeISOFromDateObj(r.startDate) || r.start || todayISO()
-          const [Y, M, D] = startISO.split('-').map(n => parseInt(n, 10))
-          const atMs = new Date(Y, M - 1, D, hour, minute, 0, 0).getTime()
-          if (Number.isFinite(atMs) && atMs > Date.now()) {
-            await scheduleOnIOS({
-              routineId: r.id,
-              title,
-              repeatMode: 'once',
-              fireTimesEpoch: [toEpochSec(atMs)],
-              sound: 'ruffysound001.wav'
-            })
-            await sleep(20)
-          }
+          const today = todayISO()
+          let startISO = safeISOFromDateObj(r.startDate) || r.start || today
+          if (startISO < today) startISO = today
+
+          const [Y,M,D] = startISO.split('-').map(n=>parseInt(n,10))
+          let atMs = new Date(Y, M-1, D, hour, minute).getTime()
+          const now = Date.now()
+          if (atMs <= now) continue
+
+          await scheduleOnIOS({
+            routineId: r.id,
+            title,
+            repeatMode: 'once',
+            fireTimesEpoch: [toEpochSec(atMs)],
+            sound: 'ruffysound001.wav'
+          })
+          await sleep(15)
           continue
         }
 
-        // 기존 weekly 분기 전체를 이것으로 교체
         if (type === 'weekly') {
-          const startISO = safeISOFromDateObj(r.startDate) || r.start || undefined
-          const endISO   = safeISOFromDateObj(r.endDate)   || r.end   || undefined
           const intervalW = parseIntervalNum(r.repeatWeeks, 1)
-          const days = uniqSorted(
-            (Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : [])
-              .map(dayTokenToNum).filter(n => n>=1 && n<=7)
-          )
-
-          const today = todayISO()
-          const startInFuture = !!(startISO && startISO > today)
-
-          if (intervalW === 1 && !endISO && days.length && !startInFuture) {
+          const days = uniqSorted((r.repeatWeekDays||[]).map(dayTokenToNum).filter(n=>n>=1 && n<=7))
+          if (intervalW === 1 && days.length) {
             await scheduleWeekly(baseId, hour, minute, days, title)
-            await sleep(20)
+            await sleep(15)
             continue
           }
-
-          const projDef = {
-            repeatMode: 'weekly',
-            mode: 'weekly',
-            hour, minute,
-            intervalWeeks: intervalW,
-            weekdays: days,
-            startDate: startISO || today,
-            endDate: endISO,
-            alarm: { hour, minute }
-          }
-          await installFromProjection({ baseId, routineId: r.id, title, tz, projDef })
-          await sleep(20)
-          continue
         }
 
         const projDef = {
           repeatMode: type,
           mode: type,
           hour, minute,
-          intervalDays: (type === 'daily' && Number(r.repeatEveryDays) > 1)
-            ? Number(r.repeatEveryDays)
-            : undefined,
-          intervalWeeks: (() => {
-            if (type !== 'weekly') return undefined
-            return parseIntervalNum(r.repeatWeeks, 1)
-          })(),
-          weekdays: type === 'weekly'
-            ? uniqSorted((Array.isArray(r.repeatWeekDays) ? r.repeatWeekDays : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
-            : undefined,
-          byMonthDay: type === 'monthly'
-            ? uniqSorted((Array.isArray(r.repeatMonthDays) ? r.repeatMonthDays : []).map(d => parseInt(d,10)).filter(d => d>=1 && d<=31))
-            : undefined,
+          intervalDays: (type==='daily' && Number(r.repeatEveryDays)>1) ? Number(r.repeatEveryDays) : undefined,
+          intervalWeeks: type==='weekly' ? parseIntervalNum(r.repeatWeeks,1) : undefined,
+          weekdays: type==='weekly' ? uniqSorted((r.repeatWeekDays||[]).map(dayTokenToNum).filter(n=>n>=1 && n<=7)) : undefined,
+          byMonthDay: type==='monthly' ? uniqSorted((r.repeatMonthDays||[]).map(d=>parseInt(d,10)).filter(d=>d>=1 && d<=31)) : undefined,
           startDate: safeISOFromDateObj(r.startDate) || r.start || todayISO(),
           endDate: safeISOFromDateObj(r.endDate) || r.end || undefined,
           alarm: { hour, minute }
         }
-
         await installFromProjection({ baseId, routineId: r.id, title, tz, projDef })
-        await sleep(20)
+        await sleep(15)
       }
     },
 
-    async reschedule(routine, plan = null) {
-      if (!routine) return
-      await waitBridgeReady()
-
-      const baseId = baseOf(routine.id)
-      const hm = resolveAlarmHM(routine)
-      if (!hm) return
-      const title = routine.title || '알림'
-      const tz = this.tz || 'Asia/Seoul'
-      const hour = hm.hour
-      const minute = hm.minute
-
-      await cancelOnIOS(baseId)
-      await sleep(50)
-
-      if (plan && typeof plan === 'object') {
-        const mode = String(plan.mode || '').toUpperCase()
-
-        if (mode === 'WEEKLY') {
-          const days = uniqSorted((Array.isArray(plan.days) ? plan.days : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
-          if (days.length) {
-            await scheduleWeekly(baseId, hour, minute, days, title)
-            await sleep(20)
-            return
-          }
-        }
-
-        if (mode === 'DAILY') {
-          const projDef = {
-            repeatMode: 'daily', mode: 'daily',
-            hour, minute,
-            startDate: safeISOFromDateObj(routine.startDate) || routine.start || todayISO(),
-            endDate: safeISOFromDateObj(routine.endDate) || routine.end || undefined,
-            alarm: { hour, minute }
-          }
-          await installFromProjection({ baseId, routineId: routine.id, title, tz, projDef })
-          await sleep(20)
-          return
-        }
-
-        if (mode === 'DAILY_EVERY_N') {
-          const n = Math.max(2, parseInt(plan.n ?? 2, 10))
-          const projDef = {
-            repeatMode: 'daily', mode: 'daily',
-            hour, minute,
-            intervalDays: n,
-            startDate: safeISOFromDateObj(routine.startDate) || routine.start || todayISO(),
-            endDate: safeISOFromDateObj(routine.endDate) || routine.end || undefined,
-            alarm: { hour, minute }
-          }
-          await installFromProjection({ baseId, routineId: routine.id, title, tz, projDef })
-          await sleep(20)
-          return
-        }
-
-        if (mode === 'MONTHLY') {
-          const days = uniqSorted((Array.isArray(plan.days) ? plan.days : []).map(d => parseInt(d,10)).filter(d => d>=1 && d<=31))
-          const projDef = {
-            repeatMode: 'monthly', mode: 'monthly',
-            hour, minute,
-            byMonthDay: days,
-            startDate: safeISOFromDateObj(routine.startDate) || routine.start || todayISO(),
-            endDate: safeISOFromDateObj(routine.endDate) || routine.end || undefined,
-            alarm: { hour, minute }
-          }
-          await installFromProjection({ baseId, routineId: routine.id, title, tz, projDef })
-          await sleep(20)
-          return
-        }
-
-        if (mode === 'ONCE' && plan.at) {
-          const atMs = new Date(plan.at).getTime()
-          if (Number.isFinite(atMs) && atMs > Date.now()) {
-            await scheduleOnIOS({
-              routineId: routine.id,
-              title,
-              repeatMode: 'once',
-              fireTimesEpoch: [toEpochSec(atMs)],
-              sound: 'ruffysound001.wav'
-            })
-            await sleep(20)
-          }
-          return
-        }
-      }
-
-      const type = String(routine.repeatType || 'daily').toLowerCase()
-
-      // 오늘만(once) 가드: repeatType=daily && repeatEveryDays=0 → 단일 예약만
-      if (type === 'daily' && Number(routine.repeatEveryDays) === 0) {
-        const startISO = safeISOFromDateObj(routine.startDate) || routine.start || todayISO()
-        const [Y, M, D] = startISO.split('-').map(n => parseInt(n, 10))
-        const atMs = new Date(Y, M - 1, D, hour, minute, 0, 0).getTime()
-        if (Number.isFinite(atMs) && atMs > Date.now()) {
-          await scheduleOnIOS({
-            routineId: routine.id,
-            title,
-            repeatMode: 'once',
-            fireTimesEpoch: [toEpochSec(atMs)],
-            sound: 'ruffysound001.wav'
-          })
-          await sleep(20)
-        }
-        return
-      }
-
-      if (type === 'weekly') {
-        const intervalW = parseIntervalNum(routine.repeatWeeks, 1)
-        const days = uniqSorted((Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
-        if (intervalW === 1 && days.length) {
-          await scheduleWeekly(baseId, hour, minute, days, title)
-          await sleep(20)
-          return
-        }
-      }
-
-      const projDef = {
-        repeatMode: type, mode: type,
-        hour, minute,
-        intervalDays: (type === 'daily' && Number(routine.repeatEveryDays) > 1)
-          ? Number(routine.repeatEveryDays)
-          : undefined,
-        intervalWeeks: (() => {
-          if (type !== 'weekly') return undefined
-          return parseIntervalNum(routine.repeatWeeks, 1)
-        })(),
-        weekdays: type === 'weekly'
-          ? uniqSorted((Array.isArray(routine.repeatWeekDays) ? routine.repeatWeekDays : []).map(dayTokenToNum).filter(n => n>=1 && n<=7))
-          : undefined,
-        byMonthDay: type === 'monthly'
-          ? uniqSorted((Array.isArray(routine.repeatMonthDays) ? routine.repeatMonthDays : []).map(d => parseInt(d,10)).filter(d => d>=1 && d<=31))
-          : undefined,
-        startDate: safeISOFromDateObj(routine.startDate) || routine.start || todayISO(),
-        endDate: safeISOFromDateObj(routine.endDate) || routine.end || undefined,
-        alarm: { hour, minute }
-      }
-      await installFromProjection({ baseId, routineId: routine.id, title, tz, projDef })
-      await sleep(20)
+    async reschedule() {
+      const routines = await fetchAllRoutinesFromDBOrStore()
+      await this.rehydrateFromRoutines(routines)
     },
 
     async cancelRoutine(routineId) {

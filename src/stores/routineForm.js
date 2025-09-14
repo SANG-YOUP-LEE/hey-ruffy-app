@@ -60,6 +60,7 @@ const daysKorToNum = (arr=[]) =>
   (arr||[]).map(d => KOR_TO_NUM[d] || (Number.isFinite(+d) ? +d : null)).filter(n => n>=1 && n<=7)
 const daysNumToKor = (arr=[]) =>
   (arr||[]).map(n => NUM_TO_KOR[Number(n)]).filter(Boolean)
+const uniqSorted = (arr=[]) => Array.from(new Set(arr)).sort((a,b)=>a-b)
 
 // ── 시간 파서 (오전/오후, AM/PM, 다양한 구분자 지원) ─────────────────────
 const parseHM = (t) => {
@@ -203,6 +204,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const hmParsed = parseHM(state.alarmTime)
       const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : (state.alarmTime || null)
 
+      // 월간 날짜 정규화: 숫자화→범위필터→중복제거→정렬→최대 개수 제한
+      const monthDaysNorm = normalizedType === 'monthly'
+        ? uniqSorted(
+            (state.repeatMonthDays || [])
+              .map(d => parseInt(d,10))
+              .filter(d => Number.isInteger(d) && d >= 1 && d <= 31)
+          ).slice(0, MAX_MONTHLY_DATES)
+        : []
+
       const cleaned = {
         title: state.title,
         repeatType: normalizedType,
@@ -214,10 +224,15 @@ export const useRoutineFormStore = defineStore('routineForm', {
             ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
             : null,
 
+        // UI/분석 편의를 위해 repeatDaily도 함께 저장(스케줄러는 repeatEveryDays 사용)
+        repeatDaily:
+          normalizedType === 'daily'
+            ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
+            : null,
+
         repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
         repeatWeekDays: weeklyDaysNum,
-        repeatMonthDays:
-          normalizedType === 'monthly' ? [...(state.repeatMonthDays || [])].map(Number) : [],
+        repeatMonthDays: monthDaysNorm,
 
         // 시작일은 사용자가 선택한 경우에만 저장
         startDate: hasStart ? startObj : null,
@@ -397,11 +412,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
       // 코멘트 정리 (null이면 빈 문자열로)
       if (sc === null) this.comment = ''
 
-      // “오늘만(once=0)”일 때 과거시간 저장 방지(여기서 UX 경고)
+      // “오늘만(once=0)”일 때 과거시간 저장 방지(여기서 UX 경고용 훅 자리)
       if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
         const hm2 = parseHM(this.alarmTime)
         if (hm2) {
-          // UX-only check 자리: 필요시 과거시간 경고 등을 추가 가능
+          // 필요 시 과거시간 경고 추가 가능
         }
       }
 
