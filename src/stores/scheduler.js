@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { projectInstances } from '@/utils/projection'
 import iosBridge from '@/utils/iosNotify'
 
-const { waitBridgeReady, scheduleOnIOS, cancelOnIOS } = iosBridge
+const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly } = iosBridge
 
 // ── 안정 구성(지피 추천) ─────────────────────────────────────
 const PROJECTION_DAYS   = 30  // 앞으로 N일치 인스턴스 뽑기
@@ -88,6 +88,7 @@ function projectRoutineCandidates(r, tz, hour, minute) {
     return [{ ms: atMs, routineId: r.id, title: r.title || '알림' }]
   }
 
+  // weekly 최적화는 여기서 처리하지 않음(전역 컷팅과 분리) → 상위에서 scheduleWeekly로 처리
   const projDef = {
     repeatMode: type,
     mode: type,
@@ -115,18 +116,15 @@ function projectRoutineCandidates(r, tz, hour, minute) {
     .map(ms => ({ ms, routineId: r.id, title: r.title || '알림' }))
 }
 
-// 전역 컷팅 후 예약
+// 전역 컷팅 후 예약(once들만)
 async function scheduleGlobal(candidates) {
   const picked = candidates.sort((a,b)=>a.ms-b.ms).slice(0, GLOBAL_LIMIT)
-
-  // 루틴별로 묶기
   const byRoutine = new Map()
   for (const c of picked) {
     const arr = byRoutine.get(c.routineId) || []
     arr.push(c.ms)
     byRoutine.set(c.routineId, arr)
   }
-
   for (const [routineId, list] of byRoutine.entries()) {
     const title = picked.find(x => x.routineId === routineId)?.title || '알림'
     const fireTimesEpoch = list.map(toEpochSec)
@@ -145,35 +143,68 @@ export const useSchedulerStore = defineStore('scheduler', {
   state: () => ({ tz: 'Asia/Seoul' }),
 
   actions: {
-    // 전체 루틴 재설치(전역 컷팅 일원화)
+    // 전체 루틴 재설치(전역 컷팅 + weekly 최적화)
     async rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
       await waitBridgeReady()
 
-      // 1) 전부 취소
+      // 1) 모두 취소
       for (const r of list) {
         if (!r || r.isPaused) continue
         await cancelOnIOS(baseOf(r.id))
         await sleep(5)
       }
 
-      // 2) 후보 수집(루틴별 상한 적용)
       const tz = this.tz || 'Asia/Seoul'
-      const all = []
+      const allOnceCandidates = []
+      const weeklyQueue = [] // { baseId, hour, minute, days, title }
+
+      // 2) 루틴별 후보/최적화 분기
       for (const r of list) {
         if (!r || r.isPaused) continue
         const hm = resolveAlarmHM(r)
         if (!hm) continue
-        const cands = projectRoutineCandidates(r, tz, hm.hour, hm.minute)
-        all.push(...cands)
-      }
-      if (!all.length) return
 
-      // 3) 전역 컷팅 + 예약
-      await scheduleGlobal(all)
+        const title = r.title || '알림'
+        const hour = hm.hour
+        const minute = hm.minute
+        const type = String(r.repeatType || 'daily').toLowerCase()
+
+        // weekly 최적화: interval=1, 종료일 없음, 시작일이 과거/오늘(미래 스타트 아님), 요일 존재
+        if (type === 'weekly') {
+          const intervalW = parseIntervalNum(r.repeatWeeks, 1)
+          const days = uniqSorted((Array.isArray(r.repeatWeekDays)? r.repeatWeekDays:[])
+            .map(dayTokenToNum).filter(n=>n>=1 && n<=7))
+
+          const startISO = safeISOFromDateObj(r.startDate) || r.start || undefined
+          const endISO   = safeISOFromDateObj(r.endDate)   || r.end   || undefined
+          const today = todayISO()
+          const startInFuture = !!(startISO && startISO > today)
+
+          if (intervalW === 1 && !endISO && days.length && !startInFuture) {
+            weeklyQueue.push({ baseId: baseOf(r.id), hour, minute, days, title })
+            continue // once 후보 생성 안 함
+          }
+        }
+
+        // 나머지는 once 후보 생성(루틴별 상한 적용)
+        const cands = projectRoutineCandidates(r, tz, hour, minute)
+        allOnceCandidates.push(...cands)
+      }
+
+      // 3) weekly 최적화 먼저 설치(요일 반복, repeats=YES)
+      for (const w of weeklyQueue) {
+        await scheduleWeekly(w.baseId, w.hour, w.minute, w.days, w.title)
+        await sleep(8)
+      }
+
+      // 4) once 후보 전역 컷팅 + 설치
+      if (allOnceCandidates.length) {
+        await scheduleGlobal(allOnceCandidates)
+      }
     },
 
-    // 앱 쪽에서 전체 목록을 주입하거나, 아래 placeholder 구현을 교체해서 사용
+    // 전체 재설치 헬퍼(앱에서 전체 목록을 주입해 쓰는 걸 권장)
     async reschedule() {
       const routines = await fetchAllRoutinesFromDBOrStore()
       await this.rehydrateFromRoutines(routines)
