@@ -75,9 +75,8 @@ function parseIntervalNum(s, fallback = 1) {
 
 // ── 앵커(가장 가까운 요일) 계산 유틸 ───────────────────────────
 function jsWeekdayTo1to7(date) {
-  // JS: 0=Sun..6=Sat  → 우리: 1=Mon..7=Sun
-  const w = date.getDay()
-  return w === 0 ? 7 : w
+  const w = date.getDay() // 0=Sun..6=Sat
+  return w === 0 ? 7 : w // 1=Mon..7=Sun
 }
 function addDays(date, n) {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -96,7 +95,7 @@ function projectRoutineCandidates(r, tz, hour, minute) {
   const type = String(r.repeatType || 'daily').toLowerCase()
   const today = todayISO()
 
-  // 단발성: 과거/지나간 시각이면 예약 안함(요청사항 반영)
+  // 단발성: 과거/지나간 시각이면 예약 안함
   if (type === 'daily' && Number(r.repeatEveryDays) === 0) {
     let startISO = safeISOFromDateObj(r.startDate) || r.start || today
     if (startISO < today) startISO = today
@@ -106,7 +105,6 @@ function projectRoutineCandidates(r, tz, hour, minute) {
     return [{ ms: atMs, routineId: r.id, title: r.title || '알림' }]
   }
 
-  // weekly 최적화는 여기서 처리하지 않음(전역 컷팅과 분리) → 상위에서 once로 깔기 or scheduleWeekly 사용 분기
   const projDef = {
     repeatMode: type,
     mode: type,
@@ -126,7 +124,7 @@ function projectRoutineCandidates(r, tz, hour, minute) {
     alarm: { hour, minute }
   }
 
-  // ✅ 매 N주 로직: startDate가 없거나 과거이면, 가장 가까운 선택 요일을 앵커로 보정
+  // 매 N주: 시작일 없거나 과거면 가장 가까운 선택 요일을 앵커로
   if (
     type === 'weekly' &&
     projDef.intervalWeeks && projDef.intervalWeeks > 1 &&
@@ -134,22 +132,20 @@ function projectRoutineCandidates(r, tz, hour, minute) {
   ) {
     const now = new Date()
     const todayIsoStr = todayISO()
-    const hasFutureStart =
+    const futureStart =
       (r.startDate || r.start) &&
       (safeISOFromDateObj(r.startDate) || r.start) > todayIsoStr
 
-    if (!hasFutureStart) {
-      // 시작일이 없거나 과거면 → 가장 가까운 해당 요일을 앵커로
+    if (!futureStart) {
       const todayW = jsWeekdayTo1to7(now)
       let minDelta = 999
       for (const wd of projDef.weekdays) {
         const delta = (wd - todayW + 7) % 7
         if (delta < minDelta) minDelta = delta
       }
-      const anchor = addDays(now, minDelta) // 오늘 포함 가장 가까운 요일
+      const anchor = addDays(now, minDelta)
       projDef.startDate = toISODate(anchor)
     } else {
-      // 시작일이 미래로 명시됐다면 사용자의 의도 존중(그 날짜부터 N주 간격)
       projDef.startDate = safeISOFromDateObj(r.startDate) || r.start
     }
   }
@@ -189,7 +185,7 @@ export const useSchedulerStore = defineStore('scheduler', {
   state: () => ({ tz: 'Asia/Seoul' }),
 
   actions: {
-    // 전체 루틴 재설치(전역 컷팅 + weekly 최적화)
+    // 전체 루틴 재설치(전역 컷팅 + weekly 최적화 + daily 1개 반복)
     async rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
       await waitBridgeReady()
@@ -204,6 +200,7 @@ export const useSchedulerStore = defineStore('scheduler', {
       const tz = this.tz || 'Asia/Seoul'
       const allOnceCandidates = []
       const weeklyQueue = [] // { baseId, hour, minute, days, title }
+      const dailyQueue  = [] // { routineId, hour, minute, title }
 
       // 2) 루틴별 후보/최적화 분기
       for (const r of list) {
@@ -216,7 +213,6 @@ export const useSchedulerStore = defineStore('scheduler', {
         const minute = hm.minute
         const type = String(r.repeatType || 'daily').toLowerCase()
 
-        // weekly 최적화: interval=1, 종료일 없음, 시작일이 과거/오늘(미래 스타트 아님), 요일 존재
         if (type === 'weekly') {
           const intervalW = parseIntervalNum(r.repeatWeeks, 1)
           const days = uniqSorted((Array.isArray(r.repeatWeekDays)? r.repeatWeekDays:[])
@@ -227,9 +223,16 @@ export const useSchedulerStore = defineStore('scheduler', {
           const today = todayISO()
           const startInFuture = !!(startISO && startISO > today)
 
-          if (intervalW === 1 && !endISO && days.length && !startInFuture) {
+          // ✅ “매주 + 7요일 전부 + 종료일 없음 + 시작일이 과거/오늘” → iOS 네이티브 'daily' 1개 반복으로
+          if (intervalW === 1 && days.length === 7 && !endISO && !startInFuture) {
+            dailyQueue.push({ routineId: r.id, hour, minute, title })
+            continue
+          }
+
+          // ✅ “매주 + 일부 요일 + 종료일 없음 + 시작일 과거/오늘” → 요일 반복 네이티브로
+          if (intervalW === 1 && days.length && !endISO && !startInFuture) {
             weeklyQueue.push({ baseId: baseOf(r.id), hour, minute, days, title })
-            continue // once 후보 생성 안 함
+            continue
           }
         }
 
@@ -238,19 +241,31 @@ export const useSchedulerStore = defineStore('scheduler', {
         allOnceCandidates.push(...cands)
       }
 
-      // 3) weekly 최적화 먼저 설치(요일 반복, repeats=YES)
+      // 3) daily 1개 반복 먼저 설치
+      for (const d of dailyQueue) {
+        await scheduleOnIOS({
+          routineId: d.routineId,
+          title: d.title,
+          repeatMode: 'daily', // ← 네이티브에서 hour/minute 반복 지원해야 함
+          hour: d.hour,
+          minute: d.minute,
+          sound: 'ruffysound001.wav'
+        })
+        await sleep(8)
+      }
+
+      // 4) weekly 최적화 설치(요일 반복, repeats=YES)
       for (const w of weeklyQueue) {
         await scheduleWeekly(w.baseId, w.hour, w.minute, w.days, w.title)
         await sleep(8)
       }
 
-      // 4) once 후보 전역 컷팅 + 설치
+      // 5) once 후보 전역 컷팅 + 설치
       if (allOnceCandidates.length) {
         await scheduleGlobal(allOnceCandidates)
       }
     },
 
-    // 전체 재설치 헬퍼(앱에서 전체 목록을 주입해 쓰는 걸 권장)
     async reschedule() {
       const routines = await fetchAllRoutinesFromDBOrStore()
       await this.rehydrateFromRoutines(routines)
@@ -265,7 +280,5 @@ export const useSchedulerStore = defineStore('scheduler', {
 
 // ⚠️ 앱/스토어 상황에 맞게 실제 구현으로 교체하세요.
 async function fetchAllRoutinesFromDBOrStore() {
-  // 예: return useRoutinesStore().items
-  // 혹은 Firestore에서 사용자의 모든 루틴을 조회
   return []
 }
