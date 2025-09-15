@@ -93,7 +93,7 @@ const viewToDate = () => {
   const m   = Number(view.value.minute)
   let h24 = h12 % 12
   if (view.value.ampm === '오후') h24 += 12
-  if (view.value.ampm === '오전' && h12 === 12) h24 = 0 // 오전 12시 → 00
+  if (view.value.ampm === '오전' && h12 === 12) h24 = 0
   d.setHours(h24, m, 0, 0)
   return d
 }
@@ -126,7 +126,7 @@ const toggleBackdrop = (hide) => {
 
 /* ── 중복 호출 가드 + 쿨다운 ───────────────────────────── */
 let opening = false
-let coolUntil = 0   // Date.now() 이후에는 무시
+let coolUntil = 0
 
 /* ── 피커 열기: 네이티브만 (웹 폴백 없음) ───────────────── */
 const openNativeTimePicker = async () => {
@@ -136,10 +136,9 @@ const openNativeTimePicker = async () => {
   opening = true
 
   try {
-    // 백드롭 간섭 제거 + 레이아웃 안정화 대기
     toggleBackdrop(true)
     await nextTick()
-    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 80))) // 최소 딜레이 (체감 無)
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 80)))
 
     const base = viewToDate()
     const { value } = await DatetimePicker.present({
@@ -150,14 +149,13 @@ const openNativeTimePicker = async () => {
     })
     if (value) view.value = dateToView(new Date(value))
   } catch (err) {
-    // 사용자가 닫은 경우(code: 'dismissed')는 조용히 무시
     if (err?.code !== 'dismissed') {
       console.warn('[AlarmPicker] DatetimePicker.present error (non-dismiss):', err)
     }
   } finally {
     toggleBackdrop(false)
     opening = false
-    coolUntil = Date.now() + 400 // 연타로 중복 present 방지
+    coolUntil = Date.now() + 400
   }
 }
 
@@ -191,8 +189,8 @@ const confirm = () => {
   pointer-events: auto;
 }
 
-/* 백드롭(::before) 쓰는 경우: 피커 여는 동안만 잠깐 비활성화 */
-:global(.com_popup_wrap.no-backdrop)::before {
+/* ✔︎ 여기! :global 제거하고 스코프 내에서 그대로 타게팅 */
+.com_popup_wrap.no-backdrop::before {
   opacity: 0 !important;
   pointer-events: none !important;
 }
