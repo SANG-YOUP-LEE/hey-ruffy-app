@@ -19,43 +19,31 @@
           :scroll-sensitivity="1"
         />
 
-        <div
-          @touchstart.passive="onStart('h', $event)"
-          @touchmove.passive="onMove('h', $event)"
-          @touchend.passive="onEnd('h')"
+        <VueScrollPicker
+          :key="pickerKey + '-h'"
+          v-model="selectedHourId"
+          :options="hourLoopOptions"
+          :drag-sensitivity="1.4"
+          :touch-sensitivity="1.4"
+          :scroll-sensitivity="0.7"
         >
-          <VueScrollPicker
-            :key="pickerKey + '-h'"
-            v-model="selectedHourId"
-            :options="hourLoopOptions"
-            :drag-sensitivity="1.4"
-            :touch-sensitivity="1.4"
-            :scroll-sensitivity="0.7"
-          >
-            <template #default="{ option }">
-              <div class="wheel_item"><span>{{ option.name }}</span></div>
-            </template>
-          </VueScrollPicker>
-        </div>
+          <template #default="{ option }">
+            <div class="wheel_item"><span>{{ option.name }}</span></div>
+          </template>
+        </VueScrollPicker>
 
-        <div
-          @touchstart.passive="onStart('m', $event)"
-          @touchmove.passive="onMove('m', $event)"
-          @touchend.passive="onEnd('m')"
+        <VueScrollPicker
+          :key="pickerKey + '-m'"
+          v-model="selectedMinuteId"
+          :options="minuteLoopOptions"
+          :drag-sensitivity="1.4"
+          :touch-sensitivity="1.4"
+          :scroll-sensitivity="0.5"
         >
-          <VueScrollPicker
-            :key="pickerKey + '-m'"
-            v-model="selectedMinuteId"
-            :options="minuteLoopOptions"
-            :drag-sensitivity="1.4"
-            :touch-sensitivity="1.4"
-            :scroll-sensitivity="0.5"
-          >
-            <template #default="{ option }">
-              <div class="wheel_item"><span>{{ option.name }}</span></div>
-            </template>
-          </VueScrollPicker>
-        </div>
+          <template #default="{ option }">
+            <div class="wheel_item"><span>{{ option.name }}</span></div>
+          </template>
+        </VueScrollPicker>
       </div>
 
       <div class="popup_btm">
@@ -102,7 +90,7 @@ const pickerKey = ref(0)
 
 const ampmOptions = ['오전', '오후']
 
-const LOOP = 10
+const LOOP = 15
 const H_SIZE = 12
 const M_SIZE = 60
 
@@ -112,13 +100,24 @@ const minutesBase = Array.from({ length: M_SIZE }, (_, i) => ({ name: pad2(i), l
 const hourLoopOptions = computed(() => {
   const out = []
   let id = 0
-  for (let k = 0; k < LOOP; k++) for (let i = 0; i < H_SIZE; i++) out.push({ name: hoursBase[i].name, value: id++, logical: hoursBase[i].logical })
+  for (let k = 0; k < LOOP; k++) {
+    for (let i = 0; i < H_SIZE; i++) {
+      out.push({ name: hoursBase[i].name, value: id, logical: hoursBase[i].logical })
+      id++
+    }
+  }
   return out
 })
+
 const minuteLoopOptions = computed(() => {
   const out = []
   let id = 0
-  for (let k = 0; k < LOOP; k++) for (let i = 0; i < M_SIZE; i++) out.push({ name: minutesBase[i].name, value: id++, logical: minutesBase[i].logical })
+  for (let k = 0; k < LOOP; k++) {
+    for (let i = 0; i < M_SIZE; i++) {
+      out.push({ name: minutesBase[i].name, value: id, logical: minutesBase[i].logical })
+      id++
+    }
+  }
   return out
 })
 
@@ -139,58 +138,24 @@ watch(() => props.modelValue, async (v) => {
 }, { immediate: true, deep: true })
 
 const recenterHourIfEdge = () => {
-  const total = LOOP * H_SIZE, edge = H_SIZE * 2
+  const total = LOOP * H_SIZE
+  const edge = H_SIZE * 2
   if (selectedHourId.value < edge || selectedHourId.value > total - edge) {
     const logical = (selectedHourId.value % H_SIZE) + 1
     selectedHourId.value = centerHourId(logical)
   }
 }
 const recenterMinuteIfEdge = () => {
-  const total = LOOP * M_SIZE, edge = M_SIZE * 2
+  const total = LOOP * M_SIZE
+  const edge = M_SIZE * 2
   if (selectedMinuteId.value < edge || selectedMinuteId.value > total - edge) {
     const logical = (selectedMinuteId.value % M_SIZE)
     selectedMinuteId.value = centerMinuteId(logical)
   }
 }
-watch(selectedHourId, recenterHourIfEdge)
-watch(selectedMinuteId, recenterMinuteIfEdge)
 
-/* 글라이드 부스트 */
-const touchState = {
-  h: { y: 0, t: 0, vy: 0 },
-  m: { y: 0, t: 0, vy: 0 }
-}
-const getY = (e) => (e.changedTouches ? e.changedTouches[0].clientY : e.touches[0].clientY)
-const onStart = (k, e) => { const y = getY(e); touchState[k].y = y; touchState[k].t = performance.now(); touchState[k].vy = 0 }
-const onMove = (k, e) => {
-  const y = getY(e), t = performance.now()
-  const dy = y - touchState[k].y, dt = Math.max(1, t - touchState[k].t)
-  touchState[k].vy = dy / dt
-  touchState[k].y = y
-  touchState[k].t = t
-}
-const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3)
-const onEnd = (k) => {
-  const vy = touchState[k].vy
-  const dir = vy < 0 ? 1 : -1
-  const speed = Math.min(2.5, Math.max(0, Math.abs(vy)))
-  if (speed < 0.2) return
-  const maxSteps = k === 'h' ? 10 : 25
-  const steps = Math.max(2, Math.min(maxSteps, Math.round(speed * (k === 'h' ? 6 : 12))))
-  const dur = 900 + Math.round(700 * (steps / maxSteps))
-  const start = performance.now()
-  const from = k === 'h' ? selectedHourId.value : selectedMinuteId.value
-  const delta = dir * steps
-  const tick = (now) => {
-    const p = Math.min(1, (now - start) / dur)
-    const e = easeOutCubic(p)
-    const cur = Math.round(from + delta * e)
-    if (k === 'h') selectedHourId.value = cur
-    else selectedMinuteId.value = cur
-    if (p < 1) requestAnimationFrame(tick)
-  }
-  requestAnimationFrame(tick)
-}
+watch(selectedHourId, () => { recenterHourIfEdge() })
+watch(selectedMinuteId, () => { recenterMinuteIfEdge() })
 
 const confirmSelection = () => {
   const hourLogical = (selectedHourId.value % H_SIZE) + 1
