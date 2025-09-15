@@ -9,11 +9,21 @@
         <span>오전/오후</span><span>시</span><span>분</span>
       </div>
 
-      <!-- 클릭하면: 디바이스=네이티브 휠 / 웹=브라우저 time picker -->
-      <div class="popup_body picker_group" @click="openNativeTimePicker">
-        <div class="wheel_item"><span>{{ view.ampm }}</span></div>
-        <div class="wheel_item"><span>{{ view.hour }}</span></div>
-        <div class="wheel_item"><span>{{ view.minute }}</span></div>
+      <!-- 탭/터치하면 네이티브 휠 오픈 -->
+      <div
+        class="popup_body picker_group"
+        @click="openNativeTimePicker"
+        @touchend.stop.prevent="openNativeTimePicker"
+      >
+        <div class="wheel_item" @click.stop @touchend.stop.prevent>
+          <span>{{ view.ampm }}</span>
+        </div>
+        <div class="wheel_item" @click.stop @touchend.stop.prevent>
+          <span>{{ view.hour }}</span>
+        </div>
+        <div class="wheel_item" @click.stop @touchend.stop.prevent>
+          <span>{{ view.minute }}</span>
+        </div>
       </div>
 
       <div class="popup_btm">
@@ -29,7 +39,7 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
-/* 배경 스크롤 잠금 */
+/* ── 팝업 열릴 때 배경 스크롤 잠금 ───────────────────────── */
 const preventScroll = e => e.preventDefault()
 const lockBodyScroll = () => {
   document.body.style.overflow = 'hidden'
@@ -42,18 +52,17 @@ const unlockBodyScroll = () => {
 onMounted(lockBodyScroll)
 onBeforeUnmount(unlockBodyScroll)
 
-/* 기본값 & 프롭스 */
+/* ── 기본값/프롭스 ─────────────────────────────────────── */
 const DISPLAY_DEFAULT = { ampm: '오전', hour: '10', minute: '00' }
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({ ampm: null, hour: null, minute: null }) }
 })
-const emit = defineEmits(['update:modelValue','close'])
+const emit = defineEmits(['update:modelValue', 'close'])
 
-/* 유틸 */
+/* ── 유틸 + 값 보정 ────────────────────────────────────── */
 const pad2 = v => String(v ?? '').padStart(2, '0')
 
-/* 빈 문자열/이상값 보정 포함 */
 const sanitizeView = (v = {}) => {
   const rawAmpm = (v.ampm || '').trim()
   const ampm = (rawAmpm === '오전' || rawAmpm === '오후') ? rawAmpm : DISPLAY_DEFAULT.ampm
@@ -64,7 +73,7 @@ const sanitizeView = (v = {}) => {
   }
 
   let h = toNum(v.hour)
-  if (!(h >= 1 && h <= 12)) h = Number(DISPLAY_DEFAULT.hour) // 1~12 아닌 값이면 기본값
+  if (!(h >= 1 && h <= 12)) h = Number(DISPLAY_DEFAULT.hour)
 
   let m = toNum(v.minute)
   if (!(m >= 0 && m <= 59)) m = Number(DISPLAY_DEFAULT.minute)
@@ -95,21 +104,27 @@ const dateToView = (d) => {
   const h24 = d.getHours()
   const m   = d.getMinutes()
   const ampm = h24 < 12 ? '오전' : '오후'
-  let h12 = h24 % 12
-  if (h12 === 0) h12 = 12
+  let h12 = h24 % 12; if (h12 === 0) h12 = 12
   return { ampm, hour: pad2(h12), minute: pad2(m) }
 }
 
-/** view → "HH:MM"(24h) : 웹 폴백 input[type=time]에 사용 */
-const viewToHHMM24 = () => {
-  const d = viewToDate()
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+/* ── 네이티브 환경 감지 (v4/v5 호환) ───────────────────── */
+const isNative = () => {
+  try {
+    if (typeof Capacitor.isNativePlatform === 'function') return Capacitor.isNativePlatform()
+    if (typeof Capacitor.getPlatform === 'function') return Capacitor.getPlatform() !== 'web'
+  } catch {}
+  return false
 }
 
-/* 피커 열기 (네이티브 우선, 웹 폴백) */
+/* ── 피커 열기: 네이티브만 (웹 폴백 없음) ───────────────── */
 const openNativeTimePicker = async () => {
-  // 디바이스(네이티브)일 때
-  if (Capacitor.isNativePlatform?.()) {
+  // 터치/클릭이 막히는 상황 방지용: 다음 틱에서 실행
+  requestAnimationFrame(async () => {
+    if (!isNative()) {
+      // 웹 환경이면 요구사항대로 아무 것도 하지 않음
+      return
+    }
     try {
       const base = viewToDate()
       const { value } = await DatetimePicker.present({
@@ -119,56 +134,14 @@ const openNativeTimePicker = async () => {
         theme: 'auto'
       })
       if (value) view.value = dateToView(new Date(value))
-      return
-    } catch {
-      return // 취소 등
+    } catch (err) {
+      // 취소 또는 플러그인 미등록 등
+      console.warn('[AlarmPicker] DatetimePicker.present error:', err)
     }
-  }
-
-  // 웹 폴백: 숨김 input[type=time] 강제 오픈
-  const inp = document.createElement('input')
-  inp.type = 'time'
-  inp.value = viewToHHMM24() // "HH:MM"
-  inp.step = '60'            // 분 단위(초 필요하면 '1')
-  Object.assign(inp.style, {
-    position: 'fixed',
-    left: '-9999px',
-    top: '50%',
-    opacity: '0',
-    zIndex: '2147483647'
   })
-  document.body.appendChild(inp)
-
-  const cleanup = () => {
-    if (document.body.contains(inp)) document.body.removeChild(inp)
-  }
-
-  inp.addEventListener('change', () => {
-    const [hh, mm] = (inp.value || '').split(':').map(Number)
-    if (Number.isFinite(hh) && Number.isFinite(mm)) {
-      const ampm = (hh >= 12) ? '오후' : '오전'
-      let h12 = hh % 12
-      if (h12 === 0) h12 = 12 // 00 → 12
-      view.value = { ampm, hour: pad2(h12), minute: pad2(mm) }
-    }
-    cleanup()
-  }, { once: true })
-  inp.addEventListener('blur', cleanup, { once: true })
-
-  try {
-    inp.focus({ preventScroll: true })
-    // 최신 크롬
-    // @ts-ignore
-    if (typeof inp.showPicker === 'function') inp.showPicker()
-    else inp.click()
-  } catch {
-    inp.click()
-  }
-
-  setTimeout(cleanup, 20000) // 안전 정리
 }
 
-/* 확인 */
+/* ── 확인 ─────────────────────────────────────────────── */
 const confirm = () => {
   emit('update:modelValue', { ...view.value })
   emit('close')
@@ -176,8 +149,12 @@ const confirm = () => {
 </script>
 
 <style scoped>
-/* 기존 레이아웃 유지 */
+/* 기존 레이아웃 유지 + 터치 막힘 방지 보강 */
 .picker_group {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: .75rem;
@@ -188,5 +165,6 @@ const confirm = () => {
   height: 44px;
   display:flex; align-items:center; justify-content:center;
   font-size: 18px; font-weight: 600;
+  pointer-events: auto;
 }
 </style>
