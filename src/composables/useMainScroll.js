@@ -5,24 +5,19 @@ export function useMainScroll(rStore, mv) {
   const scrollEl = ref(null)
   const isScrolled = ref(false)
   const headerShort = ref(false)
-  const SCROLL_EPS = 1
+  const SCROLL_HIDE = 8
+  const SCROLL_SHOW = 2
 
   function updateScrollState() {
     const el = scrollEl.value
     if (!el) return
-    const scrollable = (el.scrollHeight - el.clientHeight) > SCROLL_EPS
-    const v = scrollable && (el.scrollTop || 0) > 0
-    isScrolled.value = v
-    headerShort.value = v
-    const routineTotalEl = document.querySelector('.routine_total')
-    const dateScrollEl = document.querySelector('.date_scroll')
-    if (routineTotalEl) {
-      if (rStore.selectedPeriod === 'T' && v) routineTotalEl.classList.add('top')
-      else routineTotalEl.classList.remove('top')
-    }
-    if (dateScrollEl) {
-      if (rStore.selectedPeriod === 'T') dateScrollEl.style.display = v ? 'none' : ''
-      else dateScrollEl.style.display = ''
+    const st = el.scrollTop || 0
+    if (!isScrolled.value && st > SCROLL_HIDE) {
+      isScrolled.value = true
+      headerShort.value = true
+    } else if (isScrolled.value && st <= SCROLL_SHOW) {
+      isScrolled.value = false
+      headerShort.value = false
     }
   }
 
@@ -33,7 +28,7 @@ export function useMainScroll(rStore, mv) {
   onMounted(() => {
     scrollEl.value = document.querySelector('.main_scroll')
     if (scrollEl.value) {
-      scrollEl.value.addEventListener('scroll', onScrollHandler)
+      scrollEl.value.addEventListener('scroll', onScrollHandler, { passive: true })
       scrollEl.value.scrollTop = 0
       updateScrollState()
     }
