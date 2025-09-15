@@ -6,20 +6,27 @@
     </SlidePanel>
 
     <div id="main_body">
-      <div class="main_fixed" v-if="hasFetched && rStore.items?.length">
-        <MainDateScroll v-if="!scrolledRef" :selectedDate="selectedDate" @selectDate="onSelectDate" />
+      <div class="main_fixed" v-show="hasFetched && rStore.items?.length && !scrolledRef">
+        <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
         <MainRoutineTotal
           :key="rtResetKey"
-          :isFuture="isFutureDate" :selectedDate="selectedDate"
+          :isFuture="isFutureDate"
+          :selectedDate="selectedDate"
           v-model:modelValue="rStore.selectedFilter"
-          :counts="mv.headerCounts" :totalCount="mv.headerTotal"
-          :viewMode="selectedView" :periodMode="rStore.selectedPeriod" :deleteMode="rStore.deleteMode"
-          @requestPrev="onRequestPrev" @requestNext="onRequestNext"
-          @changeView="nav.changeView" @changePeriod="onChangePeriod" @toggleDeleteMode="handleToggleDeleteMode"
+          :counts="mv.headerCounts"
+          :totalCount="mv.headerTotal"
+          :viewMode="selectedView"
+          :periodMode="rStore.selectedPeriod"
+          :deleteMode="rStore.deleteMode"
+          @requestPrev="onRequestPrev"
+          @requestNext="onRequestNext"
+          @changeView="nav.changeView"
+          @changePeriod="onChangePeriod"
+          @toggleDeleteMode="handleToggleDeleteMode"
         />
       </div>
-    
-      <div class="main_scroll">
+
+      <div class="main_scroll" ref="scrollEl">
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
         <div v-else-if="hasFetched && !filteredRoutines.length" class="no_data">
           <span v-if="!rStore.items?.length">아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?</span>
@@ -45,18 +52,25 @@
             v-else
             v-for="rt in filteredRoutines"
             :key="String(rt.id||'').split('-')[0]"
-            :selected="rt?.status || 'notdone'" :routine="rt"
+            :selected="rt?.status || 'notdone'"
+            :routine="rt"
             :isToday="rStore.selectedPeriod==='T' && mv.startOfDay(rt?.assignedDate?new Date(rt.assignedDate):new Date()).getTime()===mv.startOfDay(new Date()).getTime()"
             :assigned-date="new Date(rt?.assignedDate || mv.periodStartRaw)"
-            :layout="ViewCardSet" :layout-variant="selectedView==='block'?'block':(selectedView==='list'?'list':'basic')"
+            :layout="ViewCardSet"
+            :layout-variant="selectedView==='block'?'block':(selectedView==='list'?'list':'basic')"
             :period-mode="rStore.selectedPeriod"
-            :delete-targets="rStore.deleteTargets" :delete-mode="rStore.deleteMode"
-            @changeStatus="onChangeStatus" @delete="onDelete" @edit="openRoutine" @togglePause="onTogglePause" @toggleSelect="rStore.toggleSelect"
+            :delete-targets="rStore.deleteTargets"
+            :delete-mode="rStore.deleteMode"
+            @changeStatus="onChangeStatus"
+            @delete="onDelete"
+            @edit="openRoutine"
+            @togglePause="onTogglePause"
+            @toggleSelect="rStore.toggleSelect"
           />
         </template>
       </div>
     </div>
-    
+
     <FooterView @refresh-main="refreshBinding" />
     <button @click="openRoutine()" class="add"><span>다짐 추가하기</span></button>
     <AddRoutineSelector
@@ -107,7 +121,7 @@ function closePanel(){
   if (route.path === '/lnb') router.replace('/main')
 }
 
-const { isScrolled: scrolledRef, headerShort: headerShortRef, updateScrollState } = useMainScroll(rStore, mv)
+const { isScrolled: scrolledRef, headerShort: headerShortRef, updateScrollState, scrollEl } = useMainScroll(rStore, mv)
 const update = () => nextTick(updateScrollState)
 
 const { initBinding, disposeBinding, refreshBinding } = useRoutineBinding(rStore, mv, update)
