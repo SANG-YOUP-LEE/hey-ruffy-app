@@ -15,11 +15,11 @@
       </div>
     </div>
 
+    <!-- 네이티브 피커: 필요할 때만 mount -->
     <AlarmPickerNative
       v-if="showNativePicker"
-      :ampm="inner.ampm || '오전'"
-      :hour="inner.hour || '10'"
-      :minute="inner.minute || '00'"
+      :key="showNativePickerKey"
+      :initial="initialForPicker"
       @selected="onPicked"
       @cancel="onCancelPick"
     />
@@ -50,6 +50,7 @@ watch(inner, v => {
 }, { deep: true })
 
 const showNativePicker = ref(false)
+const showNativePickerKey = ref(0)
 
 const hasTime = computed(() => {
   const v = inner.value || {}
@@ -58,27 +59,54 @@ const hasTime = computed(() => {
     && /^\d{2}$/.test(v.minute || '')
 })
 
+/** 피커 초기값 전략:
+ *  - 수정하기(이미 값 있음): 그 값으로 시작
+ *  - 새 알람(없음): 현재 시각(분 00)로 시작  ※ 10:00 고정 원하면 아래에서 바꿔도 됨
+ */
+const initialForPicker = computed(() => {
+  if (hasTime.value) {
+    return { ...inner.value } // 현재 값 그대로
+  } else {
+    // 현재 시각을 오전/오후 + 12h로 변환
+    const now = new Date()
+    const H = now.getHours(), M = now.getMinutes()
+    const ampm = H < 12 ? '오전' : '오후'
+    let h12 = H % 12; if (h12 === 0) h12 = 12
+    return { ampm, hour: String(h12).padStart(2,'0'), minute: '00' } // 분을 00으로 정렬
+    // return { ampm:'오전', hour:'10', minute:'00' } // ← 기본 10:00로 시작하고 싶으면 이 줄로 교체
+  }
+})
+
 const isOn = computed({
   get: () => hasTime.value,
-  set: (val) => { if (val) openNative(); else clearAlarm() }
+  set: (val) => {
+    if (val) openNative(/* fresh */ !hasTime.value)
+    else clearAlarm()
+  }
 })
-const onClickLabel = () => { if (!isOn.value) isOn.value = true; else openNative() }
+const onClickLabel = () => {
+  // 텍스트 클릭: 토글이 OFF면 ON → 자동으로 피커 열림, ON이면 수정 모드로 열기
+  if (!isOn.value) isOn.value = true
+  else openNative(false)
+}
 
-const showDataFixed = computed(() => hasTime.value)
-const displayAmpm = computed(() => {
-  const a = (inner.value?.ampm || '').toString()
-  if (a === 'AM') return '오전'
-  if (a === 'PM') return '오후'
-  return a
-})
-const formattedAlarm = computed(() => {
-  if (!hasTime.value) return ''
-  return `${displayAmpm.value} ${inner.value.hour}시 ${inner.value.minute}분`
-})
+function openNative(isFresh) {
+  // 새 알람 시작일 때는 이전 값 누수 방지(현재는 initialForPicker가 현재시각으로 생성)
+  showNativePicker.value = true
+  // 강제 remount로 초기값 확실히 반영
+  showNativePickerKey.value++
+}
 
-function openNative() { showNativePicker.value = true }
-function onPicked(v) { inner.value = { ...v }; showNativePicker.value = false }
-function onCancelPick() { if (!hasTime.value) isOn.value = false; showNativePicker.value = false }
+function onPicked(v) {
+  inner.value = { ...v }
+  showNativePicker.value = false
+}
+
+function onCancelPick() {
+  // 취소 시: 기존에 값 없던 경우면 토글을 다시 OFF로
+  if (!hasTime.value) isOn.value = false
+  showNativePicker.value = false
+}
 
 function clearAlarm() {
   const empty = { ampm:'', hour:'', minute:'' }
@@ -88,7 +116,7 @@ function clearAlarm() {
   }
 }
 
-/* helpers */
+/* ---------- helpers ---------- */
 function parseHHMM(str) {
   const m = String(str || '').match(/^(\d{1,2}):(\d{2})$/)
   if (!m) return null
