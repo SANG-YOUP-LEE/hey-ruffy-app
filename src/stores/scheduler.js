@@ -278,6 +278,7 @@ export const useSchedulerStore = defineStore('scheduler', {
   }
 })
 
+// go go
 // ⚠️ 앱/스토어 상황에 맞게 실제 구현으로 교체하세요.
 async function fetchAllRoutinesFromDBOrStore() {
   return []
