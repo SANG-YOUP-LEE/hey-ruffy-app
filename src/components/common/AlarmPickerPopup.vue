@@ -9,20 +9,18 @@
         <span>오전/오후</span><span>시</span><span>분</span>
       </div>
 
-      <!-- 탭/터치하면 네이티브 휠 오픈 -->
+      <!-- 입력은 pointerup 하나로 통일 (이중 트리거 방지) -->
       <div
         class="popup_body picker_group"
-        @click="openNativeTimePicker"
-        @touchend.stop.prevent="openNativeTimePicker"
         @pointerup="openNativeTimePicker"
       >
-        <div class="wheel_item" @click.stop @touchend.stop.prevent @pointerup.stop>
+        <div class="wheel_item" @pointerup.stop>
           <span>{{ view.ampm }}</span>
         </div>
-        <div class="wheel_item" @click.stop @touchend.stop.prevent @pointerup.stop>
+        <div class="wheel_item" @pointerup.stop>
           <span>{{ view.hour }}</span>
         </div>
-        <div class="wheel_item" @click.stop @touchend.stop.prevent @pointerup.stop>
+        <div class="wheel_item" @pointerup.stop>
           <span>{{ view.minute }}</span>
         </div>
       </div>
@@ -126,19 +124,22 @@ const toggleBackdrop = (hide) => {
   else wrap.classList.remove('no-backdrop')
 }
 
-let opening = false // 중복 호출 가드
+/* ── 중복 호출 가드 + 쿨다운 ───────────────────────────── */
+let opening = false
+let coolUntil = 0   // Date.now() 이후에는 무시
 
 /* ── 피커 열기: 네이티브만 (웹 폴백 없음) ───────────────── */
 const openNativeTimePicker = async () => {
+  const now = Date.now()
   if (!isNative()) return
-  if (opening) return
+  if (opening || now < coolUntil) return
   opening = true
 
   try {
     // 백드롭 간섭 제거 + 레이아웃 안정화 대기
     toggleBackdrop(true)
     await nextTick()
-    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 120))) // 다음 프레임 + 1틱
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 80))) // 최소 딜레이 (체감 無)
 
     const base = viewToDate()
     const { value } = await DatetimePicker.present({
@@ -149,13 +150,14 @@ const openNativeTimePicker = async () => {
     })
     if (value) view.value = dateToView(new Date(value))
   } catch (err) {
-    // 사용자가 닫은 경우(code: 'dismissed')는 무시
+    // 사용자가 닫은 경우(code: 'dismissed')는 조용히 무시
     if (err?.code !== 'dismissed') {
       console.warn('[AlarmPicker] DatetimePicker.present error (non-dismiss):', err)
     }
   } finally {
     toggleBackdrop(false)
     opening = false
+    coolUntil = Date.now() + 400 // 연타로 중복 present 방지
   }
 }
 
@@ -167,7 +169,7 @@ const confirm = () => {
 </script>
 
 <style scoped>
-/* 기존 레이아웃 유지 + 터치 막힘 방지 보강 */
+/* 기존 레이아웃 유지 + 포인터 보강 */
 .picker_group {
   position: relative;
   z-index: 10;
@@ -178,6 +180,9 @@ const confirm = () => {
   gap: .75rem;
   align-items: center;
   cursor: pointer;
+
+  /* pointer 이벤트 사용 시 스크롤 제스처 충돌 방지 */
+  touch-action: manipulation;
 }
 .wheel_item {
   height: 44px;
@@ -186,7 +191,7 @@ const confirm = () => {
   pointer-events: auto;
 }
 
-/* 백드롭을 ::before로 깔았다면, 피커 여는 동안만 잠깐 꺼서 포인터 간섭 방지 */
+/* 백드롭(::before) 쓰는 경우: 피커 여는 동안만 잠깐 비활성화 */
 :global(.com_popup_wrap.no-backdrop)::before {
   opacity: 0 !important;
   pointer-events: none !important;
