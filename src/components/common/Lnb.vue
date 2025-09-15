@@ -130,7 +130,6 @@ async function clearAllAlarms() {
       title: '완료',
       message: '모든 알람이 삭제되었습니다.',
       okText: '확인',
-      cancelText: null, // 취소 버튼 숨기기
     })
   } catch (e) {
     // 실패 시 안내
