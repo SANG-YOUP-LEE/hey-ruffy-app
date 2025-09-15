@@ -57,7 +57,7 @@
             :isToday="rStore.selectedPeriod==='T' && mv.startOfDay(rt?.assignedDate?new Date(rt.assignedDate):new Date()).getTime()===mv.startOfDay(new Date()).getTime()"
             :assigned-date="new Date(rt?.assignedDate || mv.periodStartRaw)"
             :layout="ViewCardSet"
-            :layout-variant="selectedView==='block'?'block':(selectedView==='list'?'list':'basic')"
+            :layout-variant="selectedView==='list'?'list':'basic'"
             :period-mode="rStore.selectedPeriod"
             :delete-targets="rStore.deleteTargets"
             :delete-mode="rStore.deleteMode"
