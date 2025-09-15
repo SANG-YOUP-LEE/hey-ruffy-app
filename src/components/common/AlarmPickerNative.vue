@@ -54,15 +54,17 @@ function parseHHMMLoose(iso) {
 onMounted(async () => {
   if (!isNative()) { emit('cancel'); return }
   try {
-    let value // undefined면 시스템 기본(보통 현재시각)으로 뜸
-    if (props.initial && (props.initial.ampm === '오전' || props.initial.ampm === '오후')) {
-      const { H, M } = to24hHHMM(props.initial.ampm, props.initial.hour, props.initial.minute)
-      value = toLocalISO(H, M) // 로컬 ISO로 안전하게 초기 포지션 지정
+    // ✅ 항상 초기 value 생성해서 넘긴다.
+    let init = props.initial
+    if (!init || (init.ampm !== '오전' && init.ampm !== '오후')) {
+      init = { ampm:'오전', hour:'10', minute:'00' } // 기본 10:00
     }
+    const { H, M } = to24hHHMM(init.ampm, init.hour, init.minute)
+    const value = toLocalISO(H, M)
 
     const res = await DatetimePicker.present({
       mode: 'time',
-      value,
+      value,                 // ← 무조건 지정: “현재 시각” 기본을 차단
       locale: props.locale,
       theme:  props.theme,
     })

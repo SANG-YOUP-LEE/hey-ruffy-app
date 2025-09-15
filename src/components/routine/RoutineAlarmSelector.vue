@@ -9,14 +9,14 @@
         <span class="txt disabled">알람 먼저 허용하기</span>
       </div>
 
-      <!-- ✅ 값이 있을 때 항상 노출 -->
+      <!-- 값이 있을 때 표시 -->
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">{{ formattedAlarm }}</div>
         <a class="txt" @click="onClickLabel">알람 수정하기</a>
       </div>
     </div>
 
-    <!-- 네이티브 피커: 필요할 때만 mount (key로 강제 remount) -->
+    <!-- 네이티브 피커: 필요할 때만 mount (key로 초기값 강제 반영) -->
     <AlarmPickerNative
       v-if="showNativePicker"
       :key="showNativePickerKey"
@@ -60,16 +60,13 @@ const hasTime = computed(() => {
     && /^\d{2}$/.test(v.minute || '')
 })
 
-/** 피커 초기값 전략:
- *  - 수정하기(이미 값 있음): 그 값으로 시작
- *  - 새 알람(없음): '오전 10:00'으로 시작
+/** 피커 초기값
+ *  - 수정: 현재 값
+ *  - 새 알람: 10:00
  */
 const initialForPicker = computed(() => {
-  if (hasTime.value) {
-    return { ...inner.value }
-  } else {
-    return { ampm:'오전', hour:'10', minute:'00' }
-  }
+  if (hasTime.value) return { ...inner.value }
+  return { ampm:'오전', hour:'10', minute:'00' }
 })
 
 /** 토글 */
@@ -78,7 +75,7 @@ const isOn = computed({
   set: (val) => {
     if (val) {
       if (!hasTime.value) {
-        // 새 알람 ON → 기본값 세팅 먼저(텍스트/버튼 즉시 노출)
+        // 새 알람 ON → 기본값 먼저 세팅
         inner.value = { ampm:'오전', hour:'10', minute:'00' }
         emit('update:modelValue', inner.value)
       }
@@ -89,15 +86,16 @@ const isOn = computed({
   }
 })
 
-/** "알람 설정"/"알람 수정하기" 클릭 */
+/** 라벨 클릭 */
 const onClickLabel = () => {
   if (!isOn.value) {
-    isOn.value = true // 위 로직에 의해 기본값 세팅 + 피커 오픈
+    isOn.value = true // 기본값 세팅 + 피커 오픈
   } else {
-    openNative()       // 현재 값으로 수정
+    openNative()      // 수정
   }
 }
 
+/** 표시용 */
 const showDataFixed = computed(() => hasTime.value)
 const displayAmpm = computed(() => {
   const a = (inner.value?.ampm || '').toString()
@@ -121,7 +119,7 @@ function onPicked(v) {
   showNativePicker.value = false
 }
 function onCancelPick() {
-  // 새로 ON해서 기본값만 들어간 상태에서 취소하면, 그대로 유지(요청사항: 기본 10:00 유지)
+  // 새로 ON해서 기본값만 들어간 상태에서 취소해도 10:00 유지 (원하면 여기서 비울 수 있음)
   showNativePicker.value = false
 }
 

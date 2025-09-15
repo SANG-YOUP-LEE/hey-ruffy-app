@@ -11,10 +11,19 @@ const PER_ROUTINE_LIMIT = 10  // 루틴당 최대 예약
 const GLOBAL_LIMIT      = 60  // 앱 전체 예약 상한
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
-const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
 const p2 = (n) => String(n).padStart(2, '0')
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const toEpochSec = (ms) => Math.floor(ms / 1000)
+
+/* ─────────────────────────────────────────────────────────────
+ * ✅ UID 네임스페이스: 모든 id/baseId는 반드시 사용자별로 구분
+ *   - routineId 스코프: u-<uid>__<rid>
+ *   - baseId:          routine-u-<uid>__<rid>
+ *   - iOS 쪽에서 최종 ID는 routine-...-daily/weekly/once-... 형태가 되어
+ *     사용자간 충돌/오염이 원천 차단됨
+ * ───────────────────────────────────────────────────────────── */
+const scopedRoutineId = (uid, rid) => `u-${String(uid || 'nouid')}__${String(rid ?? '').trim()}`
+const baseOf = (uid, rid) => `routine-${scopedRoutineId(uid, rid)}`
 
 // HH:mm 또는 {hour, minute, ampm} 파싱
 function resolveAlarmHM(r) {
@@ -159,7 +168,7 @@ function projectRoutineCandidates(r, tz, hour, minute) {
 }
 
 // 전역 컷팅 후 예약(once들만)
-async function scheduleGlobal(candidates) {
+async function scheduleGlobal(candidates, uid) {
   const picked = candidates.sort((a,b)=>a.ms-b.ms).slice(0, GLOBAL_LIMIT)
   const byRoutine = new Map()
   for (const c of picked) {
@@ -170,8 +179,12 @@ async function scheduleGlobal(candidates) {
   for (const [routineId, list] of byRoutine.entries()) {
     const title = picked.find(x => x.routineId === routineId)?.title || '알림'
     const fireTimesEpoch = list.map(toEpochSec)
+
+    // ✅ 스코프된 routineId로 iOS에 전달
+    const scopedId = scopedRoutineId(uid, routineId)
+
     await scheduleOnIOS({
-      routineId,
+      routineId: scopedId,
       title,
       repeatMode: 'once',
       fireTimesEpoch,
@@ -185,15 +198,21 @@ export const useSchedulerStore = defineStore('scheduler', {
   state: () => ({ tz: 'Asia/Seoul' }),
 
   actions: {
-    // 전체 루틴 재설치(전역 컷팅 + weekly 최적화 + daily 1개 반복)
-    async rehydrateFromRoutines(list = []) {
+    /**
+     * 전체 루틴 재설치(전역 컷팅 + weekly 최적화 + daily 1개 반복)
+     * @param {Array} list - 사용자 루틴 리스트
+     * @param {string} uid - 현재 로그인 사용자 UID  ←★★ 필수!
+     */
+    async rehydrateFromRoutines(list = [], uid) {
       if (!Array.isArray(list) || !list.length) return
+      if (!uid) return // uid 없으면 스킵 (네임스페이스 보장)
+
       await waitBridgeReady()
 
-      // 1) 모두 취소
+      // 1) 모두 취소 (사용자 스코프 baseId)
       for (const r of list) {
         if (!r || r.isPaused) continue
-        await cancelOnIOS(baseOf(r.id))
+        await cancelOnIOS(baseOf(uid, r.id))
         await sleep(5)
       }
 
@@ -223,7 +242,7 @@ export const useSchedulerStore = defineStore('scheduler', {
           const today = todayISO()
           const startInFuture = !!(startISO && startISO > today)
 
-          // ✅ “매주 + 7요일 전부 + 종료일 없음 + 시작일이 과거/오늘” → iOS 네이티브 'daily' 1개 반복으로
+          // ✅ “매주 + 7요일 전부 + 종료일 없음 + 시작일 과거/오늘” → iOS 네이티브 'daily' 1개 반복으로
           if (intervalW === 1 && days.length === 7 && !endISO && !startInFuture) {
             dailyQueue.push({ routineId: r.id, hour, minute, title })
             continue
@@ -231,7 +250,7 @@ export const useSchedulerStore = defineStore('scheduler', {
 
           // ✅ “매주 + 일부 요일 + 종료일 없음 + 시작일 과거/오늘” → 요일 반복 네이티브로
           if (intervalW === 1 && days.length && !endISO && !startInFuture) {
-            weeklyQueue.push({ baseId: baseOf(r.id), hour, minute, days, title })
+            weeklyQueue.push({ baseId: baseOf(uid, r.id), hour, minute, days, title })
             continue
           }
         }
@@ -241,12 +260,13 @@ export const useSchedulerStore = defineStore('scheduler', {
         allOnceCandidates.push(...cands)
       }
 
-      // 3) daily 1개 반복 먼저 설치
+      // 3) daily 1개 반복 먼저 설치 (스코프된 routineId로)
       for (const d of dailyQueue) {
+        const scopedId = scopedRoutineId(uid, d.routineId)
         await scheduleOnIOS({
-          routineId: d.routineId,
+          routineId: scopedId,
           title: d.title,
-          repeatMode: 'daily', // ← 네이티브에서 hour/minute 반복 지원해야 함
+          repeatMode: 'daily', // 네이티브에서 hour/minute 반복 지원해야 함
           hour: d.hour,
           minute: d.minute,
           sound: 'ruffysound001.wav'
@@ -254,26 +274,27 @@ export const useSchedulerStore = defineStore('scheduler', {
         await sleep(8)
       }
 
-      // 4) weekly 최적화 설치(요일 반복, repeats=YES)
+      // 4) weekly 최적화 설치(요일 반복, repeats=YES) — baseId에 uid 포함
       for (const w of weeklyQueue) {
         await scheduleWeekly(w.baseId, w.hour, w.minute, w.days, w.title)
         await sleep(8)
       }
 
-      // 5) once 후보 전역 컷팅 + 설치
+      // 5) once 후보 전역 컷팅 + 설치 (스코프된 routineId로)
       if (allOnceCandidates.length) {
-        await scheduleGlobal(allOnceCandidates)
+        await scheduleGlobal(allOnceCandidates, uid)
       }
     },
 
-    async reschedule() {
+    async reschedule(uid) {
       const routines = await fetchAllRoutinesFromDBOrStore()
-      await this.rehydrateFromRoutines(routines)
+      await this.rehydrateFromRoutines(routines, uid)
     },
 
-    async cancelRoutine(routineId) {
+    async cancelRoutine(routineId, uid) {
+      if (!uid) return
       await waitBridgeReady()
-      await cancelOnIOS(baseOf(routineId))
+      await cancelOnIOS(baseOf(uid, routineId))
     }
   }
 })
