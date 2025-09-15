@@ -53,11 +53,11 @@ const index = ref(0)
 const cardH = ref(172)
 const gap = ref(68)
 const visibleRange = ref(3)
+const topPad = ref(24)
 const dragging = ref(false)
 const startY = ref(0)
 const lastY = ref(0)
 const velocity = ref(0)
-let rafId = 0
 let lastT = 0
 
 const total = computed(()=>props.routines.length)
@@ -70,9 +70,16 @@ function winToGlobal(i){ return startGlobal.value + i }
 
 function clamp(v,min,max){ return v<min?min:v>max?max:v }
 
+function baseShift(){
+  const sh = stage.value?.clientHeight || 0
+  const center = sh/2
+  const topTarget = topPad.value + (cardH.value/2)
+  return -(center - topTarget)
+}
+
 function styleFor(i){
   const off = i - index.value
-  const y = off * gap.value
+  const y = off * gap.value + baseShift()
   const s = 1 - Math.min(Math.abs(off)*0.06, 0.24)
   const o = Math.abs(off)>visibleRange.value ? 0 : 1 - Math.max(0, (Math.abs(off)-0.2)/ (visibleRange.value))
   const z = 100 - Math.abs(off)
@@ -120,7 +127,7 @@ function onPtrUp(){
   window.removeEventListener('pointermove', onPtrMove)
 }
 
-function onTap(i, rt){
+function onTap(i){
   if(i!==index.value){ index.value = clamp(i, 0, total.value-1); return }
 }
 
@@ -133,8 +140,7 @@ function isToday(rt){
 }
 
 function measure(){
-  if(!stage.value) return
-  const first = stage.value.querySelector('.vcar_item')
+  const first = stage.value?.querySelector('.vcar_item')
   if(first){
     const r = first.getBoundingClientRect()
     cardH.value = Math.max(140, r.height || cardH.value)
@@ -144,11 +150,10 @@ function measure(){
 
 onMounted(()=>{
   measure()
-  rafId = requestAnimationFrame(function loop(){ rafId=requestAnimationFrame(loop) })
+  index.value = Math.min(2, Math.max(0, total.value-1))
   window.addEventListener('resize', measure)
 })
 onBeforeUnmount(()=>{
-  cancelAnimationFrame(rafId)
   window.removeEventListener('resize', measure)
 })
 </script>
@@ -158,8 +163,7 @@ onBeforeUnmount(()=>{
 .vcar_stage{position:relative; width:100%; height:100%}
 .vcar_item{position:absolute; top:50%; left:50%; width:88%; transition:transform .24s cubic-bezier(.2,.8,.2,1), opacity .24s ease}
 .vcar_item.center{transition:transform .22s cubic-bezier(.16,.84,.2,1), opacity .22s ease}
-.vcar_notch{position:absolute; left:0; right:0; bottom:-10px; height:20px; pointer-events:none; background:
- radial-gradient(60px 14px at 50% 0,#fff 60%,transparent 61%) center bottom no-repeat}
+.vcar_notch{position:absolute; left:0; right:0; bottom:-10px; height:20px; pointer-events:none; background: radial-gradient(60px 14px at 50% 0,#fff 60%,transparent 61%) center bottom no-repeat}
 .vcar_fade{position:absolute; left:0; right:0; height:80px; pointer-events:none; z-index:200}
 .vcar_fade.top{top:0; background:linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0))}
 .vcar_fade.bot{bottom:0; background:linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))}
