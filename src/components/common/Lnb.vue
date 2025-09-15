@@ -37,7 +37,7 @@
         <div v-show="section === 'account'">
           <h2>계정 관리</h2>
           <a href="#none" @click.prevent="goCharacter">캐릭터변경</a>
-          <a href="#none">메뉴2</a>
+          <a href="#none" @click.prevent="clearAllAlarms">알람 초기화</a>
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
           <a href="#none">메뉴5</a>
@@ -94,6 +94,7 @@ import { getAuth, signOut } from 'firebase/auth'
 import { useAuthStore } from '@/stores/auth'
 import { useRoutinesStore } from '@/stores/routines'
 import { useModalStore } from '@/stores/modal'
+import { useSchedulerStore } from '@/stores/scheduler'
 
 const emit = defineEmits(['close'])
 const router = useRouter()
@@ -106,6 +107,45 @@ const section = computed(() => route.query.section || '')
 const user = computed(() => a.user)
 const ready = computed(() => a.ready)
 const profile = computed(() => a.profile)
+
+const scheduler = useSchedulerStore()
+
+// Lnb.vue 등에서 사용
+async function clearAllAlarms() {
+  // 1) 사용자가 진짜 지울지 먼저 확인
+  const ok = await modal.confirm({
+    title: '알람 모두 삭제',
+    message: '기기에 등록된 모든 알람을 삭제하고, 현재 다짐 기준으로 재설정합니다.',
+    okText: '확인',
+    cancelText: '취소',
+  })
+  if (!ok) return
+
+  try {
+    // 2) 실제 삭제 + 재설치
+    await scheduler.clearAndReloadAll()
+
+    // 3) 완료 팝업(확인만 표시)
+    await modal.confirm({
+      title: '완료',
+      message: '모든 알람이 삭제되었습니다.',
+      okText: '확인',
+      cancelText: null, // 취소 버튼 숨기기
+    })
+  } catch (e) {
+    // 실패 시 안내
+    await modal.confirm({
+      title: '오류',
+      message: '삭제 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
+      okText: '확인',
+      cancelText: null,
+    })
+  } finally {
+    // 4) 닫고 메인으로
+    emit('close')
+    router.replace('/main')
+  }
+}
 
 const RUFFY_MAP = {
   option1: new URL('@/assets/images/hey_ruffy_temp01.png', import.meta.url).href,

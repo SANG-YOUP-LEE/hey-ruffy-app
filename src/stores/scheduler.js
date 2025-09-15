@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { projectInstances } from '@/utils/projection'
 import iosBridge from '@/utils/iosNotify'
 
-const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly } = iosBridge
+const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly, purgeAll } = iosBridge
 
 // ── 안정 구성(지피 추천) ─────────────────────────────────────
 const PROJECTION_DAYS   = 30  // 앞으로 N일치 인스턴스 뽑기
@@ -344,6 +344,12 @@ export const useSchedulerStore = defineStore('scheduler', {
     async cancelRoutine(routineId) {
       await waitBridgeReady()
       await cancelOnIOS(baseOf(routineId))
+    },
+    
+    async clearAndReloadAll() {
+      await purgeAll()
+      const routines = await fetchAllRoutinesFromDBOrStore()
+      await this.rehydrateFromRoutines(routines)
     }
   }
 })
