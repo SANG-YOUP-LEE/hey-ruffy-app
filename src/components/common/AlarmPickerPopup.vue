@@ -9,20 +9,11 @@
         <span>오전/오후</span><span>시</span><span>분</span>
       </div>
 
-      <!-- 입력은 pointerup 하나로 통일 (이중 트리거 방지) -->
-      <div
-        class="popup_body picker_group"
-        @pointerup="openNativeTimePicker"
-      >
-        <div class="wheel_item" @pointerup.stop>
-          <span>{{ view.ampm }}</span>
-        </div>
-        <div class="wheel_item" @pointerup.stop>
-          <span>{{ view.hour }}</span>
-        </div>
-        <div class="wheel_item" @pointerup.stop>
-          <span>{{ view.minute }}</span>
-        </div>
+      <!-- 숫자 휠은 '표시'만 하고, 클릭 시 네이티브 시트 오픈 -->
+      <div class="popup_body picker_group" @click="openNativeTimePicker">
+        <div class="wheel_item"><span>{{ view.ampm }}</span></div>
+        <div class="wheel_item"><span>{{ view.hour }}</span></div>
+        <div class="wheel_item"><span>{{ view.minute }}</span></div>
       </div>
 
       <div class="popup_btm">
@@ -93,7 +84,7 @@ const viewToDate = () => {
   const m   = Number(view.value.minute)
   let h24 = h12 % 12
   if (view.value.ampm === '오후') h24 += 12
-  if (view.value.ampm === '오전' && h12 === 12) h24 = 0 // 오전 12시 → 00
+  if (view.value.ampm === '오전' && h12 === 12) h24 = 0
   d.setHours(h24, m, 0, 0)
   return d
 }
@@ -107,7 +98,7 @@ const dateToView = (d) => {
   return { ampm, hour: pad2(h12), minute: pad2(m) }
 }
 
-/* ── 네이티브 환경 감지 (v4/v5 호환) ───────────────────── */
+/* ── 네이티브 환경 감지 ────────────────────────────────── */
 const isNative = () => {
   try {
     if (typeof Capacitor.isNativePlatform === 'function') return Capacitor.isNativePlatform()
@@ -116,51 +107,23 @@ const isNative = () => {
   return false
 }
 
-/* ── 웹뷰 포인터/팝업 간섭 차단 유틸 ───────────────────── */
-const disableWebPointer = () => {
-  // 네이티브 휠이 떠 있을 때 웹뷰가 터치를 못 먹도록
-  document.documentElement.style.pointerEvents = 'none'
-  document.documentElement.style.touchAction = 'none'
-}
-const enableWebPointer = () => {
-  document.documentElement.style.pointerEvents = ''
-  document.documentElement.style.touchAction = ''
-}
-
-const toggleBackdrop = (hide) => {
-  const wrap = document.querySelector('.com_popup_wrap')
-  if (!wrap) return
-  hide ? wrap.classList.add('no-backdrop') : wrap.classList.remove('no-backdrop')
-}
-
-const setPopupHidden = (hide) => {
-  const wrap = document.querySelector('.com_popup_wrap')
-  if (!wrap) return
-  hide ? wrap.classList.add('popup-hidden') : wrap.classList.remove('popup-hidden')
-}
-
-/* ── 중복 호출 가드 + 쿨다운 ───────────────────────────── */
+/* ── 중복 호출 가드 + 연타 쿨다운 ───────────────────────── */
 let opening = false
 let coolUntil = 0
 
 /* ── 피커 열기: 네이티브만 (웹 폴백 없음) ───────────────── */
 const openNativeTimePicker = async () => {
-  const now = Date.now()
   if (!isNative()) return
+
+  const now = Date.now()
   if (opening || now < coolUntil) return
   opening = true
 
   try {
-    // 1) 웹뷰 터치/포인터 완전 차단 + 백드롭/팝업 간섭 제거
-    disableWebPointer()
-    toggleBackdrop(true)
-    setPopupHidden(true)
-    await nextTick()
+    // 웹 제스처 억제/바디락이 간섭하지 않게 일시 해제
+    unlockBodyScroll()
+    await nextTick() // DOM 작업 안정화 (짧음)
 
-    // 2) 다음 프레임 + 짧은 지연 (iOS 모달 안정화)
-    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 120)))
-
-    // 3) 네이티브 피커 오픈
     const base = viewToDate()
     const { value } = await DatetimePicker.present({
       mode: 'time',
@@ -168,17 +131,19 @@ const openNativeTimePicker = async () => {
       locale: 'ko-KR',
       theme: 'auto'
     })
-    if (value) view.value = dateToView(new Date(value))
+
+    if (value) {
+      const picked = new Date(value)
+      view.value = dateToView(picked)
+    }
   } catch (err) {
-    // 사용자가 닫은 경우(code: 'dismissed')는 조용히 무시
+    // 사용자가 취소하면(code:'dismissed') 여기로 들어옴 → 정상 케이스, 로그만
     if (err?.code !== 'dismissed') {
-      console.warn('[AlarmPicker] DatetimePicker.present error (non-dismiss):', err)
+      console.warn('[AlarmPicker] present error:', err)
     }
   } finally {
-    // 4) 복구 + 쿨다운 (연타 방지)
-    setPopupHidden(false)
-    toggleBackdrop(false)
-    enableWebPointer()
+    // 다시 배경 스크롤 잠금
+    lockBodyScroll()
     opening = false
     coolUntil = Date.now() + 400
   }
@@ -192,40 +157,17 @@ const confirm = () => {
 </script>
 
 <style scoped>
-/* 기존 레이아웃 유지 + 포인터 보강 */
+/* 디자인은 그대로 유지 */
 .picker_group {
-  position: relative;
-  z-index: 10;
-  pointer-events: auto;
-
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: .75rem;
   align-items: center;
   cursor: pointer;
-
-  /* pointer 이벤트 사용 시 스크롤 제스처 충돌 방지 */
-  touch-action: manipulation;
 }
 .wheel_item {
   height: 44px;
   display:flex; align-items:center; justify-content:center;
   font-size: 18px; font-weight: 600;
-  pointer-events: auto;
-}
-
-/* 백드롭 임시 비활성화 */
-.com_popup_wrap.no-backdrop::before {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* 네이티브 피커 표시 중 팝업 시각만 잠깐 숨겨 레이어 간섭 제거 */
-.com_popup_wrap.popup-hidden {
-  visibility: hidden;
-}
-.com_popup_wrap.popup-hidden::before {
-  opacity: 0 !important;
-  pointer-events: none !important;
 }
 </style>
