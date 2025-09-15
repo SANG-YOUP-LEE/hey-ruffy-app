@@ -1,6 +1,9 @@
 <template>
   <div class="form_box_g">
-    <div class="detail_box">
+    <!-- 블러/딤 오버레이 -->
+    <div v-if="showNativePicker" class="native-sheet-dim"></div>
+
+    <div class="detail_box" :class="{ 'blur-on-native': showNativePicker }">
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
           <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
@@ -36,7 +39,7 @@ const props = defineProps({
   routineId: { type: [String, Number], default: null },
   routineTitle: { type: String, default: '알람' },
   bodyText: { type: String, default: '헤이러피 알람' },
-  modelValue: { type: [Object, String, null], default: null } // "HH:mm" 허용
+  modelValue: { type: [Object, String, null], default: null }
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -61,16 +64,9 @@ const hasTime = computed(() => {
 
 const isOn = computed({
   get: () => hasTime.value,
-  set: (val) => {
-    if (val) openNative()
-    else clearAlarm()
-  }
+  set: (val) => { if (val) openNative(); else clearAlarm() }
 })
-const onClickLabel = () => {
-  // 텍스트 클릭으로도 열기: 토글이 OFF면 먼저 ON으로
-  if (!isOn.value) isOn.value = true
-  else openNative()
-}
+const onClickLabel = () => { if (!isOn.value) isOn.value = true; else openNative() }
 
 const showDataFixed = computed(() => hasTime.value)
 const displayAmpm = computed(() => {
@@ -84,19 +80,9 @@ const formattedAlarm = computed(() => {
   return `${displayAmpm.value} ${inner.value.hour}시 ${inner.value.minute}분`
 })
 
-function openNative() {
-  showNativePicker.value = true
-}
-function onPicked(v) {
-  inner.value = { ...v }
-  showNativePicker.value = false
-}
-function onCancelPick() {
-  // 원하는 UX에 맞게: 취소 시 토글을 OFF로 되돌릴지 유지할지 결정
-  // 지금은 OFF로 되돌림
-  if (!hasTime.value) isOn.value = false
-  showNativePicker.value = false
-}
+function openNative() { showNativePicker.value = true }
+function onPicked(v) { inner.value = { ...v }; showNativePicker.value = false }
+function onCancelPick() { if (!hasTime.value) isOn.value = false; showNativePicker.value = false }
 
 function clearAlarm() {
   const empty = { ampm:'', hour:'', minute:'' }
@@ -106,7 +92,7 @@ function clearAlarm() {
   }
 }
 
-/* ---------- helpers ---------- */
+/* helpers */
 function parseHHMM(str) {
   const m = String(str || '').match(/^(\d{1,2}):(\d{2})$/)
   if (!m) return null
@@ -135,14 +121,24 @@ function isEqual(a, b) {
   const bb = typeof b === 'string' ? sanitize(b) : b
   return aa.ampm === bb.ampm && String(aa.hour) === String(bb.hour) && String(aa.minute) === String(bb.minute)
 }
-function toKoAmpm(a) {
-  if (a === 'PM' || a === '오후') return '오후'
-  if (a === 'AM' || a === '오전') return '오전'
-  return ''
-}
-function pad2(n) {
-  const s = String(n ?? '').trim()
-  if (!/^\d{1,2}$/.test(s)) return ''
-  return s.padStart(2, '0')
-}
+function toKoAmpm(a) { if (a === 'PM' || a === '오후') return '오후'; if (a === 'AM' || a === '오전') return '오전'; return '' }
+function pad2(n) { const s = String(n ?? '').trim(); if (!/^\d{1,2}$/.test(s)) return ''; return s.padStart(2, '0') }
 </script>
+
+<style scoped>
+/* 배경 딤 + 블러 */
+.native-sheet-dim {
+  position: fixed;
+  z-index: 999; /* 시각적으로 맨 위(네이티브 시트 뒤에서 보이도록 충분히 높임) */
+  inset: 0;
+  background: rgba(0,0,0,.15); /* 딤 강도는 취향대로 0.10 ~ 0.25 */
+  pointer-events: none; /* 클릭은 네이티브 시트로 */
+}
+
+/* 시트 뜨는 동안 컨텐츠 살짝 블러 */
+.blur-on-native {
+  filter: blur(4px) brightness(0.98);
+  transition: filter 120ms ease;
+  will-change: filter;
+}
+</style>
