@@ -1,3 +1,4 @@
+
 <template>
   <div class="com_popup_wrap">
     <div class="popup_inner">
@@ -24,7 +25,7 @@
           v-model="selectedHourId"
           :options="hourLoopOptions"
           :drag-sensitivity="1.4"
-          :touch-sensitivity="1.6"
+          :touch-sensitivity="0.5"
           :scroll-sensitivity="0.5"
         >
           <template #default="{ option }">
@@ -37,7 +38,7 @@
           v-model="selectedMinuteId"
           :options="minuteLoopOptions"
           :drag-sensitivity="1.4"
-          :touch-sensitivity="1.6"
+          :touch-sensitivity="0.5"
           :scroll-sensitivity="0.5"
         >
           <template #default="{ option }">
@@ -168,3 +169,4 @@ const confirmSelection = () => {
   emit('close')
 }
 </script>
+
