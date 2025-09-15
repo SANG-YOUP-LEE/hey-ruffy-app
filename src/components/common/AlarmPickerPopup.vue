@@ -93,7 +93,7 @@ const viewToDate = () => {
   const m   = Number(view.value.minute)
   let h24 = h12 % 12
   if (view.value.ampm === '오후') h24 += 12
-  if (view.value.ampm === '오전' && h12 === 12) h24 = 0
+  if (view.value.ampm === '오전' && h12 === 12) h24 = 0 // 오전 12시 → 00
   d.setHours(h24, m, 0, 0)
   return d
 }
@@ -116,12 +116,27 @@ const isNative = () => {
   return false
 }
 
-/* ── 백드롭 임시 숨김 (모달 즉시 dismiss 방지) ───────────── */
+/* ── 웹뷰 포인터/팝업 간섭 차단 유틸 ───────────────────── */
+const disableWebPointer = () => {
+  // 네이티브 휠이 떠 있을 때 웹뷰가 터치를 못 먹도록
+  document.documentElement.style.pointerEvents = 'none'
+  document.documentElement.style.touchAction = 'none'
+}
+const enableWebPointer = () => {
+  document.documentElement.style.pointerEvents = ''
+  document.documentElement.style.touchAction = ''
+}
+
 const toggleBackdrop = (hide) => {
   const wrap = document.querySelector('.com_popup_wrap')
   if (!wrap) return
-  if (hide) wrap.classList.add('no-backdrop')
-  else wrap.classList.remove('no-backdrop')
+  hide ? wrap.classList.add('no-backdrop') : wrap.classList.remove('no-backdrop')
+}
+
+const setPopupHidden = (hide) => {
+  const wrap = document.querySelector('.com_popup_wrap')
+  if (!wrap) return
+  hide ? wrap.classList.add('popup-hidden') : wrap.classList.remove('popup-hidden')
 }
 
 /* ── 중복 호출 가드 + 쿨다운 ───────────────────────────── */
@@ -136,10 +151,16 @@ const openNativeTimePicker = async () => {
   opening = true
 
   try {
+    // 1) 웹뷰 터치/포인터 완전 차단 + 백드롭/팝업 간섭 제거
+    disableWebPointer()
     toggleBackdrop(true)
+    setPopupHidden(true)
     await nextTick()
-    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 80)))
 
+    // 2) 다음 프레임 + 짧은 지연 (iOS 모달 안정화)
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 120)))
+
+    // 3) 네이티브 피커 오픈
     const base = viewToDate()
     const { value } = await DatetimePicker.present({
       mode: 'time',
@@ -149,11 +170,15 @@ const openNativeTimePicker = async () => {
     })
     if (value) view.value = dateToView(new Date(value))
   } catch (err) {
+    // 사용자가 닫은 경우(code: 'dismissed')는 조용히 무시
     if (err?.code !== 'dismissed') {
       console.warn('[AlarmPicker] DatetimePicker.present error (non-dismiss):', err)
     }
   } finally {
+    // 4) 복구 + 쿨다운 (연타 방지)
+    setPopupHidden(false)
     toggleBackdrop(false)
+    enableWebPointer()
     opening = false
     coolUntil = Date.now() + 400
   }
@@ -189,8 +214,17 @@ const confirm = () => {
   pointer-events: auto;
 }
 
-/* ✔︎ 여기! :global 제거하고 스코프 내에서 그대로 타게팅 */
+/* 백드롭 임시 비활성화 */
 .com_popup_wrap.no-backdrop::before {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 네이티브 피커 표시 중 팝업 시각만 잠깐 숨겨 레이어 간섭 제거 */
+.com_popup_wrap.popup-hidden {
+  visibility: hidden;
+}
+.com_popup_wrap.popup-hidden::before {
   opacity: 0 !important;
   pointer-events: none !important;
 }
