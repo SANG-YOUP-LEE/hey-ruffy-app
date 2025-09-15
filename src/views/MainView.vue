@@ -26,7 +26,23 @@
           <span v-else>해당 조건에 맞는 다짐이 없어요.</span>
         </div>
         <template v-else>
+          <MainCardCarousel
+            v-if="selectedView==='carousel'"
+            :routines="filteredRoutines"
+            :layout="ViewCardSet"
+            :layout-variant="selectedView"
+            :period-mode="rStore.selectedPeriod"
+            :delete-targets="rStore.deleteTargets"
+            :delete-mode="rStore.deleteMode"
+            :period-start-raw="mv.periodStartRaw"
+            @changeStatus="onChangeStatus"
+            @delete="onDelete"
+            @edit="openRoutine"
+            @togglePause="onTogglePause"
+            @toggleSelect="rStore.toggleSelect"
+          />
           <MainCard
+            v-else
             v-for="rt in filteredRoutines"
             :key="String(rt.id||'').split('-')[0]"
             :selected="rt?.status || 'notdone'" :routine="rt"
@@ -64,6 +80,7 @@ import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
+import MainCardCarousel from '@/components/MainCard/MainCardCarousel.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 import SlidePanel from '@/components/common/SlidePanel.vue'
 
