@@ -1,9 +1,6 @@
 <template>
   <div class="form_box_g">
-    <!-- 블러/딤 오버레이 -->
-    <div v-if="showNativePicker" class="native-sheet-dim"></div>
-
-    <div class="detail_box" :class="{ 'blur-on-native': showNativePicker }">
+    <div class="detail_box">
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
           <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
@@ -18,7 +15,6 @@
       </div>
     </div>
 
-    <!-- ✅ 네이티브 피커: 필요할 때만 잠깐 mount -->
     <AlarmPickerNative
       v-if="showNativePicker"
       :ampm="inner.ampm || '오전'"
@@ -39,7 +35,7 @@ const props = defineProps({
   routineId: { type: [String, Number], default: null },
   routineTitle: { type: String, default: '알람' },
   bodyText: { type: String, default: '헤이러피 알람' },
-  modelValue: { type: [Object, String, null], default: null }
+  modelValue: { type: [Object, String, null], default: null } // "HH:mm" 허용
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -124,21 +120,3 @@ function isEqual(a, b) {
 function toKoAmpm(a) { if (a === 'PM' || a === '오후') return '오후'; if (a === 'AM' || a === '오전') return '오전'; return '' }
 function pad2(n) { const s = String(n ?? '').trim(); if (!/^\d{1,2}$/.test(s)) return ''; return s.padStart(2, '0') }
 </script>
-
-<style scoped>
-/* 배경 딤 + 블러 */
-.native-sheet-dim {
-  position: fixed;
-  z-index: 999; /* 시각적으로 맨 위(네이티브 시트 뒤에서 보이도록 충분히 높임) */
-  inset: 0;
-  background: rgba(0,0,0,.15); /* 딤 강도는 취향대로 0.10 ~ 0.25 */
-  pointer-events: none; /* 클릭은 네이티브 시트로 */
-}
-
-/* 시트 뜨는 동안 컨텐츠 살짝 블러 */
-.blur-on-native {
-  filter: blur(4px) brightness(0.98);
-  transition: filter 120ms ease;
-  will-change: filter;
-}
-</style>
