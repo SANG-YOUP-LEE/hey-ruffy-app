@@ -97,7 +97,6 @@ const props = defineProps({
 const emit = defineEmits(['toggle-open','delete','edit','pause-restart','share','select','status','walk'])
 
 const rootClass = computed(() => {
-  if (props.variant === 'block') return ['vblock', props.cls]
   if (props.variant === 'list') return ['vlist', props.cls]
   return ['vbasic', props.cls]
 })
