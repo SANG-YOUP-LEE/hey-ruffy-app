@@ -4,21 +4,25 @@
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
           <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
-          <span class="toggle-text" @click="openPopup">알람 설정</span>
+          <span class="toggle-text" @click="onClickLabel">알람 설정</span>
         </div>
         <span class="txt disabled">알람 먼저 허용하기</span>
       </div>
 
       <div v-if="showDataFixed" class="data_fixed">
         <div class="alarm-time">{{ formattedAlarm }}</div>
-        <a class="txt" @click="openPopup">알람 수정하기</a>
+        <a class="txt" @click="onClickLabel">알람 수정하기</a>
       </div>
     </div>
 
-    <AlarmPickerPopup
-      v-if="showAlarmPopup"
-      v-model="inner"
-      @close="closePopup"
+    <!-- ✅ 네이티브 피커: 필요할 때만 잠깐 mount -->
+    <AlarmPickerNative
+      v-if="showNativePicker"
+      :ampm="inner.ampm || '오전'"
+      :hour="inner.hour || '10'"
+      :minute="inner.minute || '00'"
+      @selected="onPicked"
+      @cancel="onCancelPick"
     />
   </div>
 </template>
@@ -26,33 +30,27 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
-import AlarmPickerPopup from '@/components/common/AlarmPickerPopup.vue'
-
-// ⚠️ iOS 즉석 호출은 사용하지 않음 (중복 렌더/복제 방지)
-// import { scheduleOnIOS, cancelOnIOS } from '@/utils/iosNotify'
+import AlarmPickerNative from '@/components/common/AlarmPickerNative.vue'
 
 const props = defineProps({
   routineId: { type: [String, Number], default: null },
   routineTitle: { type: String, default: '알람' },
   bodyText: { type: String, default: '헤이러피 알람' },
-  // ✅ 문자열("HH:mm")도 허용
-  modelValue: { type: [Object, String, null], default: null }
+  modelValue: { type: [Object, String, null], default: null } // "HH:mm" 허용
 })
 const emit = defineEmits(['update:modelValue'])
 
 const inner = ref(sanitize(props.modelValue))
-
 watch(() => props.modelValue, v => {
   const nv = sanitize(v)
   if (!isEqual(nv, inner.value)) inner.value = nv
 }, { deep: true })
-
 watch(inner, v => {
   const nv = sanitize(v)
   if (!isEqual(nv, props.modelValue)) emit('update:modelValue', nv)
 }, { deep: true })
 
-const showAlarmPopup = ref(false)
+const showNativePicker = ref(false)
 
 const hasTime = computed(() => {
   const v = inner.value || {}
@@ -61,38 +59,46 @@ const hasTime = computed(() => {
     && /^\d{2}$/.test(v.minute || '')
 })
 
-/** 토글 ON: 팝업 열기 / OFF: 값만 초기화(예약은 form.save에서) */
 const isOn = computed({
   get: () => hasTime.value,
   set: (val) => {
-    if (val) showAlarmPopup.value = true
+    if (val) openNative()
     else clearAlarm()
   }
 })
+const onClickLabel = () => {
+  // 텍스트 클릭으로도 열기: 토글이 OFF면 먼저 ON으로
+  if (!isOn.value) isOn.value = true
+  else openNative()
+}
 
 const showDataFixed = computed(() => hasTime.value)
-
 const displayAmpm = computed(() => {
   const a = (inner.value?.ampm || '').toString()
   if (a === 'AM') return '오전'
   if (a === 'PM') return '오후'
   return a
 })
-
 const formattedAlarm = computed(() => {
   if (!hasTime.value) return ''
   return `${displayAmpm.value} ${inner.value.hour}시 ${inner.value.minute}분`
 })
 
-const openPopup = () => { showAlarmPopup.value = true }
-
-/** 팝업 닫기: UI만 닫고 즉석 예약 호출은 절대 X */
-const closePopup = () => {
-  showAlarmPopup.value = false
+function openNative() {
+  showNativePicker.value = true
+}
+function onPicked(v) {
+  inner.value = { ...v }
+  showNativePicker.value = false
+}
+function onCancelPick() {
+  // 원하는 UX에 맞게: 취소 시 토글을 OFF로 되돌릴지 유지할지 결정
+  // 지금은 OFF로 되돌림
+  if (!hasTime.value) isOn.value = false
+  showNativePicker.value = false
 }
 
-/** 토글 OFF 시 값만 비우기(네이티브 cancel도 호출 안 함) */
-const clearAlarm = () => {
+function clearAlarm() {
   const empty = { ampm:'', hour:'', minute:'' }
   if (!isEqual(inner.value, empty)) {
     inner.value = empty
@@ -100,8 +106,7 @@ const clearAlarm = () => {
   }
 }
 
-/* ---------------- helpers ---------------- */
-// "HH:mm" → {ampm, hour(2), minute(2)}
+/* ---------- helpers ---------- */
 function parseHHMM(str) {
   const m = String(str || '').match(/^(\d{1,2}):(\d{2})$/)
   if (!m) return null
@@ -109,12 +114,10 @@ function parseHHMM(str) {
   const minute = m[2]
   if (!(h >= 0 && h <= 23)) return null
   const ampm = h < 12 ? '오전' : '오후'
-  const h12 = ((h + 11) % 12) + 1 // 0→12, 13→1 …
+  const h12 = ((h + 11) % 12) + 1
   return { ampm, hour: String(h12).padStart(2,'0'), minute }
 }
-
 function sanitize(v) {
-  // ✅ 문자열 "HH:mm"도 처리
   if (typeof v === 'string') {
     const parsed = parseHHMM(v)
     if (parsed) return parsed
@@ -126,15 +129,12 @@ function sanitize(v) {
   const m = pad2(v.minute)
   return { ampm: a, hour: h, minute: m }
 }
-
 function isEqual(a, b) {
   if (!a || !b) return a === b
-  // b가 문자열일 수도 있으므로 문자열도 정규화해서 비교
   const aa = typeof a === 'string' ? sanitize(a) : a
   const bb = typeof b === 'string' ? sanitize(b) : b
   return aa.ampm === bb.ampm && String(aa.hour) === String(bb.hour) && String(aa.minute) === String(bb.minute)
 }
-
 function toKoAmpm(a) {
   if (a === 'PM' || a === '오후') return '오후'
   if (a === 'AM' || a === '오전') return '오전'
@@ -145,5 +145,4 @@ function pad2(n) {
   if (!/^\d{1,2}$/.test(s)) return ''
   return s.padStart(2, '0')
 }
-
 </script>
