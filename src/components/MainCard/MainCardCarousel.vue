@@ -15,7 +15,7 @@
           :isToday="periodMode==='T' && isToday(rt)"
           :assigned-date="new Date(rt?.assignedDate || periodStartRaw)"
           :layout="layout"
-          :layout-variant="layoutVariant"
+          :layout-variant="card"
           :period-mode="periodMode"
           :delete-targets="deleteTargets"
           :delete-mode="deleteMode"
