@@ -24,8 +24,8 @@
           v-model="selectedHourId"
           :options="hourLoopOptions"
           :drag-sensitivity="1.4"
-          :touch-sensitivity="1.4"
-          :scroll-sensitivity="0.7"
+          :touch-sensitivity="1.6"
+          :scroll-sensitivity="0.5"
         >
           <template #default="{ option }">
             <div class="wheel_item"><span>{{ option.name }}</span></div>
@@ -37,7 +37,7 @@
           v-model="selectedMinuteId"
           :options="minuteLoopOptions"
           :drag-sensitivity="1.4"
-          :touch-sensitivity="1.4"
+          :touch-sensitivity="1.6"
           :scroll-sensitivity="0.5"
         >
           <template #default="{ option }">
