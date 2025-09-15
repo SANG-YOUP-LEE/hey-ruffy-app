@@ -9,21 +9,11 @@
         <span>오전/오후</span><span>시</span><span>분</span>
       </div>
 
-      <!-- 탭/터치하면 네이티브 휠 오픈 -->
-      <div
-        class="popup_body picker_group"
-        @click="openNativeTimePicker"
-        @touchend.stop.prevent="openNativeTimePicker"
-      >
-        <div class="wheel_item" @click.stop @touchend.stop.prevent>
-          <span>{{ view.ampm }}</span>
-        </div>
-        <div class="wheel_item" @click.stop @touchend.stop.prevent>
-          <span>{{ view.hour }}</span>
-        </div>
-        <div class="wheel_item" @click.stop @touchend.stop.prevent>
-          <span>{{ view.minute }}</span>
-        </div>
+      <!-- 숫자 휠은 '표시'만 하고, 클릭 시 네이티브 시트 오픈 -->
+      <div class="popup_body picker_group" @click="openNativeTimePicker">
+        <div class="wheel_item"><span>{{ view.ampm }}</span></div>
+        <div class="wheel_item"><span>{{ view.hour }}</span></div>
+        <div class="wheel_item"><span>{{ view.minute }}</span></div>
       </div>
 
       <div class="popup_btm">
@@ -35,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
@@ -94,7 +84,7 @@ const viewToDate = () => {
   const m   = Number(view.value.minute)
   let h24 = h12 % 12
   if (view.value.ampm === '오후') h24 += 12
-  if (view.value.ampm === '오전' && h12 === 12) h24 = 0 // 오전 12시 → 00
+  if (view.value.ampm === '오전' && h12 === 12) h24 = 0
   d.setHours(h24, m, 0, 0)
   return d
 }
@@ -108,7 +98,7 @@ const dateToView = (d) => {
   return { ampm, hour: pad2(h12), minute: pad2(m) }
 }
 
-/* ── 네이티브 환경 감지 (v4/v5 호환) ───────────────────── */
+/* ── 네이티브 환경 감지 ────────────────────────────────── */
 const isNative = () => {
   try {
     if (typeof Capacitor.isNativePlatform === 'function') return Capacitor.isNativePlatform()
@@ -117,28 +107,46 @@ const isNative = () => {
   return false
 }
 
+/* ── 중복 호출 가드 + 연타 쿨다운 ───────────────────────── */
+let opening = false
+let coolUntil = 0
+
 /* ── 피커 열기: 네이티브만 (웹 폴백 없음) ───────────────── */
 const openNativeTimePicker = async () => {
-  // 터치/클릭이 막히는 상황 방지용: 다음 틱에서 실행
-  requestAnimationFrame(async () => {
-    if (!isNative()) {
-      // 웹 환경이면 요구사항대로 아무 것도 하지 않음
-      return
+  if (!isNative()) return
+
+  const now = Date.now()
+  if (opening || now < coolUntil) return
+  opening = true
+
+  try {
+    // 웹 제스처 억제/바디락이 간섭하지 않게 일시 해제
+    unlockBodyScroll()
+    await nextTick() // DOM 작업 안정화 (짧음)
+
+    const base = viewToDate()
+    const { value } = await DatetimePicker.present({
+      mode: 'time',
+      value: base.toISOString(),
+      locale: 'ko-KR',
+      theme: 'auto'
+    })
+
+    if (value) {
+      const picked = new Date(value)
+      view.value = dateToView(picked)
     }
-    try {
-      const base = viewToDate()
-      const { value } = await DatetimePicker.present({
-        mode: 'time',
-        value: base.toISOString(),
-        locale: 'ko-KR',
-        theme: 'auto'
-      })
-      if (value) view.value = dateToView(new Date(value))
-    } catch (err) {
-      // 취소 또는 플러그인 미등록 등
-      console.warn('[AlarmPicker] DatetimePicker.present error:', err)
+  } catch (err) {
+    // 사용자가 취소하면(code:'dismissed') 여기로 들어옴 → 정상 케이스, 로그만
+    if (err?.code !== 'dismissed') {
+      console.warn('[AlarmPicker] present error:', err)
     }
-  })
+  } finally {
+    // 다시 배경 스크롤 잠금
+    lockBodyScroll()
+    opening = false
+    coolUntil = Date.now() + 400
+  }
 }
 
 /* ── 확인 ─────────────────────────────────────────────── */
@@ -149,12 +157,8 @@ const confirm = () => {
 </script>
 
 <style scoped>
-/* 기존 레이아웃 유지 + 터치 막힘 방지 보강 */
+/* 디자인은 그대로 유지 */
 .picker_group {
-  position: relative;
-  z-index: 1;
-  pointer-events: auto;
-
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: .75rem;
@@ -165,6 +169,5 @@ const confirm = () => {
   height: 44px;
   display:flex; align-items:center; justify-content:center;
   font-size: 18px; font-weight: 600;
-  pointer-events: auto;
 }
 </style>

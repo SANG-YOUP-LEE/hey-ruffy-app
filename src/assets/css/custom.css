@@ -1,4 +1,9 @@
-/*  휠피커 스타일 */
+/* ============================
+   [LEGACY] 휠피커 스타일 (vue-scroll-picker)
+   - 네이티브 타임피커 전환으로 영향 방지: 전체 주석 처리
+   - 필요 시 이 블록 주석 해제
+============================ */
+/*
 .vue-scroll-picker {
   position: relative;
   width: 100%;
@@ -63,7 +68,6 @@
   cursor: pointer;
 }
 
-
 .vue-scroll-picker-layer-bottom {
   border-top:none!important;
   background: linear-gradient(0deg,transparent 20%,#fff)!important;
@@ -75,31 +79,46 @@
 .vue-scroll-picker-layer-selection {
   top: calc(50% - 1.4rem);
   bottom: calc(50% - 1.4rem);
- }
-
+}
 
 .vue-scroll-picker-item[aria-selected='true'] {
   color:#000!important;
   font-weight:bold!important;
- }
+}
+*/
 
-/* 체크 박스 */
+/* ============================
+   체크 박스
+   - input은 '시각적 숨김'으로 접근성 유지
+   - .checkmark가 실제 UI
+============================ */
 .checkbox-label {
   display: flex;
   justify-content: center; 
   align-items: center;  
   gap: 0.5rem;
   margin: 0 auto;
+  position: relative; /* 시각적 숨김 input 포지셔닝 기준 */
 }
 
+/* 시각적 숨김(접근성 OK) */
 .checkbox-label input[type="checkbox"] {
-  width: 1.2rem;
-  height: 1.2rem;
-  display: none;
-  margin: 0;
-  appearance: auto !important;
-  position: static !important;
-  opacity: 1 !important;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+/* 포커스 링 접근성 (키보드 탐색 시) */
+.checkbox-label input[type="checkbox"]:focus + .checkmark {
+  outline: 2px solid #4c9aff;
+  outline-offset: 2px;
 }
 
 .checkbox-label .checkmark {
@@ -112,7 +131,24 @@
   border: 0.1rem solid #666;
 }
 
-/* 라디오 박스 */
+/* 체크 상태 표시 (필요 시 SVG/가상요소 추가 가능) */
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: "";
+  position: absolute;
+  left: 0.35rem;
+  top: 0.15rem;
+  width: 0.35rem;
+  height: 0.7rem;
+  border: solid #222;
+  border-width: 0 0.15rem 0.15rem 0;
+  transform: rotate(45deg);
+}
+
+/* ============================
+   라디오 박스
+   - input은 '시각적 숨김'
+   - .circle이 실제 UI
+============================ */
 .custom-radio-group {
   display: flex;
   justify-content: space-between;
@@ -138,11 +174,25 @@
   gap: 0.4rem;
   cursor: pointer;
   flex-shrink: 0;
+  position: relative; /* 시각적 숨김 input 기준 */
 }
 
-
 .custom-radio input[type="radio"] {
-  display: none;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+.custom-radio input[type="radio"]:focus + .circle {
+  outline: 2px solid #4c9aff;
+  outline-offset: 2px;
 }
 
 .custom-radio .circle {
@@ -164,9 +214,12 @@
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
+  background: currentColor;
 }
 
-/*토글 라디오*/
+/* ============================
+   토글 라디오
+============================ */
 .toggle-container {
   display: flex;
   align-items: center;
