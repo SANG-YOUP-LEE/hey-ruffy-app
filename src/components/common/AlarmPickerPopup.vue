@@ -18,24 +18,44 @@
           :touch-sensitivity="1"
           :scroll-sensitivity="1"
         />
-        <VueScrollPicker
-          :key="pickerKey + '-h'"
-          v-model="selectedHour"
-          :options="hourLoopOptions"
-          :drag-sensitivity="1.4"
-          :touch-sensitivity="1.4"
-          :scroll-sensitivity="0.7"
-        />
-        <VueScrollPicker
-          :key="pickerKey + '-m'"
-          v-model="selectedMinute"
-          :options="minuteLoopOptions"
-          :drag-sensitivity="1.4"
-          :touch-sensitivity="1.4"
-          :scroll-sensitivity="0.5"
-          :inertia-duration="3000"
-          :inertia-factor="0.98"
-        />
+
+        <div
+          @touchstart.passive="onStart('h', $event)"
+          @touchmove.passive="onMove('h', $event)"
+          @touchend.passive="onEnd('h')"
+        >
+          <VueScrollPicker
+            :key="pickerKey + '-h'"
+            v-model="selectedHourId"
+            :options="hourLoopOptions"
+            :drag-sensitivity="1.4"
+            :touch-sensitivity="1.4"
+            :scroll-sensitivity="0.7"
+          >
+            <template #default="{ option }">
+              <div class="wheel_item"><span>{{ option.name }}</span></div>
+            </template>
+          </VueScrollPicker>
+        </div>
+
+        <div
+          @touchstart.passive="onStart('m', $event)"
+          @touchmove.passive="onMove('m', $event)"
+          @touchend.passive="onEnd('m')"
+        >
+          <VueScrollPicker
+            :key="pickerKey + '-m'"
+            v-model="selectedMinuteId"
+            :options="minuteLoopOptions"
+            :drag-sensitivity="1.4"
+            :touch-sensitivity="1.4"
+            :scroll-sensitivity="0.5"
+          >
+            <template #default="{ option }">
+              <div class="wheel_item"><span>{{ option.name }}</span></div>
+            </template>
+          </VueScrollPicker>
+        </div>
       </div>
 
       <div class="popup_btm">
@@ -47,9 +67,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 
-/** ---- UI 스크롤 잠금 ---- */
 const preventScroll = (e) => { e.preventDefault() }
 const lockBodyScroll = () => {
   document.body.style.overflow = 'hidden'
@@ -62,7 +81,6 @@ const unlockBodyScroll = () => {
 onMounted(lockBodyScroll)
 onBeforeUnmount(unlockBodyScroll)
 
-/** ---- 기본 표시값: 오전 10:00 ---- */
 const DISPLAY_DEFAULT = { ampm: '오전', hour: '10', minute: '00' }
 
 const props = defineProps({
@@ -78,66 +96,109 @@ const normalize = (v) => ({
   minute: pad2(v?.minute ?? DISPLAY_DEFAULT.minute)
 })
 
-/** ---- 상태 ---- */
 const base = normalize(props.modelValue)
 const localValue = ref({ ampm: base.ampm })
 const pickerKey = ref(0)
 
-/** ---- 옵션/루프 ---- */
-const rawHours   = Array.from({ length: 12 }, (_, i) => pad2(i + 1))
-const rawMinutes = Array.from({ length: 60 }, (_, i) => pad2(i))
-const loopCount = 100
-const hourLoopOptions   = Array.from({ length: rawHours.length   * loopCount }, (_, i) => rawHours[i % 12])
-const minuteLoopOptions = Array.from({ length: rawMinutes.length * loopCount }, (_, i) => rawMinutes[i % 60])
 const ampmOptions = ['오전', '오후']
 
-const findCenteredIndex = (arr, val) => {
-  const target = pad2(val)
-  const half = Math.floor(arr.length / 2)
-  for (let i = half; i < arr.length; i++) if (arr[i] === target) return i
-  for (let i = half - 1; i >= 0; i--) if (arr[i] === target) return i
-  return -1
-}
+const LOOP = 10
+const H_SIZE = 12
+const M_SIZE = 60
 
-/** ---- 초기 선택값(표시값 기준) ---- */
-const hourIndex   = findCenteredIndex(hourLoopOptions,   base.hour)
-const minuteIndex = findCenteredIndex(minuteLoopOptions, base.minute)
-const selectedHour   = ref(hourIndex   !== -1 ? hourLoopOptions[hourIndex]     : DISPLAY_DEFAULT.hour)
-const selectedMinute = ref(minuteIndex !== -1 ? minuteLoopOptions[minuteIndex] : DISPLAY_DEFAULT.minute)
+const hoursBase = Array.from({ length: H_SIZE }, (_, i) => ({ name: pad2(i + 1), logical: i + 1 }))
+const minutesBase = Array.from({ length: M_SIZE }, (_, i) => ({ name: pad2(i), logical: i }))
 
-/** ---- props 변경 시 보정 ---- */
+const hourLoopOptions = computed(() => {
+  const out = []
+  let id = 0
+  for (let k = 0; k < LOOP; k++) for (let i = 0; i < H_SIZE; i++) out.push({ name: hoursBase[i].name, value: id++, logical: hoursBase[i].logical })
+  return out
+})
+const minuteLoopOptions = computed(() => {
+  const out = []
+  let id = 0
+  for (let k = 0; k < LOOP; k++) for (let i = 0; i < M_SIZE; i++) out.push({ name: minutesBase[i].name, value: id++, logical: minutesBase[i].logical })
+  return out
+})
+
+const centerBlock = Math.floor(LOOP / 2)
+const centerHourId = (logical) => centerBlock * H_SIZE + ((Number(logical) - 1 + H_SIZE) % H_SIZE)
+const centerMinuteId = (logical) => centerBlock * M_SIZE + ((Number(logical) + M_SIZE) % M_SIZE)
+
+const selectedHourId = ref(centerHourId(base.hour))
+const selectedMinuteId = ref(centerMinuteId(base.minute))
+
 watch(() => props.modelValue, async (v) => {
   const n = normalize(v)
   localValue.value.ampm = n.ampm
-  const hi = findCenteredIndex(hourLoopOptions, n.hour || DISPLAY_DEFAULT.hour)
-  const mi = findCenteredIndex(minuteLoopOptions, n.minute || DISPLAY_DEFAULT.minute)
-  selectedHour.value   = hi !== -1 ? hourLoopOptions[hi]     : (n.hour   || DISPLAY_DEFAULT.hour)
-  selectedMinute.value = mi !== -1 ? minuteLoopOptions[mi]   : (n.minute || DISPLAY_DEFAULT.minute)
+  selectedHourId.value = centerHourId(n.hour)
+  selectedMinuteId.value = centerMinuteId(n.minute)
   await nextTick()
   pickerKey.value++
 }, { immediate: true, deep: true })
 
-/** ---- 마운트 시 ‘오전 10:00’ 강제 정렬 ---- */
-onMounted(async () => {
-  await nextTick()
-  if (!props.modelValue?.hour || !props.modelValue?.minute) {
-    localValue.value.ampm = DISPLAY_DEFAULT.ampm
-    const hi = findCenteredIndex(hourLoopOptions,   DISPLAY_DEFAULT.hour)
-    const mi = findCenteredIndex(minuteLoopOptions, DISPLAY_DEFAULT.minute)
-    selectedHour.value   = hi !== -1 ? hourLoopOptions[hi]     : DISPLAY_DEFAULT.hour
-    selectedMinute.value = mi !== -1 ? minuteLoopOptions[mi]   : DISPLAY_DEFAULT.minute
-    pickerKey.value++
+const recenterHourIfEdge = () => {
+  const total = LOOP * H_SIZE, edge = H_SIZE * 2
+  if (selectedHourId.value < edge || selectedHourId.value > total - edge) {
+    const logical = (selectedHourId.value % H_SIZE) + 1
+    selectedHourId.value = centerHourId(logical)
   }
-})
+}
+const recenterMinuteIfEdge = () => {
+  const total = LOOP * M_SIZE, edge = M_SIZE * 2
+  if (selectedMinuteId.value < edge || selectedMinuteId.value > total - edge) {
+    const logical = (selectedMinuteId.value % M_SIZE)
+    selectedMinuteId.value = centerMinuteId(logical)
+  }
+}
+watch(selectedHourId, recenterHourIfEdge)
+watch(selectedMinuteId, recenterMinuteIfEdge)
 
-/** ---- 확인 ---- */
+/* 글라이드 부스트 */
+const touchState = {
+  h: { y: 0, t: 0, vy: 0 },
+  m: { y: 0, t: 0, vy: 0 }
+}
+const getY = (e) => (e.changedTouches ? e.changedTouches[0].clientY : e.touches[0].clientY)
+const onStart = (k, e) => { const y = getY(e); touchState[k].y = y; touchState[k].t = performance.now(); touchState[k].vy = 0 }
+const onMove = (k, e) => {
+  const y = getY(e), t = performance.now()
+  const dy = y - touchState[k].y, dt = Math.max(1, t - touchState[k].t)
+  touchState[k].vy = dy / dt
+  touchState[k].y = y
+  touchState[k].t = t
+}
+const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3)
+const onEnd = (k) => {
+  const vy = touchState[k].vy
+  const dir = vy < 0 ? 1 : -1
+  const speed = Math.min(2.5, Math.max(0, Math.abs(vy)))
+  if (speed < 0.2) return
+  const maxSteps = k === 'h' ? 10 : 25
+  const steps = Math.max(2, Math.min(maxSteps, Math.round(speed * (k === 'h' ? 6 : 12))))
+  const dur = 900 + Math.round(700 * (steps / maxSteps))
+  const start = performance.now()
+  const from = k === 'h' ? selectedHourId.value : selectedMinuteId.value
+  const delta = dir * steps
+  const tick = (now) => {
+    const p = Math.min(1, (now - start) / dur)
+    const e = easeOutCubic(p)
+    const cur = Math.round(from + delta * e)
+    if (k === 'h') selectedHourId.value = cur
+    else selectedMinuteId.value = cur
+    if (p < 1) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+}
+
 const confirmSelection = () => {
-  const h = pad2(selectedHour.value   || DISPLAY_DEFAULT.hour)
-  const m = pad2(selectedMinute.value || DISPLAY_DEFAULT.minute)
+  const hourLogical = (selectedHourId.value % H_SIZE) + 1
+  const minuteLogical = (selectedMinuteId.value % M_SIZE)
   emit('update:modelValue', {
     ampm: localValue.value.ampm || DISPLAY_DEFAULT.ampm,
-    hour: h,
-    minute: m
+    hour: pad2(hourLogical),
+    minute: pad2(minuteLogical)
   })
   emit('close')
 }
