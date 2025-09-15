@@ -6,11 +6,10 @@ import { Capacitor } from '@capacitor/core'
 import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
 const props = defineProps({
-  /** 초기값을 넘기고 싶으면 { ampm:'오전|오후', hour:'01~12', minute:'00~59' } */
+  /** 초기값: { ampm:'오전|오후', hour:'01~12', minute:'00~59' } */
   initial: { type: Object, default: null },
-  /** 로케일/테마 옵션 */
-  locale: { type: String, default: 'ko-KR' },
-  theme:  { type: String, default: 'auto' }, // 'auto' | 'light' | 'dark'
+  locale:  { type: String, default: 'ko-KR' },
+  theme:   { type: String, default: 'auto' }, // 'auto' | 'light' | 'dark'
 })
 const emit = defineEmits(['selected','cancel'])
 
@@ -63,7 +62,7 @@ onMounted(async () => {
 
     const res = await DatetimePicker.present({
       mode: 'time',
-      value,                // 이전값 있으면 지정, 없으면 시스템 기본
+      value,
       locale: props.locale,
       theme:  props.theme,
     })
