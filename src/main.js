@@ -15,8 +15,6 @@ import "./assets/css/ar_popup.css";
 import "./assets/css/m_routine.css";
 import "./assets/css/walk_status_pop.css";
 
-import VueScrollPicker from "vue-scroll-picker";
-import "vue-scroll-picker/style.css";
 
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -42,7 +40,6 @@ const pinia = createPinia();
 app.use(pinia);
 setActivePinia(pinia);
 app.use(router);
-app.use(VueScrollPicker);
 app.mount("#app");
 
 // ───────────────────────────────────────────

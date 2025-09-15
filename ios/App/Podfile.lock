@@ -4,11 +4,14 @@ PODS:
   - CapacitorApp (7.1.0):
     - Capacitor
   - CapacitorCordova (7.4.3)
+  - CapawesomeTeamCapacitorDatetimePicker (7.0.1):
+    - Capacitor
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapawesomeTeamCapacitorDatetimePicker (from `../../node_modules/@capawesome-team/capacitor-datetime-picker`)"
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -17,12 +20,15 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/app"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapawesomeTeamCapacitorDatetimePicker:
+    :path: "../../node_modules/@capawesome-team/capacitor-datetime-picker"
 
 SPEC CHECKSUMS:
   Capacitor: 28d6c01026a9a3f7156529498ec1f389a2a28dbc
   CapacitorApp: 26587c2ce485d88ddb39adb21cac64f8e481afe3
   CapacitorCordova: 435121e81a2df4d0034f0fb11fcefab5104cfdb5
+  CapawesomeTeamCapacitorDatetimePicker: efbcc48bc69fbc550502235513691302871c9fad
 
-PODFILE CHECKSUM: 49465212e7122eb35951cef22c0a653a7d83921a
+PODFILE CHECKSUM: bbafa0870c3b704ca3b60cb990e2ae60d4763209
 
 COCOAPODS: 1.16.2
