@@ -1,6 +1,6 @@
 body.blue .select_ruffy .ruffys a.on span.name,
 .select_skin .list .color.blue span {
-  background-color: #0994ff;
+  background-color: #3db4ff;
 }
 
 body.red .select_ruffy .ruffys a.on span.name,
@@ -19,7 +19,7 @@ body.bw .select_ruffy .ruffys a.on span.name,
 }
 
 .select_skin .list .color.blue.on {
-  color:#0994ff
+  color:#3db4ff
 }
 
 .select_skin .list .color.red.on  {
@@ -52,19 +52,19 @@ body a,
 body.blue a,
 body .t_on, 
 body.blue .t_on {
-  color:#0994ff;
+  color:#3db4ff;
 }
 
 
 body .uline, 
 body.blue .uline {
-    border-bottom:1px solid #0994ff
+    border-bottom:1px solid #3db4ff
 }
 
 body [class$="basic"],
 body.blue [class$="basic"]  {
-  background-color: #0994ff;
-  border:1px solid #0994ff;
+  background-color: #3db4ff;
+  border:1px solid #3db4ff;
   color: #fff;
 }
 
@@ -73,20 +73,20 @@ body.blue [class$="white"],
 body .on_w,
 body.blue .on_w {
   background-color: #fff!important;
-  border:1px solid #0994ff!important;
-  color: #0994ff!important;
+  border:1px solid #3db4ff!important;
+  color: #3db4ff!important;
 }
 
 body .on_w_nt,
 body.blue .on_w_nt {
   background-color: #fff!important;
-  border:1px solid #0994ff!important;
+  border:1px solid #3db4ff!important;
   color: #333!important;
 }
 
 body .custom-radio input[type="radio"]:checked + .circle::after,
 body.blue .custom-radio input[type="radio"]:checked + .circle::after {
-  background-color:#0994ff;
+  background-color:#3db4ff;
 }
 
 
@@ -98,14 +98,14 @@ body.blue .checkbox-label input:checked + .checkmark::after {
   position: absolute;
   left: 0.4rem;
   top:-0.3rem;
-  border: solid #0994ff; 
+  border: solid #3db4ff; 
   border-width: 0 0.2rem 0.2rem 0;
   transform: rotate(45deg);
 }
 
 body .on,
 body.blue .on {
-    background-color:#0994ff!important;
+    background-color:#3db4ff!important;
     color:#fff!important;
 }
 
@@ -122,8 +122,8 @@ body.blue .monthly-grid span.m_s_btn.selected {
 body .on_w.light,
 body.blue .on_w.light {
   background-color:#ddf2ff!important;
-  border:1px solid #0994ff!important;
-  color:#0994ff!important;
+  border:1px solid #3db4ff!important;
+  color:#3db4ff!important;
 }
 
 /* skin color red*/

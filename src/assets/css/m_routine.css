@@ -1,7 +1,8 @@
 #main_body .date_scroll,
 #main_body .routine_total,
 #main_body .routine_total .total_area .term button,
-#main_body .routine_total .total_area .r_state a {
+#main_body .routine_total .total_area .r_state a,
+#main_body .today_tools .tools [class$='on'] {
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -103,53 +104,60 @@
   background-color: #3db4ff !important;
 }
 
+
 #main_body .routine_total {
   border-radius: 1.5rem;
-  padding: 0.8rem;
+  padding:1.5rem;
   background-color: #fff;
   margin-bottom: 1rem;
 }
 
 #main_body .routine_total .total_area {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-#main_body .routine_total .total_area .date_block {
-  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr 8.5rem;
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "date   date   term"
+    "state  state  state"
+    "toggle center bar";
+  align-items: center;
+  gap: 1rem 0.5rem;
 }
 
 #main_body .routine_total .total_area .date {
+  grid-area: date;
   font-family: Pretendard;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
   line-height: 1;
+  width: auto;
 }
 
-#main_body .routine_total .total_area .date .y_m {
-  font-size: 0.9rem;
-  font-weight: 900;
+#main_body .routine_total .total_area .date .today {
+  display: flex;
+  align-items: center;
 }
 
+#main_body .routine_total .total_area .date .y_m,
 #main_body .routine_total .total_area .date em {
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: 900;
-  margin: 0.8rem 0.5rem;
 }
 
 #main_body .routine_total .total_area .date button {
   width: 1rem;
   height: 1rem;
+  flex-shrink: 0;
 }
 
 #main_body .routine_total .total_area .date button.next {
   background: url('../images/ico_b_next.png') no-repeat 50% 50% / 100%;
+  margin-left:0.5rem;
 }
 
 #main_body .routine_total .total_area .date button.prev {
   background: url('../images/ico_b_prev.png') no-repeat 50% 50% / 100%;
+  margin-right:0.5rem;
 }
 
 #main_body .routine_total .total_area .date button span {
@@ -157,22 +165,27 @@
 }
 
 #main_body .routine_total .total_area .term {
-  margin-top: 0.3rem;
+  grid-area: term;
   display: flex;
   gap: 0.3rem;
-  justify-content: center;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 #main_body .routine_total .total_area .term button {
   color: #3db4ff;
   font-family: Pretendard;
   font-size: 0.8rem;
-  line-height: 1.7rem;
+  line-height: 2rem;
   font-weight: 900;
   background-color: #fff;
-  border-radius: 0.5rem;
-  width: 2rem;
+  border-radius: 1rem;
+  padding:0 0.5rem 0 0.5rem;
   text-align: center;
+}
+
+#main_body .routine_total .total_area .term button span {
+  display: block;
 }
 
 #main_body .routine_total .total_area .term button.on {
@@ -180,68 +193,94 @@
   color: #fff;
 }
 
-#main_body .routine_total .total_area .state_graph_block {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
 #main_body .routine_total .total_area .r_state {
+  grid-area: state;
   display: flex;
-  flex-direction: row;
   align-items: center;
   gap: 0.5rem;
   justify-content: flex-start;
+  width: 100%;
 }
 
 #main_body .routine_total .total_area .r_state a {
-  flex: 0 0 auto;
+  flex: 0 0 calc((100% - 1.5rem) / 4);
+  max-width: calc((100% - 1.5rem) / 4);
+  box-sizing: border-box;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-radius: 1rem;
   font-weight: 600;
   font-family: Pretendard;
   font-size: 1rem;
   color: #333;
   text-decoration: none;
   padding: 0.3rem 0.5rem;
-  background-color: #fff !important;
-  border: 1px solid transparent;
+  height: 4rem;
+  border-radius: 1.5rem;
 }
 
 #main_body .routine_total .total_area .r_state a img {
-  width: 2rem;
-  margin: 0 0.3rem 0 0.3rem;
-}
-
-#main_body .routine_total .total_area .r_state a.on {
-  color: #3db4ff !important;
-  border: 1px solid #3db4ff;
+  width: 3rem;
+  margin: 0 0rem 0 0;
 }
 
 #main_body .routine_total .total_area .r_state a em {
   display: inline-block;
+  margin: 0 0 0 0.2rem;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+#main_body .routine_total .total_area .r_state a.on {
+  color: #3db4ff !important;
+  background-color: #fff !important;
+  border:1px solid #3db4ff;
 }
 
 #main_body .routine_total .total_area .r_state a span {
   display: none;
 }
 
-#main_body .routine_total .total_area .graph {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  width: 100%;
+#main_body .routine_total .total_area .total_toggle {
+  grid-area: toggle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: max-content;
+  justify-self: start;
+  gap: 0.25rem;
+  margin-top:0.1rem;
+}
+
+#main_body .routine_total .total_area .total_toggle .toggle-container,
+#main_body .routine_total .total_area .total_toggle .toggle-switch,
+#main_body .routine_total .total_area .total_toggle > span {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+#main_body .routine_total .total_area .total_toggle > span {
+  display: inline-block;
+  font-family: Pretendard;
+  font-size: 0.9rem;
+  font-weight: 900;
+  margin-left: 0.25rem;
 }
 
 #main_body .routine_total .total_area .center-text {
-  text-align: center;
+  grid-area: center;
+  justify-self: end;
+  text-align: right;
+  white-space: nowrap;
   font-size: 0.9rem;
   font-weight: bold;
   letter-spacing: -0.02rem;
   line-height: 1.3rem;
+  margin-right: 0.5rem;
+  align-self: center;
+  min-width: 0;
+  margin-top:0.2rem;
 }
 
 #main_body .routine_total .total_area .center-text em {
@@ -251,16 +290,28 @@
   margin-left: 0.3rem;
 }
 
+#main_body .routine_total .total_area .graph {
+  grid-area: bar;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 8.5rem;
+  box-sizing: border-box;
+  justify-self: start;
+  align-self: center;
+}
+
 #main_body .routine_total .total_area .bar_wrap {
   width: 100%;
 }
+
 
 #main_body .routine_total .total_area .bar_stack,
 #main_body .routine_total .total_area .bar_single {
   display: flex;
   width: 100%;
-  height: 1rem;
-  border-radius: 0.5rem;
+  height: 1.2rem;
+  border-radius: 1rem;
   overflow: hidden;
   background: #f3f3f3;
 }
@@ -286,6 +337,11 @@
 #main_body .routine_total .total_area .seg-not {
   background: #d5dadd;
 }
+
+
+
+
+
 
 #main_body .tools .term_wrap {
   margin-right: 0.3rem;
@@ -363,7 +419,7 @@
   width: 1.8rem;
   height: 1.8rem;
   margin-left: 0.2rem;
-  border: 1px solid #eee;
+  border: 1px solid #fff;
   border-radius: 0.5rem;
   display: inline-block;
   background-color: #fff !important;
@@ -374,7 +430,7 @@
 }
 
 #main_body .today_tools .tools [class$='on'] {
-  border: 1px solid #333 !important;
+  border: 1px solid #3db4ff !important;
   color: #333 !important;
   background-color: #fff !important;
 }
@@ -399,10 +455,14 @@
   background: url('../images/ico_card.png') no-repeat 50% 50% / 60%;
 }
 
+#main_body .today_tools .tools a.r_carousel {
+  background: url('../images/ico_card2.png') no-repeat 50% 50% / 60%;
+}
 #main_body .today_tools .tools a.r_list {
   background: url('../images/ico_list.png') no-repeat 50% 50% / 60%;
 }
 
+ 
 #main_body .routine_card {
   background-color: #fff;
   border: 1px solid #e6e6e6;
@@ -742,4 +802,49 @@
 
 #main_body .routine_card .rc_inner .ruffys_item span {
   background-size: 100% !important;
+}
+
+.vcar_wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.vcar_stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.vcar_item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  transition: transform .22s cubic-bezier(.2, .8, .2, 1), opacity .18s ease;
+}
+
+.vcar_item.center {
+  transition: transform .2s cubic-bezier(.16, .84, .2, 1), opacity .18s ease;
+}
+
+.vcar_fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height:5rem;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.vcar_fade.top {
+  top: 0;
+  background: rgba(249, 249, 249, 0.6);
+}
+
+.vcar_fade.bot {
+  bottom: 0;
+  background: rgba(249, 249, 249, 0.6);
 }

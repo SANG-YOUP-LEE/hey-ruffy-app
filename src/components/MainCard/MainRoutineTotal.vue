@@ -1,51 +1,55 @@
 <template>
   <div class="routine_total">
     <div class="total_area">
-      <div class="date_block">
-        <div class="date">
-          <span class="y_m">{{ selectedDate.getFullYear() }}.{{ selectedDate.getMonth() + 1 }}</span>
-          <p class="today">
-            <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
-            <em>{{ selectedDate.getDate() }}</em>
-            <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
-          </p>
-          <div class="term">
-            <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>D</span></button>
-            <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>W</span></button>
-            <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>M</span></button>
+      <div class="date">
+        <p class="today">
+          <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
+          <span class="y_m">{{ selectedDate.getFullYear() }}.{{ selectedDate.getMonth() + 1 }}.</span>
+          <em>{{ selectedDate.getDate() }}</em>
+          <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
+        </p>
+      </div>
+
+      <div class="term">
+        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>Today</span></button>
+        <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>Weekly</span></button>
+        <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
+      </div>
+
+      <div class="r_state">
+        <a href="#none" class="not_done" :class="{ on: !totalOn && currentFilter==='notdone' }" @click.prevent="selectState('notdone')"><span>체크전 다짐</span> <img :src="getFace('01')"> <em>{{ displayCounts.notdone }}</em></a>
+        <a href="#none" class="done"     :class="{ on: !totalOn && currentFilter==='done' }"    @click.prevent="selectState('done')"><span>달성완료</span> <img :src="getFace('02')"> <em>{{ displayCounts.done }}</em></a>
+        <a href="#none" class="fail"     :class="{ on: !totalOn && currentFilter==='faildone' }" @click.prevent="selectState('faildone')"><span>달성실패</span> <img :src="getFace('03')"> <em>{{ displayCounts.faildone }}</em></a>
+        <a href="#none" class="ignore"   :class="{ on: !totalOn && currentFilter==='ignored' }"  @click.prevent="selectState('ignored')"><span>흐린눈</span> <img :src="getFace('04')"> <em>{{ displayCounts.ignored }}</em></a>
+      </div>
+
+      <div class="total_toggle">
+        <ToggleSwitch v-model="totalOn"/> <span>Total</span>
+      </div>
+
+      <div class="center-text">{{ centerText }}<em>{{ percentText }}</em></div>
+
+      <div class="graph" @click="resetGraphToToday">
+        <div class="bar_wrap" v-if="barPct.mode==='stack'">
+          <div class="bar_stack">
+            <span class="seg seg-done" :style="{ width: barPct.done+'%'}"></span>
+            <span class="seg seg-fail" :style="{ width: barPct.fail+'%'}"></span>
+            <span class="seg seg-ign"  :style="{ width: barPct.ign+'%'}"></span>
+          </div>
+        </div>
+        <div class="bar_wrap" v-else>
+          <div class="bar_single">
+            <span :class="['seg', barPct.cls]" :style="{ width: barPct.single+'%'}"></span>
           </div>
         </div>
       </div>
-      <div class="state_graph_block">
-        <div class="r_state">
-          <a href="#none" class="not_done" :class="{ on: currentFilter==='notdone' }" @click.prevent="selectState('notdone')"><span>체크전 다짐</span> <img :src="getFace('01')"> <em>{{ displayCounts.notdone }}</em></a>
-          <a href="#none" class="done" :class="{ on: currentFilter==='done' }" @click.prevent="selectState('done')"><span>달성완료</span> <img :src="getFace('02')"> <em>{{ displayCounts.done }}</em></a>
-          <a href="#none" class="fail" :class="{ on: currentFilter==='faildone' }" @click.prevent="selectState('faildone')"><span>달성실패</span> <img :src="getFace('03')"> <em>{{ displayCounts.faildone }}</em></a>
-          <a href="#none" class="ignore" :class="{ on: currentFilter==='ignored' }" @click.prevent="selectState('ignored')"><span>흐린눈</span> <img :src="getFace('04')"> <em>{{ displayCounts.ignored }}</em></a>
-        </div>
-    
-        <div class="graph" @click="resetGraphToToday">
-          <div class="center-text">{{ centerText }}<em>{{ percentText }}</em></div>
-          <div class="bar_wrap" v-if="barPct.mode==='stack'">
-            <div class="bar_stack">
-              <span class="seg seg-done" :style="{ width: barPct.done+'%'}"></span>
-              <span class="seg seg-fail" :style="{ width: barPct.fail+'%'}"></span>
-              <span class="seg seg-ign"  :style="{ width: barPct.ign+'%'}"></span>
-            </div>
-          </div>
-          <div class="bar_wrap" v-else>
-            <div class="bar_single">
-              <span :class="['seg', barPct.cls]" :style="{ width: barPct.single+'%'}"></span>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   </div>
   <div class="today_tools">
     <div class="today">
       <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
-      <span class="term"><img :src="termFaceSrc"> {{ periodModeLabel }}</span> <em>{{ periodTitle }}</em>
+      <span class="term"></span> <em>{{ periodTitle }}</em>
       <a href="#none" class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></a>
     </div>
     <div class="tools">
@@ -57,10 +61,10 @@
   </div>
 </template>
 
-
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 
 const emit = defineEmits(['update:modelValue','requestPrev','requestNext','changeView','changePeriod','toggleDeleteMode'])
 
@@ -81,10 +85,25 @@ const localView = ref(props.viewMode || 'card')
 const localDelete = ref(!!props.deleteMode)
 const currentFilter = ref(props.modelValue || DEFAULT_FILTER)
 const graphMode = ref('today')
+const totalOn = ref(true)
+const lastClickedState = ref(null)
 
 watch(() => props.viewMode, (v) => { if (!localDelete.value && v) localView.value = v })
 watch(() => props.deleteMode, (v) => { localDelete.value = !!v })
 watch(() => props.modelValue, (v) => { currentFilter.value = v || DEFAULT_FILTER })
+
+watch(totalOn, (v) => {
+  if (v) {
+    graphMode.value = 'today'
+  } else {
+    const next = lastClickedState.value || DEFAULT_FILTER
+    if (currentFilter.value !== next) {
+      currentFilter.value = next
+      emit('update:modelValue', next)
+    }
+    graphMode.value = 'filter'
+  }
+})
 
 function toggleDeleteMode() {
   const next = !localDelete.value
@@ -94,14 +113,7 @@ function toggleDeleteMode() {
 function onChangePeriod(mode){
   resetToDefault()
   graphMode.value = 'today'
-  if (localDelete.value) {
-    localDelete.value = false
-    emit('toggleDeleteMode', false)
-    if (localView.value !== 'card') {
-      localView.value = 'card'
-      emit('changeView', 'card')
-    }
-  }
+  totalOn.value = true
   emit('changePeriod', mode)
 }
 function onChangeView(view){
@@ -115,35 +127,41 @@ function onChangeView(view){
   }
 }
 
-const onClickPrev = () => { resetToDefault(); graphMode.value = 'today'; emit('requestPrev') }
-const onClickNext = () => { resetToDefault(); graphMode.value = 'today'; emit('requestNext') }
+const onClickPrev = () => { resetToDefault(); graphMode.value = 'today'; totalOn.value = true; emit('requestPrev') }
+const onClickNext = () => { resetToDefault(); graphMode.value = 'today'; totalOn.value = true; emit('requestNext') }
 
 const activeTool = computed(() => (localDelete.value ? 'delete' : localView.value))
 const displayCounts = computed(() => props.counts ?? { notdone:0, done:0, faildone:0, ignored:0 })
 const displayTotal  = computed(() => props.totalCount ?? 0)
 
 function selectState(key){
+  lastClickedState.value = key
   if (currentFilter.value !== key) {
     currentFilter.value = key
     emit('update:modelValue', key)
   }
+  totalOn.value = false
   graphMode.value = 'filter'
 }
 function resetToDefault(){
+  lastClickedState.value = null
   currentFilter.value = DEFAULT_FILTER
   emit('update:modelValue', DEFAULT_FILTER)
 }
 function resetGraphToToday(){
   graphMode.value = 'today'
+  totalOn.value = true
 }
 
 onMounted(() => {
   currentFilter.value = DEFAULT_FILTER
   emit('update:modelValue', DEFAULT_FILTER)
   graphMode.value = 'today'
+  totalOn.value = true
+  lastClickedState.value = null
 })
-watch(() => props.selectedDate && props.selectedDate.getTime(), () => { resetToDefault(); graphMode.value = 'today' })
-watch(() => props.periodMode, () => { resetToDefault(); graphMode.value = 'today' })
+watch(() => props.selectedDate && props.selectedDate.getTime(), () => { resetToDefault(); graphMode.value = 'today'; totalOn.value = true })
+watch(() => props.periodMode, () => { resetToDefault(); graphMode.value = 'today'; totalOn.value = true })
 
 const centerText = computed(() => {
   if (graphMode.value === 'today') return '총 달성 현황'

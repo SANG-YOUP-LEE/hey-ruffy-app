@@ -157,13 +157,3 @@ onBeforeUnmount(()=>{
   window.removeEventListener('resize', measure)
 })
 </script>
-
-<style scoped>
-.vcar_wrap{position:relative; width:100%; height:100%; overflow:hidden; touch-action:none}
-.vcar_stage{position:relative; width:100%; height:100%}
-.vcar_item{position:absolute; top:50%; left:50%; width:96%; transition:transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease}
-.vcar_item.center{transition:transform .2s cubic-bezier(.16,.84,.2,1), opacity .18s ease}
-.vcar_fade{position:absolute; left:0; right:0; height:72px; pointer-events:none; z-index:200}
-.vcar_fade.top{top:0; background:linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0))}
-.vcar_fade.bot{bottom:0; background:linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))}
-</style>
