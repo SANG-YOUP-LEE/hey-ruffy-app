@@ -11,48 +11,105 @@ const PER_ROUTINE_LIMIT = 10  // 루틴당 최대 예약
 const GLOBAL_LIMIT      = 60  // 앱 전체 예약 상한
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+const baseOf = (routineId) => `routine-${String(routineId ?? '').trim()}`
 const p2 = (n) => String(n).padStart(2, '0')
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const toEpochSec = (ms) => Math.floor(ms / 1000)
 
-/* ─────────────────────────────────────────────────────────────
- * ✅ UID 네임스페이스: 모든 id/baseId는 반드시 사용자별로 구분
- *   - routineId 스코프: u-<uid>__<rid>
- *   - baseId:          routine-u-<uid>__<rid>
- *   - iOS 쪽에서 최종 ID는 routine-...-daily/weekly/once-... 형태가 되어
- *     사용자간 충돌/오염이 원천 차단됨
- * ───────────────────────────────────────────────────────────── */
-const scopedRoutineId = (uid, rid) => `u-${String(uid || 'nouid')}__${String(rid ?? '').trim()}`
-const baseOf = (uid, rid) => `routine-${scopedRoutineId(uid, rid)}`
-
-// HH:mm 또는 {hour, minute, ampm} 파싱
+/* ----------------------------------------------------------------
+   HH:mm 또는 다양한 형태({hour, minute, ampm}, 다른 키들) 파싱 (보강판)
+   - alarmTime: "오전 10:30", "10:30", "10·30", "10 30" 등
+   - alarm / time: { hour, minute, ampm } 또는 중첩 객체
+   - 최상위: hour/minute/ampm 로 들어온 경우
+------------------------------------------------------------------ */
 function resolveAlarmHM(r) {
-  const a = r?.alarmTime
-  if (typeof a === 'string') {
-    const s0 = a.trim().replace(/[.\u00B7\s]+/g, ':').replace(/:+/g, ':')
+  const candidates = []
+
+  // 가장 흔한 키들
+  if (r?.alarmTime != null) candidates.push(r.alarmTime)
+  if (r?.alarm != null)     candidates.push(r.alarm)
+  if (r?.time != null)      candidates.push(r.time)
+
+  // 최상위로 흩어진 케이스
+  if (r?.hour != null || r?.minute != null || r?.ampm != null) {
+    candidates.push({ hour: r.hour, minute: r.minute, ampm: r.ampm })
+  }
+
+  // 문자열 변종 키들(안전망)
+  if (typeof r?.alarm_time === 'string') candidates.push(r.alarm_time)
+  if (typeof r?.startTime === 'string')  candidates.push(r.startTime)
+
+  // 혹시 전체가 문자열이면
+  if (typeof r === 'string') candidates.push(r)
+
+  const parseString = (str) => {
+    const s0 = String(str || '').trim()
+      .replace(/[.\u00B7\s]+/g, ':')  // 점/·/스페이스 → 콜론
+      .replace(/:+/g, ':')            // 콜론 중복 정리
+    // “오전/오후/AM/PM 10:30” 또는 “10:30 오전/오후”
     let m = s0.match(/^(?:\s*(오전|오후|AM|PM)\s+)?(\d{1,2}):(\d{2})(?:\s*(오전|오후|AM|PM))?$/i)
-    if (m && (m[1] || m[4])) {
+    if (m) {
       let h = +m[2], mm = +m[3]
       const tag = (m[1] || m[4] || '').toUpperCase()
       if (tag === 'PM' || tag === '오후') { if (h < 12) h += 12 }
       if (tag === 'AM' || tag === '오전') { if (h === 12) h = 0 }
-      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
-    }
-    m = s0.match(/^(\d{1,2}):(\d{2})$/)
-    if (m) {
-      const h = Math.max(0, Math.min(23, +m[1]))
-      const mm = Math.max(0, Math.min(59, +m[2]))
+      h = Math.max(0, Math.min(23, h))
+      mm = Math.max(0, Math.min(59, mm))
       return { hour: h, minute: mm }
     }
+    // “10:30”
+    m = s0.match(/^(\d{1,2}):(\d{2})$/)
+    if (m) {
+      let h = +m[1], mm = +m[2]
+      h = Math.max(0, Math.min(23, h))
+      mm = Math.max(0, Math.min(59, mm))
+      return { hour: h, minute: mm }
+    }
+    return null
   }
-  if (a && typeof a === 'object' && a.hour != null && a.minute != null) {
-    let h = parseInt(String(a.hour), 10)
-    let mm = parseInt(String(a.minute), 10)
-    const tag = String(a.ampm || '').toUpperCase()
-    if (tag === 'PM' || a.ampm === '오후') { if (h < 12) h += 12 }
-    if (tag === 'AM' || a.ampm === '오전') { if (h === 12) h = 0 }
-    if (Number.isFinite(h) && Number.isFinite(mm)) {
-      return { hour: Math.max(0, Math.min(23, h)), minute: Math.max(0, Math.min(59, mm)) }
+
+  const parseObject = (obj) => {
+    if (!obj || typeof obj !== 'object') return null
+    const get = (o, ...keys) => {
+      for (const k of keys) {
+        if (o[k] != null) return o[k]
+      }
+      return undefined
+    }
+    let h = get(obj, 'hour', 'h', 'HH', 'Hour')
+    let m = get(obj, 'minute', 'min', 'mm', 'Minute')
+    let a = get(obj, 'ampm', 'AMPM', 'period')
+
+    h = Number(h)
+    m = Number(m)
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return null
+
+    const tag = String(a ?? '').toUpperCase()
+    if (tag === 'PM' || a === '오후') { if (h < 12) h += 12 }
+    if (tag === 'AM' || a === '오전') { if (h === 12) h = 0 }
+
+    h = Math.max(0, Math.min(23, h))
+    m = Math.max(0, Math.min(59, m))
+    return { hour: h, minute: m }
+  }
+
+  for (const c of candidates) {
+    if (typeof c === 'string') {
+      const v = parseString(c)
+      if (v) return v
+    } else if (c && typeof c === 'object') {
+      const direct = parseObject(c)
+      if (direct) return direct
+      // 중첩 케이스: { alarm:{hour,minute} } 같이 한 번 더 들여다보기
+      for (const v of Object.values(c)) {
+        if (typeof v === 'string') {
+          const s = parseString(v)
+          if (s) return s
+        } else if (v && typeof v === 'object') {
+          const o = parseObject(v)
+          if (o) return o
+        }
+      }
     }
   }
   return null
@@ -168,7 +225,7 @@ function projectRoutineCandidates(r, tz, hour, minute) {
 }
 
 // 전역 컷팅 후 예약(once들만)
-async function scheduleGlobal(candidates, uid) {
+async function scheduleGlobal(candidates) {
   const picked = candidates.sort((a,b)=>a.ms-b.ms).slice(0, GLOBAL_LIMIT)
   const byRoutine = new Map()
   for (const c of picked) {
@@ -179,12 +236,8 @@ async function scheduleGlobal(candidates, uid) {
   for (const [routineId, list] of byRoutine.entries()) {
     const title = picked.find(x => x.routineId === routineId)?.title || '알림'
     const fireTimesEpoch = list.map(toEpochSec)
-
-    // ✅ 스코프된 routineId로 iOS에 전달
-    const scopedId = scopedRoutineId(uid, routineId)
-
     await scheduleOnIOS({
-      routineId: scopedId,
+      routineId,
       title,
       repeatMode: 'once',
       fireTimesEpoch,
@@ -198,21 +251,15 @@ export const useSchedulerStore = defineStore('scheduler', {
   state: () => ({ tz: 'Asia/Seoul' }),
 
   actions: {
-    /**
-     * 전체 루틴 재설치(전역 컷팅 + weekly 최적화 + daily 1개 반복)
-     * @param {Array} list - 사용자 루틴 리스트
-     * @param {string} uid - 현재 로그인 사용자 UID  ←★★ 필수!
-     */
-    async rehydrateFromRoutines(list = [], uid) {
+    // 전체 루틴 재설치(전역 컷팅 + weekly 최적화 + daily 1개 반복)
+    async rehydrateFromRoutines(list = []) {
       if (!Array.isArray(list) || !list.length) return
-      if (!uid) return // uid 없으면 스킵 (네임스페이스 보장)
-
       await waitBridgeReady()
 
-      // 1) 모두 취소 (사용자 스코프 baseId)
+      // 1) 모두 취소
       for (const r of list) {
         if (!r || r.isPaused) continue
-        await cancelOnIOS(baseOf(uid, r.id))
+        await cancelOnIOS(baseOf(r.id))
         await sleep(5)
       }
 
@@ -225,7 +272,11 @@ export const useSchedulerStore = defineStore('scheduler', {
       for (const r of list) {
         if (!r || r.isPaused) continue
         const hm = resolveAlarmHM(r)
-        if (!hm) continue
+        if (!hm) {
+          // 디버깅이 필요하면 아래 주석을 잠깐 해제하세요.
+          // console.warn('[sched] skip(no HM)', r?.id, r?.title, 'raw=', r?.alarmTime ?? r?.alarm ?? r?.time ?? { hour:r?.hour, minute:r?.minute, ampm:r?.ampm })
+          continue
+        }
 
         const title = r.title || '알림'
         const hour = hm.hour
@@ -242,7 +293,7 @@ export const useSchedulerStore = defineStore('scheduler', {
           const today = todayISO()
           const startInFuture = !!(startISO && startISO > today)
 
-          // ✅ “매주 + 7요일 전부 + 종료일 없음 + 시작일 과거/오늘” → iOS 네이티브 'daily' 1개 반복으로
+          // ✅ “매주 + 7요일 전부 + 종료일 없음 + 시작일이 과거/오늘” → iOS 네이티브 'daily' 1개 반복으로
           if (intervalW === 1 && days.length === 7 && !endISO && !startInFuture) {
             dailyQueue.push({ routineId: r.id, hour, minute, title })
             continue
@@ -250,7 +301,7 @@ export const useSchedulerStore = defineStore('scheduler', {
 
           // ✅ “매주 + 일부 요일 + 종료일 없음 + 시작일 과거/오늘” → 요일 반복 네이티브로
           if (intervalW === 1 && days.length && !endISO && !startInFuture) {
-            weeklyQueue.push({ baseId: baseOf(uid, r.id), hour, minute, days, title })
+            weeklyQueue.push({ baseId: baseOf(r.id), hour, minute, days, title })
             continue
           }
         }
@@ -260,13 +311,12 @@ export const useSchedulerStore = defineStore('scheduler', {
         allOnceCandidates.push(...cands)
       }
 
-      // 3) daily 1개 반복 먼저 설치 (스코프된 routineId로)
+      // 3) daily 1개 반복 먼저 설치
       for (const d of dailyQueue) {
-        const scopedId = scopedRoutineId(uid, d.routineId)
         await scheduleOnIOS({
-          routineId: scopedId,
+          routineId: d.routineId,
           title: d.title,
-          repeatMode: 'daily', // 네이티브에서 hour/minute 반복 지원해야 함
+          repeatMode: 'daily', // ← 네이티브에서 hour/minute 반복 지원해야 함
           hour: d.hour,
           minute: d.minute,
           sound: 'ruffysound001.wav'
@@ -274,27 +324,26 @@ export const useSchedulerStore = defineStore('scheduler', {
         await sleep(8)
       }
 
-      // 4) weekly 최적화 설치(요일 반복, repeats=YES) — baseId에 uid 포함
+      // 4) weekly 최적화 설치(요일 반복, repeats=YES)
       for (const w of weeklyQueue) {
         await scheduleWeekly(w.baseId, w.hour, w.minute, w.days, w.title)
         await sleep(8)
       }
 
-      // 5) once 후보 전역 컷팅 + 설치 (스코프된 routineId로)
+      // 5) once 후보 전역 컷팅 + 설치
       if (allOnceCandidates.length) {
-        await scheduleGlobal(allOnceCandidates, uid)
+        await scheduleGlobal(allOnceCandidates)
       }
     },
 
-    async reschedule(uid) {
+    async reschedule() {
       const routines = await fetchAllRoutinesFromDBOrStore()
-      await this.rehydrateFromRoutines(routines, uid)
+      await this.rehydrateFromRoutines(routines)
     },
 
-    async cancelRoutine(routineId, uid) {
-      if (!uid) return
+    async cancelRoutine(routineId) {
       await waitBridgeReady()
-      await cancelOnIOS(baseOf(uid, routineId))
+      await cancelOnIOS(baseOf(routineId))
     }
   }
 })
