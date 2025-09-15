@@ -14,14 +14,15 @@
         class="popup_body picker_group"
         @click="openNativeTimePicker"
         @touchend.stop.prevent="openNativeTimePicker"
+        @pointerup="openNativeTimePicker"
       >
-        <div class="wheel_item" @click.stop @touchend.stop.prevent>
+        <div class="wheel_item" @click.stop @touchend.stop.prevent @pointerup.stop>
           <span>{{ view.ampm }}</span>
         </div>
-        <div class="wheel_item" @click.stop @touchend.stop.prevent>
+        <div class="wheel_item" @click.stop @touchend.stop.prevent @pointerup.stop>
           <span>{{ view.hour }}</span>
         </div>
-        <div class="wheel_item" @click.stop @touchend.stop.prevent>
+        <div class="wheel_item" @click.stop @touchend.stop.prevent @pointerup.stop>
           <span>{{ view.minute }}</span>
         </div>
       </div>
@@ -35,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
@@ -117,28 +118,45 @@ const isNative = () => {
   return false
 }
 
+/* ── 백드롭 임시 숨김 (모달 즉시 dismiss 방지) ───────────── */
+const toggleBackdrop = (hide) => {
+  const wrap = document.querySelector('.com_popup_wrap')
+  if (!wrap) return
+  if (hide) wrap.classList.add('no-backdrop')
+  else wrap.classList.remove('no-backdrop')
+}
+
+let opening = false // 중복 호출 가드
+
 /* ── 피커 열기: 네이티브만 (웹 폴백 없음) ───────────────── */
 const openNativeTimePicker = async () => {
-  // 터치/클릭이 막히는 상황 방지용: 다음 틱에서 실행
-  requestAnimationFrame(async () => {
-    if (!isNative()) {
-      // 웹 환경이면 요구사항대로 아무 것도 하지 않음
-      return
+  if (!isNative()) return
+  if (opening) return
+  opening = true
+
+  try {
+    // 백드롭 간섭 제거 + 레이아웃 안정화 대기
+    toggleBackdrop(true)
+    await nextTick()
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 120))) // 다음 프레임 + 1틱
+
+    const base = viewToDate()
+    const { value } = await DatetimePicker.present({
+      mode: 'time',
+      value: base.toISOString(),
+      locale: 'ko-KR',
+      theme: 'auto'
+    })
+    if (value) view.value = dateToView(new Date(value))
+  } catch (err) {
+    // 사용자가 닫은 경우(code: 'dismissed')는 무시
+    if (err?.code !== 'dismissed') {
+      console.warn('[AlarmPicker] DatetimePicker.present error (non-dismiss):', err)
     }
-    try {
-      const base = viewToDate()
-      const { value } = await DatetimePicker.present({
-        mode: 'time',
-        value: base.toISOString(),
-        locale: 'ko-KR',
-        theme: 'auto'
-      })
-      if (value) view.value = dateToView(new Date(value))
-    } catch (err) {
-      // 취소 또는 플러그인 미등록 등
-      console.warn('[AlarmPicker] DatetimePicker.present error:', err)
-    }
-  })
+  } finally {
+    toggleBackdrop(false)
+    opening = false
+  }
 }
 
 /* ── 확인 ─────────────────────────────────────────────── */
@@ -152,7 +170,7 @@ const confirm = () => {
 /* 기존 레이아웃 유지 + 터치 막힘 방지 보강 */
 .picker_group {
   position: relative;
-  z-index: 1;
+  z-index: 10;
   pointer-events: auto;
 
   display: grid;
@@ -166,5 +184,11 @@ const confirm = () => {
   display:flex; align-items:center; justify-content:center;
   font-size: 18px; font-weight: 600;
   pointer-events: auto;
+}
+
+/* 백드롭을 ::before로 깔았다면, 피커 여는 동안만 잠깐 꺼서 포인터 간섭 방지 */
+:global(.com_popup_wrap.no-backdrop)::before {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 </style>
