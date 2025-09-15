@@ -1,44 +1,47 @@
 <template>
   <div class="routine_total">
     <div class="total_area">
-      <div class="date">
-        <span class="y_m">{{ selectedDate.getFullYear() }}.{{ selectedDate.getMonth() + 1 }}</span>
-        <p class="today">
-          <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
-          <em>{{ selectedDate.getDate() }}</em>
-          <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
-        </p>
-      </div>
-      <div class="term">
-        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>D</span></button>
-        <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>W</span></button>
-        <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>M</span></button>
-      </div>
-      <div class="graph">
-        <div class="circle-wrap" @click="resetGraphToToday">
-          <svg viewBox="0 0 36 36">
-            <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            <template v-for="(seg,i) in graphData" :key="i">
-              <path
-                :class="['seg', seg.cls]"
-                :stroke-dasharray="`${seg.pct} 100`"
-                :stroke-dashoffset="`-${seg.offset}`"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              />
-            </template>
-          </svg>
-          <div class="center-text">{{ centerText }}<em>{{ percentText }}</em></div>
+      <div class="date_block">
+        <div class="date">
+          <span class="y_m">{{ selectedDate.getFullYear() }}.{{ selectedDate.getMonth() + 1 }}</span>
+          <p class="today">
+            <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
+            <em>{{ selectedDate.getDate() }}</em>
+            <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
+          </p>
+          <div class="term">
+            <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>D</span></button>
+            <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>W</span></button>
+            <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>M</span></button>
+          </div>
         </div>
       </div>
-      <div class="r_state">
-        <a href="#none" class="not_done" :class="{ on: currentFilter==='notdone' }" @click.prevent="selectState('notdone')"><span>체크전 다짐</span> <img :src="getFace('01')"> <em>{{ displayCounts.notdone }}</em></a>
-        <a href="#none" class="done" :class="{ on: currentFilter==='done' }" @click.prevent="selectState('done')"><span>달성완료</span> <img :src="getFace('02')"> <em>{{ displayCounts.done }}</em></a>
-        <a href="#none" class="fail" :class="{ on: currentFilter==='faildone' }" @click.prevent="selectState('faildone')"><span>달성실패</span> <img :src="getFace('03')"> <em>{{ displayCounts.faildone }}</em></a>
-        <a href="#none" class="ignore" :class="{ on: currentFilter==='ignored' }" @click.prevent="selectState('ignored')"><span>흐린눈</span> <img :src="getFace('04')"> <em>{{ displayCounts.ignored }}</em></a>
+      <div class="state_graph_block">
+        <div class="r_state">
+          <a href="#none" class="not_done" :class="{ on: currentFilter==='notdone' }" @click.prevent="selectState('notdone')"><span>체크전 다짐</span> <img :src="getFace('01')"> <em>{{ displayCounts.notdone }}</em></a>
+          <a href="#none" class="done" :class="{ on: currentFilter==='done' }" @click.prevent="selectState('done')"><span>달성완료</span> <img :src="getFace('02')"> <em>{{ displayCounts.done }}</em></a>
+          <a href="#none" class="fail" :class="{ on: currentFilter==='faildone' }" @click.prevent="selectState('faildone')"><span>달성실패</span> <img :src="getFace('03')"> <em>{{ displayCounts.faildone }}</em></a>
+          <a href="#none" class="ignore" :class="{ on: currentFilter==='ignored' }" @click.prevent="selectState('ignored')"><span>흐린눈</span> <img :src="getFace('04')"> <em>{{ displayCounts.ignored }}</em></a>
+        </div>
+    
+        <div class="graph" @click="resetGraphToToday">
+          <div class="center-text">{{ centerText }}<em>{{ percentText }}</em></div>
+          <div class="bar_wrap" v-if="barPct.mode==='stack'">
+            <div class="bar_stack">
+              <span class="seg seg-done" :style="{ width: barPct.done+'%'}"></span>
+              <span class="seg seg-fail" :style="{ width: barPct.fail+'%'}"></span>
+              <span class="seg seg-ign"  :style="{ width: barPct.ign+'%'}"></span>
+            </div>
+          </div>
+          <div class="bar_wrap" v-else>
+            <div class="bar_single">
+              <span :class="['seg', barPct.cls]" :style="{ width: barPct.single+'%'}"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
   <div class="today_tools">
     <div class="today">
       <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
@@ -53,6 +56,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue'
@@ -182,41 +186,26 @@ const percentText = computed(() => {
   return `${pct}%`
 })
 
-const graphData = computed(() => {
+const barPct = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
-  if (total <= 0) return []
   const c = displayCounts.value || {}
-  const done = Math.max(0, Number(c.done) || 0)
-  const fail = Math.max(0, Number(c.faildone) || 0)
-  const ign  = Math.max(0, Number(c.ignored) || 0)
+  if (total <= 0) return { mode: 'stack', done: 0, fail: 0, ign: 0, single: 0, cls: '' }
   if (graphMode.value === 'today') {
-    const pDone = Math.min(100, +((done / total) * 100).toFixed(2))
-    const pFail = Math.min(100, +((fail / total) * 100).toFixed(2))
-    const pIgn  = Math.min(100, +((ign  / total) * 100).toFixed(2))
-    let offset = 0
-    const segs = []
-    if (pDone > 0) { segs.push({ pct: pDone, offset, cls: 'seg-done' }); offset += pDone }
-    if (pFail > 0) { segs.push({ pct: pFail, offset, cls: 'seg-fail' }); offset += pFail }
-    if (pIgn  > 0) { segs.push({ pct: pIgn,  offset, cls: 'seg-ign'  }); offset += pIgn  }
-    return segs
+    const done = Math.round(((c.done || 0) / total) * 100)
+    const fail = Math.round(((c.faildone || 0) / total) * 100)
+    const ign  = Math.round(((c.ignored || 0) / total) * 100)
+    return { mode: 'stack', done, fail, ign, single: 0, cls: '' }
+  } else {
+    const map = {
+      notdone: Math.round(((c.notdone || 0) / total) * 100),
+      done: Math.round(((c.done || 0) / total) * 100),
+      faildone: Math.round(((c.faildone || 0) / total) * 100),
+      ignored: Math.round(((c.ignored || 0) / total) * 100),
+    }
+    const clsMap = { notdone: 'seg-not', done: 'seg-done', faildone: 'seg-fail', ignored: 'seg-ign' }
+    const key = currentFilter.value
+    return { mode: 'single', single: Math.min(100, Math.max(0, map[key] || 0)), cls: clsMap[key] || 'seg-not', done: 0, fail: 0, ign: 0 }
   }
-  if (currentFilter.value === 'notdone') {
-    const pct = Math.min(100, +(((c.notdone || 0) / total) * 100).toFixed(2))
-    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-not' }] : []
-  }
-  if (currentFilter.value === 'done') {
-    const pct = Math.min(100, +((done / total) * 100).toFixed(2))
-    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-done' }] : []
-  }
-  if (currentFilter.value === 'faildone') {
-    const pct = Math.min(100, +((fail / total) * 100).toFixed(2))
-    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-fail' }] : []
-  }
-  if (currentFilter.value === 'ignored') {
-    const pct = Math.min(100, +((ign / total) * 100).toFixed(2))
-    return pct > 0 ? [{ pct, offset: 0, cls: 'seg-ign' }] : []
-  }
-  return []
 })
 
 const auth = useAuthStore()
