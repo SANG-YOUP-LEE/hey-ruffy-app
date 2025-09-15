@@ -74,17 +74,13 @@ const isOn = computed({
   get: () => hasTime.value,
   set: (val) => {
     if (val) {
-      if (!hasTime.value) {
-        // 새 알람 ON → 기본값 먼저 세팅
-        inner.value = { ampm:'오전', hour:'10', minute:'00' }
-        emit('update:modelValue', inner.value)
-      }
-      openNative()
+      openNative()   // ✅ 기본값 미리 넣지 않고 피커 먼저 열기
     } else {
       clearAlarm()
     }
   }
 })
+
 
 /** 라벨 클릭 */
 const onClickLabel = () => {
@@ -114,12 +110,16 @@ function openNative() {
   showNativePickerKey.value++ // 강제 remount로 initial 반영
 }
 function onPicked(v) {
+  // ✅ 완료했을 때만 값 확정
   inner.value = { ...v }
   emit('update:modelValue', inner.value)
   showNativePicker.value = false
 }
+
+
 function onCancelPick() {
-  // 새로 ON해서 기본값만 들어간 상태에서 취소해도 10:00 유지 (원하면 여기서 비울 수 있음)
+  // ✅ 취소 → 값 비우고 OFF 유지
+  clearAlarm()
   showNativePicker.value = false
 }
 
