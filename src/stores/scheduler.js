@@ -184,19 +184,22 @@ function projectRoutineCandidates(r, tz, hour, minute) {
         let bestDelta = Infinity
         for (const d of weekdays) {
           let delta = (d - baseW + 7) % 7
+
+          // 후보 날짜(자정)에 알람 시각을 적용해 실제 발생 시각으로 비교
+          const candidate = new Date(base)
+          candidate.setDate(base.getDate() + delta)
+          const candidateMs = new Date(
+            candidate.getFullYear(), candidate.getMonth(), candidate.getDate(),
+            hour, minute, 0, 0
+          ).getTime()
+
           if (delta === 0) {
-            // 같은 날이라면 시간 비교
-            if (
-              base.getFullYear() === now.getFullYear() &&
-              base.getMonth() === now.getMonth() &&
-              base.getDate() === now.getDate()
-            ) {
-              // 오늘이고, 이미 알람 시간이 지났으면 이번 주는 skip → interval 주기만큼 미룬다
-              if (nowMinutes >= alarmMinutes) {
-                delta += 7 * intervalW
-              }
+            // 같은 날이라면 "현재 시각 >= 알람 시각"인 경우만 skip
+            if (candidateMs <= Date.now()) {
+              delta += 7 * intervalW
             }
           }
+
           if (delta < bestDelta) {
             bestDelta = delta
             best = new Date(base); best.setDate(base.getDate() + delta)
