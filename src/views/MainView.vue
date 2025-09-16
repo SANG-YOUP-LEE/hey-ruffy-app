@@ -128,12 +128,14 @@
 
       <FooterView @refresh-main="refreshBinding" />
       <button @click="openRoutine()" class="add"><span>다짐 추가하기</span></button>
-      <AddRoutineSelector
-        v-if="isAddRoutineOpen"
-        @close="isAddRoutineOpen=false; editingRoutine=null"
-        @save="onSaved"
-        :routineToEdit="editingRoutine"
-      />
+      <teleport to="body">
+        <AddRoutineSelector
+          v-if="isAddRoutineOpen"
+          @close="isAddRoutineOpen=false; editingRoutine=null"
+          @save="onSaved"
+          :routineToEdit="editingRoutine"
+        />
+      </teleport>
     </div>
   </div>
 </template>
