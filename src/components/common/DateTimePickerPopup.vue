@@ -1,62 +1,8 @@
-<template>
-  <div class="com_popup_wrap">
-    <div class="popup_inner">
-      <div class="popup_tit">
-        <h2>{{ popupTitle }}</h2>
-      </div>
-      <div class="title date light"><span>년</span><span>월</span><span>일</span></div>
-      <div class="popup_body picker_group">
-        <VueScrollPicker
-          v-model="localValue.year"
-          :options="years"
-          :drag-sensitivity="0.3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
-        />
-        <VueScrollPicker
-          v-model="localValue.month"
-          :options="months"
-          :drag-sensitivity="0.3"
-          :touch-sensitivity="3"
-          :scroll-sensitivity="2"
-        />
-        <VueScrollPicker
-          v-model="localValue.day"
-          :options="days"
-          :drag-sensitivity="0.3"
-          :touch-sensitivity="1"
-          :scroll-sensitivity="1"
-        />
-      </div>
-      <div class="popup_btm">
-        <button @click="confirmSelection" class="p_basic">확인</button>
-        <button @click="cancelSelection" class="p_white">취소</button>
-      </div>
-    </div>
-  </div>
-</template>
+<template></template>
 
 <script setup>
-import { ref, watch, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
-
-const preventScroll = (e) => {
-  e.preventDefault()
-}
-const lockBodyScroll = () => {
-  document.body.style.overflow = 'hidden'
-  document.body.addEventListener('touchmove', preventScroll, { passive: false })
-}
-const unlockBodyScroll = () => {
-  document.body.style.overflow = ''
-  document.body.removeEventListener('touchmove', preventScroll)
-}
-
-onMounted(() => {
-  lockBodyScroll()
-})
-onBeforeUnmount(() => {
-  unlockBodyScroll()
-})
+import { onMounted } from 'vue'
+import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -65,74 +11,48 @@ const props = defineProps({
 })
 const emit = defineEmits(['confirm', 'cancel'])
 
-const localValue = ref({ ...props.modelValue })
+const p2 = n => String(n).padStart(2,'0')
+const toISODate = (o) => (o && o.year && o.month && o.day) ? `${o.year}-${p2(o.month)}-${p2(o.day)}` : null
+const fromISODate = (s) => {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null
+  const [y,m,d] = s.split('-').map(v=>+v)
+  return { year:y, month:m, day:d }
+}
+const todayLocal = () => {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = now.getMonth()+1
+  const d = now.getDate()
+  return { year:y, month:m, day:d }
+}
+const toLocalMidnightISO = (o) => {
+  const y = o.year, m = o.month, d = o.day
+  return `${p2(y)}-${p2(m)}-${p2(d)}T00:00:00`
+}
 
-const today = new Date()
-const baseYear = today.getFullYear()
-const baseMonth = today.getMonth() + 1
-const baseDay = today.getDate()
+onMounted(async () => {
+  const initial = props.modelValue && props.modelValue.year ? props.modelValue : null
+  const baseToday = todayLocal()
 
-const minYear = computed(() => {
-  return props.mode === 'end' && props.minDate.year
-    ? parseInt(props.minDate.year)
-    : baseYear
-})
+  const minForStart = baseToday
+  const minForEnd = props.minDate && props.minDate.year ? props.minDate : baseToday
+  const minObj = props.mode === 'end' ? minForEnd : minForStart
 
-const minMonth = computed(() => {
-  return props.mode === 'end' && props.minDate.month
-    ? parseInt(props.minDate.month)
-    : baseMonth
-})
-
-const minDay = computed(() => {
-  return props.mode === 'end' && props.minDate.day
-    ? parseInt(props.minDate.day)
-    : baseDay
-})
-
-const popupTitle = computed(() => {
-  return props.mode === 'end' ? '다짐 종료일 지정' : '다짐 시작일 지정'
-})
-
-const years = computed(() => {
-  return Array.from({ length: 50 }, (_, i) => String(minYear.value + i))
-})
-
-const months = computed(() => {
-  const selectedYear = parseInt(localValue.value.year) || minYear.value
-  const startMonth = selectedYear === minYear.value ? minMonth.value : 1
-  return Array.from({ length: 12 - startMonth + 1 }, (_, i) => String(startMonth + i))
-})
-
-const days = ref([])
-
-const updateDays = () => {
-  const y = parseInt(localValue.value.year) || minYear.value
-  const m = parseInt(localValue.value.month) || minMonth.value
-  const lastDay = new Date(y, m, 0).getDate()
-  const startDay = (y === minYear.value && m === minMonth.value) ? minDay.value : 1
-  const newDays = Array.from({ length: lastDay - startDay + 1 }, (_, i) => String(startDay + i))
-  days.value = newDays
-
-  if (!newDays.includes(localValue.value.day)) {
-    localValue.value.day = (y === baseYear && m === baseMonth)
-      ? String(baseDay)
-      : newDays[newDays.length - 1]
+  const valueObj = initial ?? baseToday
+  const options = {
+    mode: 'date',
+    value: toLocalMidnightISO(valueObj),
+    minimumDate: toLocalMidnightISO(minObj),
   }
-}
 
-watch([() => localValue.value.year, () => localValue.value.month], () => {
-  if (!months.value.includes(localValue.value.month)) {
-    localValue.value.month = months.value[0]
+  try {
+    const { value } = await DatetimePicker.present(options)
+    if (!value) { emit('cancel'); return }
+    const picked = fromISODate(value.substring(0,10))
+    if (!picked) { emit('cancel'); return }
+    emit('confirm', picked)
+  } catch {
+    emit('cancel')
   }
-  updateDays()
-}, { immediate: true })
-
-const confirmSelection = () => {
-  emit('confirm', { ...localValue.value })
-}
-
-const cancelSelection = () => {
-  emit('cancel')
-}
+})
 </script>
