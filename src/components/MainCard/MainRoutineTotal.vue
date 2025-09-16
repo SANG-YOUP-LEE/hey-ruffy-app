@@ -11,7 +11,7 @@
       </div>
 
       <div class="term">
-        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>Today</span></button>
+        <button type="button" :class="{ on: periodMode==='T' }" @click="onChangePeriod('T')"><span>Daily</span></button>
         <button type="button" :class="{ on: periodMode==='W' }" @click="onChangePeriod('W')"><span>Weekly</span></button>
         <button type="button" :class="{ on: periodMode==='M' }" @click="onChangePeriod('M')"><span>Monthly</span></button>
       </div>
