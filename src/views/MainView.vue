@@ -1,3 +1,8 @@
+지피야 여기서 이 소스 무슨 뜻이야? 이소스에 관련된 모든 css 로직 다 걷어내고 싶어
+
+<div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched && rStore.items?.length">  
+    
+
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
@@ -6,7 +11,7 @@
     </SlidePanel>
 
     <div id="main_body">
-      <div v-if="hasFetched && rStore.items?.length">
+      <div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched && rStore.items?.length">  
         <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
         <MainRoutineTotal
           :key="rtResetKey"
@@ -121,12 +126,12 @@ function closePanel(){
   if (route.path === '/lnb') router.replace('/main')
 }
 
-const { headerShort: headerShortRef, updateScrollState, scrollEl } = useMainScroll(rStore, mv)
+const { isScrolled: scrolledRef, headerShort: headerShortRef, updateScrollState, scrollEl } = useMainScroll(rStore, mv)
 const update = () => nextTick(updateScrollState)
 
 const { initBinding, disposeBinding, refreshBinding } = useRoutineBinding(rStore, mv, update)
 const { toggle: handleToggleDeleteMode } = useBulkDelete(rStore, mv)
-const nav = useMainNavigation(rStore, mv, { headerShortRef, update })
+const nav = useMainNavigation(rStore, mv, { scrolledRef, headerShortRef, update })
 
 const rtResetKey = ref(0)
 const resetGraph = () => { rtResetKey.value++ }
