@@ -139,6 +139,12 @@
   overscroll-behavior-y: contain;
   padding: 0 1.5rem;
   padding-bottom: calc(1.5rem + 3rem + var(--sab));
+  -ms-overflow-style: none; 
+  scrollbar-width: none;  
+}
+
+#main_wrap::-webkit-scrollbar {
+  display: none;  
 }
 
 #main_wrap::after {
@@ -177,11 +183,12 @@
   transform: none;
   will-change: auto;
   padding: 0;
+  padding-top: calc(7.5rem + var(--sat));
 }
 
 .routine_total.sum {
   position: sticky;
-  top: calc(var(--sat) + 7.5rem);
+  top: var(--sat);
   z-index: 95;
   background: #fff;
 }
