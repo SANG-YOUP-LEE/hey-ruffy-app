@@ -34,7 +34,7 @@ body,
   --sar: env(safe-area-inset-right);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
-  --header-h: 7.5rem;
+  /*--header-h: 7.5rem;*/
 }
 
 .app-root,
