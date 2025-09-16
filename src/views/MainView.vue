@@ -68,7 +68,7 @@
             </div>
           </div>
 
-          <div class="today_tools" v-show="!scrolledRef">
+          <div class="today_tools sum" v-show="!scrolledRef">
             <div class="today">
               <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
               <span class="term"></span> <em>{{ periodTitle }}</em>
