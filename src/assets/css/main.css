@@ -240,7 +240,7 @@ body,
 
 .routine_total.sum {
   position: sticky;
-  top: var(--header-h);
+  top: 0;
   z-index: 95;
   background: #fff;
 }
