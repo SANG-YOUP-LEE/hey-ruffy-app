@@ -183,6 +183,7 @@ async function deleteAllRoutines() {
     title: '완료',
     message: '다짐과 알림이 모두 삭제되었습니다.',
     okText: '확인',
+    showCancel: false,
   })
 
   emit('close')
