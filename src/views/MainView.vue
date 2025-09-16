@@ -23,7 +23,33 @@
         @changePeriod="onChangePeriod"
         @toggleDeleteMode="handleToggleDeleteMode"
       />
+
+      <div class="routine_summary">
+        <div class="sum_date">
+          <button class="prev" @click="onRequestPrev"><span>prev</span></button>
+          <div class="today">
+            <span class="y_m">{{ sumYear }}.{{ sumMonth }}</span>
+            <em>{{ sumDay }}</em>
+          </div>
+          <button class="next" @click="onRequestNext"><span>next</span></button>
+        </div>
+        <div class="r_state">
+          <a href="#" :class="{ on: rStore.selectedFilter==='notdone' }" @click.prevent="rStore.setFilter('notdone')">
+            <span>체크전</span><em>{{ (mv.headerCounts && mv.headerCounts.notdone) || 0 }}</em>
+          </a>
+          <a href="#" :class="{ on: rStore.selectedFilter==='done' }" @click.prevent="rStore.setFilter('done')">
+            <span>달성완료</span><em>{{ (mv.headerCounts && mv.headerCounts.done) || 0 }}</em>
+          </a>
+          <a href="#" :class="{ on: rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('fail')">
+            <span>실패</span><em>{{ (mv.headerCounts && mv.headerCounts.fail) || 0 }}</em>
+          </a>
+          <a href="#" :class="{ on: rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ign')">
+            <span>흐린눈</span><em>{{ (mv.headerCounts && mv.headerCounts.ign) || 0 }}</em>
+          </a>
+        </div>
+      </div>
     </div>
+
     <div id="main_body">
       <div class="main_scroll" ref="scrollEl">
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
@@ -152,6 +178,11 @@ async function onChangeStatus({ id, status }){ rStore.changeStatus({ id: String(
 async function onTogglePause({ id, isPaused }){ rStore.togglePause({ id: String((typeof id==='string'?id:id?.id)).split('-')[0], isPaused }); update() }
 async function onDelete(payload){ rStore.deleteRoutines((Array.isArray(payload)?payload:[payload]).map(v=>String((typeof v==='string'?v:v?.id)).split('-')[0])); update() }
 function openRoutine(rt=null){ window.dispatchEvent(new Event('close-other-popups')); editingRoutine.value = rt; isAddRoutineOpen.value = true }
+
+const sumDate = computed(() => new Date(selectedDate.value))
+const sumYear = computed(() => String(sumDate.value.getFullYear()))
+const sumMonth = computed(() => String(sumDate.value.getMonth() + 1).padStart(2, '0'))
+const sumDay = computed(() => String(sumDate.value.getDate()).padStart(2, '0'))
 
 const { initVH, disposeVH } = useVH()
 onMounted(async () => {
