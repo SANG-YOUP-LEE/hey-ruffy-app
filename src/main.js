@@ -13,6 +13,7 @@ import "./assets/css/custom.css";
 import "./assets/css/select.css";
 import "./assets/css/ar_popup.css";
 import "./assets/css/m_routine.css";
+import "./assets/css/lnb.css";
 import "./assets/css/walk_status_pop.css";
 
 

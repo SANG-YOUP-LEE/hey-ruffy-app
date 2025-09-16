@@ -6,7 +6,7 @@
     </SlidePanel>
 
     <div id="main_body">
-      <div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched && rStore.items?.length">  
+      <div v-if="hasFetched && rStore.items?.length">
         <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
         <MainRoutineTotal
           :key="rtResetKey"
@@ -121,12 +121,12 @@ function closePanel(){
   if (route.path === '/lnb') router.replace('/main')
 }
 
-const { isScrolled: scrolledRef, headerShort: headerShortRef, updateScrollState, scrollEl } = useMainScroll(rStore, mv)
+const { headerShort: headerShortRef, updateScrollState, scrollEl } = useMainScroll(rStore, mv)
 const update = () => nextTick(updateScrollState)
 
 const { initBinding, disposeBinding, refreshBinding } = useRoutineBinding(rStore, mv, update)
 const { toggle: handleToggleDeleteMode } = useBulkDelete(rStore, mv)
-const nav = useMainNavigation(rStore, mv, { scrolledRef, headerShortRef, update })
+const nav = useMainNavigation(rStore, mv, { headerShortRef, update })
 
 const rtResetKey = ref(0)
 const resetGraph = () => { rtResetKey.value++ }
