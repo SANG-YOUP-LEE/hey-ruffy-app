@@ -67,7 +67,8 @@ body,
   background: #f9f9f9;
   padding-left: max(1.5rem, var(--sal));
   padding-right: max(1.5rem, var(--sar));
-  transform: translateZ(0);
+  /*transform: translateZ(0);*/
+  transform: none;
   backface-visibility: hidden;
 }
 
