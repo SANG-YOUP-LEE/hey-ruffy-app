@@ -235,7 +235,7 @@ body,
   transform: none;
   will-change: auto;
   padding: 0;
-  padding-top: var(--header-h);
+  /*padding-top: var(--header-h);*/
 }
 
 .routine_total.sum {
