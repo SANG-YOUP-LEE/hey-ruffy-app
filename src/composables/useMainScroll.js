@@ -1,4 +1,4 @@
-// src/composables/useMainScroll.js
+// src/composables/useMainScroll.js 교체본
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
 export function useMainScroll(rStore, mv) {
@@ -26,7 +26,7 @@ export function useMainScroll(rStore, mv) {
   }
 
   onMounted(() => {
-    scrollEl.value = document.querySelector('.main_scroll')
+    scrollEl.value = document.querySelector('#main_wrap')
     if (scrollEl.value) {
       scrollEl.value.addEventListener('scroll', onScrollHandler, { passive: true })
       scrollEl.value.scrollTop = 0
