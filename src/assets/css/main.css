@@ -165,7 +165,8 @@
   min-height: 0;
   transform: translateZ(0);
   will-change: transform;
-  padding-bottom:10rem;
+  padding-bottom:5rem;
+  padding-top:5rem;
 }
 
 button.add {
