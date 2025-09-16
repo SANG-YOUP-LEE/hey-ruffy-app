@@ -34,7 +34,7 @@ body,
   --sar: env(safe-area-inset-right);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
-  /*--header-h: 7.5rem;*/
+  --header-h: 7.5rem;
 }
 
 .app-root,
@@ -237,7 +237,7 @@ body,
   transform: none;
   will-change: auto;
   padding: 0;
-  padding-top: calc(var(--sat) + var(--header-h));
+  padding-top: var(--header-h);;
 }
 
 .routine_total.sum {
