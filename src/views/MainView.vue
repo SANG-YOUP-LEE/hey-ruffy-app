@@ -4,28 +4,27 @@
     <SlidePanel :show="panelOpen" @close="closePanel">
       <LnbView @close="closePanel" />
     </SlidePanel>
-
+    
+    <div v-show="hasFetched">
+      <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
+      <MainRoutineTotal
+        :key="rtResetKey"
+        :isFuture="isFutureDate"
+        :selectedDate="selectedDate"
+        v-model:modelValue="rStore.selectedFilter"
+        :counts="mv.headerCounts"
+        :totalCount="mv.headerTotal"
+        :viewMode="selectedView"
+        :periodMode="rStore.selectedPeriod"
+        :deleteMode="rStore.deleteMode"
+        @requestPrev="onRequestPrev"
+        @requestNext="onRequestNext"
+        @changeView="nav.changeView"
+        @changePeriod="onChangePeriod"
+        @toggleDeleteMode="handleToggleDeleteMode"
+      />
+    </div>
     <div id="main_body">
-      <div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched">
-        <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
-        <MainRoutineTotal
-          :key="rtResetKey"
-          :isFuture="isFutureDate"
-          :selectedDate="selectedDate"
-          v-model:modelValue="rStore.selectedFilter"
-          :counts="mv.headerCounts"
-          :totalCount="mv.headerTotal"
-          :viewMode="selectedView"
-          :periodMode="rStore.selectedPeriod"
-          :deleteMode="rStore.deleteMode"
-          @requestPrev="onRequestPrev"
-          @requestNext="onRequestNext"
-          @changeView="nav.changeView"
-          @changePeriod="onChangePeriod"
-          @toggleDeleteMode="handleToggleDeleteMode"
-        />
-      </div>
-
       <div class="main_scroll" ref="scrollEl">
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
         <div v-else-if="hasFetched && !filteredRoutines.length" class="no_data">
