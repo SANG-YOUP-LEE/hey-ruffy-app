@@ -204,8 +204,7 @@ body,
 #main_wrap::after {
   content: '';
   display: block;
-  height: calc(8rem + var(--sab));
-  background-color:#f9f9f9
+  height: calc(5rem + var(--sab));
 }
 
 [v-cloak] {
