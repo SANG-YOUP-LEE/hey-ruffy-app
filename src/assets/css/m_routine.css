@@ -336,6 +336,51 @@
   background: #d5dadd;
 }
 
+.routine_total.sum .total_area {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: "date state";
+  align-items: center;
+  gap: 0.5rem 0.5rem;
+}
+
+.routine_total.sum .total_area .date {
+  grid-area: date;
+}
+
+.routine_total.sum .total_area .date .today {
+  display: flex;
+  align-items: center;
+}
+
+.routine_total.sum .total_area .r_state {
+  grid-area: state;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.routine_total.sum .total_area .r_state a {
+  height: 2rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  flex: 0 0 auto;
+  max-width: none;
+}
+
+.routine_total.sum .total_area .r_state a img {
+  width: 1.5rem;
+  margin: 0;
+}
+
+.routine_total.sum .total_area .r_state a em {
+  font-size: 0.6rem;
+  line-height: 1;
+  margin-left: 0.2rem;
+}
 .tools .term_wrap {
   margin-right: 0.3rem;
 }
