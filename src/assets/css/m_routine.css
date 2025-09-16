@@ -2,7 +2,8 @@
 .routine_total,
 .routine_total .total_area .term button,
 .routine_total .total_area .r_state a,
-.today_tools .tools [class$='on'] {
+.today_tools .tools [class$='on'],
+.today_tools.sum {
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
