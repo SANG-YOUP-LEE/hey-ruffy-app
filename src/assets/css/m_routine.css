@@ -403,6 +403,10 @@
   margin-bottom: 1rem;
 }
 
+.today_tools.sum {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
 .today_tools .today {
   flex: 0 0 auto !important;
   width: auto !important;
