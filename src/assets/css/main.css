@@ -259,10 +259,11 @@ body,
 }
 
 .routine_total.sum + .today_tools {
-  margin-left:-1.5rem;
-  margin-right:-1.5rem;
-  box-shadow: 0 8px 6px -6px rgba(0,0,0,0.2);
-}
+  margin-left:-2rem;
+  margin-right:-2rem;
+  padding-left:2rem;
+  padding-right:2rem;
+  box-shadow: 0 8px 10px -8px rgba(0,0,0,0.2);}
 
 button.add {
   width: 3rem;
