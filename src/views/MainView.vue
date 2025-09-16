@@ -198,9 +198,9 @@ const activeTool = computed(() => (rStore.deleteMode ? 'delete' : selectedView.v
 const localDelete = computed(() => rStore.deleteMode)
 function onChangeView(view){
   if (selectedView.value !== view) nav.changeView(view)
-  if (rStore.deleteMode) handleToggleDeleteMode()
+  if (rStore.deleteMode) handleToggleDeleteMode(false)
 }
-function toggleDeleteMode(){ handleToggleDeleteMode() }
+function toggleDeleteMode(){ handleToggleDeleteMode(!rStore.deleteMode) }
 function onClickPrev(){ onRequestPrev() }
 function onClickNext(){ onRequestNext() }
 
@@ -243,7 +243,7 @@ watchEffect(async () => {
     if (ok) {
       await onDelete(rStore.deleteTargets || [])
       await modal.confirm({ title: '완료', message: '선택한 다짐을 삭제했어요.', okText: '확인', cancelText: '' })
-      handleToggleDeleteMode()
+      handleToggleDeleteMode(false)
     }
   }
 })
