@@ -403,8 +403,13 @@
   margin-bottom: 1rem;
 }
 
-.today_tools.sum {
-  display:none
+
+.today_tools.sum{
+  position: sticky;
+  top: var(--header-offset);
+  z-index: 94;
+  border-bottom:1px solid #ddd;
+  padding-bottom:0.5rem;
 }
 
 .today_tools .today {
