@@ -1,5 +1,3 @@
-지피야 여기서 이 소스 무슨 뜻이야? 이소스에 관련된 모든 css 로직 다 걷어내고 싶어
-
 <div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched && rStore.items?.length">  
     
 
