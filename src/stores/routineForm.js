@@ -213,6 +213,25 @@ export const useRoutineFormStore = defineStore('routineForm', {
           ).slice(0, MAX_MONTHLY_DATES)
         : []
 
+          // ── anchorDate 계산 ───────────────────────────────
+        let anchorDateISO = null
+          if (normalizedType === 'weekly' && parseInt(state.repeatWeeks,10) > 1 && weeklyDaysNum.length > 0) {
+            // 기준 = startDate 있으면 거기서, 없으면 오늘
+            const baseISO = hasStart ? startISO : todayISO(tz)
+            const base = new Date(baseISO)
+            const baseW = base.getDay() === 0 ? 7 : base.getDay() // JS: 일=0 → 7로
+            let minDelta = 999
+            for (const wd of weeklyDaysNum) {
+              const delta = (wd - baseW + 7) % 7
+              if (delta < minDelta) minDelta = delta
+            }
+            const anchor = new Date(base)
+            anchor.setDate(base.getDate() + minDelta)
+            anchorDateISO = `${p2(anchor.getFullYear())}-${p2(anchor.getMonth()+1)}-${p2(anchor.getDate())}`
+          } else if (hasStart) {
+            anchorDateISO = startISO
+          }
+          
       const cleaned = {
         title: state.title,
         repeatType: normalizedType,
@@ -256,7 +275,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         // 백엔드/스케줄러 호환용 앵커 문자열
         // 시작일을 안 건드렸으면 start/end 앵커도 저장하지 않음
         ...(hasStart ? { start: startISO } : {}),
-        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}))
+        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})),
+        ...(anchorDateISO ? { anchorDate: anchorDateISO } : {})   
       }
       return deepClean(cleaned)
     }
