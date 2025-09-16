@@ -258,6 +258,10 @@ body,
   background: #fff;
 }
 
+.routine_total.sum + .today_tools {
+  border-bottom:1px solid #aaa;
+}
+
 button.add {
   width: 3rem;
   height: 3rem;
