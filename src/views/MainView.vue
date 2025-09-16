@@ -20,28 +20,30 @@
         @changePeriod="onChangePeriod"
       />
 
-      <div class="routine_summary">
-        <div class="sum_date">
-          <button class="prev" @click="onRequestPrev"><span>prev</span></button>
-          <div class="today">
-            <span class="y_m">{{ sumYear }}.{{ sumMonth }}</span>
-            <em>{{ sumDay }}</em>
+      <div class="routine_total">
+        <div class="total_area">
+          <div class="date">
+            <p class="today">
+              <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
+              <span class="y_m">{{ sumYear }}.{{ sumMonth }}.</span>
+              <em>{{ sumDay }}</em>
+              <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
+            </p>
           </div>
-          <button class="next" @click="onRequestNext"><span>next</span></button>
-        </div>
-        <div class="r_state">
-          <a href="#" :class="{ on: rStore.selectedFilter==='notdone' }" @click.prevent="rStore.setFilter('notdone')">
-            <span>체크전</span><em>{{ (mv.headerCounts && mv.headerCounts.notdone) || 0 }}</em>
-          </a>
-          <a href="#" :class="{ on: rStore.selectedFilter==='done' }" @click.prevent="rStore.setFilter('done')">
-            <span>달성완료</span><em>{{ (mv.headerCounts && mv.headerCounts.done) || 0 }}</em>
-          </a>
-          <a href="#" :class="{ on: rStore.selectedFilter==='faildone' || rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('faildone')">
-            <span>실패</span><em>{{ (mv.headerCounts && (mv.headerCounts.faildone ?? mv.headerCounts.fail)) || 0 }}</em>
-          </a>
-          <a href="#" :class="{ on: rStore.selectedFilter==='ignored' || rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ignored')">
-            <span>흐린눈</span><em>{{ (mv.headerCounts && (mv.headerCounts.ignored ?? mv.headerCounts.ign)) || 0 }}</em>
-          </a>
+          <div class="r_state">
+            <a href="#none" class="not_done" :class="{ on: rStore.selectedFilter==='notdone' }" @click.prevent="rStore.setFilter('notdone')">
+              <span>체크전 다짐</span><img :src="getFace('01')"><em>{{ (mv.headerCounts && mv.headerCounts.notdone) || 0 }}</em>
+            </a>
+            <a href="#none" class="done" :class="{ on: rStore.selectedFilter==='done' }" @click.prevent="rStore.setFilter('done')">
+              <span>달성완료</span><img :src="getFace('02')"><em>{{ (mv.headerCounts && mv.headerCounts.done) || 0 }}</em>
+            </a>
+            <a href="#none" class="fail" :class="{ on: rStore.selectedFilter==='faildone' || rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('faildone')">
+              <span>달성실패</span><img :src="getFace('03')"><em>{{ (mv.headerCounts && (mv.headerCounts.faildone ?? mv.headerCounts.fail)) || 0 }}</em>
+            </a>
+            <a href="#none" class="ignore" :class="{ on: rStore.selectedFilter==='ignored' || rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ignored')">
+              <span>흐린눈</span><img :src="getFace('04')"><em>{{ (mv.headerCounts && (mv.headerCounts.ignored ?? mv.headerCounts.ign)) || 0 }}</em>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -141,6 +143,7 @@ import { useBulkDelete } from '@/composables/useBulkDelete'
 import { useMainNavigation } from '@/composables/useMainNavigation'
 import { useVH } from '@/composables/useVH'
 import { useModalStore } from '@/stores/modal'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -216,6 +219,17 @@ const periodTitle = computed(() => {
   if (rStore.selectedPeriod === 'M') return '월간 다짐'
   return '오늘의 다짐'
 })
+
+const auth = useAuthStore()
+const images = import.meta.glob('@/assets/images/ruffy0{1,2,3,4}_face{01,02,03,04}.png', { eager: true, import: 'default' })
+const ruffyBase = computed(() => {
+  const opt = auth.profile?.selectedRuffy || 'option1'
+  const num = String(opt).replace('option','')
+  return `ruffy0${num}`
+})
+function getFace(n){
+  return images[`/src/assets/images/${ruffyBase.value}_face${n}.png`]
+}
 
 const { initVH, disposeVH } = useVH()
 onMounted(async () => {
