@@ -140,14 +140,15 @@ function toISODate(d) {
 
 // 루틴 → 후보 인스턴스(루틴별 상한 적용)
 // 루틴 → 후보 인스턴스(루틴별 상한 적용)
+// 루틴 → 후보 인스턴스(루틴별 상한 적용)
 function projectRoutineCandidates(r, tz, hour, minute) {
     const type = String(r.repeatType || 'daily').toLowerCase()
-    const today = todayISO()
+    const todayISOstr = todayISO()
 
     // 단발성: 과거/지나간 시각이면 예약 안함
     if (type === 'daily' && Number(r.repeatEveryDays) === 0) {
-      let startISO = safeISOFromDateObj(r.startDate) || r.start || today
-      if (startISO < today) startISO = today
+      let startISO = safeISOFromDateObj(r.startDate) || r.start || todayISOstr
+      if (startISO < todayISOstr) startISO = todayISOstr
       const [Y,M,D] = startISO.split('-').map(n=>parseInt(n,10))
       const atMs = new Date(Y, M-1, D, hour, minute, 0, 0).getTime()
       if (!Number.isFinite(atMs) || atMs <= Date.now()) return []
@@ -162,21 +163,55 @@ function projectRoutineCandidates(r, tz, hour, minute) {
 
     // ▶▶ weekly & interval>1 은 앵커 기반 계산으로 직접 처리
     if (type === 'weekly' && intervalW && intervalW > 1 && weekdays && weekdays.length) {
-      // 앵커 결정: anchorDate → startDate → createdAtMs → today
+      // 1) 앵커 결정: anchorDate → startDate → createdAtMs → today
       let anchorISO =
         (typeof r.anchorDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.anchorDate)) ? r.anchorDate
         : safeISOFromDateObj(r.startDate) || r.start
         || (Number.isFinite(+r.createdAtMs)
               ? new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul'}).format(new Date(+r.createdAtMs))
-              : today)
+              : todayISOstr)
 
+      const now = new Date()
+      const nowMinutes = now.getHours()*60 + now.getMinutes()
+      const alarmMinutes = hour*60 + minute
+
+      // 2) 앵커를 "첫 발생일 >= anchorISO (시간 포함)"로 보정
+      //    (오늘이 선택 요일이고 시간이 지났다면, 다음 주기 쪽으로 밀어냄)
+      {
+        const base = new Date(anchorISO) // 로컬 자정
+        const baseW = base.getDay() === 0 ? 7 : base.getDay() // 1=Mon..7=Sun
+        let best = null
+        let bestDelta = Infinity
+        for (const d of weekdays) {
+          let delta = (d - baseW + 7) % 7
+          if (delta === 0) {
+            // 같은 날이라면 시간 비교
+            if (
+              base.getFullYear() === now.getFullYear() &&
+              base.getMonth() === now.getMonth() &&
+              base.getDate() === now.getDate()
+            ) {
+              // 오늘이고, 이미 알람 시간이 지났으면 이번 주는 skip → interval 주기만큼 미룬다
+              if (nowMinutes >= alarmMinutes) {
+                delta += 7 * intervalW
+              }
+            }
+          }
+          if (delta < bestDelta) {
+            bestDelta = delta
+            best = new Date(base); best.setDate(base.getDate() + delta)
+          }
+        }
+        anchorISO = toISODate(best || base)
+      }
+
+      // 3) 주차 앵커: 그 주의 월요일
       const anchorDate = new Date(anchorISO)
-      // 그 주의 월요일
       const js = anchorDate.getDay() // 0=Sun..6=Sat
-      const delta = (js + 6) % 7
-      const anchorWeekStart = new Date(anchorDate)
-      anchorWeekStart.setDate(anchorWeekStart.getDate() - delta)
+      const toMonDelta = (js + 6) % 7
+      const anchorWeekStart = new Date(anchorDate); anchorWeekStart.setDate(anchorWeekStart.getDate() - toMonDelta)
 
+      // 4) PROJECTION_DAYS 윈도우 안에서 인스턴스 생성
       const out = []
       const stepDays = 7 * intervalW
       const endWindow = addDays(new Date(), PROJECTION_DAYS)
@@ -184,13 +219,15 @@ function projectRoutineCandidates(r, tz, hour, minute) {
       for (let k=0; k<100; k++) {
         const base = addDays(anchorWeekStart, stepDays * k)
         for (const d of weekdays) {
-          const occur = addDays(base, d-1) // 월=1 → base+0
-          if (occur < new Date()) continue
-          if (occur > endWindow) break
-          out.push(new Date(
+          const occur = addDays(base, d-1) // 월=1 → +0
+          // occur의 날짜에 알람 시각을 반영
+          const occurMs = new Date(
             occur.getFullYear(), occur.getMonth(), occur.getDate(),
             hour, minute, 0, 0
-          ).getTime())
+          ).getTime()
+          if (occurMs <= Date.now()) continue
+          if (occur > endWindow) break
+          out.push(occurMs)
         }
         if (addDays(anchorWeekStart, stepDays * k) > endWindow) break
         if (out.length >= PER_ROUTINE_LIMIT) break
@@ -215,7 +252,7 @@ function projectRoutineCandidates(r, tz, hour, minute) {
         ? uniqSorted((Array.isArray(r.repeatMonthDays)? r.repeatMonthDays:[])
             .map(d=>parseInt(d,10)).filter(d=>d>=1 && d<=31))
         : undefined,
-      startDate: safeISOFromDateObj(r.startDate) || r.start || today,
+      startDate: safeISOFromDateObj(r.startDate) || r.start || todayISOstr,
       endDate: safeISOFromDateObj(r.endDate) || r.end || undefined,
       alarm: { hour, minute }
     }
