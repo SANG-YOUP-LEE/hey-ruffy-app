@@ -1,6 +1,3 @@
-<div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched && rStore.items?.length">  
-    
-
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }">
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
