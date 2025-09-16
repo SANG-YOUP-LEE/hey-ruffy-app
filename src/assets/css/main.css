@@ -54,7 +54,7 @@ body,
 
 #header {
   position: sticky;
-  top: var(--sat);
+  top: 0;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -75,12 +75,10 @@ body,
 
 #header .left {
   justify-content: flex-start;
-  margin-top: -3rem;
 }
 
 #header .right {
   justify-content: flex-end;
-  margin-top: -3rem;
 }
 
 #header .center {
@@ -156,9 +154,9 @@ body,
 
 #footer {
   position: fixed;
-  left: var(--sal);
-  right: var(--sar);
-  bottom: var(--sab);
+  left: 0;
+  right: 0;
+  bottom: 0;
   padding: 1.5rem;
   z-index: 100;
   background-color: #f9f9f9;
@@ -183,7 +181,7 @@ body,
 }
 
 #main_wrap {
-  height: calc(var(--vh, 1vh) * 100);
+  height: var(--app-dvh);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -192,7 +190,7 @@ body,
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   padding: 0 1.5rem;
-  padding-bottom: calc(1.5rem + 3rem + var(--sab));
+  padding-bottom: calc(1.5rem + 3rem);
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -204,7 +202,7 @@ body,
 #main_wrap::after {
   content: '';
   display: block;
-  height: calc(5rem + var(--sab));
+  height: 5rem;
 }
 
 [v-cloak] {
@@ -237,12 +235,12 @@ body,
   transform: none;
   will-change: auto;
   padding: 0;
-  padding-top: var(--header-h);;
+  padding-top: var(--header-h);
 }
 
 .routine_total.sum {
   position: sticky;
-  top: var(--sat);
+  top: var(--header-h);
   z-index: 95;
   background: #fff;
 }
