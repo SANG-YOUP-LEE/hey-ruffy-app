@@ -5,7 +5,7 @@
   position: relative;
   overflow-x: hidden;
   padding:1.5rem;
-}
+} 
 
 [v-cloak] {
   display: none;
