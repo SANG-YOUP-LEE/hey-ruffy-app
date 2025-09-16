@@ -19,7 +19,7 @@ export function useMainScroll(rStore, mv) {
     if (!contentEl) contentEl = document.querySelector('.main_scroll')
     const hh = headerEl ? headerEl.offsetHeight || 0 : 0
     document.documentElement.style.setProperty('--header-h', `${hh}px`)
-    // if (contentEl) contentEl.style.paddingTop = `${hh}px`
+    if (contentEl) contentEl.style.paddingTop = `${hh}px`
   }
 
   function updateScrollState() {
