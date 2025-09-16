@@ -46,19 +46,6 @@
 
     </div>
   </div>
-  <div class="today_tools">
-    <div class="today">
-      <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
-      <span class="term"></span> <em>{{ periodTitle }}</em>
-      <a href="#none" class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></a>
-    </div>
-    <div class="tools">
-      <a href="#none" class="r_card" :class="{ on: activeTool === 'card' }" @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
-      <a href="#none" class="r_list" :class="{ on: activeTool === 'list' }" @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
-      <a href="#none" class="r_carousel" :class="{ on: activeTool === 'carousel' }" @click.prevent="onChangeView('carousel')"><span>다짐캐러셀보기</span></a>
-      <a href="#none" :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool === 'delete' } ]" @click.prevent="toggleDeleteMode"><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
-    </div>
-  </div>
 </template>
 
 <script setup>
@@ -66,7 +53,7 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import ToggleSwitch from '@/components/common/ToggleSwitch.vue'
 
-const emit = defineEmits(['update:modelValue','requestPrev','requestNext','changeView','changePeriod','toggleDeleteMode'])
+const emit = defineEmits(['update:modelValue','requestPrev','requestNext','changePeriod'])
 
 const props = defineProps({
   isFuture: { type: Boolean, default: false },
@@ -74,22 +61,16 @@ const props = defineProps({
   counts: { type: Object, default: null },
   totalCount: { type: Number, default: null },
   selectedDate: { type: Date, required: true },
-  viewMode: { type: String, default: 'card' },
-  periodMode: { type: String, default: 'T' },
-  deleteMode: { type: Boolean, default: false }
+  periodMode: { type: String, default: 'T' }
 })
 
 const DEFAULT_FILTER = 'notdone'
 
-const localView = ref(props.viewMode || 'card')
-const localDelete = ref(!!props.deleteMode)
 const currentFilter = ref(props.modelValue || DEFAULT_FILTER)
 const graphMode = ref('today')
 const totalOn = ref(true)
 const lastClickedState = ref(null)
 
-watch(() => props.viewMode, (v) => { if (!localDelete.value && v) localView.value = v })
-watch(() => props.deleteMode, (v) => { localDelete.value = !!v })
 watch(() => props.modelValue, (v) => { currentFilter.value = v || DEFAULT_FILTER })
 
 watch(totalOn, (v) => {
@@ -105,32 +86,16 @@ watch(totalOn, (v) => {
   }
 })
 
-function toggleDeleteMode() {
-  const next = !localDelete.value
-  localDelete.value = next
-  emit('toggleDeleteMode', next)
-}
 function onChangePeriod(mode){
   resetToDefault()
   graphMode.value = 'today'
   totalOn.value = true
   emit('changePeriod', mode)
 }
-function onChangeView(view){
-  if (localView.value !== view) {
-    localView.value = view
-    emit('changeView', view)
-  }
-  if (localDelete.value) {
-    localDelete.value = false
-    emit('toggleDeleteMode', false)
-  }
-}
 
 const onClickPrev = () => { resetToDefault(); graphMode.value = 'today'; totalOn.value = true; emit('requestPrev') }
 const onClickNext = () => { resetToDefault(); graphMode.value = 'today'; totalOn.value = true; emit('requestNext') }
 
-const activeTool = computed(() => (localDelete.value ? 'delete' : localView.value))
 const displayCounts = computed(() => props.counts ?? { notdone:0, done:0, faildone:0, ignored:0 })
 const displayTotal  = computed(() => props.totalCount ?? 0)
 
@@ -174,16 +139,6 @@ const centerText = computed(() => {
 
 const prevLabel = computed(() => { if (props.periodMode === 'W') return '이전주'; if (props.periodMode === 'M') return '이전달'; return '전날' })
 const nextLabel = computed(() => { if (props.periodMode === 'W') return '다음주'; if (props.periodMode === 'M') return '다음달'; return '다음날' })
-const periodTitle = computed(() => {
-  if (currentFilter.value === 'notdone') return '달성 체크 전'
-  if (currentFilter.value === 'done') return '달성완료 다짐'
-  if (currentFilter.value === 'faildone') return '달성실패 다짐'
-  if (currentFilter.value === 'ignored') return '흐린눈 다짐'
-  if (props.periodMode === 'W') return '주간 다짐'
-  if (props.periodMode === 'M') return '월간 다짐'
-  return '오늘의 다짐'
-})
-const periodModeLabel = computed(() => props.periodMode === 'W' ? 'Weekly' : props.periodMode === 'M' ? 'Monthly' : 'Today')
 
 const percentText = computed(() => {
   const total = Math.max(0, Number(displayTotal.value) || 0)
@@ -236,9 +191,4 @@ const ruffyBase = computed(() => {
 function getFace(n){
   return images[`/src/assets/images/${ruffyBase.value}_face${n}.png`]
 }
-
-const termFaceSrc = computed(() => {
-  const map = { notdone: '01', done: '02', faildone: '03', ignored: '04' }
-  return getFace(map[currentFilter.value] || '01')
-})
 </script>
