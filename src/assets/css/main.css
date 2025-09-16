@@ -246,6 +246,7 @@ body,
   position: sticky;
   top: var(--header-h);
   z-index: 95;
+  background-color:#f9f9f9
 }
 
 .routine_total.sum {
