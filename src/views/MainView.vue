@@ -1,11 +1,12 @@
 <template>
-  <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }">
+  <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }" ref="scrollEl" @scroll="update">
     <SlidePanel :show="panelOpen" @close="closePanel">
       <LnbView @close="closePanel" />
     </SlidePanel>
 
-    <div class="main_scroll" ref="scrollEl" @scroll="update">
+    <div class="main_scroll">
       <HeaderView @toggle-lnb="showLnb = !showLnb" />
+      
 
       <div v-show="hasFetched">
         <div v-show="!scrolledRef">
