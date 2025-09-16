@@ -1,11 +1,14 @@
 #header {
-  position: relative;
+  position: sticky;
+  top: var(--sat);
+  z-index: 100;
   display: flex;
   align-items: center;
   width: 100%;
   height: 7.5rem;
   padding: 0 1.5rem;
   box-sizing: border-box;
+  background: #f9f9f9;
 }
 
 #header .left,
@@ -131,8 +134,11 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  padding:0 1.5rem 0 1.5rem;
-} 
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 1.5rem;
+  padding-bottom: calc(1.5rem + 3rem + var(--sab));
+}
 
 [v-cloak] {
   display: none;
@@ -147,25 +153,30 @@
   touch-action: pan-y !important;
 }
 
-
 #main_body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(1.5rem + 3rem + var(--sab));
+  flex: initial;
+  display: block;
+  min-height: auto;
+  -webkit-overflow-scrolling: auto;
+  padding: 0;
 }
 
 .main_scroll {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  flex: initial;
+  overflow: visible;
+  -webkit-overflow-scrolling: auto;
   touch-action: pan-y !important;
-  min-height: 0;
-  transform: translateZ(0);
-  will-change: transform;
-  padding-bottom:5rem;
+  min-height: auto;
+  transform: none;
+  will-change: auto;
+  padding: 0;
+}
+
+.routine_total.sum {
+  position: sticky;
+  top: calc(var(--sat) + 7.5rem);
+  z-index: 95;
+  background: #fff;
 }
 
 button.add {
@@ -177,44 +188,18 @@ button.add {
   border-radius: 50%;
   background: url('../images/ico_add.png') no-repeat 0 0/100%;
   background-color: #fff;
-  z-index: 1 !important;
+  z-index: 101 !important;
 }
 
-button.home {
-  background: url('../images/ico_home.png') no-repeat 0 0/100%;
-}
-
-button.like {
-  background: url('../images/ico_like.png') no-repeat 0 0/100%;
-}
-
-button.share {
-  background: url('../images/ico_share.png') no-repeat 0 0/100%;
-}
-
-button.setting {
-  background: url('../images/ico_setting.png') no-repeat 0 0/100%;
-}
-
-button.user {
-  background: url('../images/ico_user.png') no-repeat 0 0/100%;
-}
-
-button.shop {
-  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
-}
-
-button.say {
-  background: url('../images/ico_say.png') no-repeat 0 0/100%;
-}
-
-button.graph {
-  background: url('../images/ico_graph.png') no-repeat 0 0/100%;
-}
-
-button.control {
-  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
-}
+button.home { background: url('../images/ico_home.png') no-repeat 0 0/100%; }
+button.like { background: url('../images/ico_like.png') no-repeat 0 0/100%; }
+button.share { background: url('../images/ico_share.png') no-repeat 0 0/100%; }
+button.setting { background: url('../images/ico_setting.png') no-repeat 0 0/100%; }
+button.user { background: url('../images/ico_user.png') no-repeat 0 0/100%; }
+button.shop { background: url('../images/ico_shop.png') no-repeat 0 0/100%; }
+button.say { background: url('../images/ico_say.png') no-repeat 0 0/100%; }
+button.graph { background: url('../images/ico_graph.png') no-repeat 0 0/100%; }
+button.control { background: url('../images/ico_shop.png') no-repeat 0 0/100%; }
 
 #main_body .no_data {
   text-align: center;

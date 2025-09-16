@@ -1,71 +1,70 @@
 <template>
   <div id="main_wrap" v-cloak :class="{ selecting: rStore.deleteMode }">
-    <HeaderView @toggle-lnb="showLnb = !showLnb" />
     <SlidePanel :show="panelOpen" @close="closePanel">
       <LnbView @close="closePanel" />
     </SlidePanel>
-    
-    <div v-show="hasFetched">
-      <div v-show="!scrolledRef">
-        <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
-        <MainRoutineTotal
-          :key="rtResetKey"
-          :isFuture="isFutureDate"
-          :selectedDate="selectedDate"
-          v-model:modelValue="rStore.selectedFilter"
-          :counts="mv.headerCounts"
-          :totalCount="mv.headerTotal"
-          :periodMode="rStore.selectedPeriod"
-          @requestPrev="onRequestPrev"
-          @requestNext="onRequestNext"
-          @changePeriod="onChangePeriod"
-        />
-      </div>
-    
-      <div class="routine_total sum" v-show="scrolledRef" :style="scrolledRef?{position:'sticky',top:'var(--sat)',zIndex:50}:null">
-        <div class="total_area">
-          <div class="date">
-            <p class="today">
-              <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
-              <span class="y_m">{{ sumYear }}.{{ sumMonth }}.</span>
-              <em>{{ sumDay }}</em>
-              <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
-            </p>
+
+    <div class="main_scroll" ref="scrollEl" @scroll="update">
+      <HeaderView @toggle-lnb="showLnb = !showLnb" />
+
+      <div v-show="hasFetched">
+        <div v-show="!scrolledRef">
+          <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
+          <MainRoutineTotal
+            :key="rtResetKey"
+            :isFuture="isFutureDate"
+            :selectedDate="selectedDate"
+            v-model:modelValue="rStore.selectedFilter"
+            :counts="mv.headerCounts"
+            :totalCount="mv.headerTotal"
+            :periodMode="rStore.selectedPeriod"
+            @requestPrev="onRequestPrev"
+            @requestNext="onRequestNext"
+            @changePeriod="onChangePeriod"
+          />
+        </div>
+
+        <div class="routine_total sum" v-show="scrolledRef" :style="{ position:'sticky', top:'calc(var(--sat) + 7.5rem)', zIndex:50 }">
+          <div class="total_area">
+            <div class="date">
+              <p class="today">
+                <button class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></button>
+                <span class="y_m">{{ sumYear }}.{{ sumMonth }}.</span>
+                <em>{{ sumDay }}</em>
+                <button class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></button>
+              </p>
+            </div>
+            <div class="r_state">
+              <a href="#none" class="not_done" :class="{ on: rStore.selectedFilter==='notdone' }" @click.prevent="rStore.setFilter('notdone')">
+                <span>체크전 다짐</span><img :src="getFace('01')"><em>{{ (mv.headerCounts && mv.headerCounts.notdone) || 0 }}</em>
+              </a>
+              <a href="#none" class="done" :class="{ on: rStore.selectedFilter==='done' }" @click.prevent="rStore.setFilter('done')">
+                <span>달성완료</span><img :src="getFace('02')"><em>{{ (mv.headerCounts && mv.headerCounts.done) || 0 }}</em>
+              </a>
+              <a href="#none" class="fail" :class="{ on: rStore.selectedFilter==='faildone' || rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('faildone')">
+                <span>달성실패</span><img :src="getFace('03')"><em>{{ (mv.headerCounts && (mv.headerCounts.faildone ?? mv.headerCounts.fail)) || 0 }}</em>
+              </a>
+              <a href="#none" class="ignore" :class="{ on: rStore.selectedFilter==='ignored' || rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ignored')">
+                <span>흐린눈</span><img :src="getFace('04')"><em>{{ (mv.headerCounts && (mv.headerCounts.ignored ?? mv.headerCounts.ign)) || 0 }}</em>
+              </a>
+            </div>
           </div>
-          <div class="r_state">
-            <a href="#none" class="not_done" :class="{ on: rStore.selectedFilter==='notdone' }" @click.prevent="rStore.setFilter('notdone')">
-              <span>체크전 다짐</span><img :src="getFace('01')"><em>{{ (mv.headerCounts && mv.headerCounts.notdone) || 0 }}</em>
-            </a>
-            <a href="#none" class="done" :class="{ on: rStore.selectedFilter==='done' }" @click.prevent="rStore.setFilter('done')">
-              <span>달성완료</span><img :src="getFace('02')"><em>{{ (mv.headerCounts && mv.headerCounts.done) || 0 }}</em>
-            </a>
-            <a href="#none" class="fail" :class="{ on: rStore.selectedFilter==='faildone' || rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('faildone')">
-              <span>달성실패</span><img :src="getFace('03')"><em>{{ (mv.headerCounts && (mv.headerCounts.faildone ?? mv.headerCounts.fail)) || 0 }}</em>
-            </a>
-            <a href="#none" class="ignore" :class="{ on: rStore.selectedFilter==='ignored' || rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ignored')">
-              <span>흐린눈</span><img :src="getFace('04')"><em>{{ (mv.headerCounts && (mv.headerCounts.ignored ?? mv.headerCounts.ign)) || 0 }}</em>
-            </a>
+        </div>
+
+        <div class="today_tools">
+          <div class="today">
+            <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
+            <span class="term"></span> <em>{{ periodTitle }}</em>
+            <a href="#none" class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></a>
+          </div>
+          <div class="tools">
+            <a href="#none" class="r_card" :class="{ on: activeTool === 'card' }" @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
+            <a href="#none" class="r_list" :class="{ on: activeTool === 'list' }" @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
+            <a href="#none" class="r_carousel" :class="{ on: activeTool === 'carousel' }" @click.prevent="onChangeView('carousel')"><span>다짐캐러셀보기</span></a>
+            <a href="#none" :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool === 'delete' } ]" @click.prevent="toggleDeleteMode"><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
           </div>
         </div>
-      </div>
-    
-      <div class="today_tools">
-        <div class="today">
-          <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
-          <span class="term"></span> <em>{{ periodTitle }}</em>
-          <a href="#none" class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></a>
-        </div>
-        <div class="tools">
-          <a href="#none" class="r_card" :class="{ on: activeTool === 'card' }" @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
-          <a href="#none" class="r_list" :class="{ on: activeTool === 'list' }" @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
-          <a href="#none" class="r_carousel" :class="{ on: activeTool === 'carousel' }" @click.prevent="onChangeView('carousel')"><span>다짐캐러셀보기</span></a>
-          <a href="#none" :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool === 'delete' } ]" @click.prevent="toggleDeleteMode"><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
-        </div>
-      </div>
-    </div>
-    
-    <div id="main_body">
-      <div class="main_scroll" ref="scrollEl" @scroll="update">
+
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
         <div v-else-if="hasFetched && !filteredRoutines.length" class="no_data">
           <span v-if="!rStore.items?.length">아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?</span>
@@ -109,7 +108,7 @@
         </template>
       </div>
     </div>
-    
+
     <FooterView @refresh-main="refreshBinding" />
     <button @click="openRoutine()" class="add"><span>다짐 추가하기</span></button>
     <AddRoutineSelector
@@ -264,4 +263,3 @@ watchEffect(async () => {
   }
 })
 </script>
-
