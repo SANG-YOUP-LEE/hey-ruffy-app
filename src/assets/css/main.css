@@ -159,13 +159,14 @@
 
 .main_scroll {
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y !important;
-  min-height: 0;
-  transform: translateZ(0);
-  will-change: transform;
-  padding-bottom:5rem;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+touch-action: pan-y !important;
+min-height: calc(100% + 1px);
+transform: translateZ(0);
+will-change: transform;
+padding-bottom: 5rem;
+overflow-anchor: none;
 }
 
 button.add {
