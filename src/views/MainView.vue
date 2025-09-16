@@ -6,7 +6,7 @@
     </SlidePanel>
 
     <div id="main_body">
-      <div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched && rStore.items?.length">  
+      <div class="main_fixed" :class="{ is_hidden: scrolledRef }" v-show="hasFetched">
         <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
         <MainRoutineTotal
           :key="rtResetKey"
