@@ -14,14 +14,10 @@
         v-model:modelValue="rStore.selectedFilter"
         :counts="mv.headerCounts"
         :totalCount="mv.headerTotal"
-        :viewMode="selectedView"
         :periodMode="rStore.selectedPeriod"
-        :deleteMode="rStore.deleteMode"
         @requestPrev="onRequestPrev"
         @requestNext="onRequestNext"
-        @changeView="nav.changeView"
         @changePeriod="onChangePeriod"
-        @toggleDeleteMode="handleToggleDeleteMode"
       />
 
       <div class="routine_summary">
@@ -40,11 +36,11 @@
           <a href="#" :class="{ on: rStore.selectedFilter==='done' }" @click.prevent="rStore.setFilter('done')">
             <span>달성완료</span><em>{{ (mv.headerCounts && mv.headerCounts.done) || 0 }}</em>
           </a>
-          <a href="#" :class="{ on: rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('fail')">
-            <span>실패</span><em>{{ (mv.headerCounts && mv.headerCounts.fail) || 0 }}</em>
+          <a href="#" :class="{ on: rStore.selectedFilter==='faildone' || rStore.selectedFilter==='fail' }" @click.prevent="rStore.setFilter('faildone')">
+            <span>실패</span><em>{{ (mv.headerCounts && (mv.headerCounts.faildone ?? mv.headerCounts.fail)) || 0 }}</em>
           </a>
-          <a href="#" :class="{ on: rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ign')">
-            <span>흐린눈</span><em>{{ (mv.headerCounts && mv.headerCounts.ign) || 0 }}</em>
+          <a href="#" :class="{ on: rStore.selectedFilter==='ignored' || rStore.selectedFilter==='ign' }" @click.prevent="rStore.setFilter('ignored')">
+            <span>흐린눈</span><em>{{ (mv.headerCounts && (mv.headerCounts.ignored ?? mv.headerCounts.ign)) || 0 }}</em>
           </a>
         </div>
       </div>
@@ -197,6 +193,29 @@ const sumDate = computed(() => new Date(selectedDate.value))
 const sumYear = computed(() => String(sumDate.value.getFullYear()))
 const sumMonth = computed(() => String(sumDate.value.getMonth() + 1).padStart(2, '0'))
 const sumDay = computed(() => String(sumDate.value.getDate()).padStart(2, '0'))
+
+const activeTool = computed(() => (rStore.deleteMode ? 'delete' : selectedView.value))
+const localDelete = computed(() => rStore.deleteMode)
+function onChangeView(view){
+  if (selectedView.value !== view) nav.changeView(view)
+  if (rStore.deleteMode) handleToggleDeleteMode()
+}
+function toggleDeleteMode(){ handleToggleDeleteMode() }
+function onClickPrev(){ onRequestPrev() }
+function onClickNext(){ onRequestNext() }
+
+const prevLabel = computed(() => rStore.selectedPeriod === 'W' ? '이전주' : rStore.selectedPeriod === 'M' ? '이전달' : '전날')
+const nextLabel = computed(() => rStore.selectedPeriod === 'W' ? '다음주' : rStore.selectedPeriod === 'M' ? '다음달' : '다음날')
+const periodTitle = computed(() => {
+  const f = rStore.selectedFilter
+  if (f === 'notdone') return '달성 체크 전'
+  if (f === 'done') return '달성완료 다짐'
+  if (f === 'faildone' || f === 'fail') return '달성실패 다짐'
+  if (f === 'ignored' || f === 'ign') return '흐린눈 다짐'
+  if (rStore.selectedPeriod === 'W') return '주간 다짐'
+  if (rStore.selectedPeriod === 'M') return '월간 다짐'
+  return '오늘의 다짐'
+})
 
 const { initVH, disposeVH } = useVH()
 onMounted(async () => {
