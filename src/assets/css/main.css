@@ -238,10 +238,17 @@ body,
   padding-top: var(--header-h);
 }
 
-.routine_total.sum {
+.sticky_head {
   position: sticky;
-  top: 0;
+  top: var(--header-h);
   z-index: 95;
+  background: #fff;
+}
+
+.routine_total.sum {
+  position: static;
+  top: auto;
+  z-index: auto;
   background: #fff;
 }
 
