@@ -205,6 +205,7 @@ body,
   content: '';
   display: block;
   height: calc(8rem + var(--sab));
+  background-color:#f9f9f9
 }
 
 [v-cloak] {
