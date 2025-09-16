@@ -12,20 +12,14 @@ export function useMainScroll(rStore, mv) {
   let ticking = false
   let ro = null
   let headerEl = null
-  let sumEl = null
   let contentEl = null
 
   function syncStickyOffsets() {
     if (!headerEl) headerEl = document.querySelector('#header')
     if (!contentEl) contentEl = document.querySelector('.main_scroll')
-    if (!sumEl) sumEl = document.querySelector('.routine_total.sum')
-
     const hh = headerEl ? headerEl.offsetHeight || 0 : 0
-
     document.documentElement.style.setProperty('--header-h', `${hh}px`)
-
     if (contentEl) contentEl.style.paddingTop = `${hh}px`
-    if (sumEl) sumEl.style.top = `${hh}px`
   }
 
   function updateScrollState() {
@@ -53,7 +47,6 @@ export function useMainScroll(rStore, mv) {
     scrollEl.value = document.querySelector('#main_wrap')
     headerEl = document.querySelector('#header')
     contentEl = document.querySelector('.main_scroll')
-    sumEl = document.querySelector('.routine_total.sum')
 
     syncStickyOffsets()
 
@@ -81,7 +74,6 @@ export function useMainScroll(rStore, mv) {
     if (ro) ro.disconnect()
     ro = null
     headerEl = null
-    sumEl = null
     contentEl = null
     scrollEl.value = null
   })
