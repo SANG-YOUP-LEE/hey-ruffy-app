@@ -405,11 +405,12 @@
 
 
 .today_tools.sum{
-  position: sticky;
+  /*position: sticky;
   top: var(--header-offset);
   z-index: 94;
   border-bottom:1px solid #ddd;
-  padding-bottom:0.5rem;
+  padding-bottom:0.5rem;*/
+  display:none
 }
 
 .today_tools .today {
