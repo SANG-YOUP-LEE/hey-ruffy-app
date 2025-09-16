@@ -147,7 +147,7 @@
   touch-action: pan-y !important;
 }
 
-/*
+
 #main_body {
   flex: 1;
   display: flex;
@@ -155,7 +155,7 @@
   min-height: 0;
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(1.5rem + 3rem + var(--sab));
-}*/
+}
 
 .main_scroll {
   flex: 1;
