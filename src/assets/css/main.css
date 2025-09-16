@@ -166,7 +166,6 @@
   transform: translateZ(0);
   will-change: transform;
   padding-bottom:5rem;
-  padding-top:5rem;
 }
 
 button.add {
