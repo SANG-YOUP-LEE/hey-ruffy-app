@@ -6,7 +6,7 @@
     </SlidePanel>
     
     <div v-show="hasFetched">
-      <!--MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
+      <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
       <MainRoutineTotal
         :key="rtResetKey"
         :isFuture="isFutureDate"
@@ -18,7 +18,7 @@
         @requestPrev="onRequestPrev"
         @requestNext="onRequestNext"
         @changePeriod="onChangePeriod"
-      /-->
+      />
 
       <div class="routine_total sum">
         <div class="total_area">
