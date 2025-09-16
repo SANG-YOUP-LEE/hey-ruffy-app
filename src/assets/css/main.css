@@ -28,8 +28,7 @@ body,
   }
 }
 
-:root {
-  --app-dvh: 100dvh;
+:root{
   --sat: env(safe-area-inset-top);
   --sar: env(safe-area-inset-right);
   --sab: env(safe-area-inset-bottom);
@@ -54,15 +53,19 @@ body,
 
 #header {
   position: fixed;
-  top: 0;
+  top: var(--sat);
+  left: 0;
+  right: 0;
   z-index: 100;
+  height: var(--header-h);
   display: flex;
   align-items: center;
-  width: 100%;
-  height: var(--header-h);
-  padding: 0 1.5rem;
   box-sizing: border-box;
   background: #f9f9f9;
+  padding-left: max(1.5rem, var(--sal));
+  padding-right: max(1.5rem, var(--sar));
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 #header .left,
@@ -235,7 +238,7 @@ body,
   transform: none;
   will-change: auto;
   padding: 0;
-  padding-top: var(--header-h);
+  padding-top: calc(var(--sat) + var(--header-h));
 }
 
 .sticky_head {
