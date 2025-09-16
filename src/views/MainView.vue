@@ -52,20 +52,6 @@
                 </div>
               </div>
             </div>
-
-            <div class="today_tools">
-              <div class="today">
-                <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
-                <span class="term"></span> <em>{{ periodTitle }}</em>
-                <a href="#none" class="next" @click.prevent="onClickNext"><span>{{ nextLabel }}</span></a>
-              </div>
-              <div class="tools">
-                <a href="#none" class="r_card" :class="{ on: activeTool === 'card' }" @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
-                <a href="#none" class="r_list" :class="{ on: activeTool === 'list' }" @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
-                <a href="#none" class="r_carousel" :class="{ on: activeTool === 'carousel' }" @click.prevent="onChangeView('carousel')"><span>다짐캐러셀보기</span></a>
-                <a href="#none" :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool === 'delete' } ]" @click.prevent="toggleDeleteMode"><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
-              </div>
-            </div>
           </div>
 
           <div class="today_tools" :class="{ sum: scrolledRef }">
@@ -281,4 +267,3 @@ watchEffect(async () => {
   }
 })
 </script>
-
