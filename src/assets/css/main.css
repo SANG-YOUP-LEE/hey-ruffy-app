@@ -136,8 +136,15 @@
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   padding: 0 1.5rem;
   padding-bottom: calc(1.5rem + 3rem + var(--sab));
+}
+
+#main_wrap::after {
+  content: '';
+  display: block;
+  height: calc(8rem + var(--sab));
 }
 
 [v-cloak] {
@@ -166,7 +173,7 @@
   overflow: visible;
   -webkit-overflow-scrolling: auto;
   touch-action: pan-y !important;
-  min-height: auto;
+  min-height: calc(100dvh + 2px);
   transform: none;
   will-change: auto;
   padding: 0;
@@ -191,15 +198,41 @@ button.add {
   z-index: 101 !important;
 }
 
-button.home { background: url('../images/ico_home.png') no-repeat 0 0/100%; }
-button.like { background: url('../images/ico_like.png') no-repeat 0 0/100%; }
-button.share { background: url('../images/ico_share.png') no-repeat 0 0/100%; }
-button.setting { background: url('../images/ico_setting.png') no-repeat 0 0/100%; }
-button.user { background: url('../images/ico_user.png') no-repeat 0 0/100%; }
-button.shop { background: url('../images/ico_shop.png') no-repeat 0 0/100%; }
-button.say { background: url('../images/ico_say.png') no-repeat 0 0/100%; }
-button.graph { background: url('../images/ico_graph.png') no-repeat 0 0/100%; }
-button.control { background: url('../images/ico_shop.png') no-repeat 0 0/100%; }
+button.home {
+  background: url('../images/ico_home.png') no-repeat 0 0/100%;
+}
+
+button.like {
+  background: url('../images/ico_like.png') no-repeat 0 0/100%;
+}
+
+button.share {
+  background: url('../images/ico_share.png') no-repeat 0 0/100%;
+}
+
+button.setting {
+  background: url('../images/ico_setting.png') no-repeat 0 0/100%;
+}
+
+button.user {
+  background: url('../images/ico_user.png') no-repeat 0 0/100%;
+}
+
+button.shop {
+  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
+}
+
+button.say {
+  background: url('../images/ico_say.png') no-repeat 0 0/100%;
+}
+
+button.graph {
+  background: url('../images/ico_graph.png') no-repeat 0 0/100%;
+}
+
+button.control {
+  background: url('../images/ico_shop.png') no-repeat 0 0/100%;
+}
 
 #main_body .no_data {
   text-align: center;
