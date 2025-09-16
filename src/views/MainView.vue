@@ -20,7 +20,7 @@
         @changePeriod="onChangePeriod"
       />
 
-      <div class="routine_total">
+      <div class="routine_total sum">
         <div class="total_area">
           <div class="date">
             <p class="today">
