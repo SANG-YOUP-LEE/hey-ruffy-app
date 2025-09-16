@@ -6,21 +6,23 @@
     </SlidePanel>
     
     <div v-show="hasFetched">
-      <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
-      <MainRoutineTotal
-        :key="rtResetKey"
-        :isFuture="isFutureDate"
-        :selectedDate="selectedDate"
-        v-model:modelValue="rStore.selectedFilter"
-        :counts="mv.headerCounts"
-        :totalCount="mv.headerTotal"
-        :periodMode="rStore.selectedPeriod"
-        @requestPrev="onRequestPrev"
-        @requestNext="onRequestNext"
-        @changePeriod="onChangePeriod"
-      />
-
-      <div class="routine_total sum">
+      <div v-show="!scrolledRef">
+        <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
+        <MainRoutineTotal
+          :key="rtResetKey"
+          :isFuture="isFutureDate"
+          :selectedDate="selectedDate"
+          v-model:modelValue="rStore.selectedFilter"
+          :counts="mv.headerCounts"
+          :totalCount="mv.headerTotal"
+          :periodMode="rStore.selectedPeriod"
+          @requestPrev="onRequestPrev"
+          @requestNext="onRequestNext"
+          @changePeriod="onChangePeriod"
+        />
+      </div>
+    
+      <div class="routine_total sum" v-show="scrolledRef" :style="scrolledRef?{position:'sticky',top:'var(--sat)',zIndex:50}:null">
         <div class="total_area">
           <div class="date">
             <p class="today">
@@ -46,7 +48,7 @@
           </div>
         </div>
       </div>
-
+    
       <div class="today_tools">
         <div class="today">
           <a href="#none" class="prev" @click.prevent="onClickPrev"><span>{{ prevLabel }}</span></a>
@@ -61,9 +63,9 @@
         </div>
       </div>
     </div>
-
+    
     <div id="main_body">
-      <div class="main_scroll" ref="scrollEl">
+      <div class="main_scroll" ref="scrollEl" @scroll="update">
         <div v-if="isLoading" class="skeleton-wrap"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
         <div v-else-if="hasFetched && !filteredRoutines.length" class="no_data">
           <span v-if="!rStore.items?.length">아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?</span>
@@ -107,7 +109,7 @@
         </template>
       </div>
     </div>
-
+    
     <FooterView @refresh-main="refreshBinding" />
     <button @click="openRoutine()" class="add"><span>다짐 추가하기</span></button>
     <AddRoutineSelector
@@ -262,3 +264,4 @@ watchEffect(async () => {
   }
 })
 </script>
+
