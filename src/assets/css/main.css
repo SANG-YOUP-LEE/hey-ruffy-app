@@ -42,6 +42,7 @@ body,
   padding: var(--sat) var(--sar) var(--sab) var(--sal);
   box-sizing: border-box;
 }
+
 .container {
   width: 100%;
   position: absolute;
@@ -49,7 +50,6 @@ body,
   left: 50%;
   transform: translate(-50%,-50%);
 }
-
 
 /*
 .header {
