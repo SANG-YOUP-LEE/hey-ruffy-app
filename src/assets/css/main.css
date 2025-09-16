@@ -35,8 +35,10 @@ body,
   --sal: env(safe-area-inset-left);
   --app-dvh: 100dvh;     
   --header-h: 7.5rem;
+  /*
+  --header-offset: calc(var(--sat) + var(--header-h)); 
+  */
 }
-
 .app-root,
 .lnb {
   height: calc(100dvh - var(--sat) - var(--sab));
