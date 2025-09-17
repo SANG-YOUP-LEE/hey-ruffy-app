@@ -9,10 +9,6 @@
 
       <div class="main_scroll">
         <div v-show="hasFetched">
-          <div class="daily_caption" v-if="captions.length">
-            <h1>오늘의 문구</h1>
-            <p v-for="(line,i) in captions" :key="i">{{ line }}</p>
-          </div>
           <div v-show="!scrolledRef">
             <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
             <MainRoutineTotal
@@ -170,12 +166,6 @@ import { useVH } from '@/composables/useVH'
 import { useModalStore } from '@/stores/modal'
 import { useAuthStore } from '@/stores/auth'
 
-import { db } from '@/firebase'
-import { doc, getDoc } from 'firebase/firestore'
-import { todayKey } from '@/utils/date'
-
-const captions = ref([])
-
 const route = useRoute()
 const router = useRouter()
 
@@ -267,8 +257,6 @@ onMounted(async () => {
   showLnb.value = false
   initVH()
   await initBinding()
-  const snap = await getDoc(doc(db, 'dailyCaptions', todayKey()))
-  captions.value = snap.exists() ? (snap.data()?.lines ?? []) : []
   update()
 })
 onBeforeUnmount(() => { disposeVH(); disposeBinding() })
