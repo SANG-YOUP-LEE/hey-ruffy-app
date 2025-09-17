@@ -25,7 +25,7 @@
           <a @click.prevent="goSection('diary')" class="login" v-show="ready && user">일기장 엿보기</a>
           <a @click.prevent="goSection('about')">러피에 대해 더 알고 싶어요.</a>
           <a @click.prevent="goSection('premier')">러피와 두 발 더 가까워지기</a>
-          <a v-if="ready && user && isAdmin" @click.prevent="openAdminCaptions" class="login">관리자: 캡션 관리</a>
+          <a v-if="isAdmin" @click.prevent="openAdminCaptions" class="login">관리자: 캡션 관리</a>
         </div>
 
         <div class="lnb_footer">
@@ -39,7 +39,7 @@
           <h2>계정 관리</h2>
           <a href="#none" @click.prevent="goCharacter">캐릭터변경</a>
           <a href="#none" @click.prevent="clearAllAlarms">알람 초기화</a>
-          <a v-if="ready && user && isAdmin" href="#none" @click.prevent="openAdminCaptions">관리자: 캡션 관리</a>
+          <a v-if="isAdmin" href="#none" @click.prevent="openAdminCaptions">관리자: 캡션 관리</a>
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
           <a href="#none">메뉴5</a>
@@ -109,9 +109,16 @@ const section = computed(() => route.query.section || '')
 const user = computed(() => a.user)
 const ready = computed(() => a.ready)
 const profile = computed(() => a.profile)
-const isAdmin = computed(() => true)
-/*const isAdmin = computed(() => user.value?.uid === 'qxPKKEcQkzfpChkSFFpxmdjg6WZ2')
-*/
+
+const ADMIN_UIDS = [
+  'qxPKKEcQkzfpChkSFFpxmdjg6WZ2',
+  'VvwFeUErupcYPut0UyV6LhtKp8G2'
+]
+const isAdmin = computed(() => {
+  const uid = getAuth().currentUser?.uid || user.value?.uid || ''
+  return ADMIN_UIDS.includes(uid)
+})
+
 const scheduler = useSchedulerStore()
 
 async function clearAllAlarms() {
