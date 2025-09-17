@@ -23,7 +23,7 @@
         <li v-for="(l,i) in lines" :key="i">{{ l }}</li>
       </ul>
     </div>
-
+    <p>내 UID: {{ currentUid }}</p>
     <p v-if="lastError" class="err">{{ lastError }}</p>
   </div>
 </template>
