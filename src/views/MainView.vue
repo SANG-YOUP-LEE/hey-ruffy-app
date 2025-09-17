@@ -87,8 +87,6 @@
             <span v-if="!rStore.items?.length">아직 지켜야할 다짐이 없어요.<br />오른쪽 하단 +버튼을 눌러 다짐을 추가해 볼까요?</span>
             <span v-else>해당 조건에 맞는 다짐이 없어요.</span>
           </div>
-
-          <!-- ✅ 네이티브 영역 (card/list 뷰 공용 host), 캐러셀일 땐 위에서 분기 -->
           <template v-else>
             <MainCardCarousel
               v-if="selectedView==='carousel'"
@@ -105,9 +103,25 @@
               @togglePause="onTogglePause"
               @toggleSelect="rStore.toggleSelect"
             />
-            <div v-else class="native_routine_wrap">
-              <div ref="stackHost" class="routine_stack_host"></div>
-            </div>
+            <MainCard
+              v-else
+              v-for="rt in filteredRoutines"
+              :key="String(rt.id||'').split('-')[0]"
+              :selected="rt?.status || 'notdone'"
+              :routine="rt"
+              :isToday="rStore.selectedPeriod==='T' && mv.startOfDay(rt?.assignedDate?new Date(rt.assignedDate):new Date()).getTime()===mv.startOfDay(new Date()).getTime()"
+              :assigned-date="new Date(rt?.assignedDate || mv.periodStartRaw)"
+              :layout="ViewCardSet"
+              :layout-variant="selectedView==='list'?'list':'basic'"
+              :period-mode="rStore.selectedPeriod"
+              :delete-targets="rStore.deleteTargets"
+              :delete-mode="rStore.deleteMode"
+              @changeStatus="onChangeStatus"
+              @delete="onDelete"
+              @edit="openRoutine"
+              @togglePause="onTogglePause"
+              @toggleSelect="rStore.toggleSelect"
+            />
           </template>
         </div>
       </div>
@@ -127,7 +141,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, nextTick, watch, watchEffect, computed, ref } from 'vue'
+import { onMounted, onBeforeUnmount, nextTick, watchEffect, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
@@ -137,6 +151,7 @@ import LnbView from '@/components/common/Lnb.vue'
 import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
+import MainCard from '@/components/MainCard/MainCard.vue'
 import MainCardCarousel from '@/components/MainCard/MainCardCarousel.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 import SlidePanel from '@/components/common/SlidePanel.vue'
@@ -150,21 +165,6 @@ import { useMainNavigation } from '@/composables/useMainNavigation'
 import { useVH } from '@/composables/useVH'
 import { useModalStore } from '@/stores/modal'
 import { useAuthStore } from '@/stores/auth'
-
-import {
-  showNativeCardStack,
-  resizeNativeCardStack,
-  updateNativeCardItems,
-  hideNativeCardStack
-} from '@/utils/nativeCardStack'
-
-import {
-  showNativeRoutineList,
-  resizeNativeRoutineList,
-  updateNativeRoutineItems,
-  hideNativeRoutineList,
-  setNativeRoutineMode // 필요시 카드/아이콘 전환 모드에 사용
-} from '@/utils/nativeList'
 
 const route = useRoute()
 const router = useRouter()
@@ -253,110 +253,33 @@ function getFace(n){
 }
 
 const { initVH, disposeVH } = useVH()
-
-const stackHost = ref(null)
-let resizeHandler = null
-
-// 공통: 뷰에 주입할 아이템 변환기
-const toItems = (src) => src.map(m => ({
-  id: m.id,
-  title: m.title,
-  subtitle: m.comment || '',
-  // 필요 시 리스트 모드에서 쓰는 추가 필드들(아이콘/뱃지/시간 등)도 여기서 매핑
-}))
-
-// 현재 네이티브가 무엇이 떠있는지 추적
-const mountedKind = ref(null) // 'card' | 'list' | null
-
-function mountNative(kind) {
-  if (!stackHost.value) return
-  const items = toItems(filteredRoutines.value)
-  if (kind === 'card') {
-    showNativeCardStack(stackHost.value, items)
-    mountedKind.value = 'card'
-  } else if (kind === 'list') {
-    showNativeRoutineList(stackHost.value, items)
-    mountedKind.value = 'list'
-  }
-}
-
-function resizeNative() {
-  if (!stackHost.value) return
-  if (mountedKind.value === 'card') resizeNativeCardStack(stackHost.value)
-  else if (mountedKind.value === 'list') resizeNativeRoutineList(stackHost.value)
-}
-
-function updateNative(items) {
-  if (mountedKind.value === 'card') updateNativeCardItems(items)
-  else if (mountedKind.value === 'list') updateNativeRoutineItems(items)
-}
-
-function hideAllNative() {
-  hideNativeCardStack()
-  hideNativeRoutineList()
-  mountedKind.value = null
-}
-
 onMounted(async () => {
   showLnb.value = false
   initVH()
   await initBinding()
   update()
-  await nextTick()
-
-  // 초기 선택된 뷰에 따라 네이티브 마운트
-  if (stackHost.value && selectedView.value !== 'carousel') {
-    mountNative(selectedView.value === 'card' ? 'card' : 'list')
-    resizeNative()
-  }
-
-  resizeHandler = () => { if (stackHost.value && selectedView.value !== 'carousel') resizeNative() }
-  window.addEventListener('resize', resizeHandler, { passive: true })
-  window.addEventListener('scroll', resizeHandler, { passive: true })
 })
-
-onBeforeUnmount(() => {
-  disposeVH()
-  disposeBinding()
-  hideAllNative()
-  if (resizeHandler) {
-    window.removeEventListener('resize', resizeHandler)
-    window.removeEventListener('scroll', resizeHandler)
-  }
-})
+onBeforeUnmount(() => { disposeVH(); disposeBinding() })
 
 watchEffect(() => {
   mv.setLoading(rStore.isLoading)
   mv.setFetched(rStore.hasFetched)
 })
 
-// 아이템 갱신 → 현재 떠 있는 네이티브에 반영
-watch(filteredRoutines, v => {
-  updateNative(toItems(v))
-})
-
-// 뷰 전환(card/list/carousel) 시 네이티브 전환
-watch(selectedView, async v => {
-  if (!stackHost.value) return
-  if (v === 'carousel') {
-    hideAllNative()
-    return
-  }
-  const nextKind = v === 'card' ? 'card' : 'list'
-  if (mountedKind.value !== nextKind) {
-    hideAllNative()
-    await nextTick()
-    mountNative(nextKind)
-    resizeNative()
-  } else {
-    // 같은 종류면 아이템/사이즈만 갱신
-    updateNative(toItems(filteredRoutines.value))
-    resizeNative()
+watchEffect(async () => {
+  if (mv.showBulkDeleteConfirm) {
+    const ok = await modal.confirm({
+      title: '선택한 다짐을 삭제할까요?',
+      message: '삭제된 다짐은 되돌릴 수 없어요.',
+      okText: '삭제',
+      cancelText: '취소',
+    })
+    mv.showBulkDeleteConfirm = false
+    if (ok) {
+      await onDelete(rStore.deleteTargets || [])
+      await modal.confirm({ title: '완료', message: '선택한 다짐을 삭제했어요.', okText: '확인', cancelText: '' })
+      handleToggleDeleteMode(false)
+    }
   }
 })
 </script>
-
-<style scoped>
-.native_routine_wrap { position: relative; }
-.routine_stack_host { width: 100%; min-height: 200px; }
-</style>
