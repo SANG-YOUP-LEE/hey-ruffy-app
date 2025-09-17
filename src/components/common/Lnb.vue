@@ -25,6 +25,7 @@
           <a @click.prevent="goSection('diary')" class="login" v-show="ready && user">일기장 엿보기</a>
           <a @click.prevent="goSection('about')">러피에 대해 더 알고 싶어요.</a>
           <a @click.prevent="goSection('premier')">러피와 두 발 더 가까워지기</a>
+          <a v-if="ready && user && isAdmin" @click.prevent="openAdminCaptions" class="login">관리자: 캡션 관리</a>
         </div>
 
         <div class="lnb_footer">
@@ -38,6 +39,7 @@
           <h2>계정 관리</h2>
           <a href="#none" @click.prevent="goCharacter">캐릭터변경</a>
           <a href="#none" @click.prevent="clearAllAlarms">알람 초기화</a>
+          <a v-if="ready && user && isAdmin" href="#none" @click.prevent="openAdminCaptions">관리자: 캡션 관리</a>
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
           <a href="#none">메뉴5</a>
@@ -107,12 +109,11 @@ const section = computed(() => route.query.section || '')
 const user = computed(() => a.user)
 const ready = computed(() => a.ready)
 const profile = computed(() => a.profile)
+const isAdmin = computed(() => user.value?.uid === 'qxPKKEcQkzfpChkSFFpxmdjg6WZ2')
 
 const scheduler = useSchedulerStore()
 
-// Lnb.vue 등에서 사용
 async function clearAllAlarms() {
-  // 1) 사용자가 진짜 지울지 먼저 확인
   const ok = await modal.confirm({
     title: '알람 모두 삭제',
     message: '기기에 등록된 모든 알람을 삭제하고, 현재 다짐 기준으로 재설정합니다.',
@@ -120,19 +121,14 @@ async function clearAllAlarms() {
     cancelText: '취소',
   })
   if (!ok) return
-
   try {
-    // 2) 실제 삭제 + 재설치
     await scheduler.clearAndReloadAll()
-
-    // 3) 완료 팝업(확인만 표시)
     await modal.confirm({
       title: '완료',
       message: '모든 알람이 삭제되었습니다.',
       okText: '확인',
     })
   } catch (e) {
-    // 실패 시 안내
     await modal.confirm({
       title: '오류',
       message: '삭제 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
@@ -140,7 +136,6 @@ async function clearAllAlarms() {
       cancelText: null,
     })
   } finally {
-    // 4) 닫고 메인으로
     emit('close')
     router.replace('/main')
   }
@@ -167,7 +162,6 @@ async function logout() {
   }
 }
 
-// ✅ 모두 삭제: 스토어의 deleteAllRoutines()만 호출
 async function deleteAllRoutines() {
   const ok = await modal.confirm({
     title: '다짐 모두 삭제',
@@ -176,16 +170,13 @@ async function deleteAllRoutines() {
     cancelText: '취소',
   })
   if (!ok) return
-
   await rStore.deleteAllRoutines()
-
   await modal.confirm({
     title: '완료',
     message: '다짐과 알림이 모두 삭제되었습니다.',
     okText: '확인',
     showCancel: false,
   })
-
   emit('close')
   router.replace('/main')
 }
@@ -205,5 +196,10 @@ function goSection(name) {
 
 function goCharacter(){
   router.push({ name: 'LnbRuffyPick' })
+}
+
+function openAdminCaptions() {
+  emit('close')
+  router.push('/admin/captions')
 }
 </script>
