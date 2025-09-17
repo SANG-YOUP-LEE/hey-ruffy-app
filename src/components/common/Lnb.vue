@@ -109,8 +109,9 @@ const section = computed(() => route.query.section || '')
 const user = computed(() => a.user)
 const ready = computed(() => a.ready)
 const profile = computed(() => a.profile)
-const isAdmin = computed(() => user.value?.uid === 'qxPKKEcQkzfpChkSFFpxmdjg6WZ2')
-
+const isAdmin = computed(() => true)
+/*const isAdmin = computed(() => user.value?.uid === 'qxPKKEcQkzfpChkSFFpxmdjg6WZ2')
+*/
 const scheduler = useSchedulerStore()
 
 async function clearAllAlarms() {
