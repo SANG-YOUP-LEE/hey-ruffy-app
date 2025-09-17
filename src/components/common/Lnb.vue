@@ -25,7 +25,7 @@
           <a @click.prevent="goSection('diary')" class="login" v-show="ready && user">일기장 엿보기</a>
           <a @click.prevent="goSection('about')">러피에 대해 더 알고 싶어요.</a>
           <a @click.prevent="goSection('premier')">러피와 두 발 더 가까워지기</a>
-          <a v-if="isAdmin" @click.prevent="openAdminCaptions" class="login">관리자: 캡션 관리</a>
+          <a @click.prevent="goSection('admin')" class="login" v-show="ready && user && isAdmin">관리자</a>
         </div>
 
         <div class="lnb_footer">
@@ -39,7 +39,6 @@
           <h2>계정 관리</h2>
           <a href="#none" @click.prevent="goCharacter">캐릭터변경</a>
           <a href="#none" @click.prevent="clearAllAlarms">알람 초기화</a>
-          <a v-if="isAdmin" href="#none" @click.prevent="openAdminCaptions">관리자: 캡션 관리</a>
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
           <a href="#none">메뉴5</a>
@@ -83,6 +82,10 @@
           <a href="#none">메뉴3</a>
           <a href="#none">메뉴4</a>
           <a href="#none">메뉴5</a>
+        </div>
+        <div v-show="section === 'admin'">
+          <h2>관리자</h2>
+          <a v-if="isAdmin" href="#none" @click.prevent="openAdminCaptions">하루 문구 변경</a>
         </div>
       </div>
     </div>
