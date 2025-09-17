@@ -1,7 +1,10 @@
 <!-- src/views/admin/AdminCaptions.vue -->
 <template>
+  <div class="btn_back">
+    <a href="#none" @click.prevent="handleClose" class="back"><span>이전으로</span></a>
+  </div>
   <div class="admin_wrap">
-    <h1>캡션 관리</h1>
+    <h2>캡션 관리</h2>
 
     <div class="layout">
       <div class="editor">
@@ -49,6 +52,9 @@ import {
 } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 import { todayKey as tk } from '@/utils/date'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const ADMIN_UIDS = ['qxPKKEcQkzfpChkSFFpxmdjg6WZ2','VvwFeUErupcYPut0UyV6LhtKp8G2']
 
@@ -89,7 +95,7 @@ async function saveDoc() {
       { merge: true }
     )
     toast('저장 완료!')
-    await refreshRecentHead() // 저장 후 리스트 갱신
+    await refreshRecentHead()
   } catch (e) {
     lastError.value = `저장 실패: ${e?.code || ''} ${e?.message || e}`
   } finally {
@@ -126,7 +132,6 @@ function toast(msg) {
   setTimeout(() => t.remove(), 1200)
 }
 
-/* 최근 문서 목록 */
 const recents = ref([])
 const nextCursor = ref('')
 async function loadRecent(first = true) {
@@ -153,12 +158,15 @@ function openDate(d) {
   loadDoc()
 }
 
-/* 간단 검색: 정확한 날짜 문서 열기 */
 const q = ref('')
 function searchOne() {
   if (!q.value) return
   dateKey.value = q.value
   loadDoc()
+}
+
+function handleClose() {
+  router.back()
 }
 
 onMounted(async () => {
