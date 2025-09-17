@@ -8,7 +8,7 @@
         <span><img :src="ruffySrc" alt="Ruffy" /></span>
         <h1>hey,Ruffy!</h1>
       </div>
-      <p>하지말랑 하지말고 그냥 말랑말랑해~</p>
+      <p>{{ captionLine }}</p>
     </div>
     <div class="right">
       <button class="calendar"><span>달력보기</span></button>
@@ -17,8 +17,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { db } from '@/firebase'
+import { doc, getDoc } from 'firebase/firestore'
+import { todayKey } from '@/utils/date'
 
 const a = useAuthStore()
 const profile = computed(() => a.profile)
@@ -34,4 +37,11 @@ const DEFAULT_RUFFY = new URL('@/assets/images/ico_user_gray.png', import.meta.u
 const ruffySrc = computed(() =>
   profile.value?.selectedRuffy ? RUFFY_MAP[profile.value.selectedRuffy] : DEFAULT_RUFFY
 )
+
+const captionLine = ref('')
+
+onMounted(async () => {
+  const snap = await getDoc(doc(db, 'dailyCaptions', todayKey()))
+  captionLine.value = snap.exists() ? (snap.data()?.lines?.[0] || '') : ''
+})
 </script>
