@@ -1,3 +1,5 @@
+주석없이 통으로
+
 * {
   margin: 0;
   padding: 0;
@@ -33,10 +35,11 @@ body,
   --sar: env(safe-area-inset-right);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
-  --app-dvh: 100dvh;     
+  --app-dvh: 100dvh;
   --header-h: 7.5rem;
+  --header-h-collapsed: 3.5rem;
   --footer-h: 7rem;
- }
+}
 
 .app-root,
 .lnb {
@@ -67,7 +70,6 @@ body,
   padding-left: max(1.5rem, var(--sal));
   padding-right: max(1.5rem, var(--sar));
   transform: translateZ(0);
-  transform: none;
   backface-visibility: hidden;
 }
 
@@ -198,7 +200,7 @@ body,
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   padding: 0 1.5rem;
-  padding-bottom: calc(1.5rem + 3rem);
+  padding-bottom: calc(var(--sab) + var(--footer-h) + 1.5rem);
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -210,7 +212,7 @@ body,
 #main_wrap::after {
   content: '';
   display: block;
-  height: 5rem;
+  height: calc(var(--sab) + 0.5rem);
 }
 
 [v-cloak] {
@@ -244,13 +246,23 @@ body,
   will-change: auto;
   padding: 0;
   padding-top: calc(var(--sat) + var(--header-h));
+  transition: padding-top 180ms;
+}
+
+#main_wrap.scrolled .main_scroll {
+  padding-top: calc(var(--sat) + var(--header-h-collapsed));
 }
 
 .sticky_head {
   position: sticky;
   top: var(--header-h);
   z-index: 95;
-  background-color:#f9f9f9
+  background-color:#f9f9f9;
+  transition: top 180ms;
+}
+
+#main_wrap.scrolled .sticky_head {
+  top: var(--header-h-collapsed);
 }
 
 .routine_total.sum {
@@ -265,14 +277,15 @@ body,
   margin-right:-2rem;
   padding-left:2rem;
   padding-right:2rem;
-  box-shadow: 0 8px 10px -8px rgba(0,0,0,0.2);}
+  box-shadow: 0 8px 10px -8px rgba(0,0,0,0.2);
+}
 
 button.add {
   width: 3rem;
   height: 3rem;
   position: fixed;
   right: 1rem;
-  bottom: 9rem;
+  bottom: 8rem;
   border-radius: 50%;
   background: url('../images/ico_add.png') no-repeat 0 0/100%;
   background-color: #fff;
