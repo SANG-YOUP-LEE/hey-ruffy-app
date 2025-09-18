@@ -233,26 +233,31 @@ export async function scheduleOneShot(baseIdStr, tsMs, title, body) {
 
 
 export async function purgeAllForBase(baseIdStr) {
-  const base = String(baseIdStr || '').trim()
-  if (!base) return
+  const baseId = String(baseIdStr || '').trim()
+  if (!baseId) return
 
-  // 1) 네이티브 브리지 우선
-  try {
-    const NC = Capacitor?.Plugins?.NotifyCenterBridge
-    if (NC?.purgeAllForBase) {
-      await NC.purgeAllForBase({ base })
+  const NC = Capacitor?.Plugins?.NotifyCenterBridge
+
+  // 1) 네이티브 우선: 표준 이름 우선 호출
+  if (NC?.purgeBase) {
+    try {
+      await NC.purgeBase({ baseId })
       return
-    }
-  } catch (e) {
-    console.warn('[iosNotify] native purgeAllForBase failed → fallback', e)
+    } catch (_) {}
   }
 
-  // 2) 폴백: 기존 safePost 방식
-  if (await waitBridgeReady()) {
-    safePost({ action: 'purgeBase', baseId: base })
+  // 1-2) 구버전/다른 이름 대응
+  if (NC?.purgeAllForBase) {
+    try {
+      await NC.purgeAllForBase({ baseId })
+      return
+    } catch (_) {}
   }
+
+  // 2) 폴백: 웹브리지
+  if (!(await waitBridgeReady())) return
+  safePost({ action: 'purgeBase', baseId })
 }
-
 
 
 
