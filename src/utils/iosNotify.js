@@ -270,6 +270,8 @@ export async function purgeAll() {
 }
 
 export async function dumpPending(tag = 'manual', limit = 10) {
+  // 개발 빌드가 아니면 실행 안 함
+  if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'development') return;
   if (!(await waitBridgeReady())) return;
   safePost({ action: 'dumpPending', tag, limit });
 }

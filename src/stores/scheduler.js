@@ -5,8 +5,9 @@ import iosBridge from '@/utils/iosNotify'
 import { useAuthStore } from '@/stores/auth'
 import { db } from '@/firebase'
 import { collection, getDocs } from 'firebase/firestore'
+import iosBridge from '@/utils/iosNotify'
 
-const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly, purgeAll } = iosBridge
+const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly, purgeAll,purgeAllForBase } = iosBridge
 
 // ── 안정 구성(지피 추천) ─────────────────────────────────────
 const PROJECTION_DAYS   = 30  // 앞으로 N일치 인스턴스 뽑기
@@ -295,7 +296,7 @@ async function scheduleGlobal(candidates, uid) {
       fireTimesEpoch,
       sound: 'ruffysound001.wav'
     })
-    await sleep(8)
+    await sleep(40)
   }
 }
 
