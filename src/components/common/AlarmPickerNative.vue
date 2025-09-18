@@ -1,19 +1,19 @@
 <template></template>
 
 <script setup>
-import { watch, ref } from 'vue'
+import { watch } from 'vue'
 import { Capacitor } from '@capacitor/core'
-import { presentTime } from '@/utils/ruffyTimePicker'
+import { presentTime } from '@/utils/ruffyTimePicker' // 커스텀 플러그인 호출 헬퍼
+// capawesome 우회용(커스텀 플러그인 미탑재일 때만 사용)
+import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
 const props = defineProps({
-  /** { ampm:'오전|오후', hour:'01~12', minute:'00~59' } | null */
+  /** 초기값: { ampm:'오전|오후', hour:'01~12', minute:'00~59' } */
   initial: { type: Object, default: null },
-  /** 부모가 true로 주면 네이티브 시간 선택 팝업을 연다 */
-  open:    { type: Boolean, default: false },
+  /** 부모가 true로 바꾸면 네이티브 팝업 오픈 */
+  open:    { type: Boolean, default: false }
 })
 const emit = defineEmits(['selected','cancel','closed'])
-
-const opening = ref(false)   // 중복 오픈 방지
 
 const pad2 = v => String(v ?? '').padStart(2,'0')
 
@@ -41,7 +41,7 @@ function toLocalISO(H, M) {
   return `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}T${pad2(H)}:${pad2(M)}:00`
 }
 
-/** iOS에서 반환한 문자열에서 HH:mm만 추출(절대 Date 변환 X) */
+/** "…THH:mm(:ss)" 또는 "HH:mm(:ss)"에서 시분만 추출 */
 function parseHHMMLoose(iso) {
   const s = String(iso || '')
   const m = s.match(/T(\d{2}):(\d{2})/) || s.match(/(?:\s|^)(\d{2}):(\d{2})(?::\d{2})?/)
@@ -52,34 +52,53 @@ function parseHHMMLoose(iso) {
   return { ampm, hour: pad2(h12), minute: pad2(M) }
 }
 
-/** open=true일 때만 네이티브 피커 호출 */
+/** capawesome 우회 호출 */
+async function fallbackWithCapawesome(valueISO) {
+  const res = await DatetimePicker.present({
+    mode: 'time',
+    value: valueISO,
+    // locale/theme는 부모에서 쓰던 기본으로 충분(여기선 강제 X)
+  })
+  return res?.value ?? null
+}
+
+// 🔑 부모가 open=true로 바꾸면 실행
 watch(() => props.open, async (v) => {
   if (!v) return
-  if (opening.value) return
-  opening.value = true
-
-  if (!isNative()) { emit('cancel'); emit('closed'); opening.value = false; return }
+  if (!isNative()) { emit('cancel'); emit('closed'); return }
 
   try {
-    // 초기값 준비 (없으면 10:00)
+    // 초기값 보정(없으면 10:00)
     let init = props.initial
     if (!init || (init.ampm !== '오전' && init.ampm !== '오후')) {
       init = { ampm:'오전', hour:'10', minute:'00' }
     }
     const { H, M } = to24hHHMM(init.ampm, init.hour, init.minute)
-    const value = toLocalISO(H, M)
+    const valueISO = toLocalISO(H, M)
 
-    // 커스텀 네이티브 플러그인 호출
-    const iso = await presentTime(value)
+    // 1) 커스텀 플러그인 먼저 시도
+    let iso = null
+    const hasCustom = !!(globalThis?.Capacitor?.Plugins?.RuffyTimePicker)
+    if (hasCustom) {
+      try {
+        iso = await presentTime(valueISO)
+      } catch (e) {
+        // 커스텀 실패 시 capawesome로 우회
+        iso = await fallbackWithCapawesome(valueISO)
+      }
+    } else {
+      // 2) 커스텀 미탑재 → capawesome로 우회
+      iso = await fallbackWithCapawesome(valueISO)
+    }
 
     const picked = parseHHMMLoose(iso)
     if (picked) emit('selected', picked)
     else emit('cancel')
-  } catch {
+  } catch (e) {
     emit('cancel')
   } finally {
-    emit('closed')        // 부모가 showNativePicker=false로 닫도록 신호
-    opening.value = false
+    // 어떤 경우든 닫힘 알림 → 부모가 open=false로 되돌리게
+    emit('closed')
   }
 })
 </script>
