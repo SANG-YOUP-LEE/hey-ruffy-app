@@ -1,7 +1,6 @@
 // src/stores/scheduler.js
 import { defineStore } from 'pinia'
 import { projectInstances } from '@/utils/projection'
-import iosBridge from '@/utils/iosNotify'
 import { useAuthStore } from '@/stores/auth'
 import { db } from '@/firebase'
 import { collection, getDocs } from 'firebase/firestore'
@@ -23,7 +22,35 @@ const GLOBAL_LIMIT      = 60  // 앱 전체 예약 상한
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 // ▼▼ uid 스코프 적용 (변경점)
 const scopedRoutineId = (uid, rid) => `u-${String(uid)}__${String(rid)}`
-const baseOf = (uid, rid) => `routine-${scopedRoutineId(uid, rid)}`
+
+
+import { setActiveGeneration, purgeAllForBase } from '@/utils/iosNotify'
+
+const baseOf = (uid, rid) => `routine-u-${uid}__${rid}`
+
+async function saveRoutine(uid, rid, payloads) {
+  const baseId = baseOf(uid, rid)
+  const gen = String(Date.now())
+
+  await setActiveGeneration(baseId, gen)
+
+  // 기존 잔여 알림은 'dry-run'으로 먼저 본다
+  await purgeAllForBase(baseId, { gen: '', dryRun: true }) // 전체 개수 확인
+  // 안전장치: 너무 많으면(예: >4) 여기서 중단하고 로그 확인
+  await purgeAllForBase(baseId, { gen: '', force: true, maxDelete: 50 }) // 이전 세대 통째 정리
+
+  // 이제 '새 gen'으로만 스케줄. 네이티브가 identifier/userInfo에 gen을 넣도록 하거나,
+  // JS에서 payload에도 gen을 심어 넘겨라.
+  for (const p of payloads) {
+    p.baseId = baseId
+    p.gen = gen
+    await scheduleOnIOS(p) // 네이티브에서 identifier에 "__g:gen__" 포함, userInfo["gen"]=gen, thread=baseId
+    await sleep(20)
+  }
+}
+
+
+
 
 const p2 = (n) => String(n).padStart(2, '0')
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())

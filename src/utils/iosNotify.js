@@ -358,6 +358,27 @@ export async function scheduleOnce({ rid, atMs, title }) {
   });
 }
 
+
+export async function setActiveGeneration(baseId, gen) {
+  const NC = Capacitor?.Plugins?.NotifyCenterBridge
+  if (!baseId || !gen) return
+  try { await NC?.setActiveGeneration?.({ baseId, gen }) } catch {}
+}
+
+export async function purgeAllForBase(baseId, opts = {}) {
+  const { gen = '', dryRun = false, force = false, maxDelete = 4 } = opts
+  const NC = Capacitor?.Plugins?.NotifyCenterBridge
+  if (NC?.purgeBase) {
+    try { await NC.purgeBase({ baseId, gen, dryRun, force, maxDelete }); return } catch {}
+  }
+  if (NC?.purgeAllForBase) {
+    try { await NC.purgeAllForBase({ baseId, gen, dryRun, force, maxDelete }); return } catch {}
+  }
+  if (!(await waitBridgeReady())) return
+  safePost({ action: 'purgeBase', baseId }) // 폴백(세대/드라이런 미지원)
+}
+
+
 export async function scheduleOnIOS(msg) {
   if (!(await waitBridgeReady())) return;
 
