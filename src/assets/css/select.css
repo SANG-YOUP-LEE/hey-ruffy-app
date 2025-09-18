@@ -349,10 +349,21 @@
 }
 
 .routine_card.card_option01 { 
-   background: url('../images/temp_card_skin01.png') no-repeat 0 0/cover;
-  color:#fff;
-
+  background: url('../images/temp_card_skin01.png') no-repeat 0 0/cover;
 }
-.routine_card.card_option02 { background-color:#ebfff5!important; }
+
+.routine_card.card_option02 { 
+  background: url('../images/temp_card_skin02.png') no-repeat 0 0/cover;
+}
+
+.routine_card.card_option03 { 
+  background: url('../images/temp_card_skin03.png') no-repeat 0 0/cover;
+}
+
+.routine_card.card_option04 { 
+  background: url('../images/temp_card_skin04.png') no-repeat 0 0/cover;
+}
+
+/*.routine_card.card_option02 { background-color:#ebfff5!important; }
 .routine_card.card_option03 { background-color:#fff1f4!important; }
-.routine_card.card_option04 { background-color:#fff7e4!important; }
+.routine_card.card_option04 { background-color:#fff7e4!important; }*/
