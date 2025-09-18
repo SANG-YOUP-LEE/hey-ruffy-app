@@ -301,14 +301,3 @@ watchEffect(async () => {
 })
 </script>
 
-<style>
-.pre_head {
-  position: fixed;
-  top: calc(var(--sat) + var(--header-h));
-  left: var(--sal);
-  right: var(--sar);
-  z-index: 3;
-  background: #fafafa;
-}
-.pre_spacer { width: 100%; }
-</style>
