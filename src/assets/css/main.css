@@ -264,8 +264,9 @@ body,
   margin-bottom:3rem;
 }
 
-#main_wrap.scrolled .main_scroll > .MainCard:first-of-type {
-  margin-top: 2rem; 
+#main_wrap.scrolled .main_scroll > div:first-of-type {
+  margin-top: 10rem!important;
+  border:1px solid red
 }
 
 .routine_total.sum {
