@@ -266,7 +266,10 @@ body,
 
 #main_wrap.scrolled .main_scroll > div:first-of-type {
   margin-top: 1.8rem;
-  padding-bottom:20rem;
+}
+
+#main_wrap.scrolled .main_scroll > div:last-of-type {
+  margin-bottom: 10rem;
 }
 
 .routine_total.sum {
