@@ -244,7 +244,7 @@ body,
   transform: none;
   will-change: auto;
   padding: 0;
-  padding-top: calc(var(--sat) + var(--header-h) + 5rem);
+  padding-top: calc(var(--sat) + var(--header-h));
 }
 
 #main_wrap.scrolled .main_scroll {
@@ -262,6 +262,10 @@ body,
 #main_wrap.scrolled .sticky_head {
   top: var(--header-h-collapsed);
   margin-bottom:3rem;
+}
+
+#main_wrap.scrolled .main_scroll > .MainCard:first-of-type {
+  margin-top: 2rem; 
 }
 
 .routine_total.sum {
