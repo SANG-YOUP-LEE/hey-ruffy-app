@@ -349,7 +349,7 @@
 }
 
 .routine_card.card_option01 { 
-  background: url('../images/temp_card_skin01.png') no-repeat 0 0/contain;
+  background: url('../images/temp_card_skin01.png') no-repeat 0 0/cover;
 }
 
 .routine_card.card_option02 { 
