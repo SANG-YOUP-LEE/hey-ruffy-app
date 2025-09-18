@@ -248,35 +248,6 @@ export async function setEditingRoutine(editing) {
   } catch (_) {}
 }
 
-export async function purgeAllForBase(baseIdStr) {
-  const baseId = String(baseIdStr || '').trim()
-  if (!baseId) return
-
-  const NC = Capacitor?.Plugins?.NotifyCenterBridge
-
-  // 1) 네이티브 우선: 표준 이름 우선 호출
-  if (NC?.purgeBase) {
-    try {
-      await NC.purgeBase({ baseId })
-      return
-    } catch (_) {}
-  }
-
-  // 1-2) 구버전/다른 이름 대응
-  if (NC?.purgeAllForBase) {
-    try {
-      await NC.purgeAllForBase({ baseId })
-      return
-    } catch (_) {}
-  }
-
-  // 2) 폴백: 웹브리지
-  if (!(await waitBridgeReady())) return
-  safePost({ action: 'purgeBase', baseId })
-}
-
-
-
 export async function cancelOnIOS(idOrBase) {
   if (!(await waitBridgeReady())) return;
   if (!idOrBase) return;
@@ -365,6 +336,7 @@ export async function setActiveGeneration(baseId, gen) {
   try { await NC?.setActiveGeneration?.({ baseId, gen }) } catch {}
 }
 
+// ✅ 유일한 정의
 export async function purgeAllForBase(baseId, opts = {}) {
   const { gen = '', dryRun = false, force = false, maxDelete = 4 } = opts
   const NC = Capacitor?.Plugins?.NotifyCenterBridge
@@ -375,9 +347,8 @@ export async function purgeAllForBase(baseId, opts = {}) {
     try { await NC.purgeAllForBase({ baseId, gen, dryRun, force, maxDelete }); return } catch {}
   }
   if (!(await waitBridgeReady())) return
-  safePost({ action: 'purgeBase', baseId }) // 폴백(세대/드라이런 미지원)
+  safePost({ action: 'purgeBase', baseId })
 }
-
 
 export async function scheduleOnIOS(msg) {
   if (!(await waitBridgeReady())) return;
