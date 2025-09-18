@@ -4,7 +4,16 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
+import { setEditingRoutine as setEditing } from '@/utils/iosNotify'
+import { onBeforeUnmount } from 'vue'
 
+
+onBeforeUnmount(() => setEditing(false))
+async function openEdit(routine) {
+  await setEditing(true)        // ← 먼저 올림
+  // 모달/라우트 열기
+  router.push({ name: 'RoutineEdit', params: { id: routine.id } })
+}
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }

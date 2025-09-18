@@ -232,6 +232,22 @@ export async function scheduleOneShot(baseIdStr, tsMs, title, body) {
 }
 
 
+
+export async function setEditingRoutine(editing) {
+  try {
+    const NC = Capacitor?.Plugins?.NotifyCenterBridge
+    if (NC?.setEditing) {
+      await NC.setEditing({ editing: !!editing })
+    }
+  } catch (_) {}
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('isEditingRoutine', editing ? '1' : '0')
+      if (editing) localStorage.setItem('isEditingRoutineSince', String(Date.now()))
+    }
+  } catch (_) {}
+}
+
 export async function purgeAllForBase(baseIdStr) {
   const baseId = String(baseIdStr || '').trim()
   if (!baseId) return
