@@ -29,6 +29,8 @@ import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
 
+
+// 안쓰는 파일  나주에 지우시요
 /* ── 팝업 열릴 때 배경 스크롤 잠금 ───────────────────────── */
 const preventScroll = e => e.preventDefault()
 const lockBodyScroll = () => {
