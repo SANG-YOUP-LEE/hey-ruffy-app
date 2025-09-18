@@ -248,7 +248,7 @@ body,
 }
 
 #main_wrap.scrolled .main_scroll {
-  padding-top: calc(var(--sat) + var(--header-h-collapsed));
+  padding-top: calc(var(--sat) + var(--header-h-collapsed)+2rem);
   padding-bottom: calc(var(--footer-h) + var(--sab) + 2rem);
 }
 
