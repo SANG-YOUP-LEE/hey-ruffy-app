@@ -350,12 +350,14 @@ button.control {
 .pre_head {
   position: fixed;
   top: calc(var(--sat) + var(--header-h));
-  left: var(--sal);
-  right: var(--sar);
+  left: 0;
+  right: 0;
   z-index: 3;
   background: #f9f9f9;
-  margine:0 1.5rem 0 1.5rem
+  padding-left: max(1.5rem, var(--sal));
+  padding-right: max(1.5rem, var(--sar));
 }
+
 .pre_spacer { 
   width: 100%; 
 }
