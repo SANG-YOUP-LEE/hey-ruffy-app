@@ -3,7 +3,8 @@
     <div class="detail_box">
       <div class="inner_fix01 alarm">
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isOn" :label="''" />
+          <!-- ✅ 스위치는 실제 값(hasTime)이 아니라 UI용 상태에 묶는다 -->
+          <ToggleSwitch class="toggle" v-model="isOnUI" :label="''" />
           <span class="toggle-text" @click="onClickLabel">알람 설정</span>
         </div>
         <span class="txt disabled">알람 먼저 허용하기</span>
@@ -39,27 +40,40 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-/* 내부 상태 동기화 */
+/* 내부 상태 동기화 (실제 값) */
 const inner = ref(sanitize(props.modelValue))
 watch(() => props.modelValue, v => {
   const nv = sanitize(v)
   if (!isEqual(nv, inner.value)) inner.value = nv
 }, { deep: true })
+watch(inner, v => {
+  const nv = sanitize(v)
+  // 실제 값 변경 시 부모로 반영
+  if (!isEqual(nv, props.modelValue)) emit('update:modelValue', nv)
+}, { deep: true })
 
-/* 피커 표시 상태 */
+/* 피커 상태 */
 const showNativePicker = ref(false)
 const hadTimeBeforeOpen = ref(false)
 
-/* ✅ 토글을 computed로: setter에서 즉시 열기/끄기 */
-const isOn = computed({
-  get: () => hasTime(inner.value),
-  set: (val) => {
-    if (val) {
-      openNative()     // ON → 피커 오픈
-    } else {
-      clearAlarm()     // OFF → 값 비움
-    }
+/* ✅ UI용 토글 상태(스위치에만 연결) */
+const isOnUI = ref(hasTime(inner.value))
+
+/* ✅ 스위치가 바뀌면 동작: 켜면 피커 열고, 끄면 값 비우기 */
+watch(isOnUI, (val, prev) => {
+  if (val && !prev) {
+    // 켤 때: 일단 UI는 켠 상태 유지하고 피커 오픈
+    hadTimeBeforeOpen.value = hasTime(inner.value)
+    showNativePicker.value = true
+  } else if (!val && prev) {
+    // 끌 때: 실제 값 비우기
+    clearAlarm()
   }
+})
+
+/* 실제 값이 바뀌면 스위치 표시만 동기화 */
+watch(inner, v => {
+  isOnUI.value = hasTime(v)
 })
 
 /* 표시용/초기값 */
@@ -70,39 +84,33 @@ const initialForPicker = computed(() => {
 })
 const formattedAlarm = computed(() => {
   if (!hasTime(inner.value)) return ''
-  const a = inner.value.ampm
-  return `${a} ${inner.value.hour}시 ${inner.value.minute}분`
+  return `${inner.value.ampm} ${inner.value.hour}시 ${inner.value.minute}분`
 })
 
-/** 피커 제어 */
-function openNative() {
+/** 라벨 클릭도 동일하게 피커 오픈 */
+function onClickLabel() {
+  isOnUI.value = true          // UI ON
   hadTimeBeforeOpen.value = hasTime(inner.value)
   showNativePicker.value = true
 }
 
-function onClickLabel() {
-  // 라벨을 눌러도 항상 열리도록 보장
-  showNativePicker.value = true
-  if (!hasTime(inner.value)) hadTimeBeforeOpen.value = false
-}
-
+/** 피커 이벤트 */
 function onPicked(v) {
-  inner.value = { ...v }
-  emit('update:modelValue', inner.value)
-  // 선택 완료 후 토글은 자동으로 ON(=isOn getter가 true)
+  inner.value = { ...v }       // 실제 값 확정
+  // isOnUI는 inner watcher로 자동 동기화(=true)
 }
-
 function onCancelPick() {
   // 신규(열기 전 값 없었음)라면 OFF로 되돌림
-  if (!hadTimeBeforeOpen.value) clearAlarm()
+  if (!hadTimeBeforeOpen.value) {
+    clearAlarm()
+    isOnUI.value = false
+  }
 }
-
 function onPickerClosed() {
-  // 팝업 닫힘 이벤트: 표시 상태만 false
   showNativePicker.value = false
 }
 
-/** OFF = 값 비우기 */
+/** OFF = 실제 값 비우기 */
 function clearAlarm() {
   const empty = { ampm:'', hour:'', minute:'' }
   if (!isEqual(inner.value, empty)) {
@@ -117,13 +125,11 @@ function hasTime(v) {
     && /^\d{2}$/.test(v?.hour || '')
     && /^\d{2}$/.test(v?.minute || '')
 }
-
 function sanitize(v) {
   if (typeof v === 'string') return parseHHMM(v) ?? { ampm:'', hour:'', minute:'' }
   if (!v) return { ampm:'', hour:'', minute:'' }
   return { ampm: toKoAmpm(v.ampm), hour: pad2(v.hour), minute: pad2(v.minute) }
 }
-
 function parseHHMM(str) {
   const m = String(str || '').match(/^(\d{1,2}):(\d{2})$/)
   if (!m) return null
@@ -132,14 +138,12 @@ function parseHHMM(str) {
   const h12 = ((h + 11) % 12) + 1
   return { ampm, hour: String(h12).padStart(2,'0'), minute }
 }
-
 function isEqual(a, b) {
   if (!a || !b) return a === b
   const aa = typeof a === 'string' ? sanitize(a) : a
   const bb = typeof b === 'string' ? sanitize(b) : b
   return aa.ampm === bb.ampm && String(aa.hour) === String(bb.hour) && String(aa.minute) === String(bb.minute)
 }
-
 function toKoAmpm(a) {
   if (a === 'PM' || a === '오후') return '오후'
   if (a === 'AM' || a === '오전') return '오전'
