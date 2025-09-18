@@ -12,24 +12,26 @@
         <LnbView @close="closePanel" />
       </SlidePanel>
 
-      <div class="main_scroll">
-        <div v-show="hasFetched">
-          <div v-show="!scrolledRef">
-            <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
-            <MainRoutineTotal
-              :key="rtResetKey"
-              :isFuture="isFutureDate"
-              :selectedDate="selectedDate"
-              v-model:modelValue="rStore.selectedFilter"
-              :counts="mv.headerCounts"
-              :totalCount="mv.headerTotal"
-              :periodMode="rStore.selectedPeriod"
-              @requestPrev="onRequestPrev"
-              @requestNext="onRequestNext"
-              @changePeriod="onChangePeriod"
-            />
-          </div>
+      <div class="pre_head" v-show="!scrolledRef" ref="preHeadEl">
+        <MainDateScroll :selectedDate="selectedDate" @selectDate="onSelectDate" />
+        <MainRoutineTotal
+          :key="rtResetKey"
+          :isFuture="isFutureDate"
+          :selectedDate="selectedDate"
+          v-model:modelValue="rStore.selectedFilter"
+          :counts="mv.headerCounts"
+          :totalCount="mv.headerTotal"
+          :periodMode="rStore.selectedPeriod"
+          @requestPrev="onRequestPrev"
+          @requestNext="onRequestNext"
+          @changePeriod="onChangePeriod"
+        />
+      </div>
 
+      <div class="main_scroll">
+        <div class="pre_spacer" :style="{ height: preHeadH + 'px' }"></div>
+
+        <div v-show="hasFetched">
           <div class="sticky_head" v-show="scrolledRef">
             <div class="routine_total sum">
               <div class="total_area">
@@ -146,7 +148,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, nextTick, watchEffect, computed, ref } from 'vue'
+import { onMounted, onBeforeUnmount, nextTick, watch, watchEffect, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
@@ -257,19 +259,29 @@ function getFace(n){
   return images[`/src/assets/images/${ruffyBase.value}_face${n}.png`]
 }
 
+const preHeadEl = ref(null)
+const preHeadH = ref(0)
+const measurePreHead = () => { preHeadH.value = preHeadEl.value ? preHeadEl.value.offsetHeight : 0 }
+
 const { initVH, disposeVH } = useVH()
 onMounted(async () => {
   showLnb.value = false
   initVH()
   await initBinding()
+  nextTick(() => {
+    measurePreHead()
+    window.addEventListener('resize', measurePreHead, { passive: true })
+  })
   update()
 })
-onBeforeUnmount(() => { disposeVH(); disposeBinding() })
+onBeforeUnmount(() => { disposeVH(); disposeBinding(); window.removeEventListener('resize', measurePreHead) })
 
 watchEffect(() => {
   mv.setLoading(rStore.isLoading)
   mv.setFetched(rStore.hasFetched)
 })
+
+watch([selectedDate, () => rStore.selectedPeriod, () => mv.headerCounts, () => mv.headerTotal], () => nextTick(measurePreHead))
 
 watchEffect(async () => {
   if (mv.showBulkDeleteConfirm) {
@@ -288,3 +300,15 @@ watchEffect(async () => {
   }
 })
 </script>
+
+<style>
+.pre_head {
+  position: fixed;
+  top: calc(var(--sat) + var(--header-h));
+  left: var(--sal);
+  right: var(--sar);
+  z-index: 3;
+  background: #fafafa;
+}
+.pre_spacer { width: 100%; }
+</style>
