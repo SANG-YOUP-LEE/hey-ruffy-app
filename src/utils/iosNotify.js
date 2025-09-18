@@ -1,4 +1,12 @@
 // src/utils/iosNotify.js
+import { Capacitor } from '@capacitor/core'
+
+const NC = Capacitor.Plugins.NotifyCenterBridge
+
+export const purgeAllForBase = (base) =>
+  NC.purgeAllForBase({ base })
+
+
 const mh = () => window?.webkit?.messageHandlers?.notify;
 
 const log = (...args) => console.debug('[iosNotify]', ...args);

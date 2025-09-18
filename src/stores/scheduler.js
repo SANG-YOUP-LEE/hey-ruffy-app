@@ -22,6 +22,14 @@ const p2 = (n) => String(n).padStart(2, '0')
 const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date())
 const toEpochSec = (ms) => Math.floor(ms / 1000)
 
+// 루틴 삭제
+export async function deleteRoutine(uid, rid) {
+  const base = `routine-u-${uid}__${rid}`
+  await purgeAllForBase(base)        // 네이티브 알림 삭제
+  // → 그 다음 Firestore 문서 삭제
+}
+
+
 /* ----------------------------------------------------------------
    HH:mm 또는 다양한 형태({hour, minute, ampm}, 다른 키들) 파싱 (보강판)
 ------------------------------------------------------------------ */
