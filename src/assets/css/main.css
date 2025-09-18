@@ -289,7 +289,7 @@ button.add {
   border-radius: 50%;
   background: url('../images/ico_add.png') no-repeat 0 0/100%;
   background-color: #fff;
-  z-index: 101 !important;
+  z-index: 998 !important;
 }
 
 button.home {
