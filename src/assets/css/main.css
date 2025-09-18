@@ -261,8 +261,7 @@ body,
 
 #main_wrap.scrolled .sticky_head {
   top: var(--header-h-collapsed);
-  border:1px solid red;
-  margin-bottom:2rem;
+  margin-bottom:4rem;
 }
 
 .routine_total.sum {
