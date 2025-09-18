@@ -404,7 +404,7 @@ export const useSchedulerStore = defineStore('scheduler', {
       await waitBridgeReady()
       const uid = useAuthStore().user?.uid
       if (!uid) return
-      await cancelOnIOS(baseOf(uid, routineId))
+      await purgeAllForBase(baseOf(uid, routineId))
     },
 
     // ▼▼ 알람 전체 삭제 후, 현재 다짐으로 재설정 (파이어스토어에서 다시 읽음)

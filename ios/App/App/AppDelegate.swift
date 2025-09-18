@@ -1,4 +1,3 @@
-// ios/App/App/AppDelegate.swift
 import UIKit
 import Capacitor
 import UserNotifications
@@ -11,11 +10,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-      _ = RuffyTimePickerPlugin.self
-      
-      let center = UNUserNotificationCenter.current()
-        center.delegate = self
+        _ = RuffyTimePickerPlugin.self
 
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             print("[iOS] Notification auth granted? \(granted)")
             center.getNotificationSettings { s in
@@ -26,11 +24,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         return true
     }
 
-    // 포그라운드에서도 배너/사운드 표시
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("[iOS] willPresent fired -> show banner+sound")
+        let ud = UserDefaults.standard
+        let isEditing = ud.bool(forKey: "ru_editingRoutine")
+        let t0 = ud.double(forKey: "ru_editingSince")
+        let now = Date().timeIntervalSince1970
+        let withinGuard = (now - t0) < 1.5
+        if UIApplication.shared.applicationState == .active && (isEditing || withinGuard) {
+            completionHandler([])
+            return
+        }
         completionHandler([.banner, .sound, .list, .badge])
     }
 
@@ -41,7 +46,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         completionHandler()
     }
 
-    // Capacitor URL handler
     func application(_ app: UIApplication,
                      open url: URL,
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
