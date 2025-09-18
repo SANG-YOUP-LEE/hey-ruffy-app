@@ -24,7 +24,7 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const scopedRoutineId = (uid, rid) => `u-${String(uid)}__${String(rid)}`
 
 
-import { setActiveGeneration, purgeAllForBase } from '@/utils/iosNotify'
+import { setActiveGeneration } from '@/utils/iosNotify'
 
 const baseOf = (uid, rid) => `routine-u-${uid}__${rid}`
 
