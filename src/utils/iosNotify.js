@@ -1,12 +1,6 @@
 // src/utils/iosNotify.js
 import { Capacitor } from '@capacitor/core'
 
-const NC = Capacitor.Plugins.NotifyCenterBridge
-
-export const purgeAllForBase = (base) =>
-  NC.purgeAllForBase({ base })
-
-
 const mh = () => window?.webkit?.messageHandlers?.notify;
 
 const log = (...args) => console.debug('[iosNotify]', ...args);
@@ -237,11 +231,30 @@ export async function scheduleOneShot(baseIdStr, tsMs, title, body) {
   });
 }
 
+
 export async function purgeAllForBase(baseIdStr) {
-  if (!(await waitBridgeReady())) return;
-  if (!baseIdStr) return;
-  safePost({ action: 'purgeBase', baseId: baseIdStr });
+  const base = String(baseIdStr || '').trim()
+  if (!base) return
+
+  // 1) 네이티브 브리지 우선
+  try {
+    const NC = Capacitor?.Plugins?.NotifyCenterBridge
+    if (NC?.purgeAllForBase) {
+      await NC.purgeAllForBase({ base })
+      return
+    }
+  } catch (e) {
+    console.warn('[iosNotify] native purgeAllForBase failed → fallback', e)
+  }
+
+  // 2) 폴백: 기존 safePost 방식
+  if (await waitBridgeReady()) {
+    safePost({ action: 'purgeBase', baseId: base })
+  }
 }
+
+
+
 
 export async function cancelOnIOS(idOrBase) {
   if (!(await waitBridgeReady())) return;
