@@ -260,7 +260,9 @@ body,
 }
 
 #main_wrap.scrolled .sticky_head {
- top: calc(var(--header-h-collapsed) + 3rem);
+  top: var(--header-h-collapsed);
+  border:1px solid red;
+  margin-bottom:2rem;
 }
 
 .routine_total.sum {
