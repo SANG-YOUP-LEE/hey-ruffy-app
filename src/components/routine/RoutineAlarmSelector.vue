@@ -50,72 +50,51 @@ watch(inner, v => {
 const showNativePicker = ref(false)
 const showNativePickerKey = ref(0)
 const hadTimeBeforeOpen = ref(false)
-const pendingOn = ref(false)
 
-const hasTime = computed(() => {
-  const v = inner.value || {}
-  return (v.ampm === '오전' || v.ampm === '오후')
-    && /^\d{2}$/.test(v.hour || '')
-    && /^\d{2}$/.test(v.minute || '')
+// 🔑 토글 상태를 직접 ref로 관리
+const isOn = ref(hasTime(inner.value))
+
+watch(inner, v => {
+  isOn.value = hasTime(v)
 })
 
+const showDataFixed = computed(() => hasTime(inner.value))
 const initialForPicker = computed(() => {
-  if (hasTime.value) return { ...inner.value }
+  if (hasTime(inner.value)) return { ...inner.value }
   return { ampm:'오전', hour:'10', minute:'00' }
 })
-
-const isOn = computed({
-  get: () => hasTime.value || pendingOn.value,
-  set: (val) => {
-    if (val) {
-      pendingOn.value = true
-      openNative()
-    } else {
-      pendingOn.value = false
-      clearAlarm()
-    }
-  }
-})
-
-const onClickLabel = () => {
-  pendingOn.value = true
-  openNative()
-}
-
-const showDataFixed = computed(() => hasTime.value)
-const displayAmpm = computed(() => {
-  const a = (inner.value?.ampm || '').toString()
-  if (a === 'AM') return '오전'
-  if (a === 'PM') return '오후'
-  return a
-})
 const formattedAlarm = computed(() => {
-  if (!hasTime.value) return ''
-  return `${displayAmpm.value} ${inner.value.hour}시 ${inner.value.minute}분`
+  if (!hasTime(inner.value)) return ''
+  const a = inner.value.ampm
+  return `${a} ${inner.value.hour}시 ${inner.value.minute}분`
 })
 
 function openNative() {
-  hadTimeBeforeOpen.value = hasTime.value
+  hadTimeBeforeOpen.value = hasTime(inner.value)
   showNativePicker.value = true
   showNativePickerKey.value++
+}
+
+function onClickLabel() {
+  isOn.value = true
+  openNative()
 }
 
 function onPicked(v) {
   inner.value = { ...v }
   emit('update:modelValue', inner.value)
-  pendingOn.value = false
+  isOn.value = true
 }
 
 function onCancelPick() {
   if (!hadTimeBeforeOpen.value) {
     clearAlarm()
+    isOn.value = false
   }
-  pendingOn.value = false
 }
 
 function onPickerClosed() {
   showNativePicker.value = false
-  pendingOn.value = false
 }
 
 function clearAlarm() {
@@ -126,34 +105,34 @@ function clearAlarm() {
   }
 }
 
+function hasTime(v) {
+  return (v?.ampm === '오전' || v?.ampm === '오후')
+    && /^\d{2}$/.test(v.hour || '')
+    && /^\d{2}$/.test(v.minute || '')
+}
+
+function sanitize(v) {
+  if (typeof v === 'string') return parseHHMM(v) ?? { ampm:'', hour:'', minute:'' }
+  if (!v) return { ampm:'', hour:'', minute:'' }
+  return { ampm: toKoAmpm(v.ampm), hour: pad2(v.hour), minute: pad2(v.minute) }
+}
+
 function parseHHMM(str) {
   const m = String(str || '').match(/^(\d{1,2}):(\d{2})$/)
   if (!m) return null
-  let h = parseInt(m[1], 10)
-  const minute = m[2]
-  if (!(h >= 0 && h <= 23)) return null
+  let h = parseInt(m[1], 10), minute = m[2]
   const ampm = h < 12 ? '오전' : '오후'
   const h12 = ((h + 11) % 12) + 1
   return { ampm, hour: String(h12).padStart(2,'0'), minute }
 }
-function sanitize(v) {
-  if (typeof v === 'string') {
-    const parsed = parseHHMM(v)
-    if (parsed) return parsed
-    return { ampm:'', hour:'', minute:'' }
-  }
-  if (!v) return { ampm:'', hour:'', minute:'' }
-  const a = toKoAmpm(v.ampm)
-  const h = pad2(v.hour)
-  const m = pad2(v.minute)
-  return { ampm: a, hour: h, minute: m }
-}
+
 function isEqual(a, b) {
   if (!a || !b) return a === b
   const aa = typeof a === 'string' ? sanitize(a) : a
   const bb = typeof b === 'string' ? sanitize(b) : b
   return aa.ampm === bb.ampm && String(aa.hour) === String(bb.hour) && String(aa.minute) === String(bb.minute)
 }
+
 function toKoAmpm(a) {
   if (a === 'PM' || a === '오후') return '오후'
   if (a === 'AM' || a === '오전') return '오전'
@@ -161,7 +140,6 @@ function toKoAmpm(a) {
 }
 function pad2(n) {
   const s = String(n ?? '').trim()
-  if (!/^\d{1,2}$/.test(s)) return ''
-  return s.padStart(2, '0')
+  return /^\d{1,2}$/.test(s) ? s.padStart(2, '0') : ''
 }
 </script>
