@@ -37,6 +37,7 @@ body,
   --header-h: 7.5rem;
   --header-h-collapsed: 3.5rem;
   --footer-h: 7rem;
+  --head-gap-add: 3rem;
 }
 
 .app-root,
