@@ -4,7 +4,7 @@
 import { onMounted } from 'vue'
 import { Capacitor } from '@capacitor/core'
 // ⬇️ 변경: capawesome 제거하고 우리 헬퍼 사용
-import { presentTime } from '@/plugins/ruffyTimePicker'  // ruffyTimePicker.js
+import { presentTime } from '@/utils/ruffyTimePicker'  // ruffyTimePicker.js
 
 const props = defineProps({
   /** 초기값: { ampm:'오전|오후', hour:'01~12', minute:'00~59' } */
