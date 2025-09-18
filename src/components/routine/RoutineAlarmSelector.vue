@@ -45,37 +45,28 @@ watch(() => props.modelValue, v => {
   const nv = sanitize(v)
   if (!isEqual(nv, inner.value)) inner.value = nv
 }, { deep: true })
-watch(inner, v => {
-  const nv = sanitize(v)
-  if (!isEqual(nv, props.modelValue)) emit('update:modelValue', nv)
-}, { deep: true })
 
 /* 피커 표시 상태 */
 const showNativePicker = ref(false)
 const hadTimeBeforeOpen = ref(false)
 
-/* 토글 상태: ref로 직접 관리 */
-const isOn = ref(hasTime(inner.value))
-
-/* 🔧 핵심 수정: 토글 변화를 감지해서 피커 열기/끄기 */
-watch(isOn, (val, prev) => {
-  if (val && !prev) {
-    openNative()         // ON → 네이티브 피커 오픈
-  } else if (!val && prev) {
-    clearAlarm()         // OFF → 값 비우기
+/* ✅ 토글을 computed로: setter에서 즉시 열기/끄기 */
+const isOn = computed({
+  get: () => hasTime(inner.value),
+  set: (val) => {
+    if (val) {
+      openNative()     // ON → 피커 오픈
+    } else {
+      clearAlarm()     // OFF → 값 비움
+    }
   }
-})
-
-/* inner가 외부 갱신으로 바뀌면 토글 표시만 동기화 */
-watch(inner, v => {
-  isOn.value = hasTime(v)
 })
 
 /* 표시용/초기값 */
 const showDataFixed = computed(() => hasTime(inner.value))
 const initialForPicker = computed(() => {
   if (hasTime(inner.value)) return { ...inner.value }
-  return { ampm: '오전', hour: '10', minute: '00' }
+  return { ampm:'오전', hour:'10', minute:'00' }
 })
 const formattedAlarm = computed(() => {
   if (!hasTime(inner.value)) return ''
@@ -90,32 +81,30 @@ function openNative() {
 }
 
 function onClickLabel() {
-  isOn.value = true      // 토글 ON
-  openNative()           // 라벨을 눌러도 즉시 오픈
+  // 라벨을 눌러도 항상 열리도록 보장
+  showNativePicker.value = true
+  if (!hasTime(inner.value)) hadTimeBeforeOpen.value = false
 }
 
 function onPicked(v) {
   inner.value = { ...v }
   emit('update:modelValue', inner.value)
-  isOn.value = true
+  // 선택 완료 후 토글은 자동으로 ON(=isOn getter가 true)
 }
 
 function onCancelPick() {
   // 신규(열기 전 값 없었음)라면 OFF로 되돌림
-  if (!hadTimeBeforeOpen.value) {
-    clearAlarm()
-    isOn.value = false
-  }
+  if (!hadTimeBeforeOpen.value) clearAlarm()
 }
 
 function onPickerClosed() {
-  // 팝업 닫힘 이벤트: 단순 표시 상태만 false
+  // 팝업 닫힘 이벤트: 표시 상태만 false
   showNativePicker.value = false
 }
 
 /** OFF = 값 비우기 */
 function clearAlarm() {
-  const empty = { ampm: '', hour: '', minute: '' }
+  const empty = { ampm:'', hour:'', minute:'' }
   if (!isEqual(inner.value, empty)) {
     inner.value = empty
     emit('update:modelValue', empty)
