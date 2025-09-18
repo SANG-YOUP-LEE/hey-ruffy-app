@@ -265,7 +265,7 @@ body,
 }
 
 #main_wrap.scrolled .main_scroll > div:first-of-type {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .routine_total.sum {
