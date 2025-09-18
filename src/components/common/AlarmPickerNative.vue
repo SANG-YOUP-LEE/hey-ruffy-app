@@ -3,9 +3,7 @@
 <script setup>
 import { watch } from 'vue'
 import { Capacitor } from '@capacitor/core'
-import { presentTime } from '@/utils/ruffyTimePicker' // 커스텀 플러그인 호출 헬퍼
-// capawesome 우회용(커스텀 플러그인 미탑재일 때만 사용)
-import { DatetimePicker } from '@capawesome-team/capacitor-datetime-picker'
+import { presentTime } from '@/utils/ruffyTimePicker' // ✅ 오직 커스텀만 사용
 
 const props = defineProps({
   /** 초기값: { ampm:'오전|오후', hour:'01~12', minute:'00~59' } */
@@ -35,13 +33,13 @@ function to24hHHMM(ampm, hour12, minute) {
   return { H, M: m }
 }
 
-/** 로컬 타임존 기반 ISO(끝에 Z 없는 형태) 생성 */
+/** 로컬 타임존 ISO(끝에 Z 없음) */
 function toLocalISO(H, M) {
   const now = new Date()
   return `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}T${pad2(H)}:${pad2(M)}:00`
 }
 
-/** "…THH:mm(:ss)" 또는 "HH:mm(:ss)"에서 시분만 추출 */
+/** "…THH:mm" 또는 "HH:mm"에서 시분만 추출 */
 function parseHHMMLoose(iso) {
   const s = String(iso || '')
   const m = s.match(/T(\d{2}):(\d{2})/) || s.match(/(?:\s|^)(\d{2}):(\d{2})(?::\d{2})?/)
@@ -52,23 +50,18 @@ function parseHHMMLoose(iso) {
   return { ampm, hour: pad2(h12), minute: pad2(M) }
 }
 
-/** capawesome 우회 호출 */
-async function fallbackWithCapawesome(valueISO) {
-  const res = await DatetimePicker.present({
-    mode: 'time',
-    value: valueISO,
-    // locale/theme는 부모에서 쓰던 기본으로 충분(여기선 강제 X)
-  })
-  return res?.value ?? null
-}
-
-// 🔑 부모가 open=true로 바꾸면 실행
+/** 🔑 부모가 open=true로 바꾸면 실행 (커스텀 플러그인만 호출) */
 watch(() => props.open, async (v) => {
   if (!v) return
-  if (!isNative()) { emit('cancel'); emit('closed'); return }
-
   try {
-    // 초기값 보정(없으면 10:00)
+    if (!isNative()) { emit('cancel'); return }
+    const hasCustom = !!(globalThis?.Capacitor?.Plugins?.RuffyTimePicker)
+    if (!hasCustom) { 
+      console.warn('[AlarmPickerNative] RuffyTimePicker 미탑재')
+      emit('cancel'); return
+    }
+
+    // 초기값(없으면 10:00)
     let init = props.initial
     if (!init || (init.ampm !== '오전' && init.ampm !== '오후')) {
       init = { ampm:'오전', hour:'10', minute:'00' }
@@ -76,29 +69,16 @@ watch(() => props.open, async (v) => {
     const { H, M } = to24hHHMM(init.ampm, init.hour, init.minute)
     const valueISO = toLocalISO(H, M)
 
-    // 1) 커스텀 플러그인 먼저 시도
-    let iso = null
-    const hasCustom = !!(globalThis?.Capacitor?.Plugins?.RuffyTimePicker)
-    if (hasCustom) {
-      try {
-        iso = await presentTime(valueISO)
-      } catch (e) {
-        // 커스텀 실패 시 capawesome로 우회
-        iso = await fallbackWithCapawesome(valueISO)
-      }
-    } else {
-      // 2) 커스텀 미탑재 → capawesome로 우회
-      iso = await fallbackWithCapawesome(valueISO)
-    }
-
+    // ✅ 우리 커스텀 플러그인 호출 → 파란 시트
+    const iso = await presentTime(valueISO)
     const picked = parseHHMMLoose(iso)
     if (picked) emit('selected', picked)
     else emit('cancel')
   } catch (e) {
+    console.warn('[AlarmPickerNative] present 실패', e)
     emit('cancel')
   } finally {
-    // 어떤 경우든 닫힘 알림 → 부모가 open=false로 되돌리게
-    emit('closed')
+    emit('closed') // 부모에서 open=false로 되돌림
   }
 })
 </script>
