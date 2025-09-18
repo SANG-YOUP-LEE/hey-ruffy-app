@@ -35,9 +35,8 @@ body,
   --sal: env(safe-area-inset-left);
   --app-dvh: 100dvh;
   --header-h: 7.5rem;
-  --header-h-collapsed: 3.5rem;
+  --header-h-collapsed: 5rem;
   --footer-h: 7rem;
-  --head-gap-add: 3rem;
 }
 
 .app-root,
@@ -250,6 +249,7 @@ body,
 }
 
 #main_wrap.scrolled .main_scroll {
+  border:1px solid red;
   padding-top: calc(var(--sat) + var(--header-h-collapsed));
 }
 
