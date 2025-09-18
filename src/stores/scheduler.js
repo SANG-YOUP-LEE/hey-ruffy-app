@@ -5,9 +5,15 @@ import iosBridge from '@/utils/iosNotify'
 import { useAuthStore } from '@/stores/auth'
 import { db } from '@/firebase'
 import { collection, getDocs } from 'firebase/firestore'
-import iosBridge from '@/utils/iosNotify'
 
-const { waitBridgeReady, scheduleOnIOS, cancelOnIOS, scheduleWeekly, purgeAll,purgeAllForBase } = iosBridge
+import {
+  waitBridgeReady,
+  scheduleOnIOS,
+  cancelOnIOS,
+  scheduleWeekly,
+  purgeAll,
+  purgeAllForBase,
+} from '@/utils/iosNotify'
 
 // ── 안정 구성(지피 추천) ─────────────────────────────────────
 const PROJECTION_DAYS   = 30  // 앞으로 N일치 인스턴스 뽑기
@@ -296,7 +302,7 @@ async function scheduleGlobal(candidates, uid) {
       fireTimesEpoch,
       sound: 'ruffysound001.wav'
     })
-    await sleep(40)
+    await sleep(50)
   }
 }
 
@@ -317,7 +323,7 @@ export const useSchedulerStore = defineStore('scheduler', {
       for (const r of list) {
         if (!r || r.isPaused) continue
         await cancelOnIOS(baseOf(uid, r.id))
-        await sleep(5)
+        await sleep(50)
       }
 
       const tz = this.tz || 'Asia/Seoul'
@@ -372,13 +378,13 @@ export const useSchedulerStore = defineStore('scheduler', {
           minute: d.minute,
           sound: 'ruffysound001.wav'
         })
-        await sleep(8)
+        await sleep(50)
       }
 
       // 4) weekly 최적화 설치(요일 반복, repeats=YES) (uid 스코프 baseId 사용됨)
       for (const w of weeklyQueue) {
         await scheduleWeekly(w.baseId, w.hour, w.minute, w.days, w.title)
-        await sleep(8)
+        await sleep(50)
       }
 
       // 5) once 후보 전역 컷팅 + 설치 (uid 전달)
