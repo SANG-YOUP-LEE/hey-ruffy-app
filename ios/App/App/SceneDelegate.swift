@@ -15,8 +15,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         if USE_PROGRAMMATIC_ROOT {
-            let bridgeVC = CAPBridgeViewController()
-            let win = UIWindow(windowScene: windowScene)
+            // let bridgeVC = CAPBridgeViewController()
+          let bridgeVC = AppBridgeViewController()   // ✅ 변경: 커스텀 브릿지 VC
+          
+          let win = UIWindow(windowScene: windowScene)
             win.rootViewController = bridgeVC
             self.window = win
             win.makeKeyAndVisible()

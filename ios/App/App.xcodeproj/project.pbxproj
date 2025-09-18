@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1D055BC52E7BF67D00E650F4 /* AppBridgeViewController..swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D055BC42E7BF67D00E650F4 /* AppBridgeViewController..swift */; };
 		1D2B2B782E6E8C89005FF04B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1D2B2B772E6E8C89005FF04B /* GoogleService-Info.plist */; };
 		1D2B2B7A2E6E8D06005FF04B /* ruffysound001.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1D2B2B792E6E8D06005FF04B /* ruffysound001.wav */; };
 		1DD2385A2E6EA756007B26D7 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD238592E6EA756007B26D7 /* SceneDelegate.swift */; };
@@ -22,6 +23,7 @@
 
 /* Begin PBXFileReference section */
 		0AE0795B75D2147379FE50EE /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D055BC42E7BF67D00E650F4 /* AppBridgeViewController..swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBridgeViewController..swift; sourceTree = "<group>"; };
 		1D2B2B772E6E8C89005FF04B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		1D2B2B792E6E8D06005FF04B /* ruffysound001.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ruffysound001.wav; sourceTree = "<group>"; };
 		1DD238592E6EA756007B26D7 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 				1D2B2B772E6E8C89005FF04B /* GoogleService-Info.plist */,
 				1D2B2B792E6E8D06005FF04B /* ruffysound001.wav */,
 				1DD238592E6EA756007B26D7 /* SceneDelegate.swift */,
+				1D055BC42E7BF67D00E650F4 /* AppBridgeViewController..swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -231,6 +234,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1D055BC52E7BF67D00E650F4 /* AppBridgeViewController..swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				1DD2385A2E6EA756007B26D7 /* SceneDelegate.swift in Sources */,
 			);

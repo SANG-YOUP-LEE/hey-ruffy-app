@@ -4,24 +4,28 @@ import UIKit
 
 @objc(RuffyTimePickerPlugin)
 public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
+
+  // ✅ v6/v7 규약: 인스턴스 프로퍼티로 선언( static 아님 )
   public let identifier = "RuffyTimePickerPlugin"
   public let jsName = "RuffyTimePicker"
   public let pluginMethods: [CAPPluginMethod] = [
     CAPPluginMethod(name: "present", returnType: CAPPluginReturnPromise)
   ]
 
+  // MARK: - JS -> Native
   @objc public func present(_ call: CAPPluginCall) {
-    // JS에서 mode를 줘도 무시(항상 time 팝업)
-    _ = call.getString("mode")
+    _ = call.getString("mode") // 무시(항상 time)
+
     let value = call.getString("value")
     let format = call.getString("format") ?? "yyyy-MM-dd'T'HH:mm:ss"
-    let cancelTitle = call.getString("cancelButtonText", "취소")
-    let doneTitle = call.getString("doneButtonText", "완료")
+    let cancelTitle = call.getString("cancelButtonText") ?? "취소"
+    let doneTitle = call.getString("doneButtonText") ?? "완료"
 
-    // 초기값 문자열 → 오늘 날짜의 시:분으로 재구성
+    // 초기값 문자열을 오늘 날짜의 시:분으로 재구성
     let initialDate: Date? = {
       guard let s = value, !s.isEmpty else { return nil }
-      let f = DateFormatter(); f.calendar = .current; f.locale = .current; f.timeZone = .current
+      let f = DateFormatter()
+      f.calendar = .current; f.locale = .current; f.timeZone = .current
       f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
       if let d = f.date(from: s) {
         var comp = Calendar.current.dateComponents([.year,.month,.day], from: Date())
@@ -33,25 +37,31 @@ public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
       return nil
     }()
 
-    DispatchQueue.main.async {
-      let vc = RuffyPickerViewController(initialDate: initialDate,
-                                         returnFormat: format,
-                                         cancelTitle: cancelTitle,
-                                         doneTitle: doneTitle)
+    DispatchQueue.main.async { [weak self] in
+      guard let self else { return }
+      let vc = RuffyPickerViewController(
+        initialDate: initialDate,
+        returnFormat: format,
+        cancelTitle: cancelTitle,
+        doneTitle: doneTitle
+      )
       vc.modalPresentationStyle = .overFullScreen
+
       vc.onCancel = { [weak self] in
         self?.bridge?.viewController?.dismiss(animated: true)
         call.reject("canceled", "canceled", nil, nil)
       }
       vc.onDone = { [weak self] iso in
         self?.bridge?.viewController?.dismiss(animated: true)
-        var r = JSObject(); r["value"] = iso; call.resolve(r)
+        call.resolve(["value": iso])
       }
+
       self.bridge?.viewController?.present(vc, animated: true)
     }
   }
 }
 
+// MARK: - 단순 시각 선택 UI
 final class RuffyPickerViewController: UIViewController {
   var onCancel: (() -> Void)?
   var onDone: ((String) -> Void)?
@@ -117,8 +127,10 @@ final class RuffyPickerViewController: UIViewController {
     picker.locale = Locale(identifier: "ko_KR")
     picker.backgroundColor = .systemBlue
     if let d = initialDate { picker.date = d }
-    else { var c = DateComponents(); c.hour = 10; c.minute = 0; if let d = Calendar.current.date(from: c) { picker.date = d } }
-
+    else {
+      var c = DateComponents(); c.hour = 10; c.minute = 0
+      if let d = Calendar.current.date(from: c) { picker.date = d }
+    }
     sheet.addSubview(picker)
   }
 
@@ -129,7 +141,9 @@ final class RuffyPickerViewController: UIViewController {
 
     if sheet.layer.presentation() == nil {
       sheet.frame = CGRect(x: 0, y: view.bounds.height, width: view.bounds.width, height: totalH)
-      UIView.animate(withDuration: 0.22) { self.sheet.frame.origin.y = self.view.bounds.height - totalH }
+      UIView.animate(withDuration: 0.22) {
+        self.sheet.frame.origin.y = self.view.bounds.height - totalH
+      }
     } else {
       sheet.frame = CGRect(x: 0, y: view.bounds.height - totalH, width: view.bounds.width, height: totalH)
     }
@@ -140,7 +154,8 @@ final class RuffyPickerViewController: UIViewController {
 
   @objc private func tapCancel() { onCancel?() }
   @objc private func tapDone() {
-    let f = DateFormatter(); f.calendar = .current; f.locale = .current; f.timeZone = .current
+    let f = DateFormatter()
+    f.calendar = .current; f.locale = .current; f.timeZone = .current
     f.dateFormat = returnFormat
     onDone?(f.string(from: picker.date))
   }
