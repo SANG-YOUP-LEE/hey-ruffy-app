@@ -6,7 +6,7 @@ export function useMainScroll(rStore, mv) {
   const isScrolled = ref(false)
   const headerShort = ref(false)
 
-  const SCROLL_HIDE = 8
+  const SCROLL_HIDE = 40
   const SCROLL_SHOW = 2
 
   let ticking = false
