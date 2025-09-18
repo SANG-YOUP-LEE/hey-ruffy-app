@@ -1,3 +1,4 @@
+// ios/App/App/AppDelegate.swift
 import UIKit
 import Capacitor
 import UserNotifications
@@ -10,7 +11,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        let center = UNUserNotificationCenter.current()
+      _ = RuffyTimePickerPlugin.self
+      
+      let center = UNUserNotificationCenter.current()
         center.delegate = self
 
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
@@ -20,12 +23,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             }
         }
         application.registerForRemoteNotifications()
-
-        // ✅ 더 이상 smoke test 알림 없음
         return true
     }
 
-    // MARK: - Foreground presentation (배너/사운드 강제 표시)
+    // 포그라운드에서도 배너/사운드 표시
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
@@ -40,7 +41,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         completionHandler()
     }
 
-    // 기본 Capacitor URL handler 유지
+    // Capacitor URL handler
     func application(_ app: UIApplication,
                      open url: URL,
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {

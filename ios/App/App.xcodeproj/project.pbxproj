@@ -391,6 +391,20 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"Capacitor\"",
+					"-framework",
+					"\"CapacitorApp\"",
+					"-framework",
+					"\"CapawesomeTeamCapacitorDatetimePicker\"",
+					"-framework",
+					"\"Cordova\"",
+					"-framework",
+					"\"WebKit\"",
+					"-ObjC",
+				);
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.heyruffy.app.HeyRuffy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -415,6 +429,20 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					"\"Capacitor\"",
+					"-framework",
+					"\"CapacitorApp\"",
+					"-framework",
+					"\"CapawesomeTeamCapacitorDatetimePicker\"",
+					"-framework",
+					"\"Cordova\"",
+					"-framework",
+					"\"WebKit\"",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.heyruffy.app.HeyRuffy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
