@@ -240,7 +240,7 @@ body,
   overflow: visible;
   -webkit-overflow-scrolling: auto;
   touch-action: pan-y !important;
-  min-height: calc(100dvh + 2px);
+  /*min-height: calc(100dvh + 2px);*/
   transform: none;
   will-change: auto;
   padding: 0;
