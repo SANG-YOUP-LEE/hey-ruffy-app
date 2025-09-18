@@ -35,7 +35,7 @@ body,
   --sal: env(safe-area-inset-left);
   --app-dvh: 100dvh;
   --header-h: 7.5rem;
-  --header-h-collapsed: 7rem;
+  --header-h-collapsed: 8rem;
   --footer-h: 7rem;
 }
 
@@ -248,7 +248,6 @@ body,
 }
 
 #main_wrap.scrolled .main_scroll {
-  border:1px solid red;
   padding-top: calc(var(--sat) + var(--header-h-collapsed));
   padding-bottom: calc(var(--footer-h) + var(--sab) + 2rem);
 }
