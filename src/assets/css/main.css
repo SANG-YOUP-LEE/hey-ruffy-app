@@ -245,12 +245,12 @@ body,
   will-change: auto;
   padding: 0;
   padding-top: calc(var(--sat) + var(--header-h));
-  transition: padding-top 180ms;
 }
 
 #main_wrap.scrolled .main_scroll {
   border:1px solid red;
   padding-top: calc(var(--sat) + var(--header-h-collapsed));
+  padding-bottom: calc(var(--footer-h) + var(--sab));
 }
 
 .sticky_head {
@@ -258,7 +258,6 @@ body,
   top: var(--header-h);
   z-index: 95;
   background-color: #f9f9f9;
-  transition: top 180ms;
 }
 
 #main_wrap.scrolled .sticky_head {
