@@ -268,10 +268,6 @@ body,
   margin-top: 1.8rem;
 }
 
-#main_wrap.scrolled .main_scroll > div:last-of-type {
-  margin-bottom: 10rem;
-}
-
 .routine_total.sum {
   position: static;
   top: auto;
