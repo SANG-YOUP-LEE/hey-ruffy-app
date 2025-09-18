@@ -264,9 +264,10 @@ body,
   margin-bottom:3rem;
 }
 
+/*
 #main_wrap.scrolled .main_scroll > div:first-of-type {
   margin-top: 1.8rem;
-}
+}*/
 
 .routine_total.sum {
   position: static;
