@@ -2,7 +2,12 @@
   <div class="page_wrap" v-cloak>
     <HeaderView @toggle-lnb="showLnb = !showLnb" />
 
-    <div id="main_wrap" :class="{ selecting: rStore.deleteMode }" ref="scrollEl" @scroll="update">
+    <div
+      id="main_wrap"
+      :class="{ selecting: rStore.deleteMode, scrolled: scrolledRef }"
+      ref="scrollEl"
+      @scroll="update"
+    >
       <SlidePanel :show="panelOpen" @close="closePanel">
         <LnbView @close="closePanel" />
       </SlidePanel>
