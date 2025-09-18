@@ -29,7 +29,7 @@
       </div>
 
       <div class="main_scroll">
-        <div class="pre_spacer" :style="{ height: preHeadH + 'px' }"></div>
+        <div class="pre_spacer" :style="{ height: (scrolledRef ? 0 : preHeadH) + 'px' }"></div>
 
         <div v-show="hasFetched">
           <div class="sticky_head" v-show="scrolledRef">
