@@ -346,3 +346,18 @@ button.control {
   margin-top: 0.5rem;
   font-family: 'S-CoreDream-4Regular';
 }
+
+.pre_head {
+  position: fixed;
+  top: calc(var(--sat) + var(--header-h));
+  left: var(--sal);
+  right: var(--sar);
+  z-index: 3;
+  background: #f9f9f9
+  margine:0 1.5rem 0 1.5rem
+}
+.pre_spacer { 
+  width: 100%; 
+}
+
+
