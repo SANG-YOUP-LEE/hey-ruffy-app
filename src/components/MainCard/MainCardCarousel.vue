@@ -15,7 +15,7 @@
           :isToday="periodMode==='T' && isToday(rt)"
           :assigned-date="new Date(rt?.assignedDate || periodStartRaw)"
           :layout="layout"
-          :layout-variant="card"
+          :layout-variant="layoutVariant"
           :period-mode="periodMode"
           :delete-targets="deleteTargets"
           :delete-mode="deleteMode"
@@ -49,9 +49,9 @@ const emit = defineEmits(['delete','changeStatus','edit','togglePause','toggleSe
 
 const stage = ref(null)
 const index = ref(0)
-const cardH = ref(300)         // 더 커진 카드 기준 높이 추정
-const gap = ref(170)           // 겹침 최소화(시원시원) 간격
-const visibleRange = ref(2)    // 위 2, 아래 2
+const cardH = ref(300)
+const gap = ref(170)
+const visibleRange = ref(2)
 const topPad = ref(12)
 const dragging = ref(false)
 const startY = ref(0)
@@ -66,7 +66,6 @@ const startGlobal = computed(()=>Math.max(0, index.value - visibleRange.value))
 const endGlobal = computed(()=>Math.min(total.value, index.value + visibleRange.value + 1))
 const windowItems = computed(()=>props.routines.slice(startGlobal.value, endGlobal.value))
 function winToGlobal(i){ return startGlobal.value + i }
-
 function clamp(v,min,max){ return v<min?min:v>max?max:v }
 
 function baseShift(){
@@ -79,11 +78,11 @@ function baseShift(){
 function styleFor(i){
   const off = i - index.value
   const y = off * gap.value + baseShift()
-  const s = off===0 ? 1 : (Math.abs(off)===1 ? 0.92 : 0.86)   // 더 크게, 주변만 살짝 축소
+  const s = off===0 ? 1 : (Math.abs(off)===1 ? 0.92 : 0.86)
   const o = Math.abs(off)>visibleRange.value ? 0 : 1
   const z = 100 - Math.abs(off)
   return {
-    transform:`translate3d(-50%, ${y}px, 0) scale(${s})`,     // 회전 제거(정렬 바로)
+    transform:`translate3d(-50%, ${y}px, 0) scale(${s})`,
     zIndex:String(z),
     opacity:String(o),
     pointerEvents: off===0 ? 'auto' : 'none'
@@ -94,8 +93,7 @@ function onWheel(e){
   if(total.value<=0) return
   const delta = e.deltaY
   if(Math.abs(delta)<2) return
-  if(delta>0) index.value = clamp(index.value+1, 0, total.value-1)
-  else index.value = clamp(index.value-1, 0, total.value-1)
+  index.value = clamp(index.value + (delta>0?1:-1), 0, total.value-1)
 }
 
 function onPtrDown(e){
@@ -130,7 +128,13 @@ function onPtrUp(){
   window.removeEventListener('pointermove', onPtrMove)
 }
 
-function onTap(i){ if(i!==index.value) index.value = clamp(i, 0, total.value-1) }
+function onTap(i, rt){
+  if(i!==index.value){
+    index.value = clamp(i, 0, total.value-1)
+  }else{
+    emit('edit', rt)
+  }
+}
 
 function isToday(rt){
   const d = rt?.assignedDate?new Date(rt.assignedDate):new Date()
@@ -144,16 +148,32 @@ function measure(){
   if(first){
     const r = first.getBoundingClientRect()
     cardH.value = Math.max(220, r.height || cardH.value)
-    gap.value = Math.round(cardH.value*0.56)  // 카드가 크게 보이면서 살짝 겹침
+    gap.value = Math.round(cardH.value*0.56)
   }
 }
 
 onMounted(()=>{
+  // 스테이지 높이 먼저 확보
+  if(stage.value){
+    const parent = stage.value.parentElement
+    if(parent && !parent.style.height) parent.style.height = 'calc(100dvh - var(--header-h) - var(--footer-h) - 2rem)'
+  }
   measure()
-  index.value = Math.min(2, Math.max(0, total.value-1))
+  index.value = Math.min(0, Math.max(0, total.value-1))
   window.addEventListener('resize', measure)
 })
 onBeforeUnmount(()=>{
   window.removeEventListener('resize', measure)
 })
 </script>
+
+<style scoped>
+.vcar_wrap{ position:relative; height:calc(100dvh - var(--header-h) - var(--footer-h) - 2rem); overflow:hidden; }
+.vcar_stage{ position:relative; height:100%; }
+.vcar_item{ position:absolute; left:50%; top:0; width:calc(100% - 2.5rem); max-width:36rem; }
+.vcar_fade.top,
+.vcar_fade.bot{ position:absolute; left:0; right:0; height:4rem; pointer-events:none; }
+.vcar_fade.top{ top:0; background:linear-gradient(to bottom, rgba(250,250,250,1), rgba(250,250,250,0)); }
+.vcar_fade.bot{ bottom:0; background:linear-gradient(to top, rgba(250,250,250,1), rgba(250,250,250,0)); }
+.vcar_item.center{ pointer-events:auto; }
+</style>
