@@ -152,7 +152,7 @@ function ensureThreeLine(payload, src) {
   };
 }
 
-async function purgeThenSchedule(base, scheduleFn, delayMs = 200) {
+async function purgeThenSchedule(base, scheduleFn, delayMs = 350) {
   if (base) safePost({ action: 'purgeBase', baseId: base });
   if (delayMs > 0) await sleep(delayMs);
   await scheduleFn();
