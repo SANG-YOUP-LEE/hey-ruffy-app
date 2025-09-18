@@ -250,7 +250,7 @@ body,
 #main_wrap.scrolled .main_scroll {
   border:1px solid red;
   padding-top: calc(var(--sat) + var(--header-h-collapsed));
-  padding-bottom: calc(var(--footer-h) + var(--sab));
+  padding-bottom: calc(var(--footer-h) + var(--sab) + 2rem);
 }
 
 .sticky_head {
