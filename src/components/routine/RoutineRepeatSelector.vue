@@ -14,7 +14,7 @@
           v-for="btn in dailyIntervalButtons1"
           :key="'di1-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
+          :class="dailyBtnClass(btn.v)"
           @click="selectDailyInterval(btn.v)"
         >{{ btn.k }}</span>
       </div>
@@ -23,7 +23,7 @@
           v-for="btn in dailyIntervalButtons2"
           :key="'di2-'+btn.v"
           class="d_s_btn"
-          :class="{ on_w: selectedDailyInterval === btn.v, light: selectedDailyInterval === btn.v }"
+          :class="dailyBtnClass(btn.v)"
           @click="selectDailyInterval(btn.v)"
         >{{ btn.k }}</span>
       </div>
@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 const dailyIntervalButtons1 = [{k:'하루만',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
 const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
@@ -101,7 +101,8 @@ const props = defineProps({
   daily: { type: [Number, String, null], default: null },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
-  monthDays: { type: Array, default: () => [] }
+  monthDays: { type: Array, default: () => [] },
+  dateSpecified: { type: Boolean, default: true }
 })
 const emit = defineEmits([
   'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays',
@@ -152,21 +153,40 @@ const selectedDates = computed({
   set: v => emit('update:monthDays', Array.isArray(v) ? [...v] : [])
 })
 
+const dailyOnceOn = ref(false)
+const dailyOnceArmed = computed(() => selectedDailyInterval.value === 0 && dailyOnceOn.value)
+
+watch(() => props.dateSpecified, v => {
+  if (!v) dailyOnceOn.value = false
+})
+
+const resetDaily = () => {
+  dailyOnceOn.value = false
+  selectedDailyInterval.value = null
+  emit('clearDates')
+  emit('lockDateToggles', { locked: false })
+}
+
 const handleTabClick = (tab) => {
   const prevTab = selectedTab.value
   selectedTab.value = tab
   if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
-    emit('lockDateToggles', { locked: false })
-    if (prevTab !== 'weekly') emit('clearDates')
+    resetDaily()
   } else if (tab === 'monthly') {
     selectedDates.value = []
-    emit('lockDateToggles', { locked: false })
-    if (prevTab !== 'monthly') emit('clearDates')
-  } else if (tab === 'daily') {
-    emit('lockDateToggles', { locked: false })
+    resetDaily()
+  } else if (tab === 'daily' && prevTab !== 'daily') {
+    resetDaily()
   }
+}
+
+const dailyBtnClass = (v) => {
+  const sel = selectedDailyInterval === null ? null : selectedDailyInterval.value
+  const isSel = sel === v
+  const base = { on_w: isSel, light: isSel }
+  return v === 0 ? { ...base, on: dailyOnceArmed.value } : base
 }
 
 const selectDailyInterval = async (n) => {
@@ -174,10 +194,10 @@ const selectDailyInterval = async (n) => {
   const prev = selectedDailyInterval.value
   selectedDailyInterval.value = num
   if (num === 0) {
+    dailyOnceOn.value = true
     emit('lockDateToggles', { locked: true, message: '하루만일때는 선택할 수 없어요' })
-    await nextTick()
-    emit('openDatePicker', { mode: 'start' })
   } else {
+    dailyOnceOn.value = false
     emit('lockDateToggles', { locked: false })
     if (prev === 0) emit('clearDates')
   }
@@ -215,10 +235,7 @@ const toggleDateSelection = (day) => {
     selectedDates.value = cur.filter(d => d !== day)
     return
   }
-  if (cur.length >= 3) {
-    return
-  }
+  if (cur.length >= 3) return
   selectedDates.value = [...cur, day]
 }
 </script>
-
