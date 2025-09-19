@@ -148,6 +148,16 @@ import WalkStatusPanel from '@/components/MainCard/MainWalkStatus.vue'
 import { RUFFY_OPTIONS } from '@/components/common/RuffySelector.vue'
 import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
+import { useRouter } from 'vue-router'
+import { setEditingRoutine as setEditing } from '@/utils/iosNotify'
+
+const router = useRouter()
+async function onClickEdit(routine) {
+  // 1) 편집 진입 플래그를 '먼저' 올림 (await 꼭 필요 X — 신호만 즉시 보냄)
+  setEditing(true)
+  // 2) 그 다음 라우팅
+  router.push({ name: 'RoutineEdit', params: { id: routine.id } })
+}
 
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
 const mapWeekdaysForUI = (arr=[]) => (arr||[]).map(v => (NUM_TO_KOR[Number(v)] || String(v))).filter(Boolean)
