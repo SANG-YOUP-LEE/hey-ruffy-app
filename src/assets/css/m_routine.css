@@ -861,6 +861,7 @@
 .vcar_stage {
   position: relative;
   height: 100%;
+  padding-top:20rem;
 }
 
 .vcar_item {
