@@ -22,6 +22,7 @@
         </div>
       </div>
 
+
       <div v-if="showLockMsg" class="t_red01">{{ lockedText }}</div>
       <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
     
@@ -56,7 +57,7 @@ const props = defineProps({
   locked: { type: Boolean, default: false },
   lockedMessage: { type: String, default: '하루만일때는 선택할 수 없어요' }
 })
-const emit = defineEmits(['update:startDate', 'update:endDate'])
+const emit = defineEmits(['update:startDate', 'update:endDate', 'requestClearOnce'])
 
 const { lockScroll, unlockScroll } = usePopupUX(() => {})
 
@@ -152,6 +153,7 @@ const handleConfirm = val => {
 const handleCancel = () => {
   if (popupMode.value === 'start') {
     start.value = { year: '', month: '', day: '' }
+    if (isOnceMode.value) emit('requestClearOnce')
   } else {
     end.value = { year: '', month: '', day: '' }
   }
@@ -161,6 +163,7 @@ const handleCancel = () => {
 const resetDates = () => {
   start.value = { year: '', month: '', day: '' }
   end.value = { year: '', month: '', day: '' }
+  if (isOnceMode.value) emit('requestClearOnce')
 }
 const formattedDate = computed(() => {
   if (!hasStart.value) return ''
@@ -171,4 +174,6 @@ const formattedDate = computed(() => {
   return sTxt + eTxt
 })
 </script>
+
+
 
