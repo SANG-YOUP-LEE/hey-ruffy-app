@@ -167,13 +167,3 @@ onBeforeUnmount(()=>{
 })
 </script>
 
-<style scoped>
-.vcar_wrap{ position:relative; height:calc(100dvh - var(--header-h) - var(--footer-h) - 2rem); overflow:hidden; }
-.vcar_stage{ position:relative; height:100%; }
-.vcar_item{ position:absolute; left:50%; top:0; width:calc(100% - 2.5rem); max-width:36rem; }
-.vcar_fade.top,
-.vcar_fade.bot{ position:absolute; left:0; right:0; height:4rem; pointer-events:none; }
-.vcar_fade.top{ top:0; background:linear-gradient(to bottom, rgba(250,250,250,1), rgba(250,250,250,0)); }
-.vcar_fade.bot{ bottom:0; background:linear-gradient(to top, rgba(250,250,250,1), rgba(250,250,250,0)); }
-.vcar_item.center{ pointer-events:auto; }
-</style>
