@@ -3,16 +3,16 @@
     <div class="detail_box">
       <div class="inner_fix01 date">
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isStartDateOn" :disabled="isOnceMode" />
+          <ToggleSwitch class="toggle" v-model="isStartDateOn" :disabled="isLocked" />
           <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isEndDateOn" :disabled="isOnceMode" />
+          <ToggleSwitch class="toggle" v-model="isEndDateOn" :disabled="isLocked" />
           <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
       </div>
 
-      <div v-if="isOnceMode" class="t_red01">하루만일때는 선택할 수 없어요</div>
+      <div v-if="showLockMsg" class="t_red01">{{ lockedText }}</div>
       <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
 
       <div v-if="formattedDate" class="data_fixed">
@@ -42,7 +42,9 @@ const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
   endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
   repeatType: { type: String, default: 'daily' },
-  daily: { type: [Number, String, null], default: null }
+  daily: { type: [Number, String, null], default: null },
+  locked: { type: Boolean, default: false },
+  lockedMessage: { type: String, default: '하루만일때는 선택할 수 없어요' }
 })
 const emit = defineEmits(['update:startDate', 'update:endDate'])
 
@@ -64,11 +66,23 @@ const isOnceMode = computed(() => {
   const n = (props.daily === '' || props.daily == null) ? null : Number(props.daily)
   return props.repeatType === 'daily' && n === 0
 })
+const isLocked = computed(() => isOnceMode.value || props.locked)
+const lockedText = computed(() => props.lockedMessage || '하루만일때는 선택할 수 없어요')
+
+const showWarning = ref(false)
+const showLockMsg = ref(false)
+let lockTimer = null
+
+function pingLockMsg() {
+  showLockMsg.value = true
+  if (lockTimer) clearTimeout(lockTimer)
+  lockTimer = setTimeout(() => { showLockMsg.value = false }, 2200)
+}
 
 const isStartDateOn = computed({
   get: () => hasStart.value,
   set: on => {
-    if (isOnceMode.value) return
+    if (isLocked.value) { pingLockMsg(); return }
     if (on) {
       if (!hasStart.value) start.value = getTodayObject()
       showWarning.value = false
@@ -85,12 +99,9 @@ const isStartDateOn = computed({
 const isEndDateOn = computed({
   get: () => hasEnd.value,
   set: on => {
-    if (isOnceMode.value) return
+    if (isLocked.value) { pingLockMsg(); return }
     if (on) {
-      if (!hasStart.value) {
-        showWarning.value = true
-        return
-      }
+      if (!hasStart.value) { showWarning.value = true; return }
       if (!hasEnd.value) end.value = { ...start.value }
       showWarning.value = false
       popupMode.value = 'end'
@@ -102,7 +113,6 @@ const isEndDateOn = computed({
   }
 })
 
-const showWarning = ref(false)
 const showDatePopup = ref(false)
 const popupMode = ref('start')
 
@@ -112,11 +122,11 @@ const getTodayObject = () => {
 }
 
 const onStartLabelClick = () => {
-  if (isOnceMode.value) return
+  if (isLocked.value) { pingLockMsg(); return }
   isStartDateOn.value = !isStartDateOn.value
 }
 const onEndLabelClick = () => {
-  if (isOnceMode.value) return
+  if (isLocked.value) { pingLockMsg(); return }
   isEndDateOn.value = !isEndDateOn.value
 }
 
