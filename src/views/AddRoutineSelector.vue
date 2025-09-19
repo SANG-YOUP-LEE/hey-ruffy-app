@@ -36,8 +36,10 @@
           v-model:weeks="form.repeatWeeks"
           v-model:weekDays="form.repeatWeekDays"
           v-model:monthDays="form.repeatMonthDays"
+          :dateSpecified="hasSpecifiedDate"
           @openDatePicker="onOpenDatePicker"
           @lockDateToggles="onLockDateToggles"
+          @clearDates="onClearDates"
         />
       </div>
     
@@ -50,10 +52,7 @@
         <RoutineDateSelector
           v-model:startDate="form.startDate"
           v-model:endDate="form.endDate"
-          :repeatType="form.repeatType"
-          :daily="form.repeatDaily"
-          :locked="dateTogglesLocked"
-          :lockedMessage="dateLockedMsg"
+          @requestClearOnce="onRequestClearOnce"
         />
       </div>
     
@@ -184,18 +183,29 @@ const wrapRefMap = {
   priority: priorityWrap, card: cardWrap, comment: commentWrap
 }
 
-const dateTogglesLocked = ref(false)
-const dateLockedMsg = ref('하루만일때는 선택할 수 없어요')
 const showSinglePicker = ref(false)
+const hasSpecifiedDate = computed(() => {
+  const y = String(form.startDate?.year || '').trim()
+  const m = String(form.startDate?.month || '').trim()
+  const d = String(form.startDate?.day || '').trim()
+  return !!(y && m && d)
+})
 
-function onLockDateToggles({ locked, message }) {
-  dateTogglesLocked.value = !!locked
-  if (message) dateLockedMsg.value = String(message)
-}
+function onLockDateToggles() {}
 
 function onOpenDatePicker() {
   showSinglePicker.value = true
   lockScroll('.com_popup_wrap .popup_inner')
+}
+
+function onClearDates() {
+  form.startDate = { year:'', month:'', day:'' }
+  form.endDate = { year:'', month:'', day:'' }
+}
+
+function onRequestClearOnce() {
+  form.startDate = { year:'', month:'', day:'' }
+  form.endDate = { year:'', month:'', day:'' }
 }
 
 function onSingleConfirm(val) {
@@ -225,24 +235,13 @@ watch(
   ([type, daily], [prevType, prevDaily]) => {
     const isOnceNow = type === 'daily' && Number(daily) === 0
     const wasOnce = prevType === 'daily' && Number(prevDaily) === 0
-    if (isOnceNow) return
-    if (wasOnce || type !== prevType || daily !== prevDaily) {
+    if (type === 'daily' && wasOnce && !isOnceNow) {
       form.startDate = { year:'', month:'', day:'' }
       form.endDate = { year:'', month:'', day:'' }
-      dateTogglesLocked.value = false
     }
-  }
-)
-
-watch(
-  () => [form.startDate?.year, form.endDate?.year, form.repeatDaily],
-  ([sy, ey, daily]) => {
-    const noStart = !String(sy || '').trim()
-    const noEnd = !String(ey || '').trim()
-    if (noStart && noEnd && Number(daily) === 0) {
-      form.repeatDaily = null
-      dateTogglesLocked.value = false
-      form.alarmTime = null
+    if (type !== prevType) {
+      form.startDate = { year:'', month:'', day:'' }
+      form.endDate = { year:'', month:'', day:'' }
     }
   }
 )
