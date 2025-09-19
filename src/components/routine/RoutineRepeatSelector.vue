@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 
 const dailyIntervalButtons1 = [{k:'하루만',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
 const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
@@ -164,12 +164,13 @@ const handleTabClick = (tab) => {
   }
 }
 
-const selectDailyInterval = (n) => {
+const selectDailyInterval = async (n) => {
   const num = Number(n)
   selectedDailyInterval.value = num
   if (num === 0) {
-    emit('openDatePicker', { mode: 'start' })
     emit('lockDateToggles', { locked: true, message: '하루만일때는 선택할 수 없어요' })
+    await nextTick()
+    emit('openDatePicker', { mode: 'start' })
   } else {
     emit('lockDateToggles', { locked: false })
   }
