@@ -7,7 +7,7 @@
       <button id="v_detail02" @click="handleTabClick('weekly')" :class="{ on: selectedTab === 'weekly' }">주간</button>
       <button id="v_detail03" @click="handleTabClick('monthly')" :class="{ on: selectedTab === 'monthly' }">월간</button>
     </div>
-
+    
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
       <div class="s_group">
         <span
@@ -28,7 +28,7 @@
         >{{ btn.k }}</span>
       </div>
     </div>
-
+    
     <div class="detail_box weekly" v-show="selectedTab === 'weekly'">
       <div class="s_group">
         <span
@@ -69,7 +69,7 @@
         </div>
       </div>
     </div>
-
+    
     <div class="detail_box monthly" v-show="selectedTab === 'monthly'">
       <div class="monthly-grid">
         <span
@@ -105,7 +105,7 @@ const props = defineProps({
 })
 const emit = defineEmits([
   'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays',
-  'openDatePicker','lockDateToggles'
+  'openDatePicker','lockDateToggles','clearDates'
 ])
 
 const selectedTab = computed({
@@ -153,19 +153,25 @@ const selectedDates = computed({
 })
 
 const handleTabClick = (tab) => {
+  const prevTab = selectedTab.value
   selectedTab.value = tab
   if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
     emit('lockDateToggles', { locked: false })
+    if (prevTab !== 'weekly') emit('clearDates')
   } else if (tab === 'monthly') {
     selectedDates.value = []
+    emit('lockDateToggles', { locked: false })
+    if (prevTab !== 'monthly') emit('clearDates')
+  } else if (tab === 'daily') {
     emit('lockDateToggles', { locked: false })
   }
 }
 
 const selectDailyInterval = async (n) => {
   const num = Number(n)
+  const prev = selectedDailyInterval.value
   selectedDailyInterval.value = num
   if (num === 0) {
     emit('lockDateToggles', { locked: true, message: '하루만일때는 선택할 수 없어요' })
@@ -173,6 +179,7 @@ const selectDailyInterval = async (n) => {
     emit('openDatePicker', { mode: 'start' })
   } else {
     emit('lockDateToggles', { locked: false })
+    if (prev === 0) emit('clearDates')
   }
 }
 
@@ -214,3 +221,4 @@ const toggleDateSelection = (day) => {
   selectedDates.value = [...cur, day]
 }
 </script>
+
