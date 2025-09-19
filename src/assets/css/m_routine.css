@@ -854,45 +854,42 @@
 
 .vcar_wrap {
   position: relative;
-  width: 100%;
-  height: 100%;
+  height: calc(100dvh - var(--header-h) - var(--footer-h) - 2rem);
   overflow: hidden;
-  touch-action: none;
 }
 
 .vcar_stage {
   position: relative;
-  width: 100%;
   height: 100%;
 }
 
 .vcar_item {
   position: absolute;
-  top: 50%;
   left: 50%;
-  width: 100%;
-  transition: transform .22s cubic-bezier(.2, .8, .2, 1), opacity .18s ease;
+  top: 0;
+  width: calc(100% - 2.5rem);
+  max-width: 36rem;
 }
 
-.vcar_item.center {
-  transition: transform .2s cubic-bezier(.16, .84, .2, 1), opacity .18s ease;
-}
-
-.vcar_fade {
+.vcar_fade.top,
+.vcar_fade.bot {
   position: absolute;
   left: 0;
   right: 0;
-  height:5rem;
+  height: 4rem;
   pointer-events: none;
-  z-index: 200;
 }
 
 .vcar_fade.top {
   top: 0;
-  background: rgba(249, 249, 249, 0.6);
+  background: linear-gradient(to bottom, rgba(250, 250, 250, 1), rgba(250, 250, 250, 0));
 }
 
 .vcar_fade.bot {
   bottom: 0;
-  background: rgba(249, 249, 249, 0.6);
+  background: linear-gradient(to top, rgba(250, 250, 250, 1), rgba(250, 250, 250, 0));
+}
+
+.vcar_item.center {
+  pointer-events: auto;
 }
