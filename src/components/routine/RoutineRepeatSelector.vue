@@ -196,6 +196,7 @@ const selectDailyInterval = async (n) => {
   if (num === 0) {
     dailyOnceOn.value = true
     emit('lockDateToggles', { locked: true, message: '하루만일때는 선택할 수 없어요' })
+    emit('openDatePicker', { mode: 'start' })
   } else {
     dailyOnceOn.value = false
     emit('lockDateToggles', { locked: false })
