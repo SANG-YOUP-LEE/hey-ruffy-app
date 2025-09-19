@@ -69,7 +69,6 @@
               <div class="tools">
                 <a href="#none" class="r_card" :class="{ on: activeTool === 'card' }" @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
                 <a href="#none" class="r_list" :class="{ on: activeTool === 'list' }" @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
-                <a href="#none" class="r_carousel" :class="{ on: activeTool === 'carousel' }" @click.prevent="onChangeView('carousel')"><span>다짐캐러셀보기</span></a>
                 <a href="#none" :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool === 'delete' } ]" @click.prevent="toggleDeleteMode"><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
               </div>
             </div>
@@ -84,7 +83,6 @@
             <div class="tools">
               <a href="#none" class="r_card" :class="{ on: activeTool === 'card' }" @click.prevent="onChangeView('card')"><span>다짐카드보기</span></a>
               <a href="#none" class="r_list" :class="{ on: activeTool === 'list' }" @click.prevent="onChangeView('list')"><span>다짐목록보기</span></a>
-              <a href="#none" class="r_carousel" :class="{ on: activeTool === 'carousel' }" @click.prevent="onChangeView('carousel')"><span>다짐캐러셀보기</span></a>
               <a href="#none" :class="[ localDelete ? 'r_del' : 'r_select', { on: activeTool === 'delete' } ]" @click.prevent="toggleDeleteMode"><span>{{ localDelete ? '삭제하기' : '다짐선택' }}</span></a>
             </div>
           </div>
@@ -95,23 +93,7 @@
             <span v-else>해당 조건에 맞는 다짐이 없어요.</span>
           </div>
           <template v-else>
-            <MainCardCarousel
-              v-if="selectedView==='carousel'"
-              :routines="filteredRoutines"
-              :layout="ViewCardSet"
-              :layout-variant="selectedView"
-              :period-mode="rStore.selectedPeriod"
-              :delete-targets="rStore.deleteTargets"
-              :delete-mode="rStore.deleteMode"
-              :period-start-raw="mv.periodStartRaw"
-              @changeStatus="onChangeStatus"
-              @delete="onDelete"
-              @edit="openRoutine"
-              @togglePause="onTogglePause"
-              @toggleSelect="rStore.toggleSelect"
-            />
             <MainCard
-              v-else
               v-for="rt in filteredRoutines"
               :key="String(rt.id||'').split('-')[0]"
               :selected="rt?.status || 'notdone'"
@@ -159,7 +141,6 @@ import FooterView from '@/components/common/Footer.vue'
 import MainDateScroll from '@/components/MainCard/MainDateScroll.vue'
 import MainRoutineTotal from '@/components/MainCard/MainRoutineTotal.vue'
 import MainCard from '@/components/MainCard/MainCard.vue'
-import MainCardCarousel from '@/components/MainCard/MainCardCarousel.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 import SlidePanel from '@/components/common/SlidePanel.vue'
 
@@ -300,4 +281,3 @@ watchEffect(async () => {
   }
 })
 </script>
-
