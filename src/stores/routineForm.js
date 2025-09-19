@@ -1,4 +1,3 @@
-// src/stores/routineForm.js
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
@@ -126,7 +125,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
     repeatMonthDays: [],
     startDate: null,
     endDate: null,
-    onceDate: null,
     alarmTime: null,
     isWalkModeOff: false,
     ruffy: null,
@@ -159,12 +157,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const startObj = hasStart ? state.startDate : null
       const startISO = hasStart ? safeISOFromDateObj(startObj) : null
       const hasEnd = !!safeISOFromDateObj(state.endDate)
-      const hasOnce = !!safeISOFromDateObj(state.onceDate)
       const normalizedType = state.repeatType
       const dailyInterval =
         normalizedType === 'daily'
           ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
           : null
+      const endForTodayOnly =
+        (normalizedType === 'daily' && dailyInterval === 0 && hasStart) ? startISO : null
       const weeklyDaysNum =
         normalizedType === 'weekly'
           ? (() => {
@@ -216,8 +215,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
         repeatWeekDays: weeklyDaysNum,
         repeatMonthDays: monthDaysNorm,
         startDate: hasStart ? startObj : null,
-        endDate: hasEnd ? state.endDate : null,
-        onceDate: hasOnce ? state.onceDate : null,
+        endDate: endForTodayOnly ? startObj : (hasEnd ? state.endDate : null),
         alarmTime: normalizedAlarm,
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
@@ -228,8 +226,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
         hasWalk: this.hasWalk,
         tz,
         ...(hasStart ? { start: startISO } : {}),
-        ...(hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}),
-        ...(hasOnce ? { once: safeISOFromDateObj(state.onceDate) } : {}),
+        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})),
         ...(anchorDateISO ? { anchorDate: anchorDateISO } : {})
       }
       return deepClean(cleaned)
@@ -256,7 +253,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatMonthDays = []
       this.startDate = null
       this.endDate = null
-      this.onceDate = null
       this.alarmTime = null
       this.isWalkModeOff = false
       this.ruffy = null
@@ -285,7 +281,6 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatMonthDays = routine.repeatMonthDays || []
       this.startDate = routine.startDate || null
       this.endDate = routine.endDate || null
-      this.onceDate = routine.onceDate || null
       this.alarmTime = routine?.alarmTime ?? null
       this.isWalkModeOff = !(routine.ruffy && routine.course && Number.isInteger(routine.goalCount) && routine.goalCount > 0)
       this.ruffy = routine.ruffy || null
@@ -368,11 +363,13 @@ export const useRoutineFormStore = defineStore('routineForm', {
           return false
         }
       }
-      if (this.repeatType === 'once') {
-        if (!this.onceDate) {
-          this.setError('date','날짜를 선택해주세요.')
-          return false
-        }
-      }
       if (!Number.isInteger(this.colorIndex)) {
-        this.setError('
+        this.setError('priority','다짐 색상을 선택해주세요.')
+        return false
+      }
+      const sc = sanitizeComment(this.comment)
+      if (this.comment && this.comment.trim().length > 200) {
+        this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
+        return false
+      }
+     
