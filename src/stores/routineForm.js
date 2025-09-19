@@ -1,3 +1,4 @@
+// src/stores/routineForm.js
 const MAX_MONTHLY_DATES = 3
 import { defineStore } from 'pinia'
 import { db } from '@/firebase'
@@ -369,7 +370,4 @@ export const useRoutineFormStore = defineStore('routineForm', {
       }
       const sc = sanitizeComment(this.comment)
       if (this.comment && this.comment.trim().length > 200) {
-        this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
-        return false
-      }
-     
+        this.setError('comment','코멘트는 200자 이내로 입력
