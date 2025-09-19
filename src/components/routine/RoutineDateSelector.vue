@@ -5,26 +5,22 @@
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="isLocked ? false : isStartDateOn"
-            :disabled="isLocked"
-            @update:modelValue="val => { if (!isLocked) isStartDateOn = val; else pingLockMsg() }"
+            :modelValue="isStartDateOn"
+            @update:modelValue="val => isStartDateOn = val"
           />
           <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="isLocked ? false : isEndDateOn"
-            :disabled="isLocked"
-            @update:modelValue="val => { if (!isLocked) isEndDateOn = val; else pingLockMsg() }"
+            :modelValue="isEndDateOn"
+            @update:modelValue="val => isEndDateOn = val"
           />
           <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
       </div>
 
-
-      <div v-if="showLockMsg" class="t_red01">{{ lockedText }}</div>
-      <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
+      <div v-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
     
       <div v-if="formattedDate" class="data_fixed">
         {{ formattedDate }}
@@ -51,11 +47,7 @@ import { usePopupUX } from '@/composables/usePopupUX'
 
 const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
-  endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
-  repeatType: { type: String, default: 'daily' },
-  daily: { type: [Number, String, null], default: null },
-  locked: { type: Boolean, default: false },
-  lockedMessage: { type: String, default: '하루만일때는 선택할 수 없어요' }
+  endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) }
 })
 const emit = defineEmits(['update:startDate', 'update:endDate', 'requestClearOnce'])
 
@@ -73,27 +65,11 @@ const end = computed({
 const hasStart = computed(() => !!String(start.value?.year || '').trim())
 const hasEnd = computed(() => !!String(end.value?.year || '').trim())
 
-const isOnceMode = computed(() => {
-  const n = (props.daily === '' || props.daily == null) ? null : Number(props.daily)
-  return props.repeatType === 'daily' && n === 0
-})
-const isLocked = computed(() => isOnceMode.value || props.locked)
-const lockedText = computed(() => props.lockedMessage || '하루만일때는 선택할 수 없어요')
-
 const showWarning = ref(false)
-const showLockMsg = ref(false)
-let lockTimer = null
-
-function pingLockMsg() {
-  showLockMsg.value = true
-  if (lockTimer) clearTimeout(lockTimer)
-  lockTimer = setTimeout(() => { showLockMsg.value = false }, 2200)
-}
 
 const isStartDateOn = computed({
   get: () => hasStart.value,
   set: on => {
-    if (isLocked.value) { pingLockMsg(); return }
     if (on) {
       if (!hasStart.value) start.value = getTodayObject()
       showWarning.value = false
@@ -110,7 +86,6 @@ const isStartDateOn = computed({
 const isEndDateOn = computed({
   get: () => hasEnd.value,
   set: on => {
-    if (isLocked.value) { pingLockMsg(); return }
     if (on) {
       if (!hasStart.value) { showWarning.value = true; return }
       if (!hasEnd.value) end.value = { ...start.value }
@@ -133,11 +108,9 @@ const getTodayObject = () => {
 }
 
 const onStartLabelClick = () => {
-  if (isLocked.value) { pingLockMsg(); return }
   isStartDateOn.value = !isStartDateOn.value
 }
 const onEndLabelClick = () => {
-  if (isLocked.value) { pingLockMsg(); return }
   isEndDateOn.value = !isEndDateOn.value
 }
 
@@ -153,7 +126,7 @@ const handleConfirm = val => {
 const handleCancel = () => {
   if (popupMode.value === 'start') {
     start.value = { year: '', month: '', day: '' }
-    if (isOnceMode.value) emit('requestClearOnce')
+    emit('requestClearOnce')
   } else {
     end.value = { year: '', month: '', day: '' }
   }
@@ -163,7 +136,7 @@ const handleCancel = () => {
 const resetDates = () => {
   start.value = { year: '', month: '', day: '' }
   end.value = { year: '', month: '', day: '' }
-  if (isOnceMode.value) emit('requestClearOnce')
+  emit('requestClearOnce')
 }
 const formattedDate = computed(() => {
   if (!hasStart.value) return ''
@@ -174,6 +147,3 @@ const formattedDate = computed(() => {
   return sTxt + eTxt
 })
 </script>
-
-
-
