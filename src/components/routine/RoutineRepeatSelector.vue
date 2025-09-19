@@ -89,7 +89,7 @@
 <script setup>
 import { computed } from 'vue'
 
-const dailyIntervalButtons1 = [{k:'날짜지정',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
+const dailyIntervalButtons1 = [{k:'하루만',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
 const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
 const weeklyButtons1 = ['매주','2주마다','3주마다']
 const weeklyButtons2 = ['4주마다','5주마다','6주마다']
@@ -104,7 +104,8 @@ const props = defineProps({
   monthDays: { type: Array, default: () => [] }
 })
 const emit = defineEmits([
-  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays'
+  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays',
+  'openDatePicker','lockDateToggles'
 ])
 
 const selectedTab = computed({
@@ -156,13 +157,22 @@ const handleTabClick = (tab) => {
   if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
+    emit('lockDateToggles', { locked: false })
   } else if (tab === 'monthly') {
     selectedDates.value = []
+    emit('lockDateToggles', { locked: false })
   }
 }
 
 const selectDailyInterval = (n) => {
-  selectedDailyInterval.value = Number(n)
+  const num = Number(n)
+  selectedDailyInterval.value = num
+  if (num === 0) {
+    emit('openDatePicker', { mode: 'start' })
+    emit('lockDateToggles', { locked: true, message: '하루만일때는 선택할 수 없어요' })
+  } else {
+    emit('lockDateToggles', { locked: false })
+  }
 }
 
 const selectWeeklyMain = (btn) => {
