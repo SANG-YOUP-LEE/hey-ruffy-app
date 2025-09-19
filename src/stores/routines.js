@@ -9,7 +9,8 @@ import {
 import { useSchedulerStore } from '@/stores/scheduler'
 import iosBridge from '@/utils/iosNotify'
 
-const { purgeBases, postIOS, waitBridgeReady, purgeAll } = iosBridge
+const { purgeAllForBase, postIOS, waitBridgeReady, purgeAll } = iosBridge
+
 const nowTs = () => Date.now()
 
 const toMs = (v) => {
@@ -127,9 +128,7 @@ export const useRoutinesStore = defineStore('routines', {
     async deleteAllRoutines() {
       const uid = this._boundUid
       const allIds = this.items.map(r => String(r.id || '')).filter(Boolean)
-      const baseIds = allIds.map(id => `routine-${id}`)
 
-      // ① iOS 알림 전부 제거 (신버전)
       let didPurgeAll = false
       try {
         await waitBridgeReady()
@@ -139,17 +138,16 @@ export const useRoutinesStore = defineStore('routines', {
         console.warn('[routines.deleteAllRoutines] purgeAll failed or unavailable', e)
       }
 
-      // ①-보강) 구버전/실패 대비: 개별 base purge fallback
-      if (!didPurgeAll && baseIds.length) {
+      if (!didPurgeAll && allIds.length) {
         try {
-          // 개별 베이스 전부 제거
-          purgeBases(baseIds)
+          for (const rid of allIds) {
+            await purgeAllForBase(`routine-${rid}`, { force: true, maxDelete: 64 })
+          }
         } catch (e) {
-          console.warn('[routines.deleteAllRoutines] purgeBases fallback failed', e)
+          console.warn('[routines.deleteAllRoutines] per-base purge fallback failed', e)
         }
       }
 
-      // ② Firestore 전부 삭제
       if (uid && allIds.length) {
         try {
           await repoDeleteMany(uid, allIds)
@@ -158,13 +156,11 @@ export const useRoutinesStore = defineStore('routines', {
         }
       }
 
-      // ③ 로컬 상태 정리
       this.items = []
       this.deleteTargets = []
       this.deleteMode = false
     },
-          
-   
+
     async deleteRoutines(ids) {
       const uid = this._boundUid
       const ridList = []
@@ -173,9 +169,9 @@ export const useRoutinesStore = defineStore('routines', {
       if (ridList.length) {
         try {
           await waitBridgeReady()
-          // baseId 접두사 전체 purge
-          const baseIds = ridList.map(id => `routine-${id}`)
-          purgeBases(baseIds)
+          for (const rid of ridList) {
+            await purgeAllForBase(`routine-${rid}`, { force: true, maxDelete: 64 })
+          }
         } catch (e) {
           console.warn('[routines.deleteRoutines] ios purge failed', e)
         }
