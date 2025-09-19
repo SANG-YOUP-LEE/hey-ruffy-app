@@ -106,7 +106,7 @@ const props = defineProps({
 })
 const emit = defineEmits([
   'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays',
-  'openDatePicker','lockDateToggles','clearDates'
+  'openDatePicker','clearDates'
 ])
 
 const selectedTab = computed({
@@ -164,7 +164,6 @@ const resetDaily = () => {
   dailyOnceOn.value = false
   selectedDailyInterval.value = null
   emit('clearDates')
-  emit('lockDateToggles', { locked: false })
 }
 
 const handleTabClick = (tab) => {
@@ -189,14 +188,14 @@ const dailyBtnClass = (v) => {
   return v === 0 ? { ...base, on: dailyOnceArmed.value } : base
 }
 
-const selectDailyInterval = async (n) => {
+const selectDailyInterval = (n) => {
   const num = Number(n)
   const prev = selectedDailyInterval.value
   selectedDailyInterval.value = num
   if (num === 0) {
     dailyOnceOn.value = true
     emit('clearDates')
-    emit('openDatePicker', { mode: 'start' })
+    emit('openDatePicker', { mode: 'once' })
   } else {
     dailyOnceOn.value = false
     if (prev === 0) emit('clearDates')
