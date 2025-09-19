@@ -379,6 +379,7 @@ function handleToggleOpen(id) {
 }
 
 function handleChildEdit() {
+  globalThis.__RUFFY_SUPPRESS_ONCE = true
   let rt = {}
   try { rt = JSON.parse(JSON.stringify(props.routine || {})) }
   catch { rt = { ...(props.routine || {}) } }
