@@ -852,6 +852,7 @@
   background-size: 100% !important;
 }
 
+/*
 .vcar_wrap {
   position: relative;
   height: calc(100dvh - var(--header-h) - var(--footer-h) - 2rem);
@@ -893,4 +894,4 @@
 
 .vcar_item.center {
   pointer-events: auto;
-}
+}*/
