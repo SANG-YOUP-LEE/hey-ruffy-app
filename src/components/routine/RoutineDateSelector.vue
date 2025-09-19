@@ -1,36 +1,30 @@
 <template>
   <div class="form_box_g">
-    <div class="detail_box">
+    <div class="detail_box" v-if="!isDailyOnce">
       <div class="inner_fix01 date">
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="locked ? false : isStartDateOn"
-            :disabled="locked"
-            @update:modelValue="val => { if (!locked) isStartDateOn = val }"
+            :modelValue="isStartDateOn"
+            @update:modelValue="val => { isStartDateOn = val }"
           />
           <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="locked ? false : isEndDateOn"
-            :disabled="locked"
-            @update:modelValue="val => { if (!locked) isEndDateOn = val }"
+            :modelValue="isEndDateOn"
+            @update:modelValue="val => { isEndDateOn = val }"
           />
           <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
       </div>
-
-      <div v-if="locked" class="t_red01">{{ lockedMessage }}</div>
-      <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
-    
-      <div v-if="formattedDate" class="data_fixed">
-        {{ formattedDate }}
-        <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
-      </div>
+      <div v-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
     </div>
-    
+    <div v-if="formattedDate" class="data_fixed">
+      {{ formattedDate }}
+      <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
+    </div>
     <DateTimePickerPopup
       v-if="showDatePopup"
       :mode="popupMode"
@@ -51,8 +45,7 @@ import { usePopupUX } from '@/composables/usePopupUX'
 const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
   endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
-  locked: { type: Boolean, default: false },
-  lockedMessage: { type: String, default: '하루만일때는 선택할 수 없어요' }
+  isDailyOnce: { type: Boolean, default: false }
 })
 const emit = defineEmits(['update:startDate', 'update:endDate', 'requestClearOnce'])
 
@@ -75,7 +68,6 @@ const showWarning = ref(false)
 const isStartDateOn = computed({
   get: () => hasStart.value,
   set: on => {
-    if (props.locked) return
     if (on) {
       if (!hasStart.value) start.value = getTodayObject()
       showWarning.value = false
@@ -92,7 +84,6 @@ const isStartDateOn = computed({
 const isEndDateOn = computed({
   get: () => hasEnd.value,
   set: on => {
-    if (props.locked) return
     if (on) {
       if (!hasStart.value) { showWarning.value = true; return }
       if (!hasEnd.value) end.value = { ...start.value }
@@ -115,11 +106,9 @@ const getTodayObject = () => {
 }
 
 const onStartLabelClick = () => {
-  if (props.locked) return
   isStartDateOn.value = !isStartDateOn.value
 }
 const onEndLabelClick = () => {
-  if (props.locked) return
   isEndDateOn.value = !isEndDateOn.value
 }
 
