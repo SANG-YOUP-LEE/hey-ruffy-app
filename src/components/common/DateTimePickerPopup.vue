@@ -12,7 +12,6 @@ const props = defineProps({
 const emit = defineEmits(['confirm', 'cancel'])
 
 const p2 = n => String(n).padStart(2,'0')
-const toISODate = (o) => (o && o.year && o.month && o.day) ? `${o.year}-${p2(o.month)}-${p2(o.day)}` : null
 const fromISODate = (s) => {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null
   const [y,m,d] = s.split('-').map(v=>+v)
@@ -20,31 +19,24 @@ const fromISODate = (s) => {
 }
 const todayLocal = () => {
   const now = new Date()
-  const y = now.getFullYear()
-  const m = now.getMonth()+1
-  const d = now.getDate()
-  return { year:y, month:m, day:d }
+  return { year: now.getFullYear(), month: now.getMonth()+1, day: now.getDate() }
 }
 const toLocalMidnightISO = (o) => {
-  const y = o.year, m = o.month, d = o.day
-  return `${p2(y)}-${p2(m)}-${p2(d)}T00:00:00`
+  return `${p2(o.year)}-${p2(o.month)}-${p2(o.day)}T00:00:00`
 }
 
 onMounted(async () => {
   const initial = props.modelValue && props.modelValue.year ? props.modelValue : null
   const baseToday = todayLocal()
-
   const minForStart = baseToday
   const minForEnd = props.minDate && props.minDate.year ? props.minDate : baseToday
   const minObj = props.mode === 'end' ? minForEnd : minForStart
-
   const valueObj = initial ?? baseToday
   const options = {
     mode: 'date',
     value: toLocalMidnightISO(valueObj),
     minimumDate: toLocalMidnightISO(minObj),
   }
-
   try {
     const { value } = await DatetimePicker.present(options)
     if (!value) { emit('cancel'); return }
