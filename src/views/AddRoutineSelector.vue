@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
 import { useSchedulerStore } from '@/stores/scheduler'
 import { usePopupUX } from '@/composables/usePopupUX'
@@ -220,6 +220,33 @@ function autoHideErrors() {
   })
 }
 
+watch(
+  () => [form.repeatType, form.repeatDaily],
+  ([type, daily], [prevType, prevDaily]) => {
+    const isOnceNow = type === 'daily' && Number(daily) === 0
+    const wasOnce = prevType === 'daily' && Number(prevDaily) === 0
+    if (isOnceNow) return
+    if (wasOnce || type !== prevType || daily !== prevDaily) {
+      form.startDate = { year:'', month:'', day:'' }
+      form.endDate = { year:'', month:'', day:'' }
+      dateTogglesLocked.value = false
+    }
+  }
+)
+
+watch(
+  () => [form.startDate?.year, form.endDate?.year, form.repeatDaily],
+  ([sy, ey, daily]) => {
+    const noStart = !String(sy || '').trim()
+    const noEnd = !String(ey || '').trim()
+    if (noStart && noEnd && Number(daily) === 0) {
+      form.repeatDaily = null
+      dateTogglesLocked.value = false
+      form.alarmTime = null
+    }
+  }
+)
+
 async function saveRoutine() {
   const pre = form.validate()
   if (!pre) {
@@ -267,4 +294,3 @@ onBeforeUnmount(() => {
   form.clearErrors()
 })
 </script>
-
