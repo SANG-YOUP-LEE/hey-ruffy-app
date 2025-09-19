@@ -5,16 +5,16 @@
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="isStartDateOn"
-            @update:modelValue="val => isStartDateOn = val"
+            :modelValue="startOn"
+            @update:modelValue="val => (startOn = val, onStartToggle(val))"
           />
           <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="isEndDateOn"
-            @update:modelValue="val => isEndDateOn = val"
+            :modelValue="endOn"
+            @update:modelValue="val => (endOn = val, onEndToggle(val))"
           />
           <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
@@ -66,38 +66,8 @@ const hasStart = computed(() => !!String(start.value?.year || '').trim())
 const hasEnd = computed(() => !!String(end.value?.year || '').trim())
 
 const showWarning = ref(false)
-
-const isStartDateOn = computed({
-  get: () => hasStart.value,
-  set: on => {
-    if (on) {
-      if (!hasStart.value) start.value = getTodayObject()
-      showWarning.value = false
-      popupMode.value = 'start'
-      showDatePopup.value = true
-      lockScroll('.com_popup_wrap .popup_inner')
-    } else {
-      start.value = { year: '', month: '', day: '' }
-      isEndDateOn.value = false
-      end.value = { year: '', month: '', day: '' }
-    }
-  }
-})
-const isEndDateOn = computed({
-  get: () => hasEnd.value,
-  set: on => {
-    if (on) {
-      if (!hasStart.value) { showWarning.value = true; return }
-      if (!hasEnd.value) end.value = { ...start.value }
-      showWarning.value = false
-      popupMode.value = 'end'
-      showDatePopup.value = true
-      lockScroll('.com_popup_wrap .popup_inner')
-    } else {
-      end.value = { year: '', month: '', day: '' }
-    }
-  }
-})
+const startOn = ref(false)
+const endOn = ref(false)
 
 const showDatePopup = ref(false)
 const popupMode = ref('start')
@@ -107,28 +77,49 @@ const getTodayObject = () => {
   return { year: String(d.getFullYear()), month: String(d.getMonth() + 1), day: String(d.getDate()) }
 }
 
-const onStartLabelClick = () => {
-  isStartDateOn.value = !isStartDateOn.value
+const onStartToggle = (on) => {
+  if (on) {
+    if (!hasStart.value) start.value = getTodayObject()
+    showWarning.value = false
+    popupMode.value = 'start'
+    showDatePopup.value = true
+    lockScroll('.com_popup_wrap .popup_inner')
+  } else {
+    start.value = { year: '', month: '', day: '' }
+    endOn.value = false
+    end.value = { year: '', month: '', day: '' }
+  }
 }
-const onEndLabelClick = () => {
-  isEndDateOn.value = !isEndDateOn.value
+const onEndToggle = (on) => {
+  if (on) {
+    if (!hasStart.value) { showWarning.value = true; endOn.value = false; return }
+    if (!hasEnd.value) end.value = { ...start.value }
+    showWarning.value = false
+    popupMode.value = 'end'
+    showDatePopup.value = true
+    lockScroll('.com_popup_wrap .popup_inner')
+  } else {
+    end.value = { year: '', month: '', day: '' }
+  }
 }
 
+const onStartLabelClick = () => { startOn.value = !startOn.value; onStartToggle(startOn.value) }
+const onEndLabelClick = () => { endOn.value = !endOn.value; onEndToggle(endOn.value) }
+
 const handleConfirm = val => {
-  if (popupMode.value === 'start') {
-    start.value = val
-  } else {
-    end.value = val
-  }
+  if (popupMode.value === 'start') start.value = val
+  else end.value = val
   showDatePopup.value = false
   unlockScroll()
 }
 const handleCancel = () => {
   if (popupMode.value === 'start') {
     start.value = { year: '', month: '', day: '' }
+    startOn.value = false
     emit('requestClearOnce')
   } else {
     end.value = { year: '', month: '', day: '' }
+    endOn.value = false
   }
   showDatePopup.value = false
   unlockScroll()
@@ -136,6 +127,8 @@ const handleCancel = () => {
 const resetDates = () => {
   start.value = { year: '', month: '', day: '' }
   end.value = { year: '', month: '', day: '' }
+  startOn.value = false
+  endOn.value = false
   emit('requestClearOnce')
 }
 const formattedDate = computed(() => {
