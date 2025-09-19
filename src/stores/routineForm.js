@@ -4,14 +4,7 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
-import { setEditingRoutine as setEditing } from '@/utils/iosNotify'
-import { onBeforeUnmount } from 'vue'
 
-onBeforeUnmount(() => setEditing(false))
-async function openEdit(routine) {
-  await setEditing(true)
-  router.push({ name: 'RoutineEdit', params: { id: routine.id } })
-}
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
 const NUM_TO_KOR = { 1:'월', 2:'화', 3:'수', 4:'목', 5:'금', 6:'토', 7:'일' }
@@ -152,86 +145,98 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const validSkin  = !!normalizeCardSkinStrict(state.cardSkin)
       return validColor && validSkin
     },
-    payload(state) {
-      const tz = state.tz || 'Asia/Seoul'
-      const hasStart = !!safeISOFromDateObj(state.startDate)
-      const startObj = hasStart ? state.startDate : null
-      const startISO = hasStart ? safeISOFromDateObj(startObj) : null
-      const hasEnd = !!safeISOFromDateObj(state.endDate)
-      const normalizedType = state.repeatType
-      const dailyInterval =
-        normalizedType === 'daily'
-          ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
-          : null
-      const endForTodayOnly =
-        (normalizedType === 'daily' && dailyInterval === 0 && hasStart) ? startISO : null
-      const weeklyDaysNum =
-        normalizedType === 'weekly'
-          ? (() => {
-              const selectedKor = Array.isArray(state.repeatWeekDays) ? state.repeatWeekDays : []
-              const selectedHasAny = selectedKor.length > 0
-              const selectedIsAll = isAllKoreanWeekdays(selectedKor)
-              const useAll = state.weeklyDaily && (!selectedHasAny || selectedIsAll)
-              return useAll ? [1,2,3,4,5,6,7] : daysKorToNum(selectedKor)
-            })()
-          : []
-      const hmParsed = parseHM(state.alarmTime)
-      const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : (state.alarmTime || null)
-      const monthDaysNorm = normalizedType === 'monthly'
-        ? uniqSorted(
-            (state.repeatMonthDays || [])
-              .map(d => parseInt(d,10))
-              .filter(d => Number.isInteger(d) && d >= 1 && d <= 31)
-          ).slice(0, MAX_MONTHLY_DATES)
-        : []
-      let anchorDateISO = null
-      if (normalizedType === 'weekly' && parseInt(state.repeatWeeks,10) > 1 && weeklyDaysNum.length > 0) {
-        const baseISO = hasStart ? startISO : todayISO(tz)
-        const base = new Date(baseISO)
-        const baseW = base.getDay() === 0 ? 7 : base.getDay()
-        let minDelta = 999
-        for (const wd of weeklyDaysNum) {
-          const delta = (wd - baseW + 7) % 7
-          if (delta < minDelta) minDelta = delta
-        }
-        const anchor = new Date(base)
-        anchor.setDate(base.getDate() + minDelta)
-        anchorDateISO = `${p2(anchor.getFullYear())}-${p2(anchor.getMonth()+1)}-${p2(anchor.getDate())}`
-      } else if (hasStart) {
-        anchorDateISO = startISO
-      }
-      const cleaned = {
-        title: state.title,
-        repeatType: normalizedType,
-        repeatDays: [],
-        repeatEveryDays:
-          normalizedType === 'daily'
-            ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
-            : null,
-        repeatDaily:
-          normalizedType === 'daily'
-            ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
-            : null,
-        repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
-        repeatWeekDays: weeklyDaysNum,
-        repeatMonthDays: monthDaysNorm,
-        startDate: hasStart ? startObj : null,
-        endDate: endForTodayOnly ? startObj : (hasEnd ? state.endDate : null),
-        alarmTime: normalizedAlarm,
-        ruffy: state.isWalkModeOff ? null : state.ruffy,
-        course: state.isWalkModeOff ? null : state.course,
-        goalCount: state.isWalkModeOff ? null : state.goalCount,
-        colorIndex: state.colorIndex,
-        cardSkin: normalizeCardSkinStrict(state.cardSkin),
-        comment: sanitizeComment(state.comment),
-        hasWalk: this.hasWalk,
-        tz,
-        ...(hasStart ? { start: startISO } : {}),
-        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})),
-        ...(anchorDateISO ? { anchorDate: anchorDateISO } : {})
-      }
-      return deepClean(cleaned)
+    // src/stores/routineForm.js  (getters.payload 교체본)
+payload(state) {
+  const tz = state.tz || 'Asia/Seoul'
+  const hasStart = !!safeISOFromDateObj(state.startDate)
+  const startObj = hasStart ? state.startDate : null
+  const startISO = hasStart ? safeISOFromDateObj(startObj) : null
+  const hasEnd = !!safeISOFromDateObj(state.endDate)
+  const normalizedType = state.repeatType
+
+  const dailyInterval =
+    normalizedType === 'daily'
+      ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
+      : null
+
+  const endForTodayOnly =
+    (normalizedType === 'daily' && dailyInterval === 0 && hasStart) ? startISO : null
+
+  const weeklyDaysNum =
+    normalizedType === 'weekly'
+      ? (() => {
+          const selectedKor = Array.isArray(state.repeatWeekDays) ? state.repeatWeekDays : []
+          const selectedHasAny = selectedKor.length > 0
+          const selectedIsAll = isAllKoreanWeekdays(selectedKor)
+          const useAll = state.weeklyDaily && (!selectedHasAny || selectedIsAll)
+          return useAll ? [1,2,3,4,5,6,7] : daysKorToNum(selectedKor)
+        })()
+      : []
+
+  // 알람은 선택: HH:mm 포맷 또는 null만 저장
+  const hmParsed = parseHM(state.alarmTime)
+  const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : null
+
+  const monthDaysNorm = normalizedType === 'monthly'
+    ? uniqSorted(
+        (state.repeatMonthDays || [])
+          .map(d => parseInt(d,10))
+          .filter(d => Number.isInteger(d) && d >= 1 && d <= 31)
+      ).slice(0, MAX_MONTHLY_DATES)
+    : []
+
+  let anchorDateISO = null
+  if (normalizedType === 'weekly' && parseInt(state.repeatWeeks,10) > 1 && weeklyDaysNum.length > 0) {
+    const baseISO = hasStart ? startISO : todayISO(tz)
+    const base = new Date(baseISO)
+    const baseW = base.getDay() === 0 ? 7 : base.getDay()
+    let minDelta = 999
+    for (const wd of weeklyDaysNum) {
+      const delta = (wd - baseW + 7) % 7
+      if (delta < minDelta) minDelta = delta
     }
+    const anchor = new Date(base)
+    anchor.setDate(base.getDate() + minDelta)
+    anchorDateISO = `${p2(anchor.getFullYear())}-${p2(anchor.getMonth()+1)}-${p2(anchor.getDate())}`
+  } else if (hasStart) {
+    anchorDateISO = startISO
+  }
+
+  const cleaned = {
+    title: state.title,
+    repeatType: normalizedType,
+    repeatDays: [],
+    repeatEveryDays:
+      normalizedType === 'daily'
+        ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
+        : null,
+    repeatDaily:
+      normalizedType === 'daily'
+        ? (Number.isInteger(dailyInterval) ? dailyInterval : null)
+        : null,
+    repeatWeeks: normalizedType === 'weekly' ? (state.repeatWeeks || '') : '',
+    repeatWeekDays: weeklyDaysNum,
+    repeatMonthDays: monthDaysNorm,
+    startDate: hasStart ? startObj : null,
+    endDate: endForTodayOnly ? startObj : (hasEnd ? state.endDate : null),
+
+    // 파싱 실패면 저장하지 않음
+    alarmTime: normalizedAlarm,
+
+    ruffy: state.isWalkModeOff ? null : state.ruffy,
+    course: state.isWalkModeOff ? null : state.course,
+    goalCount: state.isWalkModeOff ? null : state.goalCount,
+    colorIndex: state.colorIndex,
+    cardSkin: normalizeCardSkinStrict(state.cardSkin),
+    comment: sanitizeComment(state.comment),
+    hasWalk: this.hasWalk,
+    tz,
+    ...(hasStart ? { start: startISO } : {}),
+    ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})),
+    ...(anchorDateISO ? { anchorDate: anchorDateISO } : {})
+  }
+  return deepClean(cleaned)
+}
   },
 
   actions: {
@@ -324,67 +329,62 @@ export const useRoutineFormStore = defineStore('routineForm', {
     },
 
     validate() {
-      this.clearErrors()
-      if (!this.title || String(this.title).trim() === '') {
-        this.setError('title','다짐 제목을 입력해주세요.')
-        return false
-      }
-      if (!this.repeatType) {
-        this.setError('repeat','반복 주기를 선택해주세요.')
-        return false
-      }
-      const alarmStr = this.alarmTime != null ? String(this.alarmTime).trim() : ''
-      if (alarmStr) {
-        const hm = parseHM(alarmStr)
-        if (!hm) {
-          this.setError('alarm','알림 시간을 HH:mm 형식으로 입력해주세요.')
-          return false
-        }
-      }
-      if (this.repeatType === 'daily') {
-        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
-          this.setError('repeat','반복 주기를 선택해주세요.')
-          return false
-        }
-      }
-      if (this.repeatType === 'weekly') {
-        const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
-        if (!valid) {
-          this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
-          return false
-        }
-      }
-      if (this.repeatType === 'monthly') {
-        if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
-          this.setError('repeat','반복 주기를 선택해주세요.')
-          return false
-        }
-        if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
-          this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
-          return false
-        }
-      }
-      if (!Number.isInteger(this.colorIndex)) {
-        this.setError('priority','다짐 색상을 선택해주세요.')
-        return false
-      }
-      const sc = sanitizeComment(this.comment)
-      if (this.comment && this.comment.trim().length > 200) {
-        this.setError('comment', '코멘트는 200자 이내로 입력해주세요.')
-        return false
-      }
-      if (sc === null) this.comment = ''
-      if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
-        const hm2 = parseHM(this.alarmTime)
-        if (hm2) {}
-      }
-      if (!this.isWalkModeOff) {
-        if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
-      }
-      return true
-    },
+  this.clearErrors()
+  if (!this.title || String(this.title).trim() === '') {
+    this.setError('title','다짐 제목을 입력해주세요.')
+    return false
+  }
+  if (!this.repeatType) {
+    this.setError('repeat','반복 주기를 선택해주세요.')
+    return false
+  }
+
+  // ▼ 알람은 선택사항: 값이 이상하면 그냥 비움(null)으로 진행
+  if (this.alarmTime != null && String(this.alarmTime).trim() !== '') {
+    const hm = parseHM(this.alarmTime)
+    if (!hm) this.alarmTime = null
+  }
+
+  if (this.repeatType === 'daily') {
+    if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+      this.setError('repeat','반복 주기를 선택해주세요.')
+      return false
+    }
+  }
+  if (this.repeatType === 'weekly') {
+    const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
+    if (!valid) {
+      this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
+      return false
+    }
+  }
+  if (this.repeatType === 'monthly') {
+    if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
+      this.setError('repeat','반복 주기를 선택해주세요.')
+      return false
+    }
+    if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
+      this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
+      return false
+    }
+  }
+  if (!Number.isInteger(this.colorIndex)) {
+    this.setError('priority','다짐 색상을 선택해주세요.')
+    return false
+  }
+  const sc = sanitizeComment(this.comment)
+  if (this.comment && this.comment.trim().length > 200) {
+    this.setError('comment', '코멘트는 200자 이내로 입력해주세요.')
+    return false
+  }
+  if (sc === null) this.comment = ''
+  if (!this.isWalkModeOff) {
+    if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
+    if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
+    if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+  }
+  return true
+},
 
     async save() {
       if (this.isSaving) return { ok:false }
