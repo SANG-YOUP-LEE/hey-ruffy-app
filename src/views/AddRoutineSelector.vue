@@ -23,7 +23,7 @@
         </transition>
         <RoutineTitleInput v-model="form.title" />
       </div>
-
+    
       <div ref="repeatWrap">
         <transition name="slot-slide">
           <div class="warn-slot" v-if="!!form.fieldErrors.repeat">
@@ -40,7 +40,7 @@
           @lockDateToggles="onLockDateToggles"
         />
       </div>
-
+    
       <div ref="dateWrap">
         <transition name="slot-slide">
           <div class="warn-slot" v-if="!!form.fieldErrors.date">
@@ -56,7 +56,7 @@
           :lockedMessage="dateLockedMsg"
         />
       </div>
-
+    
       <div ref="alarmWrap">
         <transition name="slot-slide">
           <div class="warn-slot" v-if="!!form.fieldErrors.alarm">
@@ -65,7 +65,7 @@
         </transition>
         <RoutineAlarmSelector v-model="form.alarmTime" />
       </div>
-
+    
       <div ref="priorityWrap">
         <transition name="slot-slide">
           <div class="warn-slot" v-if="!!form.fieldErrors.priority">
@@ -74,7 +74,7 @@
         </transition>
         <RoutinePrioritySelector v-model="form.colorIndex" />
       </div>
-
+    
       <div ref="cardWrap">
         <transition name="slot-slide">
           <div class="warn-slot" v-if="!!form.fieldErrors.card">
@@ -83,7 +83,7 @@
         </transition>
         <RoutineCardSelector v-model="form.cardSkin" uniqueName="card-skin" />
       </div>
-
+    
       <div class="off_walk">
         <p>{{ form.isWalkModeOff ? '산책 없는 다짐은 볶음밥 없는 닭갈비ㅠ' : '이제부터 러피와의 산책을 준비할까요?' }}</p>
         <label class="checkbox-label">
@@ -92,7 +92,7 @@
           <span>{{ form.isWalkModeOff ? '다시 산책하고 싶다면 해제해주세요. ' : '산책 없이 다짐하고 싶어요.' }}</span>
         </label>
       </div>
-
+    
       <div class="walk_group" v-show="!form.isWalkModeOff">
         <div ref="ruffyWrap">
           <transition name="slot-slide">
@@ -119,7 +119,7 @@
           <RoutineGoalCountSelector v-model="form.goalCount" />
         </div>
       </div>
-
+    
       <div ref="commentWrap">
         <RoutineCommentInput v-model="form.comment" />
         <transition name="slot-slide">
@@ -129,15 +129,15 @@
         </transition>
       </div>
     </div>
-
+    
     <div class="popup_btm">
       <button class="b_basic" @click="saveRoutine">다짐 저장하기</button>
     </div>
-
+    
     <div class="close_btn_wrap">
       <div class="close_btn" @click="closePopup"><span>닫기</span></div>
     </div>
-
+    
     <DateTimePickerPopup
       v-if="showSinglePicker"
       mode="start"
@@ -267,3 +267,4 @@ onBeforeUnmount(() => {
   form.clearErrors()
 })
 </script>
+
