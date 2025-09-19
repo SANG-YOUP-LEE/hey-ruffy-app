@@ -48,6 +48,8 @@
         <RoutineDateSelector
           v-model:startDate="form.startDate"
           v-model:endDate="form.endDate"
+          :repeatType="form.repeatType"
+          :daily="form.repeatDaily"
         />
       </div>
 
