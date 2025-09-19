@@ -12,6 +12,7 @@ const props = defineProps({
 const emit = defineEmits(['confirm', 'cancel'])
 
 const p2 = n => String(n).padStart(2,'0')
+const y4 = n => String(n).padStart(4,'0')
 const fromISODate = (s) => {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null
   const [y,m,d] = s.split('-').map(v=>+v)
@@ -22,7 +23,7 @@ const todayLocal = () => {
   return { year: now.getFullYear(), month: now.getMonth()+1, day: now.getDate() }
 }
 const toLocalMidnightISO = (o) => {
-  return `${p2(o.year)}-${p2(o.month)}-${p2(o.day)}T00:00:00`
+  return `${y4(o.year)}-${p2(o.month)}-${p2(o.day)}T00:00:00`
 }
 
 onMounted(async () => {
@@ -38,8 +39,8 @@ onMounted(async () => {
     minimumDate: toLocalMidnightISO(minObj),
   }
   try {
-    const { value } = await DatetimePicker.present(options)
-    if (!value) { emit('cancel'); return }
+    const { value, canceled } = await DatetimePicker.present(options)
+    if (canceled || !value) { emit('cancel'); return }
     const picked = fromISODate(value.substring(0,10))
     if (!picked) { emit('cancel'); return }
     emit('confirm', picked)
