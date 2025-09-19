@@ -36,6 +36,8 @@
           v-model:weeks="form.repeatWeeks"
           v-model:weekDays="form.repeatWeekDays"
           v-model:monthDays="form.repeatMonthDays"
+          @openDatePicker="onOpenDatePicker"
+          @lockDateToggles="onLockDateToggles"
         />
       </div>
 
@@ -50,6 +52,8 @@
           v-model:endDate="form.endDate"
           :repeatType="form.repeatType"
           :daily="form.repeatDaily"
+          :locked="dateTogglesLocked"
+          :lockedMessage="dateLockedMsg"
         />
       </div>
 
@@ -133,13 +137,21 @@
     <div class="close_btn_wrap">
       <div class="close_btn" @click="closePopup"><span>닫기</span></div>
     </div>
+
+    <DateTimePickerPopup
+      v-if="showSinglePicker"
+      mode="start"
+      :modelValue="form.startDate || { year:'', month:'', day:'' }"
+      @confirm="onSingleConfirm"
+      @cancel="onSingleCancel"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoutineFormStore } from '@/stores/routineForm'
-import { useSchedulerStore } from '@/stores/scheduler' // ✅ 추가
+import { useSchedulerStore } from '@/stores/scheduler'
 import { usePopupUX } from '@/composables/usePopupUX'
 import RoutineTitleInput from '@/components/routine/RoutineTitleInput.vue'
 import RoutineRepeatSelector from '@/components/routine/RoutineRepeatSelector.vue'
@@ -151,9 +163,10 @@ import RoutineGoalCountSelector from '@/components/routine/RoutineGoalCountSelec
 import RoutinePrioritySelector from '@/components/routine/RoutinePrioritySelector.vue'
 import RoutineCardSelector from '@/components/routine/RoutineCardSelector.vue'
 import RoutineCommentInput from '@/components/routine/RoutineCommentInput.vue'
+import DateTimePickerPopup from '@/components/common/DateTimePickerPopup.vue'
 
 const form = useRoutineFormStore()
-const scheduler = useSchedulerStore() // ✅ 추가
+const scheduler = useSchedulerStore()
 
 const props = defineProps({ routineToEdit: { type: Object, default: null } })
 const emit = defineEmits(['close','save'])
@@ -169,6 +182,32 @@ const wrapRefMap = {
   title: titleWrap, repeat: repeatWrap, date: dateWrap, alarm: alarmWrap,
   ruffy: ruffyWrap, course: courseWrap, goal: goalWrap,
   priority: priorityWrap, card: cardWrap, comment: commentWrap
+}
+
+const dateTogglesLocked = ref(false)
+const dateLockedMsg = ref('하루만일때는 선택할 수 없어요')
+const showSinglePicker = ref(false)
+
+function onLockDateToggles({ locked, message }) {
+  dateTogglesLocked.value = !!locked
+  if (message) dateLockedMsg.value = String(message)
+}
+
+function onOpenDatePicker() {
+  showSinglePicker.value = true
+  lockScroll('.com_popup_wrap .popup_inner')
+}
+
+function onSingleConfirm(val) {
+  form.startDate = val
+  form.endDate = { year:'', month:'', day:'' }
+  showSinglePicker.value = false
+  unlockScroll()
+}
+
+function onSingleCancel() {
+  showSinglePicker.value = false
+  unlockScroll()
 }
 
 function autoHideErrors() {
@@ -190,7 +229,6 @@ async function saveRoutine() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
   }
-
   const r = await form.save()
   if (!r.ok) {
     autoHideErrors()
@@ -199,21 +237,15 @@ async function saveRoutine() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
   }
-
-  // ✅ Firestore 문서 ID는 r.id
   const routineId = r.id
   let title = (form.title || '').trim()
   const MAX_LEN = 20
   if (title.length > MAX_LEN) title = title.slice(0, MAX_LEN) + '…'
-
-  // ✅ 저장 성공 직후: 스케줄 재구성(현재 단계: 방금 저장/수정한 이 한 개만 전달)
   try {
     await scheduler.rehydrateFromRoutines([{ id: routineId, ...r.data }])
   } catch (e) {
-    // 조용히 실패 무시(UX 방해 X). 추후 전역 컷팅 도입 시 전체목록 기반으로 재호출 예정.
     console.warn('rehydrateFromRoutines failed:', e)
   }
-
   gotoFinish(r.data)
 }
 
