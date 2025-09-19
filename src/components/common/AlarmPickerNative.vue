@@ -53,6 +53,14 @@ function parseHHMMLoose(iso) {
 /** 🔑 부모가 open=true로 바꾸면 실행 (커스텀 플러그인만 호출) */
 watch(() => props.open, async (v) => {
   if (!v) return
+
+  // ✅ 편집 진입 직후 자동 호출 억제 (전역 one-shot)
+  if (globalThis.__RUFFY_SUPPRESS_ONCE) {
+    globalThis.__RUFFY_SUPPRESS_ONCE = false
+    emit('closed') // 부모에서 open=false로 되돌릴 수 있게
+    return
+  }
+
   try {
     if (!isNative()) { emit('cancel'); return }
     const hasCustom = !!(globalThis?.Capacitor?.Plugins?.RuffyTimePicker)
