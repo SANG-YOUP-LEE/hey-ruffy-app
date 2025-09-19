@@ -45,7 +45,7 @@
     
       <div ref="dateWrap">
         <transition name="slot-slide">
-          <div class="warn-slot" v-if="!!form.fieldErrors.date">
+          <div class="warn-slot" v-if="!!form.fieldErrors.date && !isDailyOnce">
             <div class="warn-message t_red01">{{ form.fieldErrors.date }}</div>
           </div>
         </transition>
@@ -54,6 +54,7 @@
           v-model:endDate="form.endDate"
           :locked="dateTogglesLocked"
           :lockedMessage="dateLockedMsg"
+          :isDailyOnce="isDailyOnce"
           @requestClearOnce="onRequestClearOnce"
         />
       </div>
@@ -196,6 +197,8 @@ const hasSpecifiedDate = computed(() => {
   return !!(y && m && d)
 })
 
+const isDailyOnce = computed(() => form.repeatType === 'daily' && Number(form.repeatDaily) === 0)
+
 function onLockDateToggles({ locked, message } = {}) {
   dateTogglesLocked.value = !!locked
   if (message) dateLockedMsg.value = String(message)
@@ -309,3 +312,4 @@ onBeforeUnmount(() => {
   form.clearErrors()
 })
 </script>
+
