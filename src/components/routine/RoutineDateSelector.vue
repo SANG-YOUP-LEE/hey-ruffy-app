@@ -1,28 +1,23 @@
 <template>
   <div class="form_box_g">
-    <div class="detail_box" v-if="!isOnceMode">
+    <div class="detail_box">
       <div class="inner_fix01 date">
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isStartDateOn" />
-          <span class="toggle-text" @click="toggleStartDate">시작일 지정</span>
+          <ToggleSwitch class="toggle" v-model="isStartDateOn" :disabled="isOnceMode" />
+          <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isEndDateOn" />
-          <span class="toggle-text" @click="toggleEndDate">종료일 지정</span>
+          <ToggleSwitch class="toggle" v-model="isEndDateOn" :disabled="isOnceMode" />
+          <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
       </div>
-      <div v-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
+
+      <div v-if="isOnceMode" class="t_red01">하루만일때는 선택할 수 없어요</div>
+      <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
+
       <div v-if="formattedDate" class="data_fixed">
         {{ formattedDate }}
         <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
-      </div>
-    </div>
-
-    <div class="detail_box" v-else>
-      <button class="d_s_btn" @click="openOncePicker">날짜 선택하기</button>
-      <div v-if="onceFormatted" class="data_fixed">
-        {{ onceFormatted }}
-        <a href="#none" class="txt" @click.prevent="resetOnce">취소</a>
       </div>
     </div>
 
@@ -33,13 +28,6 @@
       :modelValue="popupMode === 'start' ? start : end"
       @confirm="handleConfirm"
       @cancel="handleCancel"
-    />
-    <DateTimePickerPopup
-      v-if="showOncePopup"
-      mode="once"
-      :modelValue="once"
-      @confirm="handleOnceConfirm"
-      @cancel="handleOnceCancel"
     />
   </div>
 </template>
@@ -53,10 +41,10 @@ import { usePopupUX } from '@/composables/usePopupUX'
 const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
   endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
-  onceDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
-  repeatType: { type: String, default: 'daily' }
+  repeatType: { type: String, default: 'daily' },
+  daily: { type: [Number, String, null], default: null }
 })
-const emit = defineEmits(['update:startDate', 'update:endDate', 'update:onceDate'])
+const emit = defineEmits(['update:startDate', 'update:endDate'])
 
 const { lockScroll, unlockScroll } = usePopupUX(() => {})
 
@@ -68,20 +56,19 @@ const end = computed({
   get: () => props.endDate || { year: '', month: '', day: '' },
   set: v => emit('update:endDate', v || { year: '', month: '', day: '' })
 })
-const once = computed({
-  get: () => props.onceDate || { year: '', month: '', day: '' },
-  set: v => emit('update:onceDate', v || { year: '', month: '', day: '' })
-})
 
 const hasStart = computed(() => !!String(start.value?.year || '').trim())
 const hasEnd = computed(() => !!String(end.value?.year || '').trim())
-const hasOnce = computed(() => !!String(once.value?.year || '').trim())
 
-const isOnceMode = computed(() => props.repeatType === 'once')
+const isOnceMode = computed(() => {
+  const n = (props.daily === '' || props.daily == null) ? null : Number(props.daily)
+  return props.repeatType === 'daily' && n === 0
+})
 
 const isStartDateOn = computed({
   get: () => hasStart.value,
   set: on => {
+    if (isOnceMode.value) return
     if (on) {
       if (!hasStart.value) start.value = getTodayObject()
       showWarning.value = false
@@ -98,6 +85,7 @@ const isStartDateOn = computed({
 const isEndDateOn = computed({
   get: () => hasEnd.value,
   set: on => {
+    if (isOnceMode.value) return
     if (on) {
       if (!hasStart.value) {
         showWarning.value = true
@@ -118,23 +106,25 @@ const showWarning = ref(false)
 const showDatePopup = ref(false)
 const popupMode = ref('start')
 
-const showOncePopup = ref(false)
-
 const getTodayObject = () => {
   const d = new Date()
   return { year: String(d.getFullYear()), month: String(d.getMonth() + 1), day: String(d.getDate()) }
 }
 
-const toggleStartDate = () => { isStartDateOn.value = !isStartDateOn.value }
-const toggleEndDate = () => { isEndDateOn.value = !isEndDateOn.value }
+const onStartLabelClick = () => {
+  if (isOnceMode.value) return
+  isStartDateOn.value = !isStartDateOn.value
+}
+const onEndLabelClick = () => {
+  if (isOnceMode.value) return
+  isEndDateOn.value = !isEndDateOn.value
+}
 
 const handleConfirm = val => {
   if (popupMode.value === 'start') {
     start.value = val
-    isStartDateOn.value = true
   } else {
     end.value = val
-    isEndDateOn.value = true
   }
   showDatePopup.value = false
   unlockScroll()
@@ -159,28 +149,5 @@ const formattedDate = computed(() => {
   const sTxt = `${s.year}년 ${s.month}월 ${s.day}일`
   const eTxt = hasEnd.value ? ` ~ ${e.year}년 ${e.month}월 ${e.day}일` : ''
   return sTxt + eTxt
-})
-
-const openOncePicker = () => {
-  showOncePopup.value = true
-  lockScroll('.com_popup_wrap .popup_inner')
-}
-const handleOnceConfirm = val => {
-  once.value = val
-  showOncePopup.value = false
-  unlockScroll()
-}
-const handleOnceCancel = () => {
-  once.value = { year: '', month: '', day: '' }
-  showOncePopup.value = false
-  unlockScroll()
-}
-const resetOnce = () => {
-  once.value = { year: '', month: '', day: '' }
-}
-const onceFormatted = computed(() => {
-  if (!hasOnce.value) return ''
-  const o = once.value
-  return `${o.year}년 ${o.month}월 ${o.day}일`
 })
 </script>
