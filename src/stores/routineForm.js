@@ -324,64 +324,110 @@ export const useRoutineFormStore = defineStore('routineForm', {
     },
 
     validate() {
-    this.clearErrors()
-    if (!this.title || String(this.title).trim() === '') {
-      this.setError('title','다짐 제목을 입력해주세요.')
-      return false
-    }
-    if (!this.repeatType) {
-      this.setError('repeat','반복 주기를 선택해주세요.')
-      return false
-    }
-    const alarmStr = this.alarmTime != null ? String(this.alarmTime).trim() : ''
-    if (alarmStr) {
-      const hm = parseHM(alarmStr)
-      if (!hm) {
-        this.setError('alarm','알림 시간을 HH:mm 형식으로 입력해주세요.')
+      this.clearErrors()
+      if (!this.title || String(this.title).trim() === '') {
+        this.setError('title','다짐 제목을 입력해주세요.')
         return false
       }
-    }
-    if (this.repeatType === 'daily') {
-      if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+      if (!this.repeatType) {
         this.setError('repeat','반복 주기를 선택해주세요.')
         return false
       }
-    }
-    if (this.repeatType === 'weekly') {
-      const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
-      if (!valid) {
-        this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
+      const alarmStr = this.alarmTime != null ? String(this.alarmTime).trim() : ''
+      if (alarmStr) {
+        const hm = parseHM(alarmStr)
+        if (!hm) {
+          this.setError('alarm','알림 시간을 HH:mm 형식으로 입력해주세요.')
+          return false
+        }
+      }
+      if (this.repeatType === 'daily') {
+        if (!Number.isInteger(this.repeatDaily) || this.repeatDaily < 0 || this.repeatDaily > 6) {
+          this.setError('repeat','반복 주기를 선택해주세요.')
+          return false
+        }
+      }
+      if (this.repeatType === 'weekly') {
+        const valid = this.weeklyDaily || (Array.isArray(this.repeatWeekDays) && this.repeatWeekDays.length > 0)
+        if (!valid) {
+          this.setError('repeat','요일을 선택하거나 “매일”을 선택해 주세요.')
+          return false
+        }
+      }
+      if (this.repeatType === 'monthly') {
+        if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
+          this.setError('repeat','반복 주기를 선택해주세요.')
+          return false
+        }
+        if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
+          this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
+          return false
+        }
+      }
+      if (!Number.isInteger(this.colorIndex)) {
+        this.setError('priority','다짐 색상을 선택해주세요.')
         return false
       }
-    }
-    if (this.repeatType === 'monthly') {
-      if (!this.repeatMonthDays || this.repeatMonthDays.length === 0) {
-        this.setError('repeat','반복 주기를 선택해주세요.')
+      const sc = sanitizeComment(this.comment)
+      if (this.comment && this.comment.trim().length > 200) {
+        this.setError('comment', '코멘트는 200자 이내로 입력해주세요.')
         return false
       }
-      if (Array.isArray(this.repeatMonthDays) && this.repeatMonthDays.length > MAX_MONTHLY_DATES) {
-        this.setError('repeat', `월간 날짜는 최대 ${MAX_MONTHLY_DATES}개까지 선택할 수 있어요.`)
-        return false
+      if (sc === null) this.comment = ''
+      if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
+        const hm2 = parseHM(this.alarmTime)
+        if (hm2) {}
+      }
+      if (!this.isWalkModeOff) {
+        if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
+        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
+        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
+      }
+      return true
+    },
+
+    async save() {
+      if (this.isSaving) return { ok:false }
+      this.isSaving = true
+      try {
+        if (!this.validate()) return { ok:false }
+        const auth = useAuthStore()
+        await auth.ensureReady()
+        const uid = auth.user?.uid
+        if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
+        const basePayload = this.payload
+        const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
+        const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : null
+        const payload = { ...basePayload }
+        if (normalizedAlarm) payload.alarmTime = normalizedAlarm
+        else delete payload.alarmTime
+        let res
+        if (this.mode === 'edit' && this.routineId) {
+          const rid = getBaseId(this.routineId)
+          await setDoc(
+            doc(db, 'users', uid, 'routines', rid),
+            { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
+            { merge: true }
+          )
+          res = { ok:true, id: rid, data: payload }
+        } else {
+          const colRef = collection(db, 'users', uid, 'routines')
+          const nowMs = Date.now()
+          const docRef = await addDoc(colRef, {
+            ...payload,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            createdAtMs: nowMs,
+            updatedAtMs: nowMs
+          })
+          res = { ok:true, id: docRef.id, data: payload }
+        }
+        return res
+      } catch (e) {
+        return { ok:false, error: String(e && e.message ? e.message : e) }
+      } finally {
+        this.isSaving = false
       }
     }
-    if (!Number.isInteger(this.colorIndex)) {
-      this.setError('priority','다짐 색상을 선택해주세요.')
-      return false
-    }
-    const sc = sanitizeComment(this.comment)
-    if (this.comment && this.comment.trim().length > 200) {
-      this.setError('comment', '코멘트는 200자 이내로 입력해주세요.')
-      return false
-    }
-    if (sc === null) this.comment = ''
-    if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
-      const hm2 = parseHM(this.alarmTime)
-      if (hm2) {}
-    }
-    if (!this.isWalkModeOff) {
-      if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-      if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-      if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
-    }
-    return true
   }
+})
