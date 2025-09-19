@@ -221,17 +221,21 @@ function onClearDates() {
 function onRequestClearOnce() {
   form.startDate = { year:'', month:'', day:'' }
   form.endDate = { year:'', month:'', day:'' }
+  form.repeatDaily = null
   dateTogglesLocked.value = false
 }
 
-function onSingleConfirm(val) {
-  form.startDate = val
+function onSingleCancel() {
+  form.startDate = { year:'', month:'', day:'' }
   form.endDate = { year:'', month:'', day:'' }
+  form.repeatDaily = null
+  dateTogglesLocked.value = false
   showSinglePicker.value = false
   unlockScroll()
 }
-
-function onSingleCancel() {
+function onSingleConfirm(val) {
+  form.startDate = val
+  form.endDate = { year:'', month:'', day:'' }
   showSinglePicker.value = false
   unlockScroll()
 }
