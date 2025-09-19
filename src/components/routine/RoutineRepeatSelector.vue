@@ -6,7 +6,6 @@
       <button id="v_detail01" @click="handleTabClick('daily')" :class="{ on: selectedTab === 'daily' }">일간</button>
       <button id="v_detail02" @click="handleTabClick('weekly')" :class="{ on: selectedTab === 'weekly' }">주간</button>
       <button id="v_detail03" @click="handleTabClick('monthly')" :class="{ on: selectedTab === 'monthly' }">월간</button>
-      <button id="v_detail04" @click="handleTabClick('once')" :class="{ on: selectedTab === 'once' }">날짜지정</button>
     </div>
 
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
@@ -84,18 +83,13 @@
         </span>
       </div>
     </div>
-
-    <div class="detail_box once" v-show="selectedTab === 'once'">
-      <button class="d_s_btn" @click="emit('openDatePicker')">날짜 선택하기</button>
-      <p v-if="selectedOnceDate">{{ selectedOnceDate }}</p>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
-const dailyIntervalButtons1 = [{k:'2일마다',v:2},{k:'3일마다',v:3}]
+const dailyIntervalButtons1 = [{k:'날짜지정',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
 const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
 const weeklyButtons1 = ['매주','2주마다','3주마다']
 const weeklyButtons2 = ['4주마다','5주마다','6주마다']
@@ -107,11 +101,10 @@ const props = defineProps({
   daily: { type: [Number, String, null], default: null },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
-  monthDays: { type: Array, default: () => [] },
-  onceDate: { type: String, default: '' }
+  monthDays: { type: Array, default: () => [] }
 })
 const emit = defineEmits([
-  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays','update:onceDate','openDatePicker'
+  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays'
 ])
 
 const selectedTab = computed({
@@ -158,11 +151,6 @@ const selectedDates = computed({
   set: v => emit('update:monthDays', Array.isArray(v) ? [...v] : [])
 })
 
-const selectedOnceDate = computed({
-  get: () => props.onceDate,
-  set: v => emit('update:onceDate', v || '')
-})
-
 const handleTabClick = (tab) => {
   selectedTab.value = tab
   if (tab === 'weekly') {
@@ -170,8 +158,6 @@ const handleTabClick = (tab) => {
     selectedWeeklyDays.value = []
   } else if (tab === 'monthly') {
     selectedDates.value = []
-  } else if (tab === 'once') {
-    selectedOnceDate.value = ''
   }
 }
 
