@@ -196,7 +196,7 @@ const selectDailyInterval = (n) => {
   if (num === 0) {
     dailyOnceOn.value = true
     emit('clearDates')
-    emit('lockDateToggles', { locked: true, message: '하루만일때는 선택할 수 없어요' })
+    emit('lockDateToggles', { locked: true })
     emit('openDatePicker', { mode: 'once' })
   } else {
     dailyOnceOn.value = false
@@ -241,3 +241,4 @@ const toggleDateSelection = (day) => {
   selectedDates.value = [...cur, day]
 }
 </script>
+
