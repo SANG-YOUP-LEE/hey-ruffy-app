@@ -5,22 +5,25 @@
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="startOn"
-            @update:modelValue="val => (startOn = val, onStartToggle(val))"
+            :modelValue="locked ? false : isStartDateOn"
+            :disabled="locked"
+            @update:modelValue="val => { if (!locked) isStartDateOn = val }"
           />
           <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
           <ToggleSwitch
             class="toggle"
-            :modelValue="endOn"
-            @update:modelValue="val => (endOn = val, onEndToggle(val))"
+            :modelValue="locked ? false : isEndDateOn"
+            :disabled="locked"
+            @update:modelValue="val => { if (!locked) isEndDateOn = val }"
           />
           <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
       </div>
 
-      <div v-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
+      <div v-if="locked" class="t_red01">{{ lockedMessage }}</div>
+      <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
     
       <div v-if="formattedDate" class="data_fixed">
         {{ formattedDate }}
@@ -47,7 +50,9 @@ import { usePopupUX } from '@/composables/usePopupUX'
 
 const props = defineProps({
   startDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
-  endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) }
+  endDate: { type: Object, default: () => ({ year: '', month: '', day: '' }) },
+  locked: { type: Boolean, default: false },
+  lockedMessage: { type: String, default: '하루만일때는 선택할 수 없어요' }
 })
 const emit = defineEmits(['update:startDate', 'update:endDate', 'requestClearOnce'])
 
@@ -66,8 +71,40 @@ const hasStart = computed(() => !!String(start.value?.year || '').trim())
 const hasEnd = computed(() => !!String(end.value?.year || '').trim())
 
 const showWarning = ref(false)
-const startOn = ref(false)
-const endOn = ref(false)
+
+const isStartDateOn = computed({
+  get: () => hasStart.value,
+  set: on => {
+    if (props.locked) return
+    if (on) {
+      if (!hasStart.value) start.value = getTodayObject()
+      showWarning.value = false
+      popupMode.value = 'start'
+      showDatePopup.value = true
+      lockScroll('.com_popup_wrap .popup_inner')
+    } else {
+      start.value = { year: '', month: '', day: '' }
+      isEndDateOn.value = false
+      end.value = { year: '', month: '', day: '' }
+    }
+  }
+})
+const isEndDateOn = computed({
+  get: () => hasEnd.value,
+  set: on => {
+    if (props.locked) return
+    if (on) {
+      if (!hasStart.value) { showWarning.value = true; return }
+      if (!hasEnd.value) end.value = { ...start.value }
+      showWarning.value = false
+      popupMode.value = 'end'
+      showDatePopup.value = true
+      lockScroll('.com_popup_wrap .popup_inner')
+    } else {
+      end.value = { year: '', month: '', day: '' }
+    }
+  }
+})
 
 const showDatePopup = ref(false)
 const popupMode = ref('start')
@@ -77,49 +114,30 @@ const getTodayObject = () => {
   return { year: String(d.getFullYear()), month: String(d.getMonth() + 1), day: String(d.getDate()) }
 }
 
-const onStartToggle = (on) => {
-  if (on) {
-    if (!hasStart.value) start.value = getTodayObject()
-    showWarning.value = false
-    popupMode.value = 'start'
-    showDatePopup.value = true
-    lockScroll('.com_popup_wrap .popup_inner')
-  } else {
-    start.value = { year: '', month: '', day: '' }
-    endOn.value = false
-    end.value = { year: '', month: '', day: '' }
-  }
+const onStartLabelClick = () => {
+  if (props.locked) return
+  isStartDateOn.value = !isStartDateOn.value
 }
-const onEndToggle = (on) => {
-  if (on) {
-    if (!hasStart.value) { showWarning.value = true; endOn.value = false; return }
-    if (!hasEnd.value) end.value = { ...start.value }
-    showWarning.value = false
-    popupMode.value = 'end'
-    showDatePopup.value = true
-    lockScroll('.com_popup_wrap .popup_inner')
-  } else {
-    end.value = { year: '', month: '', day: '' }
-  }
+const onEndLabelClick = () => {
+  if (props.locked) return
+  isEndDateOn.value = !isEndDateOn.value
 }
-
-const onStartLabelClick = () => { startOn.value = !startOn.value; onStartToggle(startOn.value) }
-const onEndLabelClick = () => { endOn.value = !endOn.value; onEndToggle(endOn.value) }
 
 const handleConfirm = val => {
-  if (popupMode.value === 'start') start.value = val
-  else end.value = val
+  if (popupMode.value === 'start') {
+    start.value = val
+  } else {
+    end.value = val
+  }
   showDatePopup.value = false
   unlockScroll()
 }
 const handleCancel = () => {
   if (popupMode.value === 'start') {
     start.value = { year: '', month: '', day: '' }
-    startOn.value = false
     emit('requestClearOnce')
   } else {
     end.value = { year: '', month: '', day: '' }
-    endOn.value = false
   }
   showDatePopup.value = false
   unlockScroll()
@@ -127,8 +145,6 @@ const handleCancel = () => {
 const resetDates = () => {
   start.value = { year: '', month: '', day: '' }
   end.value = { year: '', month: '', day: '' }
-  startOn.value = false
-  endOn.value = false
   emit('requestClearOnce')
 }
 const formattedDate = computed(() => {
