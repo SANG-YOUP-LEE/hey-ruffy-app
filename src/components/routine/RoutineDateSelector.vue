@@ -3,24 +3,34 @@
     <div class="detail_box">
       <div class="inner_fix01 date">
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isStartDateOn" :disabled="isLocked" />
+          <ToggleSwitch
+            class="toggle"
+            :modelValue="isLocked ? false : isStartDateOn"
+            :disabled="isLocked"
+            @update:modelValue="val => { if (!isLocked) isStartDateOn = val; else pingLockMsg() }"
+          />
           <span class="toggle-text" @click="onStartLabelClick">시작일 지정</span>
         </div>
         <div class="toggle-label-wrapper">
-          <ToggleSwitch class="toggle" v-model="isEndDateOn" :disabled="isLocked" />
+          <ToggleSwitch
+            class="toggle"
+            :modelValue="isLocked ? false : isEndDateOn"
+            :disabled="isLocked"
+            @update:modelValue="val => { if (!isLocked) isEndDateOn = val; else pingLockMsg() }"
+          />
           <span class="toggle-text" @click="onEndLabelClick">종료일 지정</span>
         </div>
       </div>
 
       <div v-if="showLockMsg" class="t_red01">{{ lockedText }}</div>
       <div v-else-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
-
+    
       <div v-if="formattedDate" class="data_fixed">
         {{ formattedDate }}
         <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
       </div>
     </div>
-
+    
     <DateTimePickerPopup
       v-if="showDatePopup"
       :mode="popupMode"
@@ -161,3 +171,4 @@ const formattedDate = computed(() => {
   return sTxt + eTxt
 })
 </script>
+
