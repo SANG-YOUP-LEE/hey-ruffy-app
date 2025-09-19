@@ -6,6 +6,7 @@
       <button id="v_detail01" @click="handleTabClick('daily')" :class="{ on: selectedTab === 'daily' }">일간</button>
       <button id="v_detail02" @click="handleTabClick('weekly')" :class="{ on: selectedTab === 'weekly' }">주간</button>
       <button id="v_detail03" @click="handleTabClick('monthly')" :class="{ on: selectedTab === 'monthly' }">월간</button>
+      <button id="v_detail04" @click="handleTabClick('once')" :class="{ on: selectedTab === 'once' }">날짜지정</button>
     </div>
 
     <div class="detail_box daily" v-show="selectedTab === 'daily'">
@@ -83,13 +84,18 @@
         </span>
       </div>
     </div>
+
+    <div class="detail_box once" v-show="selectedTab === 'once'">
+      <button class="d_s_btn" @click="emit('openDatePicker')">날짜 선택하기</button>
+      <p v-if="selectedOnceDate">{{ selectedOnceDate }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
-const dailyIntervalButtons1 = [{k:'오늘만',v:0},{k:'2일마다',v:2},{k:'3일마다',v:3}]
+const dailyIntervalButtons1 = [{k:'2일마다',v:2},{k:'3일마다',v:3}]
 const dailyIntervalButtons2 = [{k:'4일마다',v:4},{k:'5일마다',v:5},{k:'6일마다',v:6}]
 const weeklyButtons1 = ['매주','2주마다','3주마다']
 const weeklyButtons2 = ['4주마다','5주마다','6주마다']
@@ -101,10 +107,11 @@ const props = defineProps({
   daily: { type: [Number, String, null], default: null },
   weeks: { type: String, default: '' },
   weekDays: { type: Array, default: () => [] },
-  monthDays: { type: Array, default: () => [] }
+  monthDays: { type: Array, default: () => [] },
+  onceDate: { type: String, default: '' }
 })
 const emit = defineEmits([
-  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays'
+  'update:repeatType','update:daily','update:weeks','update:weekDays','update:monthDays','update:onceDate','openDatePicker'
 ])
 
 const selectedTab = computed({
@@ -112,7 +119,6 @@ const selectedTab = computed({
   set: v => emit('update:repeatType', v)
 })
 
-// ▶ daily=0(오늘만)도 유지되도록 숫자 변환 로직 보강
 const selectedDailyInterval = computed({
   get: () => {
     const n = (props.daily === '' || props.daily == null) ? null : Number(props.daily)
@@ -129,11 +135,6 @@ const selectedWeeklyMain = computed({
   set: v => emit('update:weeks', v ?? '')
 })
 
-/**
- * ✅ 핵심: 편집 진입 시 7개 요일만 저장돼 있어도 '매일'을 자동 ON으로 보이게 함
- * - GET: 요일 7개 모두 있으면 ['매일', ...요일들]로 변환해 UI에 표시
- * - SET: '매일'이 포함되면 저장 값은 7개 요일로 정규화
- */
 const selectedWeeklyDays = computed({
   get: () => {
     const arr = Array.isArray(props.weekDays) ? [...props.weekDays] : []
@@ -157,15 +158,20 @@ const selectedDates = computed({
   set: v => emit('update:monthDays', Array.isArray(v) ? [...v] : [])
 })
 
+const selectedOnceDate = computed({
+  get: () => props.onceDate,
+  set: v => emit('update:onceDate', v || '')
+})
+
 const handleTabClick = (tab) => {
   selectedTab.value = tab
-  if (tab === 'daily') {
-    // ❌ 여기서 daily를 null로 초기화하지 않는다 (오늘만=0 유지)
-  } else if (tab === 'weekly') {
+  if (tab === 'weekly') {
     selectedWeeklyMain.value = ''
     selectedWeeklyDays.value = []
   } else if (tab === 'monthly') {
     selectedDates.value = []
+  } else if (tab === 'once') {
+    selectedOnceDate.value = ''
   }
 }
 
@@ -199,10 +205,6 @@ const toggleWeeklyDay = (btn) => {
   }
 }
 
-/**
- * ✅ 월간 날짜는 최대 3개까지 선택 허용
- * - 4번째부터는 무시(필요하면 토스트 추가)
- */
 const toggleDateSelection = (day) => {
   const cur = Array.isArray(selectedDates.value) ? [...selectedDates.value] : []
   if (cur.includes(day)) {
