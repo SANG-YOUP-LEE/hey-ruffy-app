@@ -20,10 +20,11 @@
         </div>
       </div>
       <div v-if="showWarning" class="t_red01">먼저 시작일을 지정해 주세요.</div>
-    </div>
-    <div v-if="formattedDate" class="data_fixed">
-      {{ formattedDate }}
-      <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
+      
+      <div v-if="formattedDate" class="data_fixed">
+        {{ formattedDate }}<br />
+        <a href="#none" class="txt" @click.prevent="resetDates">지정일 취소하기</a>
+      </div>
     </div>
     <DateTimePickerPopup
       v-if="showDatePopup"
@@ -145,3 +146,4 @@ const formattedDate = computed(() => {
   return sTxt + eTxt
 })
 </script>
+
