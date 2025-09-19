@@ -52,6 +52,8 @@
         <RoutineDateSelector
           v-model:startDate="form.startDate"
           v-model:endDate="form.endDate"
+          :locked="dateTogglesLocked"
+          :lockedMessage="dateLockedMsg"
           @requestClearOnce="onRequestClearOnce"
         />
       </div>
@@ -184,6 +186,9 @@ const wrapRefMap = {
 }
 
 const showSinglePicker = ref(false)
+const dateTogglesLocked = ref(false)
+const dateLockedMsg = ref('하루만일때는 선택할 수 없어요')
+
 const hasSpecifiedDate = computed(() => {
   const y = String(form.startDate?.year || '').trim()
   const m = String(form.startDate?.month || '').trim()
@@ -191,9 +196,16 @@ const hasSpecifiedDate = computed(() => {
   return !!(y && m && d)
 })
 
-function onLockDateToggles() {}
+function onLockDateToggles({ locked, message } = {}) {
+  dateTogglesLocked.value = !!locked
+  if (message) dateLockedMsg.value = String(message)
+}
 
-function onOpenDatePicker() {
+function onOpenDatePicker(payload = {}) {
+  if (payload.mode === 'once') {
+    dateTogglesLocked.value = true
+    dateLockedMsg.value = '하루만일때는 선택할 수 없어요'
+  }
   showSinglePicker.value = true
   lockScroll('.com_popup_wrap .popup_inner')
 }
@@ -206,6 +218,7 @@ function onClearDates() {
 function onRequestClearOnce() {
   form.startDate = { year:'', month:'', day:'' }
   form.endDate = { year:'', month:'', day:'' }
+  dateTogglesLocked.value = false
 }
 
 function onSingleConfirm(val) {
@@ -235,6 +248,9 @@ watch(
   ([type, daily], [prevType, prevDaily]) => {
     const isOnceNow = type === 'daily' && Number(daily) === 0
     const wasOnce = prevType === 'daily' && Number(prevDaily) === 0
+    if (!isOnceNow) {
+      dateTogglesLocked.value = false
+    }
     if (type === 'daily' && wasOnce && !isOnceNow) {
       form.startDate = { year:'', month:'', day:'' }
       form.endDate = { year:'', month:'', day:'' }
