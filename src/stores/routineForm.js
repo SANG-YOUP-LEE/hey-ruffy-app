@@ -126,6 +126,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
     repeatMonthDays: [],
     startDate: null,
     endDate: null,
+    onceDate: null,
     alarmTime: null,
     isWalkModeOff: false,
     ruffy: null,
@@ -158,13 +159,12 @@ export const useRoutineFormStore = defineStore('routineForm', {
       const startObj = hasStart ? state.startDate : null
       const startISO = hasStart ? safeISOFromDateObj(startObj) : null
       const hasEnd = !!safeISOFromDateObj(state.endDate)
+      const hasOnce = !!safeISOFromDateObj(state.onceDate)
       const normalizedType = state.repeatType
       const dailyInterval =
         normalizedType === 'daily'
           ? (Number.isInteger(state.repeatDaily) ? state.repeatDaily : null)
           : null
-      const endForTodayOnly =
-        (normalizedType === 'daily' && dailyInterval === 0 && hasStart) ? startISO : null
       const weeklyDaysNum =
         normalizedType === 'weekly'
           ? (() => {
@@ -216,7 +216,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         repeatWeekDays: weeklyDaysNum,
         repeatMonthDays: monthDaysNorm,
         startDate: hasStart ? startObj : null,
-        endDate: endForTodayOnly ? startObj : (hasEnd ? state.endDate : null),
+        endDate: hasEnd ? state.endDate : null,
+        onceDate: hasOnce ? state.onceDate : null,
         alarmTime: normalizedAlarm,
         ruffy: state.isWalkModeOff ? null : state.ruffy,
         course: state.isWalkModeOff ? null : state.course,
@@ -227,7 +228,8 @@ export const useRoutineFormStore = defineStore('routineForm', {
         hasWalk: this.hasWalk,
         tz,
         ...(hasStart ? { start: startISO } : {}),
-        ...(endForTodayOnly ? { end: startISO } : (hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {})),
+        ...(hasEnd ? { end: safeISOFromDateObj(state.endDate) } : {}),
+        ...(hasOnce ? { once: safeISOFromDateObj(state.onceDate) } : {}),
         ...(anchorDateISO ? { anchorDate: anchorDateISO } : {})
       }
       return deepClean(cleaned)
@@ -254,6 +256,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatMonthDays = []
       this.startDate = null
       this.endDate = null
+      this.onceDate = null
       this.alarmTime = null
       this.isWalkModeOff = false
       this.ruffy = null
@@ -282,6 +285,7 @@ export const useRoutineFormStore = defineStore('routineForm', {
       this.repeatMonthDays = routine.repeatMonthDays || []
       this.startDate = routine.startDate || null
       this.endDate = routine.endDate || null
+      this.onceDate = routine.onceDate || null
       this.alarmTime = routine?.alarmTime ?? null
       this.isWalkModeOff = !(routine.ruffy && routine.course && Number.isInteger(routine.goalCount) && routine.goalCount > 0)
       this.ruffy = routine.ruffy || null
@@ -364,70 +368,11 @@ export const useRoutineFormStore = defineStore('routineForm', {
           return false
         }
       }
-      if (!Number.isInteger(this.colorIndex)) {
-        this.setError('priority','다짐 색상을 선택해주세요.')
-        return false
-      }
-      const sc = sanitizeComment(this.comment)
-      if (this.comment && this.comment.trim().length > 200) {
-        this.setError('comment','코멘트는 200자 이내로 입력해주세요.')
-        return false
-      }
-      if (sc === null) this.comment = ''
-      if (this.repeatType === 'daily' && Number.isInteger(this.repeatDaily) && this.repeatDaily === 0) {
-        const hm2 = parseHM(this.alarmTime)
-        if (hm2) {}
-      }
-      if (!this.isWalkModeOff) {
-        if (!this.ruffy) { this.setError('ruffy','러피를 선택해주세요.'); return false }
-        if (!this.course || String(this.course).trim() === '') { this.setError('course','코스를 선택해주세요.'); return false }
-        if (!Number.isInteger(this.goalCount) || this.goalCount <= 0) { this.setError('goal','목표 횟수를 선택해주세요.'); return false }
-      }
-      return true
-    },
-
-    async save() {
-      if (this.isSaving) return { ok:false }
-      this.isSaving = true
-      try {
-        if (!this.validate()) return { ok:false }
-        const auth = useAuthStore()
-        await auth.ensureReady()
-        const uid = auth.user?.uid
-        if (!uid) return { ok:false, error:'로그인이 필요합니다.' }
-        const basePayload = this.payload
-        const hmParsed = parseHM(this.alarmTime || basePayload.alarmTime)
-        const normalizedAlarm = hmParsed ? `${p2(hmParsed.hour)}:${p2(hmParsed.minute)}` : null
-        const payload = { ...basePayload }
-        if (normalizedAlarm) payload.alarmTime = normalizedAlarm
-        else delete payload.alarmTime
-        let res
-        if (this.mode === 'edit' && this.routineId) {
-          const rid = getBaseId(this.routineId)
-          await setDoc(
-            doc(db, 'users', uid, 'routines', rid),
-            { ...payload, updatedAt: serverTimestamp(), updatedAtMs: Date.now() },
-            { merge: true }
-          )
-          res = { ok:true, id: rid, data: payload }
-        } else {
-          const colRef = collection(db, 'users', uid, 'routines')
-          const nowMs = Date.now()
-          const docRef = await addDoc(colRef, {
-            ...payload,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            createdAtMs: nowMs,
-            updatedAtMs: nowMs
-          })
-          res = { ok:true, id: docRef.id, data: payload }
+      if (this.repeatType === 'once') {
+        if (!this.onceDate) {
+          this.setError('date','날짜를 선택해주세요.')
+          return false
         }
-        return res
-      } catch (e) {
-        return { ok:false, error: String(e && e.message ? e.message : e) }
-      } finally {
-        this.isSaving = false
       }
-    }
-  }
-})
+      if (!Number.isInteger(this.colorIndex)) {
+        this.setError('
