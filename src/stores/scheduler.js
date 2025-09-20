@@ -181,7 +181,9 @@ function projectRoutineCandidates(r, tz, hour, minute) {
       : undefined,
     startDate: safeISOFromDateObj(r.startDate) || r.start || todayISOstr,
     endDate: safeISOFromDateObj(r.endDate) || r.end || undefined,
-    alarm: { hour, minute }
+    alarm: { hour, minute },
+    // ★ 추가: N주 간격 주간 반복의 기준 정렬(anchor)
+    anchorDate: safeISOFromDateObj(r.anchorDate) || undefined,
   }
 
   const epochsMs = projectInstances(projDef, Date.now(), tz, PROJECTION_DAYS) || []
@@ -204,7 +206,7 @@ async function scheduleGlobal(candidates, uid) {
     const title = picked.find(x => x.routineId === routineId)?.title || '알림'
     const fireTimesEpoch = list.map(toEpochSec)
     await scheduleOnIOS({
-      // ★ 변경: scopedRoutineId 대신 uid+rid를 직접 전달
+      // scopedRoutineId 대신 uid+rid 직접 전달
       uid,
       rid: routineId,
       title,
@@ -274,7 +276,7 @@ export const useSchedulerStore = defineStore('scheduler', {
 
       for (const d of dailyQueue) {
         await scheduleOnIOS({
-          // ★ 변경: scopedRoutineId 대신 uid+rid를 직접 전달
+          // scopedRoutineId 대신 uid+rid 직접 전달
           uid,
           rid: d.routineId,
           title: d.title,
