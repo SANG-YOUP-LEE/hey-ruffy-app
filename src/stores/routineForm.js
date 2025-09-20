@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { db } from '@/firebase'
 import { doc, setDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { useAuthStore } from '@/stores/auth'
+import { scheduleOnIOS } from '@/utils/iosNotify' // ★ 추가: Firestore rid 확보 후 iOS 스케줄
 
 const KOR_TO_ICS = { 월:'MO', 화:'TU', 수:'WE', 목:'TH', 금:'FR', 토:'SA', 일:'SU' }
 const KOR_TO_NUM = { 월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 일:7 }
@@ -422,6 +423,26 @@ payload(state) {
           })
           res = { ok:true, id: docRef.id, data: payload }
         }
+
+        // ★ 추가: Firestore rid 확보 후에만 iOS 알림 스케줄 (임시 rt-… 절대 사용 금지)
+        try {
+          const ridForSchedule = res?.id
+          const repeatMode = payload.repeatType || 'once'
+          const [h, m] = (payload.alarmTime || '').split(':').map(n => parseInt(n, 10))
+          const hasHM = Number.isInteger(h) && Number.isInteger(m)
+
+          await scheduleOnIOS({
+            uid,
+            rid: ridForSchedule,
+            repeatMode,
+            hour: hasHM ? h : undefined,
+            minute: hasHM ? m : undefined,
+            title: payload.title,
+            repeatWeekDays: payload.repeatWeekDays,
+            daysOfMonth: payload.repeatMonthDays,
+          })
+        } catch (_) {}
+
         return res
       } catch (e) {
         return { ok:false, error: String(e && e.message ? e.message : e) }

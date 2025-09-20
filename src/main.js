@@ -16,13 +16,12 @@ import "./assets/css/m_routine.css";
 import "./assets/css/lnb.css";
 import "./assets/css/walk_status_pop.css";
 
-
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useAuthStore } from "@/stores/auth";
 import { App as CapApp } from "@capacitor/app";
 
-import { dumpPending as dumpPendingOnIOS } from "@/utils/iosNotify";
+import { dumpPending as dumpPendingOnIOS, baseOf as iosBaseOf } from "@/utils/iosNotify";
 
 // --- 부팅 에러 훅(필수 아님, 안정성 위해 최소만 유지) ---
 window.addEventListener("error", e => {
@@ -134,14 +133,16 @@ const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul"
 const toAtISO = (dateISO, hm) => (dateISO && hm) ? `${dateISO}T${p2(hm.hour)}:${p2(hm.minute)}:00+09:00` : null;
 
 // 한 개 루틴 예약 (중복 방지 위해 먼저 purge) ← 이제 실예약은 scheduler가 담당
+// ※ 여기서는 baseId 계산만 uid+rid 규칙으로 정리하고, 실제 예약은 하지 않음.
 async function scheduleOne(r) {
-  const rid = r.id ?? r.routineId; if (!rid) return;
-  const baseId = `routine-${rid}`;
+  const rid = r.id ?? r.routineId; 
+  if (!rid) return;
+  const uid = useAuthStore().user?.uid || null;
+  const baseId = uid ? iosBaseOf(uid, rid) : `routine-${rid}`; // 로그인 전 테스트 대비 레거시 보존
   const hm = parseHM(r.alarmTime); if (!hm) return;
 
-  // 과거: cancelOnIOS(baseId)로 purge → scheduleOnIOS(...) 호출
-  // 현재: 예약은 routines/scheduler가 처리하므로 여기서는 아무 것도 하지 않음.
-  // (남겨둔 이유: 해시/쿨다운 로직의 형태를 유지하기 위해)
+  // 과거: cancelOnIOS(baseId) → scheduleOnIOS(...)
+  // 현재: 예약은 routines/scheduler가 처리. 여기서는 형태만 유지.
   void baseId; void hm; // linter quiet
 }
 

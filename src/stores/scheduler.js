@@ -204,7 +204,9 @@ async function scheduleGlobal(candidates, uid) {
     const title = picked.find(x => x.routineId === routineId)?.title || '알림'
     const fireTimesEpoch = list.map(toEpochSec)
     await scheduleOnIOS({
-      routineId: scopedRoutineId(uid, routineId),
+      // ★ 변경: scopedRoutineId 대신 uid+rid를 직접 전달
+      uid,
+      rid: routineId,
       title,
       repeatMode: 'once',
       fireTimesEpoch,
@@ -272,7 +274,9 @@ export const useSchedulerStore = defineStore('scheduler', {
 
       for (const d of dailyQueue) {
         await scheduleOnIOS({
-          routineId: scopedRoutineId(uid, d.routineId),
+          // ★ 변경: scopedRoutineId 대신 uid+rid를 직접 전달
+          uid,
+          rid: d.routineId,
           title: d.title,
           repeatMode: 'daily',
           hour: d.hour,

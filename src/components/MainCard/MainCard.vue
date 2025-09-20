@@ -150,12 +150,8 @@ import { COURSE_OPTIONS } from '@/components/common/CourseSelector.vue'
 import ViewCardSet from '@/components/MainCard/viewCardSet.vue'
 import { useRouter } from 'vue-router'
 
-
-
 const router = useRouter()
 async function onClickEdit(routine) {
-
-  // 2) 그 다음 라우팅
   router.push({ name: 'RoutineEdit', params: { id: routine.id } })
 }
 
@@ -362,11 +358,13 @@ const cardKey = computed(() => {
   const u = props.routine?.updatedAtMs ?? props.routine?.createdAtMs ?? props.routine?.updatedAt?.seconds ?? props.routine?.updatedAt ?? ''
   return `${cardId.value}:${u}`
 })
-const baseId = computed(() => String(props.routine?.id || '').split('-')[0])
-const isSelected = computed(() => Array.isArray(props.deleteTargets) && props.deleteTargets.includes(baseId.value))
+
+// ✅ 변경: 삭제/선택은 파이어베이스 rid(그 자체)로만 처리
+const rid = computed(() => String(props.routine?.id || ''))
+const isSelected = computed(() => Array.isArray(props.deleteTargets) && props.deleteTargets.includes(rid.value))
 
 function handleChildSelect(checked) {
-  const id = baseId.value
+  const id = rid.value
   if (id) emit('toggleSelect', { id, checked })
 }
 

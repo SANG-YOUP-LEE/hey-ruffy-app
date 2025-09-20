@@ -138,10 +138,12 @@ export const useRoutinesStore = defineStore('routines', {
         console.warn('[routines.deleteAllRoutines] purgeAll failed or unavailable', e)
       }
 
+      // ▼ 변경: purge fallback 시 uid+rid 기반 baseId로 제거
       if (!didPurgeAll && allIds.length) {
         try {
           for (const rid of allIds) {
-            await purgeAllForBase(`routine-${rid}`, { force: true, maxDelete: 64 })
+            const baseId = uid ? `routine-u-${uid}__${rid}` : `routine-${rid}`
+            await purgeAllForBase(baseId, { force: true, maxDelete: 64 })
           }
         } catch (e) {
           console.warn('[routines.deleteAllRoutines] per-base purge fallback failed', e)
@@ -169,8 +171,10 @@ export const useRoutinesStore = defineStore('routines', {
       if (ridList.length) {
         try {
           await waitBridgeReady()
+          // ▼ 변경: uid+rid 기반 baseId로 정확히 purge
           for (const rid of ridList) {
-            await purgeAllForBase(`routine-${rid}`, { force: true, maxDelete: 64 })
+            const baseId = uid ? `routine-u-${uid}__${rid}` : `routine-${rid}`
+            await purgeAllForBase(baseId, { force: true, maxDelete: 64 })
           }
         } catch (e) {
           console.warn('[routines.deleteRoutines] ios purge failed', e)

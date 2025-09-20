@@ -5,23 +5,20 @@ import UIKit
 @objc(RuffyTimePickerPlugin)
 public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
 
-  // ✅ v6/v7 규약: 인스턴스 프로퍼티로 선언( static 아님 )
   public let identifier = "RuffyTimePickerPlugin"
   public let jsName = "RuffyTimePicker"
   public let pluginMethods: [CAPPluginMethod] = [
     CAPPluginMethod(name: "present", returnType: CAPPluginReturnPromise)
   ]
 
-  // MARK: - JS -> Native
   @objc public func present(_ call: CAPPluginCall) {
-    _ = call.getString("mode") // 무시(항상 time)
+    _ = call.getString("mode")
 
     let value = call.getString("value")
     let format = call.getString("format") ?? "yyyy-MM-dd'T'HH:mm:ss"
     let cancelTitle = call.getString("cancelButtonText") ?? "취소"
     let doneTitle = call.getString("doneButtonText") ?? "완료"
 
-    // 초기값 문자열을 오늘 날짜의 시:분으로 재구성
     let initialDate: Date? = {
       guard let s = value, !s.isEmpty else { return nil }
       let f = DateFormatter()
@@ -61,7 +58,6 @@ public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
   }
 }
 
-// MARK: - 단순 시각 선택 UI
 final class RuffyPickerViewController: UIViewController {
   var onCancel: (() -> Void)?
   var onDone: ((String) -> Void)?
@@ -75,6 +71,10 @@ final class RuffyPickerViewController: UIViewController {
   private let sheet = UIView()
   private let bar = UIStackView()
   private let picker = UIDatePicker()
+
+  override var canBecomeFirstResponder: Bool {
+    return false
+  }
 
   init(initialDate: Date?, returnFormat: String, cancelTitle: String, doneTitle: String) {
     self.initialDate = initialDate
