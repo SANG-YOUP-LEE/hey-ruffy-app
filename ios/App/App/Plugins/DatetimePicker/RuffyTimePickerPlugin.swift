@@ -1,10 +1,10 @@
+// ios/App/App/RuffyTimePickerPlugin.swift
 import Foundation
 import Capacitor
 import UIKit
 
 @objc(RuffyTimePickerPlugin)
 public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
-
   public let identifier = "RuffyTimePickerPlugin"
   public let jsName = "RuffyTimePicker"
   public let pluginMethods: [CAPPluginMethod] = [
@@ -13,7 +13,6 @@ public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
 
   @objc public func present(_ call: CAPPluginCall) {
     _ = call.getString("mode")
-
     let value = call.getString("value")
     let format = call.getString("format") ?? "yyyy-MM-dd'T'HH:mm:ss"
     let cancelTitle = call.getString("cancelButtonText") ?? "취소"
@@ -35,7 +34,9 @@ public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
     }()
 
     DispatchQueue.main.async { [weak self] in
-      guard let self else { return }
+      guard let self = self, let presenter = self.bridge?.viewController else { return }
+      presenter.view.endEditing(true)
+
       let vc = RuffyPickerViewController(
         initialDate: initialDate,
         returnFormat: format,
@@ -45,15 +46,15 @@ public class RuffyTimePickerPlugin: CAPPlugin, CAPBridgedPlugin {
       vc.modalPresentationStyle = .overFullScreen
 
       vc.onCancel = { [weak self] in
-        self?.bridge?.viewController?.dismiss(animated: true)
+        self?.bridge?.viewController?.dismiss(animated: false)
         call.reject("canceled", "canceled", nil, nil)
       }
       vc.onDone = { [weak self] iso in
-        self?.bridge?.viewController?.dismiss(animated: true)
+        self?.bridge?.viewController?.dismiss(animated: false)
         call.resolve(["value": iso])
       }
 
-      self.bridge?.viewController?.present(vc, animated: true)
+      presenter.present(vc, animated: false)
     }
   }
 }
@@ -72,9 +73,7 @@ final class RuffyPickerViewController: UIViewController {
   private let bar = UIStackView()
   private let picker = UIDatePicker()
 
-  override var canBecomeFirstResponder: Bool {
-    return false
-  }
+  override var canBecomeFirstResponder: Bool { false }
 
   init(initialDate: Date?, returnFormat: String, cancelTitle: String, doneTitle: String) {
     self.initialDate = initialDate
@@ -89,14 +88,15 @@ final class RuffyPickerViewController: UIViewController {
     super.viewDidLoad()
     view.backgroundColor = .clear
 
-    dim.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+    dim.backgroundColor = .black
     dim.frame = view.bounds
     dim.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    dim.alpha = 0
     dim.addTarget(self, action: #selector(tapCancel), for: .touchUpInside)
     view.addSubview(dim)
 
     sheet.backgroundColor = .systemBlue
-    sheet.layer.cornerRadius = 40
+    sheet.layer.cornerRadius = 50
     sheet.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
     sheet.layer.masksToBounds = true
     view.addSubview(sheet)
@@ -104,7 +104,6 @@ final class RuffyPickerViewController: UIViewController {
     bar.axis = .horizontal
     bar.alignment = .fill
     bar.distribution = .fillEqually
-    bar.spacing = 0
     sheet.addSubview(bar)
 
     let cancel = UIButton(type: .system)
@@ -131,28 +130,37 @@ final class RuffyPickerViewController: UIViewController {
       var c = DateComponents(); c.hour = 10; c.minute = 0
       if let d = Calendar.current.date(from: c) { picker.date = d }
     }
+
+    if #available(iOS 13.0, *) {
+      overrideUserInterfaceStyle = .dark
+      sheet.overrideUserInterfaceStyle = .dark
+      picker.overrideUserInterfaceStyle = .dark
+    }
+    picker.setValue(UIColor.white, forKey: "textColor")
+    picker.addTarget(self, action: #selector(noKeypad(_:)), for: .editingDidBegin)
+
     sheet.addSubview(picker)
   }
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    UIView.animate(withDuration: 0.3) { self.dim.alpha = 0.5 }
+  }
+
+  @objc private func noKeypad(_ sender: UIDatePicker) { sender.resignFirstResponder() }
+
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-    let totalH: CGFloat = 240
+    let totalH: CGFloat = 380
     let barH: CGFloat = 50
 
-    if sheet.layer.presentation() == nil {
-      sheet.frame = CGRect(x: 0, y: view.bounds.height, width: view.bounds.width, height: totalH)
-      UIView.animate(withDuration: 0.22) {
-        self.sheet.frame.origin.y = self.view.bounds.height - totalH
-      }
-    } else {
-      sheet.frame = CGRect(x: 0, y: view.bounds.height - totalH, width: view.bounds.width, height: totalH)
-    }
-
+    sheet.frame = CGRect(x: 0, y: view.bounds.height - totalH, width: view.bounds.width, height: totalH)
     bar.frame = CGRect(x: 0, y: 0, width: sheet.bounds.width, height: barH)
     picker.frame = CGRect(x: 0, y: bar.frame.maxY, width: sheet.bounds.width, height: totalH - barH)
   }
 
   @objc private func tapCancel() { onCancel?() }
+
   @objc private func tapDone() {
     let f = DateFormatter()
     f.calendar = .current; f.locale = .current; f.timeZone = .current
