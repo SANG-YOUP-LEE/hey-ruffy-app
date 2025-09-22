@@ -41,7 +41,7 @@
             비밀번호 재설정 메일 보내기
           </button>
 
-          <button
+        <button
             v-else-if="isResetMode && messageText"
             class="b_basic"
             @click="router.push('/login')"
@@ -60,6 +60,8 @@
         </div>
       </div>
     </div>
+
+    <button class="fab-back" @click="toIntro" aria-label="뒤로가기">←</button>
   </div>
 </template>
 
@@ -149,4 +151,28 @@ const login = async () => {
     await showError(getFirebaseErrorMessage(err.code))
   }
 }
+
+const toIntro = () => {
+  router.push({ name: 'intro' }) // 혹은: router.push('/')
+}
 </script>
+
+<style scoped>
+.fab-back{
+  position: fixed;
+  right: clamp(12px, 3vw, 20px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(12px, 3vw, 20px));
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #f2f4f8;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+  font-size: 20px;
+  line-height: 44px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 10;
+}
+.fab-back:active{ transform: translateY(1px); }
+</style>
